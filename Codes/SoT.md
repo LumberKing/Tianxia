@@ -9,6 +9,9 @@ Hun;hunnic
 Religions;code
 Hussite;hussite
 Tondrakian;tondrakian
+Lutheran;lutheran
+Zwinglian;zwinglian
+Calvinist;calvinist
 Kabbalah;kabbalah
 
 Events
