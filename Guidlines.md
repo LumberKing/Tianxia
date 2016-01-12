@@ -4,6 +4,7 @@ I am going to compile of things developers ought to follow to keep things consis
 
 - Always use the latest version for Developers
 - Do not change vanilla files or the title de jure layout without the Director's permission
+- Use correct parsing, ie follow the templates
 - Make sure you follow the reserved sets for the character IDs -- [pending]
 - If there are not enough then go to the stickied forum thread in regards to reserving IDs and request a set from the moderators, I will confirm for them to be added to the official list for this mod -- [pending]
 - When reserving IDs for culture groups, they are to be done in blocks: minimum of ten for dynasties and a minimum of thirty for characters, both of them to be per culture with the latter to be in blocks of ten (there are no maximums) -- [pending]
