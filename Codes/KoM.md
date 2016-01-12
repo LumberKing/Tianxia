@@ -5,6 +5,10 @@ Uygher;uygher
 Tocharianic;tocharianic
 Tocharian;tocharian
 
+Religions;code
+Reformed Bon/Dongba/Root West;tibetan_pagan_reformed
+Bon/Dongba/Root West;tibetan_pagan
+
 ID Reservations
 Mongol: 1000330000 - 1000330299
 Turkish: 1000330300 - 1000330349
