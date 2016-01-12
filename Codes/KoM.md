@@ -1,0 +1,20 @@
+Cultures;code
+Jurchen/Manchurian;jurchen
+Khitan;khitan
+Uygher;uygher
+Tocharianic;tocharianic
+Tocharian;tocharian
+
+ID Reservations
+Mongol: 1000330000 - 1000330299
+Turkish: 1000330300 - 1000330349
+Pecheneg: 1000330350 - 1000330409
+Karluk: 1000330410 - 1000330439
+Jurchen: 1000330440 - 1000330539
+Khitan: 1000330540 - 1000330639
+Uyghur: 1000330640 - 1000330739
+Tocharian: 1000330740 - 1000330789
+1000141000 - 1000141499
+
+Events
+Namespace: KoM
