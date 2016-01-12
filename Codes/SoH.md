@@ -60,8 +60,6 @@ Reformed Ryukyuan Pagan;ryukyuan_pagan_reformed
 Ryukyuan Pagan;ryukyuan_pagan
 Reformed Sanamahian;sanamahi_pagan_reformed
 Sanamahian;sanamahi_pagan
-Reformed Bon/Dongba/Root West;tibetan_pagan_reformed
-Bon/Dongba/Root West;tibetan_pagan
 Reformed Thanist;viet_pagan_reformed
 Thanist;viet_pagan
 Daoic;chinese_group
