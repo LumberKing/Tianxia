@@ -1,69 +1,60 @@
-
-# Targetted decisions are possible vs _all_ other characters and shown are in the Diplomacy View, not the Intrigue View. The taker is in the FROM scope.
+###########################################
 #
-# filter = [self/court/home_court/vassals/sub_realm/realm/dynasty/all] ('self' MUST be set for decisions targetting only the taker, the other filter types can be set to lessen CPU load)
-# ai_target_filter = [self/court/home_court/vassals/sub_realm/realm/dynasty/all] (which characters for which the AI evaluates the decision.)
-#	court: all characters in the AI's host court, including prisoners, and characters currently away (wards, prisoners, etc)
-#	home_court: all characters in the AI's home court, including prisoners, and characters currently away (wards, prisoners, etc)
-#	vassals: direct vassal rulers of the AI's employer
-#	sub_realm: all characters below the AI's employer
-#	realm: all characters in the same top realm as the AI
-#	dynasty: all members of the same dynasty
-#	rivals: your rivals plus any character you have an opinion modifier with 'crime = yes' set (the same set of characters the 'is_foe' trigger evaluates)
-#	all: all living characters (Avoid if possible. VERY CPU-HEAVY!)
-#	
+# Dynasty & Vassal Decisions for Sons of Heaven
+#
+###########################################
 
+# Written by Hansol "LumberKing" Lee
 
 targetted_decisions = {
 
-	vassal_fatwa_decision = {
-		filter = vassals				# Only those under me
-		ai_target_filter = vassals		# Only those under me
-
+	# Confucian and Taoic ruler tries to convince a dynasty member to lose the 'Decadent' Trait
+	convince_to_straighten_up_chinese = {
+		filter = dynasty
+		ai_target_filter = dynasty
+	
+		#hide_in_decisions_list = yes # This decision is shown in the Religion View for each decadent character
+		
 		from_potential = {
-			is_ruler = yes
-			uses_decadence = yes
-			any_courtier = {
-				has_job_title = job_spiritual
-				uses_decadence = yes
-			}
+			has_dlc = "Sword of Islam"
+			is_playable = yes
+			religion_group = chinese_group
+			#father_even_if_dead = {
+			#	OR = {
+			#		is_alive = no
+			#		is_playable = no
+			#	}
+			#}
 		}
 		
 		potential = {
-			vassal_of = FROM
-			is_ruler = yes
-			age = 16
-			is_landed = yes
+			is_female = no
 			prisoner = no
-			uses_decadence = yes
-			decadence = 40
-			NOT = { piety = 100 }
-			NOT = { dynasty = FROM }
-			NOT = { has_job_title = job_spiritual }
-			NOT = { has_character_modifier = fatwa_timer }
+			trait = decadent
+			has_regent = no
+			lower_tier_than = FROM
 		}
+		
 		allow = {
-			NOT = { FROM = { decadence = 40} }
-			FROM = { piety = 100 }
+			FROM = {
+				piety = 100
+				prisoner = no
+				NOT = { trait = decadent }
+			}
+			custom_tooltip = {
+				text = "NOT_ALREADY_NEGOTIATED"
+				NOT = { has_character_flag = negotiated_to_drop_decadence }
+			}
 		}
 		effect = {
-			add_character_modifier = {
-				name = fatwa_timer
-				duration = 1140
-				hidden = yes
+			set_character_flag = negotiated_to_drop_decadence
+			character_event = {
+				id = 1000213032
 			}
-			FROM = {
-				any_courtier = {
-					limit = { has_job_title = job_spiritual }
-					character_event = { id = 88750 days = 3 tooltip = "EVTTOOLTIP88750" }
-				}
-			}
-			hidden_tooltip = {
-				FROM = {
-					character_event = { id = 88754 }
-				}
-			}
+			
+			FROM = { piety = -100 }
 		}
+		
 		revoke_allowed = {
 			always = no
 		}
@@ -71,12 +62,16 @@ targetted_decisions = {
 			factor = 1
 			modifier = {
 				factor = 0
-				reverse_opinion = { who = FROM value = 40 }
+				any_dynasty_member = {
+					ai = no
+					higher_tier_than = ROOT
+					same_realm = ROOT
+				}
 			}
 		}
 	}
 	
-	vassal_castrate_decision = {
+	chinese_castrate_decision = {
 		filter = court
 		ai_target_filter = court
 
@@ -84,7 +79,6 @@ targetted_decisions = {
 			has_dlc = "Legacy of Rome"
 			is_ruler = yes
 			OR = {
-				culture_group = byzantine
 				culture_group = chinese
 				culture_group = koreanic				
 				culture_group = iranian
@@ -219,14 +213,14 @@ targetted_decisions = {
 		}
 	}
 	
-	vassal_blinding_decision = {
+	chinese_blinding_decision = {
 		filter = court
 		ai_target_filter = court
 	
 		from_potential = {
 			has_dlc = "Legacy of Rome"
 			is_ruler = yes
-			culture_group = byzantine
+			culture_group = iranian
 		}
 	
 		potential = {
@@ -344,176 +338,4 @@ targetted_decisions = {
 			}
 		}
 	}
-	
-	
-	vassal_zun_judgement_decision = {
-		filter = court
-		ai_target_filter = court
-	
-		from_potential = {
-			is_ruler = yes
-			OR = {
-				religion = zun_pagan
-				religion = zun_pagan_reformed
-			}
-		}
-	
-		potential = {
-			vassal_of = FROM
-			host = { character = FROM }
-			prisoner = yes
-			NOT = { has_character_modifier = zun_judgement }
-		}
-		allow = {
-			prisoner = yes
-		}
-		effect = {
-			character_event = { id = CM.15000 days = 1 }
-		}
-		revoke_allowed = {
-			always = no
-		}
-		ai_will_do = {
-			factor = 10000000
-			
-			modifier = {
-				factor = 0
-				reverse_opinion = { who = FROM value = 40 }
-			}
-			modifier = {
-				factor = 0
-				FROM = { trait = kind }
-			}
-			modifier = {
-				factor = 2
-				FROM = { trait = cruel }
-			}
-			modifier = {
-				factor = 0.4 # Less likely to do it
-			}
-			modifier = {
-				factor = 2
-				is_pretender = yes
-				FROM = {
-					OR = {
-						is_pretender = yes
-						is_primary_heir = yes
-					}
-				}
-			}
-		}
-	}
-	
-	prisoner_to_oubilette = {
-		filter = court
-		ai_target_filter = court
-
-		from_potential = {
-			ai = no
-		}
-	
-		potential = {
-			host = { character = FROM }
-			prisoner = yes
-			NOT = { has_character_modifier = the_oubliette }
-		}
-		allow = {
-			prisoner = yes
-		}
-		effect = {
-			add_character_modifier = { 
-				name = the_oubliette
-				duration = -1
-			}
-			hidden_tooltip = {
-				remove_character_modifier = the_dungeon
-				remove_character_modifier = house_arrest
-			}
-		}
-		
-		revoke_allowed = {
-			always = no
-		}
-		
-		ai_will_do = {
-			factor = 0
-		}
-	}
-	
-	prisoner_to_dungeon = {
-		filter = court
-		ai_target_filter = court
-
-		from_potential = {
-			ai = no
-		}
-	
-		potential = {
-			host = { character = FROM }
-			prisoner = yes
-			OR = {
-				has_character_modifier = the_oubliette
-				has_character_modifier = house_arrest
-			}
-		}
-		allow = {
-			prisoner = yes
-		}
-		effect = {
-			add_character_modifier = { 
-				name = the_dungeon
-				duration = -1
-			}
-			hidden_tooltip = {
-				remove_character_modifier = the_oubliette
-				remove_character_modifier = house_arrest
-			}
-		}
-		
-		revoke_allowed = {
-			always = no
-		}
-		
-		ai_will_do = {
-			factor = 0
-		}
-	}
-	
-	prisoner_to_suite = {
-		filter = court
-		ai_target_filter = court
-
-		from_potential = {
-			ai = no
-		}
-	
-		potential = {
-			host = { character = FROM }
-			prisoner = yes
-			NOT = { has_character_modifier = house_arrest }
-		}
-		allow = {
-			prisoner = yes
-		}
-		effect = {
-			add_character_modifier = { 
-				name = house_arrest
-				duration = -1
-			}
-			hidden_tooltip = {
-				remove_character_modifier = the_oubliette
-				remove_character_modifier = the_dungeon
-				character_event = { id = ZE.12219 } # Loses pet rat
-			}
-		}
-		
-		revoke_allowed = {
-			always = no
-		}
-		
-		ai_will_do = {
-			factor = 0
-		}
-	}
-	
 }
