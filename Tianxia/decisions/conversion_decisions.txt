@@ -1,7 +1,11 @@
-decisions = {
+targetted_decisions = {
 	
 	convert_to_liege_religion = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			ai = no
 			is_playable = yes
@@ -79,7 +83,131 @@ decisions = {
 				limit = { liege = { trait = dhyana_amidist } }
 				add_trait = dhyana_amidist
 			}
-			piety = 200
+		}
+		revoke_allowed = {
+			always = no
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	convert_to_liege_religion_on_liege = {
+		only_playable = yes
+		
+		filter = liege
+		ai_target_filter = liege
+		
+		from_potential = {
+			ai = no
+			is_playable = yes
+			controls_religion = no
+		}
+		potential = {
+			NOT = { character = FROM }
+			NOT = { religion = FROM }
+			religion_group = FROM
+		}
+		
+		allow = {
+			FROM = { NOT = { trait = zealous } }
+		}
+		
+		effect = {
+			FROM = {
+				prestige = -500
+				piety = 250
+				if = {
+					limit = { higher_tier_than = BARON }
+					religion_authority = {
+						modifier = ruler_converted_from
+					}
+				}
+				religion = ROOT
+				if = {
+					limit = { higher_tier_than = BARON }
+					hidden_tooltip = {
+						religion_authority = {
+							modifier = ruler_converted_to
+						}
+					}
+				}
+				if = {
+					limit = { ROOT = { trait = shaivist_hindu } }
+					add_trait = shaivist_hindu
+				}
+				if = {
+					limit = { ROOT = { trait = vaishnavist_hindu } }
+					add_trait = vaishnavist_hindu
+				}
+				if = {
+					limit = { ROOT = { trait = shaktist_hindu } }
+					add_trait = shaktist_hindu
+				}
+				if = {
+					limit = { ROOT = { trait = smartist_hindu } }
+					add_trait = smartist_hindu
+				}
+				if = {
+					limit = { ROOT = { trait = mahayana_buddhist } }
+					add_trait = mahayana_buddhist
+				}
+				if = {
+					limit = { ROOT = { trait = vajrayana_buddhist } }
+					add_trait = vajrayana_buddhist
+				}
+				if = {
+					limit = { ROOT = { trait = theravada_buddhist } }
+					add_trait = theravada_buddhist
+				}
+				if = {
+					limit = { ROOT = { trait = digambara_jain } }
+					add_trait = digambara_jain
+				}
+				if = {
+					limit = { ROOT = { trait = svetambara_jain } }
+					add_trait = svetambara_jain
+				}
+				if = {
+					limit = { liege = { trait = buddhaksetra_amidist } }
+					add_trait = buddhaksetra_amidist
+				}
+				if = {
+					limit = { liege = { trait = dhyana_amidist } }
+					add_trait = dhyana_amidist
+				}
+			}
+		}
+		revoke_allowed = {
+			always = no
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	convert_to_liege_culture_on_liege = {
+		only_playable = yes
+		
+		filter = liege
+		ai_target_filter = liege
+		
+		from_potential = {
+			is_playable = yes
+		}
+		
+		potential = {
+			NOT = { character = FROM }
+			NOT = { culture = FROM }
+		}
+		allow = {
+			FROM = { prestige = 200 }
+		}
+		effect = {
+			FROM = {
+				prestige = -200
+				culture = ROOT
+			}
 		}
 		revoke_allowed = {
 			always = no
@@ -91,6 +219,10 @@ decisions = {
 	
 	convert_to_liege_culture = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			liege = {
@@ -117,6 +249,10 @@ decisions = {
 	
 	convert_to_local_culture = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			is_nomadic = no
@@ -264,6 +400,10 @@ decisions = {
 	
 	convert_to_local_religion = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			ai = no
 			is_playable = yes
@@ -408,6 +548,32 @@ decisions = {
 					add_trait = sympathy_judaism
 				}
 			}
+			if = {
+				limit = {
+					religion_group = indian_group
+					NOT = { trait = sympathy_indian }
+					capital_scope = {
+						NOT = { religion_group = ROOT }
+					}
+				}
+				random = {
+					chance = 60
+					add_trait = sympathy_indian
+				}
+			}
+			if = {
+				limit = {
+					religion_group = chinese_group
+					NOT = { trait = sympathy_chinese }
+					capital_scope = {
+						NOT = { religion_group = ROOT }
+					}
+				}
+				random = {
+					chance = 60
+					add_trait = sympathy_chinese
+				}
+			}
 			capital_scope = {
 				reverse_religion = ROOT
 			}
@@ -427,6 +593,10 @@ decisions = {
 	
 	convert_to_parent_religion = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			ai = no
 			is_playable = yes
@@ -475,228 +645,12 @@ decisions = {
 		}
 	}
 	
-	# Weak or unreformed religions are allowed to convert to the attacker's religion when under Holy War
-	convert_to_attacker_religion = {
-		is_high_prio = yes
-		only_playable = yes
-		
-		potential = {
-			is_playable = yes
-			OR = {
-				AND = {
-					religion_group = pagan_group
-					is_reformed_religion = no
-					NOT = { religion_authority = 0.4 }
-				}
-				NOT = { religion_authority = 0.3 }
-			}
-			controls_religion = no
-			
-			war = yes
-			any_war = {
-				defender = { character = ROOT }
-				attacker = {
-					NOT = { religion = ROOT }
-					religion_authority = 0.5
-					OR = {
-						NOT = { religion_group = pagan_group }
-						is_reformed_religion = yes
-					}
-				}
-				OR = {
-					using_cb = crusade
-					using_cb = religious
-					using_cb = muslim_invasion
-					using_cb = buddhist_holy_war
-					using_cb = pagan_holy_war
-				}
-			}
-		}
-		
-		allow = {
-			NOT = { trait = zealous }
-		}
-		
-		effect = {
-			prestige = -500
-			piety = 100
-			religion_authority = {
-				modifier = ruler_converted_from
-			}
-			
-			hidden_tooltip = {
-				any_war = {
-					limit = {
-						defender = { character = ROOT }
-						attacker = {
-							NOT = { religion = ROOT }
-							religion_authority = 0.5
-							OR = {
-								NOT = { religion_group = pagan_group }
-								is_reformed_religion = yes
-							}
-						}
-						OR = {
-							using_cb = crusade
-							using_cb = religious
-							using_cb = muslim_invasion
-							using_cb = buddhist_holy_war
-							using_cb = pagan_holy_war
-						}
-					}
-					attacker = {
-						save_event_target_as = enemy_attacker
-					}
-				}
-			}
-			
-			if = {
-				limit = { event_target:enemy_attacker = { NOT = { religion_group = ROOT } } }
-				if = {
-					limit = { religion_group = pagan_group }
-					add_trait = sympathy_pagans
-				}
-				
-				if = {
-					limit = { religion_group = zoroastrian_group }
-					add_trait = sympathy_zoroastrianism
-				}
-				
-				if = {
-					limit = { religion_group = christian }
-					add_trait = sympathy_christendom
-				}
-				
-				if = {
-					limit = { religion_group = muslim }
-					add_trait = sympathy_islam
-				}
-				
-				if = {
-					limit = { religion_group = jewish_group }
-					add_trait = sympathy_judaism
-				}
-				
-				if = {
-					limit = { religion_group = indian_group }
-					add_trait = sympathy_indian
-				}
-			}
-			
-			event_target:enemy_attacker = {
-				hidden_tooltip = {
-					letter_event = { id = 62800 }
-					ROOT = {
-						any_courtier = {
-							limit = {
-								religion = ROOT
-								employer = { character = ROOT }
-							}
-							religion = PREVPREV
-						}
-						any_vassal = {
-							limit = {
-								is_playable = no
-								religion = ROOT
-							}
-							religion = PREVPREV
-						}
-						capital_scope = {
-							if = {
-								limit = { religion = ROOT }
-								religion = PREVPREV
-							}
-						}
-					}
-				}
-				reverse_religion = ROOT 
-			}
-			
-			hidden_tooltip = {
-				religion_authority = {
-					modifier = ruler_converted_to
-				}
-			}
-		}
-		
-		revoke_allowed = {
-			always = no
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0.1
-			}
-			modifier = {
-				factor = 0.05
-				is_hard_to_convert = yes
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					any_war = {
-						defender = { character = ROOT }
-						attacker = {
-							NOT = { religion = ROOT }
-							religion_authority = 0.45
-							OR = {
-								NOT = { religion_group = pagan_group }
-								is_reformed_religion = yes
-							}
-						}
-						OR = {
-							using_cb = crusade
-							using_cb = religious
-							using_cb = muslim_invasion
-							using_cb = buddhist_holy_war
-							using_cb = pagan_holy_war
-						}
-						war_score = 50
-						thirdparty_title_scope = {
-							ROOT = {
-								primary_title = {
-									title = PREVPREV
-								}
-							}
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 2
-				any_war = {
-					defender = { character = ROOT }
-					attacker = {
-						NOT = { religion = ROOT }
-						religion_authority = 0.45
-						OR = {
-							NOT = { religion_group = pagan_group }
-							is_reformed_religion = yes
-						}
-					}
-					OR = {
-						using_cb = crusade
-						using_cb = religious
-						using_cb = muslim_invasion
-						using_cb = buddhist_holy_war
-						using_cb = pagan_holy_war
-					}
-					war_score = 75
-					thirdparty_title_scope = {
-						ROOT = {
-							primary_title = {
-								title = PREVPREV
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	
 	convert_to_swedish = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			culture = norse
@@ -800,6 +754,10 @@ decisions = {
 	}
 	convert_to_norwegian = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			culture = norse
@@ -904,6 +862,10 @@ decisions = {
 	}
 	convert_to_danish = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			culture = norse
@@ -1007,6 +969,10 @@ decisions = {
 	}
 	convert_to_norman = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			culture = norse
@@ -1109,6 +1075,10 @@ decisions = {
 	
 	convert_to_reformed = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			is_heretic = yes
@@ -1235,6 +1205,9 @@ decisions = {
 	convert_to_hinduism = {
 		only_playable = yes
 		icon_religion = hindu
+		
+		filter = self
+		ai_target_filter = self
 	
 		potential = {
 			ai = no
@@ -1287,6 +1260,9 @@ decisions = {
 	convert_to_buddhism = {
 		only_playable = yes
 		icon_religion = buddhist
+		
+		filter = self
+		ai_target_filter = self
 	
 		potential = {
 			ai = no
@@ -1339,6 +1315,9 @@ decisions = {
 	convert_to_jainism = {
 		only_playable = yes
 		icon_religion = jain
+		
+		filter = self
+		ai_target_filter = self
 	
 		potential = {
 			ai = no
@@ -1390,6 +1369,10 @@ decisions = {
 
 	convert_indian_branch = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			ai = no
 			is_playable = yes
@@ -1433,6 +1416,9 @@ decisions = {
 	# Carolingian renaissance - Old Frankish conversion to French
 	convert_to_french = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
 	
 		potential = {
 			is_playable = yes
@@ -1519,6 +1505,10 @@ decisions = {
 	# Pictish character may convert to Scottish
 	convert_to_scottish = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			culture = pictish
@@ -1604,6 +1594,10 @@ decisions = {
 	# Arabic or Visigothic character may convert to Andalusian
 	convert_to_andalusian = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			OR = {
@@ -1696,6 +1690,10 @@ decisions = {
 	# Visigothic character may convert to Castillan
 	convert_to_castillan = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			culture = visigothic
@@ -1782,6 +1780,10 @@ decisions = {
 	# Visigothic character may convert to catalan
 	convert_to_catalan = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			culture = visigothic
@@ -1868,6 +1870,10 @@ decisions = {
 	# Suebi or Visigothic character may convert to Portuguese
 	convert_to_portuguese = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			OR = {
@@ -1960,6 +1966,10 @@ decisions = {
 	# Old Frankish or Old Saxon character may convert to dutch
 	convert_to_dutch = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			OR = {
@@ -2049,6 +2059,10 @@ decisions = {
 	# Lombard character may convert to italian
 	convert_to_italian = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			culture = lombard
@@ -2154,6 +2168,10 @@ decisions = {
 	# Visigothic character may convert to occitan
 	convert_to_occitan = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			culture = visigothic
@@ -2240,6 +2258,10 @@ decisions = {
 	# East Slavic character may convert to Russian
 	convert_to_russian = {
 		only_playable = yes
+		
+		filter = self
+		ai_target_filter = self
+		
 		potential = {
 			is_playable = yes
 			culture_group = east_slavic
@@ -2321,119 +2343,6 @@ decisions = {
 			}
 		}
 	}
-
-	# Byzantine Emperor may renounce Iconoclasm
-	renounce_iconoclasm = {
-		only_playable = yes
-	
-		icon_religion = orthodox
-		
-		potential = {
-			is_playable = yes
-			religion = iconoclast
-			has_dlc = "Charlemagne"
-			has_landed_title = e_byzantium
-			NOT = { has_character_flag = renounced_iconoclasm }
-		}
-		allow = {
-			has_landed_title = e_byzantium
-			has_landed_title = c_byzantion
-			any_realm_province = { religion = orthodox }
-			NOT = { trait = zealous }
-			war = no
-			NOT = { year = 900 }
-		}
-		effect = {
-			set_character_flag = renounced_iconoclasm
-			religion_authority = {
-				modifier = ruler_converted_from
-			}
-			religion = orthodox
-			hidden_tooltip = {
-				religion_authority = {
-					modifier = ruler_converted_to
-				}
-			}
-			custom_tooltip = {
-				text = renounce_iconoclasm_muslim_opinion_tooltip
-				hidden_tooltip = {
-					any_independent_ruler = {
-						any_realm_lord = {
-							limit = { religion_group = muslim }
-							opinion = {
-								who = ROOT
-								modifier = opinion_idolater
-								months = 120
-							}
-						}
-					}
-				}
-			}
-			custom_tooltip = {
-				text = renounce_iconoclasm_province_tooltip
-				hidden_tooltip = {
-					any_realm_province = {
-						if = {
-							limit = { religion = orthodox }
-							add_province_modifier = {
-								name = appeased_religious
-								months = 60
-							}
-						}
-					}
-				}
-			}
-			k_papal_state = {
-				holder_scope = {
-					opinion = {
-						who = ROOT
-						modifier = opinion_renounced_iconoclasm
-						months = 120
-					}
-				}
-			}
-			hidden_tooltip = {
-				any_realm_character = {
-					limit = {
-						religion = iconoclast
-						NOT = { character = ROOT }
-						can_change_religion = yes
-					}
-					character_event = { id = CM.4200 }
-				}
-			}
-			activate_title = { title = k_orthodox status = yes }
-			d_iconoclast = {
-				holder_scope = {
-					k_orthodox = {
-						grant_title = PREV
-					}
-					unsafe_religion = orthodox  # Use this effect with care
-					set_defacto_liege = ROOT
-				}
-				hidden_tooltip = { unsafe_destroy_landed_title = THIS }
-			}
-			activate_title = { title = d_iconoclast status = no }
-		}
-		revoke_allowed = {
-			always = no
-		}
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0.1 # slow it down
-			}
-			modifier = {
-				factor = 3
-				trait = cynical
-			}
-		}
-	}
-}
-
-
-
-targetted_decisions = {
 
 	convert_to_spouse_religion= {
 		only_playable = yes
@@ -2662,6 +2571,342 @@ targetted_decisions = {
 		
 		ai_will_do = {
 			factor = 0
+		}
+	}
+}
+
+decisions = {
+	
+	# Weak or unreformed religions are allowed to convert to the attacker's religion when under Holy War
+	convert_to_attacker_religion = {
+		only_playable = yes
+		
+		is_high_prio = yes
+		
+		potential = {
+			is_playable = yes
+			OR = {
+				AND = {
+					religion_group = pagan_group
+					is_reformed_religion = no
+					NOT = { religion_authority = 0.4 }
+				}
+				NOT = { religion_authority = 0.3 }
+			}
+			controls_religion = no
+			
+			war = yes
+			any_war = {
+				defender = { character = ROOT }
+				attacker = {
+					NOT = { religion = ROOT }
+					religion_authority = 0.5
+					OR = {
+						NOT = { religion_group = pagan_group }
+						is_reformed_religion = yes
+					}
+				}
+				OR = {
+					using_cb = crusade
+					using_cb = religious
+					using_cb = muslim_invasion
+					using_cb = buddhist_holy_war
+					using_cb = pagan_holy_war
+				}
+			}
+		}
+		
+		allow = {
+			NOT = { trait = zealous }
+		}
+		
+		effect = {
+			prestige = -500
+			piety = 100
+			religion_authority = {
+				modifier = ruler_converted_from
+			}
+			
+			hidden_tooltip = {
+				any_war = {
+					limit = {
+						defender = { character = ROOT }
+						attacker = {
+							NOT = { religion = ROOT }
+							religion_authority = 0.5
+							OR = {
+								NOT = { religion_group = pagan_group }
+								is_reformed_religion = yes
+							}
+						}
+						OR = {
+							using_cb = crusade
+							using_cb = religious
+							using_cb = muslim_invasion
+							using_cb = buddhist_holy_war
+							using_cb = pagan_holy_war
+						}
+					}
+					attacker = {
+						save_event_target_as = enemy_attacker
+					}
+				}
+			}
+			
+			if = {
+				limit = { event_target:enemy_attacker = { NOT = { religion_group = ROOT } } }
+				if = {
+					limit = { religion_group = pagan_group }
+					add_trait = sympathy_pagans
+				}
+				
+				if = {
+					limit = { religion_group = zoroastrian_group }
+					add_trait = sympathy_zoroastrianism
+				}
+				
+				if = {
+					limit = { religion_group = christian }
+					add_trait = sympathy_christendom
+				}
+				
+				if = {
+					limit = { religion_group = muslim }
+					add_trait = sympathy_islam
+				}
+				
+				if = {
+					limit = { religion_group = jewish_group }
+					add_trait = sympathy_judaism
+				}
+				
+				if = {
+					limit = { religion_group = indian_group }
+					add_trait = sympathy_indian
+				}
+				if = {
+					limit = { religion_group = chinese_group }
+					add_trait = sympathy_chinese
+				}
+			}
+			
+			event_target:enemy_attacker = {
+				hidden_tooltip = {
+					letter_event = { id = 62800 }
+					ROOT = {
+						any_courtier = {
+							limit = {
+								religion = ROOT
+								employer = { character = ROOT }
+							}
+							religion = PREVPREV
+						}
+						any_vassal = {
+							limit = {
+								is_playable = no
+								religion = ROOT
+							}
+							religion = PREVPREV
+						}
+						capital_scope = {
+							if = {
+								limit = { religion = ROOT }
+								religion = PREVPREV
+							}
+						}
+					}
+				}
+				reverse_religion = ROOT 
+			}
+			
+			hidden_tooltip = {
+				religion_authority = {
+					modifier = ruler_converted_to
+				}
+			}
+		}
+		
+		revoke_allowed = {
+			always = no
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.1
+			}
+			modifier = {
+				factor = 0.05
+				is_hard_to_convert = yes
+			}
+			modifier = {
+				factor = 0
+				NOT = {
+					any_war = {
+						defender = { character = ROOT }
+						attacker = {
+							NOT = { religion = ROOT }
+							religion_authority = 0.45
+							OR = {
+								NOT = { religion_group = pagan_group }
+								is_reformed_religion = yes
+							}
+						}
+						OR = {
+							using_cb = crusade
+							using_cb = religious
+							using_cb = muslim_invasion
+							using_cb = buddhist_holy_war
+							using_cb = pagan_holy_war
+						}
+						war_score = 50
+						thirdparty_title_scope = {
+							ROOT = {
+								primary_title = {
+									title = PREVPREV
+								}
+							}
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 2
+				any_war = {
+					defender = { character = ROOT }
+					attacker = {
+						NOT = { religion = ROOT }
+						religion_authority = 0.45
+						OR = {
+							NOT = { religion_group = pagan_group }
+							is_reformed_religion = yes
+						}
+					}
+					OR = {
+						using_cb = crusade
+						using_cb = religious
+						using_cb = muslim_invasion
+						using_cb = buddhist_holy_war
+						using_cb = pagan_holy_war
+					}
+					war_score = 75
+					thirdparty_title_scope = {
+						ROOT = {
+							primary_title = {
+								title = PREVPREV
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	# Byzantine Emperor may renounce Iconoclasm
+	renounce_iconoclasm = {
+		only_playable = yes
+	
+		icon_religion = orthodox
+		
+		potential = {
+			is_playable = yes
+			religion = iconoclast
+			has_dlc = "Charlemagne"
+			has_landed_title = e_byzantium
+			NOT = { has_character_flag = renounced_iconoclasm }
+		}
+		allow = {
+			has_landed_title = e_byzantium
+			has_landed_title = c_byzantion
+			any_realm_province = { religion = orthodox }
+			NOT = { trait = zealous }
+			war = no
+			NOT = { year = 900 }
+		}
+		effect = {
+			set_character_flag = renounced_iconoclasm
+			religion_authority = {
+				modifier = ruler_converted_from
+			}
+			religion = orthodox
+			hidden_tooltip = {
+				religion_authority = {
+					modifier = ruler_converted_to
+				}
+			}
+			custom_tooltip = {
+				text = renounce_iconoclasm_muslim_opinion_tooltip
+				hidden_tooltip = {
+					any_independent_ruler = {
+						any_realm_lord = {
+							limit = { religion_group = muslim }
+							opinion = {
+								who = ROOT
+								modifier = opinion_idolater
+								months = 120
+							}
+						}
+					}
+				}
+			}
+			custom_tooltip = {
+				text = renounce_iconoclasm_province_tooltip
+				hidden_tooltip = {
+					any_realm_province = {
+						if = {
+							limit = { religion = orthodox }
+							add_province_modifier = {
+								name = appeased_religious
+								months = 60
+							}
+						}
+					}
+				}
+			}
+			k_papal_state = {
+				holder_scope = {
+					opinion = {
+						who = ROOT
+						modifier = opinion_renounced_iconoclasm
+						months = 120
+					}
+				}
+			}
+			hidden_tooltip = {
+				any_realm_character = {
+					limit = {
+						religion = iconoclast
+						NOT = { character = ROOT }
+						can_change_religion = yes
+					}
+					character_event = { id = CM.4200 }
+				}
+			}
+			activate_title = { title = k_orthodox status = yes }
+			d_iconoclast = {
+				holder_scope = {
+					k_orthodox = {
+						grant_title = PREV
+					}
+					unsafe_religion = orthodox  # Use this effect with care
+					set_defacto_liege = ROOT
+				}
+				hidden_tooltip = { unsafe_destroy_landed_title = THIS }
+			}
+			activate_title = { title = d_iconoclast status = no }
+		}
+		revoke_allowed = {
+			always = no
+		}
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.1 # slow it down
+			}
+			modifier = {
+				factor = 3
+				trait = cynical
+			}
 		}
 	}
 }

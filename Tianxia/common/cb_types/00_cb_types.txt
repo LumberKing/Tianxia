@@ -1405,7 +1405,11 @@ other_claim_on_liege = {
 					}
 				}
 			}
-			ROOT = { abdicate = yes }
+			ROOT = {
+				abdicate = {
+					move = no
+				}
+			}
 		}
 		
 		usurp_title_plus_barony_if_unlanded_and_vassals_no_adj = { target = ROOT type = claim }
@@ -3219,6 +3223,10 @@ crusade = {
 
 	on_reverse_demand = {
 		ROOT = {
+			transfer_scaled_wealth = {
+				to = FROM
+				value = 4.0
+			}
 			piety = -200
 			religion_authority = {
 				modifier = lost_crusade
@@ -3288,6 +3296,22 @@ crusade = {
 					}
 					participation_scaled_decadence = -100
 				}
+			}
+		}
+		any_attacker = {
+			limit = {
+				character = ROOT
+				uses_decadence = yes
+			}
+			participation_scaled_decadence = 35
+		}
+		any_attacker = {
+			limit = {
+				NOT = { character = ROOT }
+				uses_decadence = yes
+			}
+			hidden_tooltip = { 
+				participation_scaled_decadence = 35
 			}
 		}
 	}
@@ -3562,6 +3586,22 @@ religious = {
 					}
 					participation_scaled_decadence = -10
 				}
+			}
+		}
+		any_attacker = {
+			limit = {
+				character = ROOT
+				uses_decadence = yes
+			}
+			participation_scaled_decadence = 20
+		}
+		any_attacker = {
+			limit = {
+				NOT = { character = ROOT }
+				uses_decadence = yes
+			}
+			hidden_tooltip = { 
+				participation_scaled_decadence = 20
 			}
 		}
 		ROOT = { 
@@ -4371,6 +4411,18 @@ overthrow_ruler = {
 		any_defender = {
 			limit = { NOT = { character = FROM } }
 			hidden_tooltip = { participation_scaled_prestige = 50 }
+		}
+		hidden_tooltip = {
+			any_attacker = {
+				limit = { liege = { character = FROM } }
+				prisoner = FROM
+				disband_event_forces = faction_revolters
+				add_character_modifier = {
+					name = faction_council_power_ultimatum_timer
+					hidden = yes
+					duration = 3650
+				}
+			}
 		}
 	}
 
@@ -6706,10 +6758,6 @@ seize_trade_post = {
 			mercenary = no
 		}
 		FROM = {
-			OR = {
-				is_merchant_republic = yes
-				is_patrician = yes
-			}
 			NOT = { is_liege_or_above = ROOT }
 		}
 	}
@@ -6740,10 +6788,6 @@ seize_trade_post = {
 			NOT = { is_liege_or_above = FROM }
 		}
 		FROM = {
-			OR = {
-				is_merchant_republic = yes
-				is_patrician = yes
-			}
 			NOT = { is_liege_or_above = ROOT }
 		}
 	}
@@ -8836,18 +8880,6 @@ dejure_county_claim = {
 			}
 		}
 		
-		OR = {
-			ROOT = {
-				NOT = { same_liege = FROM }
-			}
-			FROM = {
-				any_demesne_title = {
-					NOT = { title = PREVPREV }
-					higher_tier_than = BARON
-				}
-			}
-		}
-
 		NOT = {
 			OR = {
 				ROOT = {
@@ -9109,7 +9141,26 @@ dejure_county_claim = {
 	
 	defender_ai_defeat_worth = {
 		factor = 100
-	}	
+	}
+	
+	ai_will_do = { 
+		factor = 1
+		
+		modifier = {
+			factor = 0 # AIs will not take the last counties off their liege's direct vassals
+			ROOT = {
+				same_liege = FROM
+			}
+			FROM = {
+				NOT = {
+					any_demesne_title = {
+						tier = count
+						NOT = { title = PREVPREV }
+					}
+				}
+			}
+		}
+	}
 }
 
 # 44
@@ -9129,6 +9180,7 @@ dejure_barony_claim = {
 	
 	can_use = {
 		FROM = {
+			NOT = { is_vassal_or_below = ROOT }
 			OR = {
 				holy_order = no
 				NOT = { religion = ROOT }
@@ -9872,6 +9924,7 @@ shia_caliphate_rising = {
 						remove_holding_modifier = recently_conquered
 						refill_holding_levy = yes
 					}
+					wealth = 500
 				}
 				
 				if = {
@@ -13936,7 +13989,10 @@ powerful_vassal_takeover_war = { # Started from faction
 						}
 					}
 				}
-				grant_title = PREVPREV
+				usurp_title = {
+					target = PREVPREV
+					type = faction_demand
+				}
 				save_event_target_as = new_title_holder
 				hidden_tooltip = {
 					any_attacker = {
