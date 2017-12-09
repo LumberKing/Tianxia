@@ -212,10 +212,15 @@ k_norway;NOR;Norway;Norway Kingdom
 k_finland;FIN;Finland;Finland Kingdom
 d_finland;FIN;Finland;Finland Duchy
 c_finland;FIN;Finland;Finland County
+k_sapmi;SMI;Sami;Sápmi Kingdom
+d_sapmi;SMI;Sami;Sápmi Duchy
+c_lappland;SMI;Sami;Sápmi County
+d_kola;SMI;Sami;Kola Sami Duchy
 d_holstein;SHL;Holstein;Holstein Duchy
 c_holstein;SHL;Holstein;Holstein County
 d_gotland;GOT;Gotland;Gotland Duchy
 c_gotland;GOT;Gotland;Gotland County
+d_iceland;ICE;Iceland;Iceland Duchy
 
 # Balkans
 e_byzantium;BYZ;ByzantineEmpire;Byzantium Empire
@@ -227,6 +232,7 @@ k_serbia;SER;Serbia;Serbia Kingdom
 k_hungary;HUN;Hungary;Hungary Kingdom
 k_ottoman;TUR;Ottomans;Ottoman Kingdom
 d_achaia;ACH;Principality of Achaia;Achaia Duchy
+c_achaia;ACH;Principality of Achaia;Achaia County
 d_athens;ATH;Duchy of Athens;Athens Duchy
 c_atheniai;ATH;Duchy of Athens;Athens County
 k_bosnia;BOS;Bosnia;Bosnia Kingdom
@@ -242,6 +248,8 @@ k_dacia;WAL;Wallachia;Wallachia Kingdom
 d_wallachia;WAL;Wallachia;Wallachia Duchy
 c_naxos;NAX;Naxos;Naxos County
 c_ragusa;RAG;Ragusa;Ragusa County
+c_cephalonia;CEP;Corfu;Corfu County
+d_slovakia;SLO;Nyitra;Slovakia Duchy
 
 # British Isles
 e_britannia;GBR;GreatBritain;Great Britain
@@ -251,10 +259,6 @@ k_scotland;SCO;Scotland;Scotland Kingdom
 k_wales;WLS;Wales;Wales Kingdom
 d_cornwall;CRN;Cornwall;Cornwall Duchy
 c_cornwall;CRN;Cornwall;Cornwall County
-d_lancaster;LAN;Lancaster;Lancaster Duchy
-c_lancaster;LAN;Lancaster;Lancaster County
-d_york;YOR;York;York Duchy
-c_york;YOR;York;York County
 d_northumberland;NOL;Northumberland;Northumberland Duchy
 c_northumberland;NOL;Northumberland;Northumberland County
 d_connacht;CNN;Connacht;Connacht Duchy
@@ -263,9 +267,16 @@ d_munster;MNS;Munster;Munster Duchy
 c_tyrone;TYR;Tyrone;Tyrone County
 c_connacht;CNN;Connacht;Connacht County
 c_leinster;LEI;Leinster;Leinster County
+d_meath;MTH;Meath;Meath Duchy
+d_ulster;ULS;Ulster;Ulster Duchy
+c_ulster;ULS;Ulster;Ulster County
+c_desmond;DMS;Desmond;Desmond County
+c_kildare;KID;Kildare;Kildare County
+d_moray;HSC;Highlands;Highlands Duchy
 
 # Eastern Europe
 k_lithuania;LIT;Lithuania;Lithuania Kingdom
+d_lithuanians;LIT;Lithuania;Lithuania Duchy
 k_poland;POL;Poland;Poland Kingdom
 d_krakow;KRA;Krakow;Krakow Duchy
 c_krakowskie;KRA;Krakow;Krakow County
@@ -276,6 +287,16 @@ c_kurs;KUR;Kurland;Kurland County
 d_teutonic_order;TEU;Teutonicorder;Teutonic Order
 c_danzig;DNZ;Danzig;Danzig County
 c_zemigalians;RIG;Riga;Riga County
+k_ruthenia;UKR;Ukraine;Ruthenia Kingdom
+d_kiev;KIE;Kiev;Kiev Duchy
+c_kiev;KIE;Kiev;Kiev County
+d_chernigov;CHR;Chernigov;Chernigov Duchy
+c_chernigov;CHR;Chernigov;Chernigov County
+d_moldau;MOL;Moldavia;Moldau Duchy
+d_lithuanians;LIT;Lithuania;Lithuania Duchy
+c_kurs;KUR;Courland;Kurland County
+d_esthonia;EST;Estonia;Estonia Duchy
+d_livonia;LVA;Livonia;Livonia Duchy
 
 # France
 e_france;FRA;France;France Empire
@@ -286,6 +307,7 @@ d_alsace;ALS;Alsace;Alsace Duchy
 c_armagnac;AMG;Armagnac;Armagnac County
 d_auvergne;AUV;Auvergne;Auvergne Duchy
 c_auvergne;AUV;Auvergne;Auvergne County
+d_gascogne;GUY;Gascony;Gascony Duchy
 k_burgundy;BUR;Burgundy;Burgundy Kingdom
 d_burgundy;BUR;Burgundy;Burgundy Duchy
 d_champagne;CHP;Champagne;Champagne Duchy
@@ -302,6 +324,9 @@ d_toulouse;TOU;Toulouse;Toulouse Duchy
 c_toulouse;TOU;Toulouse;Toulouse County
 d_berry;BER;Berry;Berry Duchy
 c_venaissin;AVI;Avignon;Venaissin County
+d_bourbon;BOU;Bourbonnais;Bourbonnais Duchy
+c_bourbon;BOU;Bourbonnais;Bourbonnais County
+c_boulogne;PIC;Picardy;Picardy County
 
 # HRE
 c_julich;AAC;Aachen;Aachen County
@@ -316,6 +341,7 @@ d_brandenburg;BRA;Brandenburg;Brandenburg Duchy
 c_brandenburg;BRA;Brandenburg;Brandenburg County
 c_bremen;BRE;Bremen;Bremen County
 d_brunswick;BRU;Brunswick;Brunswick Duchy
+c_braunschweig;BRU;Brunswick;Brunswick County
 e_germany;GER;Germany;Germany Empire
 k_germany;GER;Germany;Germany Kingdom
 d_koln;KOL;Cologne;Cologne Duchy
@@ -349,6 +375,13 @@ c_trier;TRI;Trier;Trier County
 c_ulm;ULM;Ulm;Ulm County
 c_wurzburg;WBG;Wurzburg;Wurzburg County
 c_wurttemberg;WUR;Wurttemberg;Wurttemberg County
+c_kleve;KLE;Kleves;Kleve County
+c_ostfriesland;EFR;East Frisia;Ostfriesland County
+d_swiss;SWI;Switzerland;Switzerland
+c_nassau;NSA;Nassau;Nassau County
+c_kempten;AUG;Augsburg;Augsburg County
+c_celle;HAN;Hannover;Hannover County
+c_nurnberg;NUM;Nuremberg;Nuremberg County
 
 # Spain
 k_aragon;ARA;Aragon;Aragon Kingdom
@@ -364,6 +397,12 @@ k_portugal;POR;Portugal;Portugal Kingdom
 e_spain;SPA;Spain;Spain Empire
 k_spanish_galicia;GAL;Galicia;Galicia Kingdom
 d_galicia;GAL;Galicia;Galicia Duchy
+k_leon;LON;Leon;León Kingdom
+d_leon;LON;Leon;León Duchy
+c_leon;LON;Leon;León County
+k_andalusia;ADU;Andalusia;Andalusia Kingdom
+d_barcelona;CAT;Catalunya;Catalunya Duchy
+c_barcelona;CAT;Catalunya;Catalunya County
 
 # Italy
 c_aquileia;AQU;Aquileia;Aquileia County
@@ -390,12 +429,15 @@ c_savoie;SAV;Savoy;Savoy County
 k_trinacria;SIC;Sicily;Sicily Kingdom
 d_sicily;SIC;Sicily;Sicily Duchy
 c_siena;SIE;Siena;Siena County
-c_firenze;FLO;Florence:Florence County
 d_toscana;TUS;Tuscany;Tuscany Duchy
 c_urbino;URB;Urbino;Urbino County
 k_venice;VEN;Venice;Venice Kingdom
 d_venice;VEN;Venice;Venice Duchy
 c_venezia;VEN;Venice;Venice County
+c_monferrato;MFA;Montferrat;Monferrato County
+c_lucca;LUC;Lucca;Lucca County
+c_malta;JAI;Malta;Malta County
+c_firenze;LAN;Florence;Florence County
 
 # Low Countries
 d_brabant;BRB;Brabant;Brabant Duchy
@@ -406,6 +448,7 @@ c_gelre;GEL;Gelre;Gelre County
 c_hainaut;HAI;Hainut;Hainut County
 d_holland;HOL;Holland;Holland Duchy
 c_holland;HOL;Holland;Holland County
+c_sticht;UTR;Utrecht;Utrecht County
 c_liege;LIE;Liege;Liege County
 d_luxembourg;LUX;Luxembourgh;Luxembourg Duchy
 c_luxembourg;LUX;Luxembourgh;Luxembourg County
@@ -417,7 +460,8 @@ d_armenia;ARM;Armenia;Armenia Duchy
 d_crimea;CRI;Crimea;Crimea Duchy
 c_crimea;CRI;Crimea;Crimea Duchy
 k_georgia;GEO;Georgia;Georgia Kingdom
-e_golden_horde;GOL;GoldenHorde;Golden Horde Empire
+e_golden_horde;GLH;GoldenHorde;Golden Horde Empire
+#e_golden_horde;GOL;GreatHorde;Great Horde Empire
 c_qazan;KAZ;Kazan;Qazan County
 d_moskva;MOS;Muscowy;Muscowy Duchy
 c_moskva;MOS;Muscowy;Muscowy County
@@ -437,6 +481,15 @@ c_polotsk;PLT;Polotsk;Polotsk County
 k_perm;PRM;Perm;Perm Kingdom
 d_perm;PRM;Perm;Perm Duchy
 c_perm;PRM;Perm;Perm County
+c_lukomorie;ZAZ;Zaporozhie;Zaporozhie County
+c_theodosia;FEO;Theodoro;Theodoro County
+c_bashkirs;BSH;Bashkiria;Bashkiria County
+d_volhynia;VOL;Volyn;Volyn Duchy
+c_mozhaysk;OKA;Oka;Oka County
+d_beloozero;BLO;Beloozero;Beloozero Duchy
+c_beloozero;BLO;Beloozero;Beloozero County  
+d_rostov;RSO;Rostov;Rostov Duchy
+c_rostov;RSO;Rostov;Rostov County
 
 # Arabia
 e_arabia;ARB;Arabai;Arabia Empire
@@ -444,13 +497,31 @@ k_arabia;ARB;Arabai;Arabia Kingdom
 c_al_hasa;ALH;Haasa;Haasa County
 d_oman;OMA;Oman;Oman Duchy
 c_hijaz;HED;Hedjaz;Hedjaz County
+k_yemen;YEM;Yemen;Yemen Kingdom
+c_mahra;MHR;Mahra;Mahra County
+c_najran;NJR;Najran;Najran County
+d_hadramut;HDR;Hadramut;Hadramut Duchy
+c_aden;ADE;Aden;Aden County
+d_medina;MDA;Medina;Medina Duchy
+c_medina;MDA;Medina;Medina County
+c_luristan;LRI;Luristan;Luristan County
+d_fars;FRS;Fars;Fars Duchy
+d_gilan;KRY;Gilan;Gilan Duchy
+c_gilan;KRY;Gilan;Gilan County
+d_jibal;QOM;Qom;Qom Duchy
+d_tabriz;TBR;Tabriz;Tabriz Duchy
+c_tabriz;TBR;Tabriz;Tabriz County
+d_amman;ALH;Haasa;Haasa Duchy
+d_basra;BSR;Basra;Basra Duchy
+c_basra;BSR;Basra;Basra County
+d_azerbaijan;SRV;Shirvanshah;Shirvanshah Duchy
+d_kerman;KRM;Kerman;Kerman Duchy
+c_kerman;KRM;Kerman;Kerman County
 
 # Asia Minor
 k_aydin;AYD;Aydin;Aydin Kingdom
 k_candar;CND;Candar;Candar Kingdom
-k_mesopotamia;IRQ;Iraq;Iraq Kingdom
-d_mesopotamia;IRQ;Iraq;Iraq Duchy
-c_mesopotamia;IRQ;Iraq;Iraq County
+k_iraq;IRQ;Iraq;Iraq Kingdom
 k_karaman;KAR;Karaman;Karaman Kingdom
 k_syria;SYR;Syria;Syria Kingdom
 d_syria;SYR;Syria;Syria Duchy
@@ -459,6 +530,10 @@ k_trebizond;TRE;Trebizond;Trebizond Kingdom
 d_trebizond;TRE;Trebizond;Trebizond Duchy
 k_saruhan;SRU;Saruhan;Saruhan Kingdom
 k_mentese;MEN;Mentese;Mentese Kingdom
+k_rum;RUM;Rum;Rum Kingdom
+c_imeretia;IME;Imereti;Imereti County
+c_shirvan;SRV;Shirvan;Shirvan County
+k_eretnid;ERE;Eretna;Eretna Kingdom
 
 # Maghreb
 d_mamluks;MAM;Burgi;Burgi (Mamluks)
@@ -468,14 +543,30 @@ d_tripolitania;TRP;Tripoli;Tripoli Duchy
 c_tripolitana;TRP;Tripoli;Tripoli County
 d_alger;ALG;Algiers;Algiers Duchy
 d_marrakech;MOR;Morocco;Morocco Duchy
+k_egypt;EGY;Egypt;Egypt Kingdom
+d_tunis;TUN;Tunisia;Tunis Duchy
+c_tunis;TUN;Tunisia;Tunis County
+c_al_djazair;ALG;Algiers;Algiers County
+d_kabylia;KBA;Kabylia;Kabylia Duchy
+c_mzab;MZB;Mzab;Mzab County
+d_tlemcen;TLC;Tlemcen;Tlemcen Duchy
+c_tlemcen;TLC;Tlemcen;Tlemcen County
+d_mazandaran;TAB;Tabarestan;Tabarestan Duchy
+c_tabaristan;TAB;Tabarestan;Tabarestan County
+k_germiyan;GRM;Germiyan;Germiyan Kingdom
 
 # Central Asia
-k_khiva;KHI;Khiva;Khiva Kingdom
+k_khiva;TRS;Transoxiana;Transoxiana Kingdom
 d_khiva;KHI;Khiva;Khiva Duchy
 c_maverannahr;KHI;Khiva;Khiva County
-e_tibet;TIB;Tibet;Tibet Empire
-k_tibet;TIB;Tibet;Tibet Kingdom
+d_sibir;SIB;Sibir;Sibir Duchy
+c_sibir;SIB;Sibir;Sibir County
+c_kazakh;KZH;Khazak Horde;Kazakh County
+c_bukhara;BUK;Bukhara;Bukhara County
+c_qazan;KAZ;Kazan;Qazan County
 e_chagatai;CHG;Chagatai;Chagatai Empire
+k_khorasan;KHO;Khorasan;Khorasan Kingdom
+d_ladakh;LDK;Ladakh;Ladakh Duchy
 
 # East Asia
 e_japan;JAP;Japan;Japan Empire
@@ -505,15 +596,24 @@ e_mexikha;AZT;Aztec;Aztec Empire
 e_cuskha;INC;Inca;Inca Empire
 
 # Africa
-k_egypt;EGY;Egypt;Egypt Kingdom
-d_tunis;TUN;Tunisia;Tunis Duchy
-c_tunis;TUN;Tunisia;Tunis County
 e_abyssinia;ETH;Ethiopia;Ethiopia Empire
 k_abyssinia;ETH;Ethiopia;Ethiopia Kingdom
 e_mali;MAL;Mali;Mali Empire
 k_mali;MAL;Mali;Mali Kingdom
 d_mali;MAL;Mali;Mali Duchy
 c_mali;MAL;Mali;Mali County
+d_sennar;ALO;Alodia;Alodia Duchy
+c_alodia;ALO;Alodia;Alodia County
+c_makuria;MAK;Makuria;Makuria County
+d_songhay;SON;Songhai;Songhay Duchy
+d_afar;AFA;Afar;Afar Duchy
+c_harer;HAR;Harar;Harar County
+d_timbuktu;TMB;Timbuktu;Timbuktu Duchy
+c_timbuktu;TMB;Timbuktu;Timbuktu County
+d_semien;BTI;Semien;Semien Duchy
+c_semien;BTI;Semien;Semien County
+d_damot;DAM;Damot;Damot Duchy
+c_damot;DAM;Damot;Damot County
 
 # Mongols
 e_mongol_empire;KHA;MongolKhanate;Mongol Khanate
@@ -522,6 +622,7 @@ k_mongolia;KHA;MongolKhanate;Mongol Kingdom
 # India
 e_india;HIN;Hindustan;Hindustan Empire
 k_baluchistan;BAL;Baluchistan;Baluchistan Kingdom
+d_baluchistan;BAL;Baluchistan;Baluchistan Duchy
 c_baluchistan;BAL;Baluchistan;Baluchistan County
 k_afghanistan;AFG;Aghanistan;Afghanistan Kingdom
 e_bengal;BNG;Bengal;Bengal Empire
@@ -544,6 +645,37 @@ c_kasmira;KSH;Kashmir;Kasmira County
 k_delhi;DLH;Delhi;Delhi Kingdom
 c_delhi;DLH;Delhi;Delhi County
 k_gondwana;GDW;Gondwana;Gondwana Kingdom
+d_sistan;SIS;Sistan;Sistan Duchy
+e_rajastan;HIN;Hindustan;Hindustan Empire
+c_delhi;DLH;Delhi;Delhi County
+k_punjab;PUN;Punjab;Punjab Kingdom
+k_karnata;KRK;Carnatic;Karnata Kingdom
+c_gwalior;GWA;Gwalior;Gwalior County
+c_jaunpur;JNP;Jaunpur;Jaunpur County
+c_venadu;VND;Venad;Venadu County
+d_vidharba;BRR;Berar;Berar Duchy
+e_deccan;DEC;Deccan;Deccan Empire
+c_madurai;MAD;Madurai;Madurai County
+d_multan;MUL;Multan;Multan Duchy
+c_multan;MUL;Multan;Multan County
+d_jharkand;NGP;Jharkhand;Jharkhand Duchy
+c_jharkand;NGP;Jharkhand;Jharkhand County
+c_maldives;DGL;Maldives;Maldives County
+e_deccan;DEC;Deccan;Deccan Empire
+k_andhra;YOR;Andhra;Andhra Kingdom
+
+#Tibet
+e_tibet;TIB;Tibet;Tibet Empire 
+k_guge;GUG;Guge;Guge Kingdom
+d_lhasa;UTS;Utsang;Lhasa Duchy
+d_bhutan;BHU;Bhutan;Bhutan Duchy
+d_kham;KAM;Mdokhams;Kham Duchy
+k_kashmir;KSH;Kashmir;Kashmir Kingdom
+d_kashmir;KSH;Kashmir;Kashmir Duchy
+c_kangra;KGR;Kangra;Kangra County
+c_garhwal;GHR;Garhwal;Garhwal County
+k_nepal;NPL;Nepal;Nepal Kingdom
+k_yarlung;UTS;Utsang;Utsang Kingdom
 
 # China
 k_jin;JIN;Jin;Jin Kingdom
@@ -569,15 +701,17 @@ d_hashshashin;HAH;Hashshashin;Hashshashin Special Case
 e_roman_empire;ROM;RomanEmpire;Roman Empire Special Case
 k_israel;ISR;Israel;Kingdom of Israel Special Case
 d_knights_templar;TEM;KnightsTemplar;Knights Templar Special Case
+c_yarkand;KAS;Yarkand;Yarkand County
+e_china_west_governor;MNG;Ming;Ming
 
 
 CK2RELIGION;EU4RELIGION;Custom Defined;Comment
 
 # Pagan
 norse_pagan;animism;0;Norse
-norse_pagan_reformed;norse_pagan_reformed;1;Reformed Norse
-tengri_pagan;shamanism;0;Tengrist
-tengri_pagan_reformed;tengri_pagan_reformed;1;Reformed Tengrist
+norse_pagan_reformed;norse_pagan_reformed;0;Reformed Norse
+tengri_pagan;tengri_pagan_reformed;0;Reformed Tengrist
+tengri_pagan_reformed;tengri_pagan_reformed;0;Reformed Tengrist
 baltic_pagan;animism;0;Romuva
 baltic_pagan_reformed;baltic_pagan_reformed;1;Reformed Romuva
 finnish_pagan;animism;0;Suomenusko
@@ -588,23 +722,24 @@ inca;inca_reformed;1;Reformed Inca
 inca_reformed;inca_reformed;1;Reformed Inca
 slavic_pagan;animism;0;Slavic
 slavic_pagan_reformed;slavic_pagan_reformed;1;Reformed Slavic
-west_african_pagan;animism;0;West African
-west_african_pagan_reformed;west_african_pagan_reformed;1;Reformed West African
-south_african_pagan;shamanism;0;South African
-south_african_pagan_reformed;south_african_pagan_reformed;1;Reformed South African
+west_african_pagan;shamanism;0;Fetishism
+west_african_pagan_reformed;shamanism;0;Fetishism
+south_african_pagan;shamanism;0;Fetishism
+south_african_pagan_reformed;shamanism;0;Fetishism
 hellenic_pagan;hellenic_pagan;1;Hellenic
 pagan;pagan;1;Pagan
 zun_pagan;zun_pagan_reformed;1;Zunist
 zun_pagan_reformed;zun_pagan_reformed;1;Zunist
+bon;bon;1;Bon
 ainu_pagan;animism;0;Ainu
 ainu_pagan_reformed;ainu_pagan_reformed;1;Reformed Ainu
 chinese_pagan;confucian;0;Shenist
 chinese_pagan_reformed;chinese_pagan_reformed;1;Reformed Shenist
 dayak_pagan;hindu;0;Kaharingan
 dayak_pagan_reformed;dayak_pagan_reformed;1;Reformed Kaharingan
-japanese_pagan;shamanism;0;Shinto
+japanese_pagan;fetishism;0;Shinto
 japanese_pagan_reformed;shinto;0;Reformed Shinto
-korean_pagan;shamanism;0;Muist
+korean_pagan;fetishism;0;Muist
 korean_pagan_reformed;korean_pagan_reformed;1;Reformed Muist
 melanesian_pagan;animism;0;Melanesian
 melanesian_pagan_reformed;melanesian_pagan_reformed;1;Reformed Melanesian
@@ -612,17 +747,16 @@ ryukyuan_pagan;shinto;0;Ryukyuan
 ryukyuan_pagan_reformed;ryukyuan_pagan_reformed;1;Reformed Ryukyuan
 sanamahi_pagan;hindu;0;Sanamahi
 sanamahi_pagan_reformed;sanamahi_pagan_reformed;1;Reformed Sanamahi
-tibetan_pagan;shamanism;0;Bon
-tibetan_pagan_reformed;tibetan_pagan_reformed;1;Reformed Bon
 viet_pagan;confucian;0;Thanist
 viet_pagan_reformed;viet_pagan_reformed;1;Reformed Thanist
 
-# Persian (Dualistic)
-zoroastrian;zoroastrian;1;Zoroastrian
-mazdaki;zoroastrian;1;Zoroastrian
-zurvanite;zoroastrian;1;Zoroastrian
+# Gnostic
+zoroastrian;zoroastrian;0;Zoroastrian
+mazdaki;zoroastrian;0;Zoroastrian
+zurvanite;zoroastrian;0;Zoroastrian
 manichean;manichean;1;Manichaean
 mandean;manichean;1;Manichaean
+khurmazta;manichean;1;Manichaean
 
 # Christianity
 catholic;catholic;0;Catholic
@@ -656,19 +790,55 @@ ibadi;ibadi;0;Ibadi
 kharijite;ibadi;0;Ibadi
 
 # Judaism
-jewish;jewish;1;Jewish
-samaritan;jewish;1;Jewish
-karaite;jewish;1;Jewish
-kabbalah;jewish;1;Jewish
+jewish;jewish;0;Jewish
+samaritan;jewish;0;Jewish
+karaite;jewish;0;Jewish
+kabbalah;jewish;0;Jewish
 
-# Indian (Dharmic)
+# Indian/Chinese
 buddhist;buddhism;0;Theravada
 hindu;hinduism;0;Hindu
 jain;jain;1;Jain
+taoist;confucianism;0;Confucianism
 
-# Chinese (Daoic)
-amidist;mahayana;0;Mahayana
-confucian;confucian;0;Confucian
-neoconfucian;confucian;0;Confucian
-taoist;taoist;1;Taoist
-neotaoist;taoist;1;Taoist
+# HERESIES
+
+# Catholic Heresies
+cathar;cathar;1;Cathar
+fraticelli;fraticelli;1;Fraticelli
+waldensian;waldensian;1;Waldensian
+lollard;lollard;1;Lollard
+
+# Orthodox Heresies
+bogomilist;bogomilist;1;Bogomilist
+monothelite;monothelite;1;Monothelite
+iconoclast;iconoclast;1;Iconoclast
+paulician;paulician;1;Paulician
+
+# Miaphysite Heresies
+monophysite;monophysite;1;Monophysite
+
+# Nestorian Heresies
+messalian;messalian;1;Messalian
+
+# Sunni Heresies
+zikri;zikri;1;Zikri
+yazidi;yazidi;1;Yazidi
+
+# Shiite Heresies
+druze;druze;1;Druze
+hurufi;hurufi;1;hurufi
+
+# Ibadi Heresies
+kharijite;kharijite;1;Kharijite
+
+# Gnostic Heresies
+mazdaki;mazdaki;1;Mazdaki
+zurvanite;zurvanaite;1;Zurvanite
+mandean;mandean;1;Mandean
+khurmazta;khurmazta;1;Khurmazta
+
+# Jewish Heresies
+samaritan;samaritan_faith;1;Samaritan
+karaite;karaite_faith;1;Karaite
+kabbalah;kabbalah_faith;1;Kabbalah
