@@ -23,26 +23,12 @@ Reformed Ainu Pagan;ainu_pagan_reformed
 Ainu Pagan;ainu_pagan
 Reformed Shenist/Wuist/Nuoist;chinese_pagan_reformed
 Shenist/Wuist/Nuoist;chinese_pagan
-Reformed Kaharingan;dayak_pagan_reformed
-Kaharingan;dayak_pagan
 Shinto (Shinbutsu-shugo);japanese_pagan_reformed
 Koshinto (Shinbutsu-bunri);japanese_pagan
 Reformed Muist/Shinist;korean_pagan_reformed
 Muist/Shinist;korean_pagan
-Reformed Melanesian Pagan;melanesian_pagan_reformed
-Melanesian Pagan;melanesian_pagan
 Reformed Ryukyuan Pagan;ryukyuan_pagan_reformed
 Ryukyuan Pagan;ryukyuan_pagan
-Reformed Sanamahian;sanamahi_pagan_reformed
-Sanamahian;sanamahi_pagan
-Reformed Thanist;viet_pagan_reformed
-Thanist;viet_pagan
-Daoic;chinese_group
-Amidist (Amitabha Buddhist + Dhyana Buddhist);amidist
-Confucian (Ruist);confucian
-Neo-Confucian (Song-Ming Lixue);neoconfucian
-Taoist;taoist
-Neo-Taoist (Xuanxue);neotaoist
 
 ID Reservations
 Han: 1000327000 - 1000327499
