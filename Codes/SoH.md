@@ -1,11 +1,6 @@
 Cultures;code
-Saka;saka
 Chinese Jew;kaifeng
-Nepali;nepali
-Akkadian;akkadian
-Assyrian;assyrian
 Chinese;chinese
-Han;han
 Yue;yue
 Bai;bai
 Nakhi;nakhi
@@ -20,22 +15,6 @@ Ryukyuan;ryukyuan
 Ainu;ainu
 Koreanic;koreanic
 Korean;korean
-Mon-Khmer;mon_khmer_group
-Khmer;khmer
-Mon;mon
-Viet;viet
-Cham;cham
-Tai-Kadai;tai_kadai_group
-Thai;thai
-Laotian;lao
-Shan;shan
-Malayo-Polynesian;malayo_polynesian_group
-Malay;malay
-Tagalog;tagalog
-Minangkabau;minangkabau
-Taiwanese Aborigines;taiwanese
-Acehnese;acehnese
-Bornese;dayak
 
 Religions;code
 Zurvanite;zurvanite
