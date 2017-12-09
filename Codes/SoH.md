@@ -20,10 +20,6 @@ Ryukyuan;ryukyuan
 Ainu;ainu
 Koreanic;koreanic
 Korean;korean
-Tibeto-Burman;tibeto_burman_group
-Tibetan;tibetan
-Burman;bamar
-Tangut;tangut
 Mon-Khmer;mon_khmer_group
 Khmer;khmer
 Mon;mon
