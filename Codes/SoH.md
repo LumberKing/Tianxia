@@ -1,6 +1,6 @@
+
 Cultures;code
 Chinese Jew;kaifeng
-Chinese;chinese
 Yue;yue
 Bai;bai
 Nakhi;nakhi
@@ -29,6 +29,8 @@ Reformed Muist/Shinist;korean_pagan_reformed
 Muist/Shinist;korean_pagan
 Reformed Ryukyuan Pagan;ryukyuan_pagan_reformed
 Ryukyuan Pagan;ryukyuan_pagan
+Reformed Thanist;viet_pagan_reformed
+Thanist;viet_pagan
 
 ID Reservations
 Han: 1000327000 - 1000327499
@@ -43,9 +45,6 @@ Japanese: 1000328200 - 1000328499
 Ryukyuan: 1000328500 - 1000328549
 Ainu: 1000328550 - 1000328579, 1000449000 - 1000449049
 Korean: 1000328580 - 1000328679
-Tibetan: 1000328680 - 1000328779
-Bamar: 1000328780 - 1000328879
-Tangut: 1000328880 - 1000328909
 Nepalese: 1000328910 - 1000328939
 Kashmiri: 1000328940 - 1000328969
 Khmer: 1000328970 - 1000329069
