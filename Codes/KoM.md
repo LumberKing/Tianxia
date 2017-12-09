@@ -1,13 +1,5 @@
 Cultures;code
-Jurchen/Manchurian;jurchen
-Khitan;khitan
-Uygher;uygher
-Tocharianic;tocharianic
-Tocharian;tocharian
-
-Religions;code
-Reformed Bon/Dongba/Root West;tibetan_pagan_reformed
-Bon/Dongba/Root West;tibetan_pagan
+Burman;bamar
 
 ID Reservations
 Mongol: 1000330000 - 1000330299
