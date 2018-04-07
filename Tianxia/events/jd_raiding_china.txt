@@ -3,14 +3,14 @@
 
 namespace = JD
 
-character_event = { # Decide the outcome
+character_event = { # Yearly event for Raiding China
     id = JD.4000
 	has_dlc = "Jade Dragon"
     hide_window = yes
     is_triggered_only = yes
 	
 	trigger = {
-		#has_character_modifier = china_raid_active
+		has_character_modifier = china_raid_active
 		#offmap_china = {
 		#	NOT = {
 		#		governor = {
@@ -18,72 +18,33 @@ character_event = { # Decide the outcome
 		#		}
 		#	}
 		#}
-		FROM = {
-			# The settlement being looted is in the Chinese region, in de jure China, in de facto China, or in the realm of a Chinese revolter
-			OR = {
-				location = {
-					region = world_china
-				}
-				de_jure_liege_or_above = e_china
-				holder_scope = {
-					OR = {
-						has_landed_title = e_china
-						any_liege = {
-							OR = {
-								has_landed_title = e_china
-								liege_before_war = {
-									has_landed_title = e_china
-								}
-							}
-						}
-						liege_before_war = {
-							has_landed_title = e_china
-						}
-					}
-				}
-			}
-		}
-		# The looter cannot be the EoC, a vassal of the EoC, or part of a revolt against the EoC
-		ROOT = {
-			NOR = {
-				has_landed_title = e_china
-				any_liege = {
-					OR = {
-						has_landed_title = e_china
-						liege_before_war = {
-							has_landed_title = e_china
-						}
-					}
-				}
-				liege_before_war = {
-					has_landed_title = e_china
-				}
-			}
-		}
 	}
 	
     immediate = {
-		# If the looted holding is part of de facto China, lose 100 Grace
-		if = {
+		if = { # Remove raiding if no longer allowed to raid
 			limit = {
-				FROM = {
-					holder_scope = {
-						OR = {
-							has_landed_title = e_china
-							any_liege = {
-								has_landed_title = e_china
-							}
-						}
+				OR = {
+					independent = no
+					NOT = {
+						is_allowed_to_loot = yes
 					}
+					is_landed = no
 				}
 			}
-			detract_grace_minor_effect = yes
+			remove_character_modifier = china_raid_active
+			add_character_modifier = {
+				name = china_raid_grace_cd
+				hidden = yes
+				years = 5
+			}
+			character_event = { id = JD.4001 }
+			break = yes
 		}
-		random_list = {
-			#400 = { # Only Gold + Prestige
-			#	set_character_flag = normal_raid_outcome
-			#	character_event = { id = JD.4020 }
-			#}
+		random_list = { # All raids give Gold + Prestige and Population for Nomads
+			400 = { # Only Gold + Prestige
+				set_character_flag = normal_raid_outcome
+				character_event = { id = JD.4020 }
+			}
 			30 = { # Prisoner of opposite sex with attractive trait
 				set_character_flag = normal_raid_outcome_character
 				character_event = { id = JD.4020 }
@@ -92,62 +53,50 @@ character_event = { # Decide the outcome
 				set_character_flag = normal_raid_outcome_siege_engineer
 				character_event = { id = JD.4020 }
 			}
-			#30 = { # Slightly more gold + prestige
-			#	set_character_flag = normal_raid_outcome_extra
-			#	character_event = { id = JD.4020 }
-			#}
-			#30 = { # Bad outcome
-			#	set_character_flag = normal_raid_outcome_bad
-			#	character_event = { id = JD.4020 }
-			#}
+			30 = { # Slightly more gold + prestige
+				set_character_flag = normal_raid_outcome_extra
+				character_event = { id = JD.4020 }
+			}
+			30 = { # Bad outcome
+				set_character_flag = normal_raid_outcome_bad
+				character_event = { id = JD.4020 }
+			}
 			15 = { # Minor artifact
 				set_character_flag = normal_raid_outcome_artifact
 				character_event = { id = JD.4020 }
 			}
-			#5 = { # An enormous amount of gold + prestige
-			#	set_character_flag = normal_raid_outcome_extra_plus
-			#	character_event = { id = JD.4020 }
-			#}
+			5 = { # An enormous amount of gold + prestige
+				set_character_flag = normal_raid_outcome_extra_plus
+				character_event = { id = JD.4020 }
+			}
 			5 = { # A panda
 				modifier = {
 					factor = 0
 					has_character_modifier = panda_pet
 				}
-				# Pandas are unlikely to be found outside China Proper even if China's de jure/de facto territory changes
-				modifier = {
-					factor = 0
-					FROM = {
-						NOT = {
-							location = {
-								region = world_china
-							}
-						}
-					}
-				}
 				set_character_flag = normal_raid_outcome_panda
 				character_event = { id = JD.4020 }
 			}
-			500 = {} # Nothing special
 		}
 	}
 }
 
-#character_event = { # No longer allowed to raid
-#    id = JD.4001
-#	has_dlc = "Jade Dragon"
-#    desc = EVTDESC_JD_4001
-#	
-#    picture = GFX_evt_china_stable
-#	border = GFX_event_normal_frame_war
-#	
-#    is_triggered_only = yes
-#	
-#	notification = yes
-#	
-#	option = {     
-#        name = EVTOPTA_JD_4001
-#    }
-#}
+character_event = { # No longer allowed to raid
+    id = JD.4001
+	has_dlc = "Jade Dragon"
+    desc = EVTDESC_JD_4001
+	
+    picture = GFX_evt_china_stable
+	border = GFX_event_normal_frame_war
+	
+    is_triggered_only = yes
+	
+	notification = yes
+	
+	option = {     
+        name = EVTOPTA_JD_4001
+    }
+}
 
 character_event = { # Normal Outcome
     id = JD.4020
@@ -158,12 +107,12 @@ character_event = { # Normal Outcome
 	
     is_triggered_only = yes
 	
-	#desc = {
-	#	text = EVTDESC_JD_4020_normal_raid_outcome
-	#	trigger = {
-	#		has_character_flag = normal_raid_outcome
-	#	}
-	#}
+	desc = {
+		text = EVTDESC_JD_4020_normal_raid_outcome
+		trigger = {
+			has_character_flag = normal_raid_outcome
+		}
+	}
 	desc = {
 		text = EVTDESC_JD_4020_normal_raid_outcome_artifact
 		trigger = {
@@ -260,7 +209,6 @@ character_event = { # Normal Outcome
 					chance = 35
 					add_trait = quick
 				}
-				prisoner = yes
 				save_event_target_as = captured_character
 			}
 		}
@@ -356,34 +304,33 @@ character_event = { # Normal Outcome
 						add_trait = shrewd
 					}
 				}
-				prisoner = yes
 				save_event_target_as = captured_engineer
 			}
 		}
 	}
 	
-	#option = {
-    #    name = EVTOPT_JD_4020_normal_raid_outcome
-	#	
-	#	trigger = {
-	#		has_character_flag = normal_raid_outcome
-	#	}
-	#	prestige = 50
-	#	#if = {
-	#	#	limit = {
-	#	#		is_nomadic = no
-	#	#	}
-	#	#	#scaled_wealth = { value = 0.25 min = 15 max = 75 }
-	#	#}
-	#	#if = {
-	#	#	limit = {
-	#	#		is_nomadic = yes
-	#	#	}
-	#	#	#scaled_wealth = { value = 0.25 min = 30 max = 100 }
-	#	#	population = 150
-	#	#}
-	#	clr_character_flag = normal_raid_outcome
-    #}
+	option = {
+        name = EVTOPT_JD_4020_normal_raid_outcome
+		
+		trigger = {
+			has_character_flag = normal_raid_outcome
+		}
+		prestige = 50
+		if = {
+			limit = {
+				is_nomadic = no
+			}
+			scaled_wealth = { value = 0.25 min = 15 max = 75 }
+		}
+		if = {
+			limit = {
+				is_nomadic = yes
+			}
+			scaled_wealth = { value = 0.25 min = 30 max = 100 }
+			population = 150
+		}
+		clr_character_flag = normal_raid_outcome
+    }
 	
 	option = {
         name = EVTOPT_JD_4020_normal_raid_outcome_artifact
@@ -392,19 +339,19 @@ character_event = { # Normal Outcome
 			has_character_flag = normal_raid_outcome_artifact
 		}
 		prestige = 75
-		#if = {
-		#	limit = {
-		#		is_nomadic = no
-		#	}
-		#	#scaled_wealth = { value = 0.75 min = 30 max = 125 }
-		#}
-		#if = {
-		#	limit = {
-		#		is_nomadic = yes
-		#	}
-		#	#scaled_wealth = { value = 0.75 min = 70 max = 175 }
-		#	population = 150
-		#}
+		if = {
+			limit = {
+				is_nomadic = no
+			}
+			scaled_wealth = { value = 0.75 min = 30 max = 125 }
+		}
+		if = {
+			limit = {
+				is_nomadic = yes
+			}
+			scaled_wealth = { value = 0.75 min = 70 max = 175 }
+			population = 150
+		}
 		custom_tooltip = {
 			text = artifact_raid_tt
 			hidden_effect = {
@@ -618,17 +565,17 @@ character_event = { # Normal Outcome
 			has_character_flag = normal_raid_outcome_character
 		}
 		prestige = 75
-		#if = {
-		#	limit = {
-		#		is_nomadic = no
-		#	}
-		#	#scaled_wealth = { value = 0.6 min = 30 max = 125 }
-		#}
+		if = {
+			limit = {
+				is_nomadic = no
+			}
+			scaled_wealth = { value = 0.6 min = 30 max = 125 }
+		}
 		if = {
 			limit = {
 				is_nomadic = yes
 			}
-			#scaled_wealth = { value = 0.6 min = 70 max = 175 }
+			scaled_wealth = { value = 0.6 min = 70 max = 175 }
 			population = 150
 		}
 		event_target:captured_character = {
@@ -657,17 +604,17 @@ character_event = { # Normal Outcome
 			}
 		}
 		prestige = 75
-		#if = {
-		#	limit = {
-		#		is_nomadic = no
-		#	}
-		#	#scaled_wealth = { value = 0.6 min = 30 max = 125 }
-		#}
+		if = {
+			limit = {
+				is_nomadic = no
+			}
+			scaled_wealth = { value = 0.6 min = 30 max = 125 }
+		}
 		if = {
 			limit = {
 				is_nomadic = yes
 			}
-			#scaled_wealth = { value = 0.6 min = 70 max = 175 }
+			scaled_wealth = { value = 0.6 min = 70 max = 175 }
 			population = 150
 		}
 		if = {
@@ -689,7 +636,6 @@ character_event = { # Normal Outcome
 					modifier = opinion_abducted
 					years = 10
 				}
-				prisoner = no
 			}
 		}
 		clr_character_flag = normal_raid_outcome_character
@@ -702,17 +648,17 @@ character_event = { # Normal Outcome
 			has_character_flag = normal_raid_outcome_siege_engineer
 		}
 		prestige = 75
-		#if = {
-		#	limit = {
-		#		is_nomadic = no
-		#	}
-		#	#scaled_wealth = { value = 0.6 min = 30 max = 125 }
-		#}
+		if = {
+			limit = {
+				is_nomadic = no
+			}
+			scaled_wealth = { value = 0.6 min = 30 max = 125 }
+		}
 		if = {
 			limit = {
 				is_nomadic = yes
 			}
-			#scaled_wealth = { value = 0.6 min = 70 max = 175 }
+			scaled_wealth = { value = 0.6 min = 70 max = 175 }
 			population = 150
 		}
 		event_target:captured_engineer = {
@@ -722,7 +668,6 @@ character_event = { # Normal Outcome
 				modifier = opinion_abducted
 				years = 10
 			}
-			prisoner = no
         }
 		clr_character_flag = normal_raid_outcome_siege_engineer
     }
@@ -734,17 +679,17 @@ character_event = { # Normal Outcome
 			has_character_flag = normal_raid_outcome_siege_engineer
 		}
 		prestige = 75
-		#if = {
-		#	limit = {
-		#		is_nomadic = no
-		#	}
-		#	#scaled_wealth = { value = 0.6 min = 30 max = 125 }
-		#}
+		if = {
+			limit = {
+				is_nomadic = no
+			}
+			scaled_wealth = { value = 0.6 min = 30 max = 125 }
+		}
 		if = {
 			limit = {
 				is_nomadic = yes
 			}
-			#scaled_wealth = { value = 0.6 min = 70 max = 175 }
+			scaled_wealth = { value = 0.6 min = 70 max = 175 }
 			population = 150
 		}
 		event_target:captured_engineer = {
@@ -754,7 +699,6 @@ character_event = { # Normal Outcome
 				modifier = opinion_abducted
 				years = 10
 			}
-			prisoner = no
         }
 		custom_tooltip = {
 			text = fire_commander_tt
@@ -866,61 +810,61 @@ character_event = { # Normal Outcome
 		clr_character_flag = normal_raid_outcome_siege_engineer
     }
 	
-	#option = {
-    #    name = EVTOPT_JD_4020_normal_raid_outcome_extra
-	#	
-	#	trigger = {
-	#		has_character_flag = normal_raid_outcome_extra
-	#	}
-	#	prestige = 150
-	#	#if = {
-	#	#	limit = {
-	#	#		is_nomadic = no
-	#	#	}
-	#	#	scaled_wealth = { value = 1.5 min = 30 max = 200 }
-	#	#}
-	#	#if = {
-	#	#	limit = {
-	#	#		is_nomadic = yes
-	#	#	}
-	#	#	#scaled_wealth = { value = 1.5 min = 60 max = 300 }
-	#	#	population = 300
-	#	#}
-	#	clr_character_flag = normal_raid_outcome_extra
-    #}
+	option = {
+        name = EVTOPT_JD_4020_normal_raid_outcome_extra
+		
+		trigger = {
+			has_character_flag = normal_raid_outcome_extra
+		}
+		prestige = 150
+		if = {
+			limit = {
+				is_nomadic = no
+			}
+			scaled_wealth = { value = 1.5 min = 30 max = 200 }
+		}
+		if = {
+			limit = {
+				is_nomadic = yes
+			}
+			scaled_wealth = { value = 1.5 min = 60 max = 300 }
+			population = 300
+		}
+		clr_character_flag = normal_raid_outcome_extra
+    }
 	
-	#option = {
-    #    name = EVTOPT_JD_4020_normal_raid_outcome_extra_plus
-	#	
-	#	trigger = {
-	#		has_character_flag = normal_raid_outcome_extra_plus
-	#	}
-	#	prestige = 300
-	#	#if = {
-	#	#	limit = {
-	#	#		is_nomadic = no
-	#	#	}
-	#	#	#scaled_wealth = { value = 2.5 min = 60 max = 300 }
-	#	#}
-	#	#if = {
-	#	#	limit = {
-	#	#		is_nomadic = yes
-	#	#	}
-	#	#	#scaled_wealth = { value = 2.5 min = 120 max = 400 }
-	#	#	population = 600
-	#	#}
-	#	clr_character_flag = normal_raid_outcome_extra_plus
-    #}
+	option = {
+        name = EVTOPT_JD_4020_normal_raid_outcome_extra_plus
+		
+		trigger = {
+			has_character_flag = normal_raid_outcome_extra_plus
+		}
+		prestige = 300
+		if = {
+			limit = {
+				is_nomadic = no
+			}
+			scaled_wealth = { value = 2.5 min = 60 max = 300 }
+		}
+		if = {
+			limit = {
+				is_nomadic = yes
+			}
+			scaled_wealth = { value = 2.5 min = 120 max = 400 }
+			population = 600
+		}
+		clr_character_flag = normal_raid_outcome_extra_plus
+    }
 	
-	#option = {
-    #    name = EVTOPT_JD_4020_normal_raid_outcome_bad
-	#	
-	#	trigger = {
-	#		has_character_flag = normal_raid_outcome_bad
-	#	}
-	#	prestige = -50
-	#	clr_character_flag = normal_raid_outcome_bad
-    #}
+	option = {
+        name = EVTOPT_JD_4020_normal_raid_outcome_bad
+		
+		trigger = {
+			has_character_flag = normal_raid_outcome_bad
+		}
+		prestige = -50
+		clr_character_flag = normal_raid_outcome_bad
+    }
 	
 	option = {
         name = EVTOPT_JD_4020_normal_raid_outcome_panda
@@ -933,19 +877,19 @@ character_event = { # Normal Outcome
 			modifier = panda_pet
 			duration = -1
 		}
-		#if = {
-		#	limit = {
-		#		is_nomadic = no
-		#	}
-		#	#scaled_wealth = { value = 1 min = 35 max = 150 }
-		#}
-		#if = {
-		#	limit = {
-		#		is_nomadic = yes
-		#	}
-		#	#scaled_wealth = { value = 1 min = 70 max = 225 }
-		#	population = 200
-		#}
+		if = {
+			limit = {
+				is_nomadic = no
+			}
+			scaled_wealth = { value = 1 min = 35 max = 150 }
+		}
+		if = {
+			limit = {
+				is_nomadic = yes
+			}
+			scaled_wealth = { value = 1 min = 70 max = 225 }
+			population = 200
+		}
 		hidden_tooltip = { character_event = { id = JD.4030 days = 7000 random = 2000 } } # Panda dies
 		clr_character_flag = normal_raid_outcome_panda
     }
