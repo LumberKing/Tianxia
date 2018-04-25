@@ -1,0 +1,3662 @@
+# This file borrows heavily from the vanilla jd_grace_decisions.txt file when it comes to AI logic and requirements on people being sent to China
+# All Grace decisions MUST be DLC-locked to JD to avoid conflict with modding rule 5, even though we cannot use the offmap mechanics
+# Important scripted triggers are located in the tianxia_grace_triggers.txt file in the /common/scripted_triggers directory
+
+# At the moment, ONLY the EoC will be using the Grace system, regardless of whether someone else has the Chinese Imperialism government
+# A fully dynamic system is probably not possible due to the need to name the variables, but it should be possible to implement the same (or similar) decisions for specific titles, if desired
+
+# The ai_check_interval for the decisions is currently 1.5 times what vanilla uses to account for the fact that we have a considerable amount of extra characters
+
+targeted_decisions = {
+	### Tributes
+	# Grace is gained only if the Tribute is accepted
+	# Aside from the snipping of eunuchs, all effects take place if the tribute is accepted
+	# The sender's opinion of the EoC is lowered if a Tribute is deemed unsuitable for the imperial court
+	# The sender's opinion of the EoC is lowered even further
+	# Any courtier sent to China gets disinherited
+	
+	send_gift_china = {
+		only_playable = yes
+		ai_check_interval = 18
+		ai_target_filter = all
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			china_accepts_gold_tribute_trigger = yes # China must be accepting
+			can_use_grace_decisions_from_trigger = yes
+			FROM = {
+				wealth = 500
+			}
+			NOR = {
+				AND = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_china_sent_gift
+					}
+					FROM = {
+						ai = yes
+					}
+				}
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_gift
+				}
+			}
+		}
+		
+		effect = {
+			hidden_tooltip = {
+				narrative_event = { id = grace.1 } # Fires an event for the EoC that lets him decide if he want to accept the gift or not
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1 # slow down
+			}
+			modifier = {
+				factor = 0.1
+				FROM = { NOT = { monthly_income = 11 } } #I.e. it would take more than 4 years to collect the 500 gold
+			}
+			modifier = {
+				factor = 0
+				china_accepts_gold_tribute_from_trigger = no
+			}
+			modifier = {
+				factor = 0
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to send anything
+			}
+			modifier = {
+				factor = 0
+				is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+			}
+		}
+	}
+	
+	become_tributary_china = {
+		only_independent = yes
+		ai_check_interval = 18
+		ai_target_filter = all
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_accepts_tributaries_trigger = yes
+			FROM = {
+				war = no # Is at peace
+				is_tributary = no # Cannot break existing tributary relationship
+				# Only non-emperors and nomads can become tributaries
+				OR = {
+					NOT = {
+						tier = emperor
+					}
+					is_nomadic = yes
+				}
+				# Borders China/a Chinese tributary or is within two sea zones of China/a Chinese tributary
+				any_realm_province = {
+					any_neighbor_province = {
+						OR = {
+							AND = {
+								has_owner = yes
+								owner = {
+									OR = {
+										character = ROOT
+										is_liege_or_above = ROOT
+										suzerain = {
+											character = ROOT
+										}
+										any_liege = {
+											suzerain = {
+												character = ROOT
+											}
+										}
+									}
+								}
+							}
+							AND = {
+								is_land = no
+								any_neighbor_province = {
+									OR = {
+										AND = {
+											has_owner = yes
+											owner = {
+												OR = {
+													character = ROOT
+													is_liege_or_above = ROOT
+													suzerain = {
+														character = ROOT
+													}
+													any_liege = {
+														suzerain = {
+															character = ROOT
+														}
+													}
+												}
+											}
+										}
+										AND = {
+											is_land = no
+											any_neighbor_province = {
+												owner = {
+													OR = {
+														character = ROOT
+														is_liege_or_above = ROOT
+														suzerain = {
+															character = ROOT
+														}
+														any_liege = {
+															suzerain = {
+																character = ROOT
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			NOR = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_tributary
+				}
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_breakaway_tributary # Can't trust them!
+				}
+			}
+		}
+		
+		effect = {
+			hidden_tooltip = {
+				narrative_event = { id = grace.4 } # The EoC gets the request
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.01 # Make random distant realms unlikely to become tributaries because they border tributaries...
+				NOT = {
+					FROM = {
+						any_realm_province = {
+							any_neighbor_province = {
+								OR = {
+									AND = {
+										has_owner = yes
+										owner = {
+											OR = {
+												character = ROOT
+												is_liege_or_above = ROOT
+												#suzerain = {
+												#	character = ROOT
+												#}
+												#any_liege = {
+												#	suzerain = {
+												#		character = ROOT
+												#	}
+												#}
+											}
+										}
+									}
+									AND = {
+										is_land = no
+										any_neighbor_province = {
+											OR = {
+												AND = {
+													has_owner = yes
+													owner = {
+														OR = {
+															character = ROOT
+															is_liege_or_above = ROOT
+															#suzerain = {
+															#	character = ROOT
+															#}
+															#any_liege = {
+															#	suzerain = {
+															#		character = ROOT
+															#	}
+															#}
+														}
+													}
+												}
+												AND = {
+													is_land = no
+													any_neighbor_province = {
+														owner = {
+															OR = {
+																character = ROOT
+																is_liege_or_above = ROOT
+																#suzerain = {
+																#	character = ROOT
+																#}
+																#any_liege = {
+																#	suzerain = {
+																#		character = ROOT
+																#	}
+																#}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1
+				always = yes # Slow it down
+			}
+			# Kings and nomads are less willing to become tributaries
+			modifier = {
+				factor = 0.1
+				FROM = {
+					OR = {
+						tier = king
+						tier = emperor # Nomads
+					}
+				}
+			}
+			# Large realms are less likely to be willing to become tributaries
+			modifier = {
+				factor = 0.1
+				FROM = {
+					realm_size = 50
+				}
+			}
+			# At this size, the realm is too powerful to willingly become a tributary
+			modifier = {
+				factor = 0
+				FROM = {
+					realm_size = 100
+				}
+			}
+			# FROM wants to be independent due to traits
+			modifier = {
+				factor = 0
+				FROM = {
+					OR = {
+						trait = proud
+						trait = ambitious
+						trait = brave
+					}
+					NOR = {
+						trait = humble
+						trait = content
+						trait = craven
+					}
+				}
+			}
+			# FROM wants to be independent due to traits
+			modifier = {
+				factor = 0.1
+				FROM = {
+					OR = {
+						trait = proud
+						trait = ambitious
+						trait = brave
+					}
+					OR = {
+						trait = humble
+						trait = content
+						trait = craven
+					}
+				}
+			}
+			# From is likely to be scared of China
+			modifier = {
+				factor = 10
+				FROM = {
+					OR = {
+						trait = humble
+						trait = content
+						trait = craven
+					}
+				}
+			}
+			# China is less than twice as powerful
+			modifier = {
+				factor = 0
+				FROM = {
+					relative_power = {
+						who = ROOT
+						power = 0.5
+					}
+				}
+			}
+			# China is less than four times as powerful
+			modifier = {
+				factor = 0.1
+				FROM = {
+					relative_power = {
+						who = ROOT
+						power = 0.25
+					}
+				}
+			}
+			# China is more than ten times as powerful
+			modifier = {
+				factor = 5
+				NOT = {
+					FROM = {
+						relative_power = {
+							who = ROOT
+							power = 0.1
+						}
+					}
+				}
+			}
+			# Same culture
+			modifier = {
+				factor = 5
+				culture = FROM
+			}
+			# Same culture group
+			modifier = {
+				factor = 2
+				culture_group = FROM
+				NOT = {
+					culture = FROM
+				}
+			}
+			modifier = {
+				factor = 2
+				religion = FROM # Taoists don't care about religion, but the tributary should if not Taoist!
+			}
+			modifier = {
+				factor = 0
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to send anything
+			}
+			modifier = {
+				factor = 0
+				is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+			}
+			modifier = {
+				factor = 0
+				china_accepts_tributary_from_trigger = no # Don't bother if it won't be accepted
+			}
+		}
+	}
+	
+	supply_horses_china = {
+		only_playable = yes
+		ai_check_interval = 54
+		ai_target_filter = all
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_nomadic = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			#OR = {
+			#	NOT = {
+			#		has_character_modifier = china_supply_horses
+			#	}
+			#	ai = no
+			#}
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			FROM = {
+				unused_manpower = 300
+			}
+			can_use_grace_decisions_from_trigger = yes
+			china_accepts_horses_tribute_trigger = yes
+			NOR = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_horses
+				}
+				AND = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_china_supplying_horses
+					}
+					FROM = {
+						ai = yes
+					}
+				}
+			}
+		}
+		
+		effect = {
+			hidden_tooltip = {
+				narrative_event = { id = grace.8 } # Fires an event for the EoC that lets him decide if he want to accept the horses or not
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = humble
+						trait = shy
+						trait = craven
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					OR = {
+						trait = ambitious
+						trait = proud
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					primary_title = {
+						title = e_mongol_empire
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				china_accepts_horses_tribute_from_trigger = no
+			}
+			modifier = {
+				factor = 0
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to send anything
+			}
+			modifier = {
+				factor = 0
+				is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					NOT = {
+						unused_manpower = 3000 # Don't give away troops you can't spare!
+					}
+				}
+			}
+		}
+	}
+	
+	stop_supply_horses_china = { # Deprecated!
+		only_playable = yes
+		ai_check_interval = 54
+		ai_target_filter = self # Unused
+		
+		from_potential = {
+			always = no # Deprecated!
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_nomadic = yes
+			has_character_modifier = china_supply_horses
+			is_chinese_emperor_trigger = no
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			always = no # Deprecated!
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			always = no # Deprecated!
+			FROM = {
+				has_character_modifier = china_supply_horses
+			}
+		}
+		
+		effect = {
+			narrative_event = { id = grace.12 } # Informs the EoC that horses will no longer be supplied
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				FROM = {
+					OR = {
+						trait = humble
+						trait = shy
+						trait = craven
+					}
+				}
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to send anything
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = proud
+						trait = ambitious
+						trait = brave
+					}
+				}
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to send anything
+			}
+			modifier = {
+				factor = 1000
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to send anything
+			}
+		}
+	}
+	
+	offer_eunuch_china = {
+		only_playable = yes
+		ai_target_filter = all
+		
+		third_party_filter = home_court
+		ai_third_party_filter = home_court
+		third_party = FROM
+		ai_check_interval = 54
+		#show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_accepts_eunuch_tribute_trigger = yes
+			NOR = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_eunuch
+				}
+				AND = {
+					OR = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_china_sent_eunuch
+						}
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_china_sent_eunuch_small
+						}
+					}
+					FROM = {
+						ai = yes
+					}
+				}
+			}
+			FROM = {
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+			}
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				show_scope_change = no
+				custom_tooltip = {
+					text = is_landless_male_tt
+					NOT = { is_landed = yes }
+					NOT = { is_female = yes }
+				}
+				#custom_tooltip = {
+					#text = adult_or_close_relative_of_12_years_tt
+					#OR = {
+						is_adult = yes # Non-adult eunuchs seem to be shipped back home by the game, which is unwanted...
+						#AND = {
+						#	is_close_relative = ROOT_FROM
+						#	age = 12
+						#}
+					#}
+				#}
+				
+				NOT = { is_heir = yes }
+
+				custom_tooltip = {
+					text = not_married_or_getting_married_tt
+					NOT = { is_betrothed = yes }
+					NOT = { is_married = yes }
+				}
+				custom_tooltip = { #can't be from China
+					text = is_not_from_china_tt
+					NOT = {	has_character_flag = eunuch_gift }
+					courtier_from_china_trigger = no
+				}
+				custom_tooltip = {
+					text = is_not_incapable_inbred_or_imbecile_tt
+					NOT = { trait = incapable }
+					NOT = { trait = inbred }
+					NOT = { trait = imbecile }
+				}
+				custom_tooltip = {
+					text = is_not_maimed_or_infirm_tt
+					NOT = { trait = maimed }
+					NOT = { trait = infirm }
+				}
+				custom_tooltip = {
+					text = is_not_wounded_severely_injured_tt
+					NOT = { trait = wounded }
+					NOT = { trait = severely_injured }
+				}
+				custom_tooltip = {
+					text = is_not_one_eyed_handed_legged_disfigured_or_mangled_tt
+					NOT = { trait = one_eyed }
+					NOT = { trait = one_handed }
+					NOT = { trait = one_legged }
+					NOT = { trait = disfigured }
+					NOT = { trait = mangled }
+				}
+				NOT = { prisoner = yes }
+
+				OR = {
+					custom_tooltip = {
+						text = is_close_relative_tt
+						is_close_relative = ROOT_FROM
+					}
+					custom_tooltip = {
+						text = china_tribute_send_eunuch_stats_tt
+						OR = {
+							diplomacy = 20
+							martial = 20
+							stewardship = 20
+							intrigue = 20
+							learning = 20
+						}
+					}
+					custom_tooltip = {
+						text = china_tribute_send_eunuch_congenital_tt
+						OR = {
+							trait = strong
+							trait = genius
+							trait = quick
+							trait = fair
+						}
+					}
+					custom_tooltip = {
+						text = china_tribute_send_eunuch_non_inherit_congenital_tt
+						OR = {
+							trait = robust
+							trait = shrewd
+						}
+					}
+					custom_tooltip = {
+						text = has_the_right_eunuch_traits_tt
+						OR = {
+							trait = architect
+							trait = administrator
+							trait = strategist
+							trait = scholar
+							trait = faqih						
+						}
+					}
+				}
+				NOT = {
+					dynasty = ROOT # Don't snip relatives of the EoC off to China!
+				}
+			}
+		}
+		
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				is_ill = no
+				is_inaccessible_trigger = no
+			}
+		}
+		
+		effect = {
+			# Regardless of whether the EoC accepts the eunuch in the end, they are snipped
+			if = {
+				limit = {
+					FROMFROM = {
+						NOT = {
+							trait = eunuch
+						}
+					}
+				}
+				FROMFROM = {
+					add_trait = eunuch
+					hidden_tooltip = {
+						opinion = {
+							who = FROM
+							modifier = opinion_castrated_me # FROMFROM will be a mite upset about the whole "Snipped me off to China" thing, even if the EoC turns him down
+						}
+						any_close_relative = {
+							limit = {
+								NOT = {
+									any_close_relative = {
+										character = FROM
+									}
+								}
+							}
+							opinion = {
+								who = FROM
+								modifier = opinion_castrated_close_kin
+							}
+						}
+						any_dynasty_member = {
+							limit = {
+								NOT = {
+									dynasty = FROM
+								}
+							}
+							opinion = {
+								who = FROM
+								modifier = opinion_castrated_family
+							}
+						}
+					}
+				}
+			}
+			hidden_tooltip = {
+				narrative_event = { id = grace.14 } # Fires an event for the EoC that lets him decide if he want to accept the eunuch or not
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.3 # slow down
+			}
+			modifier = {
+				factor = 0
+				china_accepts_eunuch_tribute_from_trigger = no
+			}
+			modifier = {
+				factor = 0
+				china_hates_fromfrom_trigger = yes
+			}
+			modifier = {
+				factor = 0
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to send anything
+			}
+			modifier = {
+				factor = 0
+				is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+			}
+		}
+	}
+	
+	offer_concubine_china = {
+		only_playable = yes
+		ai_target_filter = all
+		
+		third_party_filter = home_court
+		ai_third_party_filter = home_court
+		third_party = FROM
+		ai_check_interval = 18
+		#show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_accepts_concubine_tribute_trigger = yes
+			NOR = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_concubine
+				}
+				AND = {
+					OR = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_china_sent_concubine
+						}
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_china_sent_concubine_small
+						}
+					}
+					FROM = {
+						ai = yes
+					}
+				}
+			}
+			FROM = {
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+			}
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				show_scope_change = no
+				is_female = yes
+				# Has no children, and has never had any children
+				NOT = {
+					any_child_even_if_dead = {
+						always = yes
+					}
+				}
+				OR = {
+					# Close relative of yours
+					custom_tooltip = {
+						text = is_close_relative_or_same_dynasty_tt
+						OR = {
+							is_close_relative = ROOT_FROM
+							dynasty = ROOT_FROM
+						}
+					}
+					# From a high-ranking family
+					any_close_relative = {
+						OR = {
+							tier = king
+							tier = emperor
+						}
+					}
+				}
+				custom_tooltip = {
+					text = is_adult_under_45_tt # TODO: Update for 35
+					is_adult = yes
+					NOT = { age = 35 } # Vanilla uses 45, but we want the concubines to have a few childbearing years left
+				}
+				NOT = { is_landed = yes }
+				NOT = { is_heir = yes }
+				custom_tooltip = {
+					text = not_married_or_getting_married_tt
+					NOT = { is_betrothed = yes }
+					NOT = { is_married = yes }
+				}
+				custom_tooltip = {
+					text = is_not_from_china_tt
+					courtier_from_china_trigger = no
+				}
+				custom_tooltip = {
+					text = is_not_incapable_inbred_or_imbecile_tt
+					NOT = { trait = incapable }
+					NOT = { trait = inbred }
+					NOT = { trait = imbecile }
+				}
+				custom_tooltip = {
+					text = is_not_maimed_or_infirm_tt
+					NOT = { trait = maimed }
+					NOT = { trait = infirm }
+				}
+				custom_tooltip = {
+					text = is_not_wounded_severely_injured_tt
+					NOT = { trait = wounded }
+					NOT = { trait = severely_injured }
+				}
+				custom_tooltip = {
+					text = is_not_one_eyed_handed_legged_disfigured_or_mangled_tt
+					NOT = { trait = one_eyed }
+					NOT = { trait = one_handed }
+					NOT = { trait = one_legged }
+					NOT = { trait = disfigured }
+					NOT = { trait = mangled }
+				}
+				OR = {
+					NOT = { prisoner = yes }
+					host = {
+						character = FROM
+					}
+				}
+				custom_tooltip = {
+					text = is_not_ascetic_or_celibate_tt
+					NOT = { is_ascetic_trigger = yes }
+					NOT = { trait = celibate }
+				}
+				NOR = {
+					trait = pregnant # Known to be pregnant
+					any_lover = {
+						character = ROOT_FROM
+					}
+				}
+			}
+		}
+		
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				is_ill = no
+				is_inaccessible_trigger = no
+			}
+		}
+		
+		effect = {
+			# TODO: Make relatives of prisoners upset if you try to send them to China
+			hidden_tooltip = {
+				narrative_event = { id = grace.18 } # Fires an event for the EoC that lets him decide if he want to accept the concubine or not
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.3 # slow down
+			}
+			modifier = {
+				factor = 0
+				china_accepts_concubine_tribute_from_trigger = no
+			}
+			modifier = {
+				factor = 0
+				china_hates_fromfrom_trigger = yes
+			}
+			modifier = {
+				factor = 0
+				# Religion + government does not allow concubinage
+				FROM = {
+					NOR = {
+						is_tribal = yes
+						is_nomadic = yes
+					}
+					OR = {
+						religion_group = christian
+						religion_group = muslim
+						religion_group = jewish_group
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to send anything
+			}
+			modifier = {
+				factor = 0
+				is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+			}
+		}
+	}
+	
+	offer_commander_china = {
+		only_playable = yes
+		ai_target_filter = all
+		
+		third_party_filter = home_court
+		ai_third_party_filter = home_court
+		third_party = FROM
+		ai_check_interval = 54
+		#show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_accepts_commander_tribute_trigger = yes
+			NOR = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_commander
+				}
+				AND = {
+					OR = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_china_sent_commander
+						}
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_china_sent_commander_small
+						}
+					}
+					FROM = {
+						ai = yes
+					}
+				}
+			}
+			FROM = {
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+			}
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				show_scope_change = no
+
+				is_adult = yes
+				martial = 12
+				is_heir = no
+				NOT = { is_landed = yes }
+				custom_tooltip = {
+					text = not_married_or_getting_married_tt
+					NOT = { is_betrothed = yes }
+					NOT = { is_married = yes }
+				}
+				custom_tooltip = {
+					text = is_not_from_china_tt
+					courtier_from_china_trigger = no
+				}
+				custom_tooltip = {
+					text = is_not_incapable_inbred_or_imbecile_tt
+					NOT = { trait = incapable }
+					NOT = { trait = inbred }
+					NOT = { trait = imbecile }
+				}
+				custom_tooltip = {
+					text = is_not_maimed_or_infirm_tt
+					NOT = { trait = maimed }
+					NOT = { trait = infirm }
+				}
+
+				NOT = { prisoner = yes }
+				
+				OR = {
+					is_female = no
+					AND = {
+						has_minor_title = title_commander
+						ROOT = {
+							primary_title = {
+								has_law = status_of_women_4 # Allows female commmanders
+							}
+						}
+					}
+					has_game_rule = {
+						name = gender
+						value = all
+					}
+				}
+			}
+		}
+
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				is_ill = no
+				custom_tooltip = {
+					text = is_not_wounded_severely_injured_tt
+					NOT = { trait = wounded }
+					NOT = { trait = severely_injured }
+				}
+				is_inaccessible_trigger = no
+			}
+		}
+		
+		effect = {
+			hidden_tooltip = {
+				narrative_event = { id = grace.23 } # Fires an event for the EoC that lets him decide if he want to accept the commander or not
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.3 # slow down
+			}
+			modifier = {
+				factor = 0
+				china_accepts_commander_tribute_from_trigger = no
+			}
+			modifier = {
+				factor = 0
+				china_hates_fromfrom_trigger = yes
+			}
+			modifier = {
+				factor = 0
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to send anything
+			}
+			modifier = {
+				factor = 0
+				is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+			}
+		}
+	}
+	
+	offer_physician_china = {
+		only_playable = yes
+		ai_target_filter = all
+		
+		third_party_filter = home_court
+		ai_third_party_filter = home_court
+		third_party = FROM
+		ai_check_interval = 54
+		#show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			has_dlc = "Reapers"
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_accepts_physician_tribute_trigger = yes
+			NOR = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_physician
+				}
+				AND = {
+					OR = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_china_sent_physician
+						}
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_china_sent_physician_small
+						}
+					}
+					FROM = {
+						ai = yes
+					}
+				}
+			}
+			FROM = {
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+			}
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				hidden_tooltip = {
+					liege = {
+						character = ROOT_FROM
+					}
+				}
+				show_scope_change = no
+				is_adult = yes
+				is_heir = no
+				custom_tooltip = {
+					text = not_married_or_getting_married_tt
+					NOT = { is_betrothed = yes }
+					NOT = { is_married = yes }
+				}
+				custom_tooltip = {
+					text = is_not_from_china_tt
+					courtier_from_china_trigger = no
+				}
+				custom_tooltip = {
+					text = is_not_incapable_inbred_or_imbecile_tt
+					NOT = { trait = incapable }
+					NOT = { trait = inbred }
+					NOT = { trait = imbecile }
+				}
+				custom_tooltip = {
+					text = is_not_maimed_or_infirm_tt
+					NOT = { trait = maimed }
+					NOT = { trait = infirm }
+				}
+				OR = {
+					conditional_tooltip = {
+						trigger = {
+							has_dlc = Reapers
+						}
+						has_minor_title = title_court_physician 
+					}
+					trait = physician
+					trait = scholar
+					trait = mystic
+				}
+			}
+		}
+		
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				is_ill = no
+				custom_tooltip = {
+					text = is_not_wounded_severely_injured_tt
+					NOT = { trait = wounded }
+					NOT = { trait = severely_injured }
+				}
+				is_inaccessible_trigger = no
+				NOT = { is_landed = yes }
+			}
+		}
+		
+		effect = {
+			hidden_tooltip = {
+				narrative_event = { id = grace.27 } # Fires an event for the EoC that lets him decide if he want to accept the physician or not
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.3 # slow down
+			}
+			modifier = {
+				factor = 0
+				china_accepts_physician_tribute_from_trigger = no
+			}
+			modifier = {
+				factor = 0
+				china_hates_fromfrom_trigger = yes
+			}
+			modifier = {
+				factor = 0
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to send anything
+			}
+			modifier = {
+				factor = 0
+				is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+			}
+		}
+	}
+	
+	send_relief_china = {
+		only_playable = yes
+		ai_check_interval = 90
+		ai_target_filter = all
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			has_dlc = "Reapers"
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+			realm_size = 100 # If smaller than this, it is unlikely that the relief would be enough to make a difference (and we also want to keep spam down)
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_accepts_relief_tribute_trigger = yes
+			NOR = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_relief
+				}
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_sent_relief # Leave without the extra AI check, at least for now
+				}
+			}
+		}
+		
+		effect = {
+			narrative_event = { id = grace.31 } # Fires an event for the EoC that lets him decide if he want to accept the relief or not
+		}
+
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					war = yes
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = { independent = no }
+			}
+			modifier = {
+				factor = 0
+				china_accepts_relief_tribute_from_trigger = no
+			}
+			modifier = {
+				factor = 0
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to send anything
+			}
+			modifier = {
+				factor = 0
+				is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+			}
+		}
+	}
+	
+	offer_artifact_china = {
+		only_playable = yes
+		ai_target_filter = all
+		
+		third_party_filter = artifacts
+		ai_third_party_filter = artifacts
+		third_party = FROM
+		ai_check_interval = 90
+		show_third_party_potential = yes
+	
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_accepts_artifact_tribute_trigger = yes
+			NOR = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_artifact
+				}
+				AND = {
+					OR = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_china_sent_artifact
+						}
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_china_sent_artifact_small
+						}
+					}
+					FROM = {
+						ai = yes
+					}
+				}
+			}
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				show_scope_change = no
+				custom_tooltip = {
+					text = send_artifact_potential_tt
+					#quality > 2
+					NOR = {
+						has_artifact_flag = curse
+						has_artifact_flag = chinese
+					}
+				}
+				ROOT = {
+					NOT = {
+						has_artifact = PREV # Check this!
+					}
+				}
+			}
+		}
+		
+		third_party_allow = {
+			# Check this; we might need to script in separate checks for ALL artifacts
+			NOT = {
+				has_artifact = FROMFROM # If the EoC already has a certain artifact, you cannot give him a duplicate
+			}
+		}
+		
+		effect = {
+			hidden_tooltip = {
+				narrative_event = { id = grace.34 } # Fires an event for the EoC that lets him decide if he want to accept the artifact or not
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				FROMFROM = {
+					quality > 3
+				}
+			}
+			modifier = {
+				factor = 0.1 # slow down
+			}
+			modifier = {
+				factor = 0
+				china_accepts_artifact_tribute_from_trigger = no
+			}
+			modifier = {
+				factor = 0
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to send anything
+			}
+			modifier = {
+				factor = 0
+				is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+			}
+		}
+	}
+	
+	kow_tow_china = {
+		only_playable = yes
+		ai_check_interval = 15
+		ai_target_filter = all
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			show_only_failed_conditions = yes
+			FROM = {
+				show_scope_change = no
+				war = no
+				NOT = {
+					block_general_event_trigger = yes
+					custom_tooltip = {
+						text = kow_tow_tooltip_already_went
+						hidden_tooltip = {
+							has_character_flag = went_on_kow_tow_pilgrimage
+						}
+					}
+				}
+				custom_tooltip = {
+					text = health_travel_condition
+					hidden_tooltip = {
+						NOR = {
+							trait = pregnant
+							trait = incapable
+							trait = blinded
+							trait = has_tuberculosis
+							trait = has_typhoid_fever
+							trait = has_typhus
+							trait = has_bubonic_plague
+							trait = has_measles
+							trait = has_small_pox
+							trait = has_aztec_disease
+						}
+					}
+				}
+				higher_real_tier_than = COUNT
+				conditional_tooltip = {
+					trigger = {
+						OR = {
+							real_tier = DUKE
+							is_nomadic = yes
+						}
+					}
+					prestige = 250
+				}
+				conditional_tooltip = {
+					trigger = {
+						real_tier = KING
+						NOT = { is_nomadic = yes }
+					}
+					prestige = 500
+				}
+				conditional_tooltip = {
+					trigger = {
+						real_tier = EMPEROR
+						NOT = { is_nomadic = yes }
+					}
+					prestige = 1000
+				}
+			}
+		}
+		
+		effect = {
+			# TODO: Create new kowtow events that involve the EoC and others in China a bit more
+			FROM = {
+				save_event_target_as = kow_tow_traveler
+				set_character_flag = went_on_kow_tow_pilgrimage
+				set_character_flag = do_not_disturb
+				character_event = {
+					id = JD.32000
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.01 #slow down
+			}
+			modifier = {
+				factor = 0
+				china_hates_from_trigger = yes # If the EoC has reason to dislike FROM, it could be dangerous to go to the EoC's court as he might use that opportunity to act against you...
+			}
+			modifier = {
+				factor = 0
+				from_hates_china_trigger = yes # Dislikes the EoC enough to not want to appear subservient
+			}
+			modifier = {
+				factor = 0
+				is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+			}
+		}
+	}
+	
+	### Boons
+	# All Grace is lost upon the request being sent, regardless of whether AI China would accept or refuse the request (the AI will never ask if AI China would refuse)
+	# The ONLY circumstance under which Grace is refunded is if the EoC is asked for an Imperial Marriage and he refuses because of being the lover (or currently trying to seduce) of some princess that otherwise would be a valid candidate
+	# Aside from the above refusal, the sender's opinion of the EoC is lowered and the EoC loses 500 prestige
+	# All princesses sent from China are disinherited (TODO: As are any non-random characters sent as other Boons)
+	
+	request_peace_deal_china = {
+		only_playable = yes
+		ai_check_interval = 18
+		ai_target_filter = all
+	
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			independent = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_grants_peace_deal_boon_trigger = yes
+			NOT = {
+				FROM = {
+					has_character_modifier = peace_deal_with_china
+				}
+				has_non_aggression_pact_with = FROM
+			}
+			show_only_failed_conditions = yes
+			FROM = {
+				show_scope_change = no
+				war = no
+				in_revolt = no
+				independent = yes
+				NOT = { pays_tribute_to = ROOT }
+				check_variable = {
+					which = grace
+					value = 250 # Should this be more expensive?
+				}
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+			}
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_peace_deal
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				sound_effect = china_grace_spend
+				change_variable = {
+					which = grace
+					value = -250
+				}
+			}
+			narrative_event = { id = grace.301 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1 # slow down
+			}
+			modifier = { realm_levy_diff = { who = FROM value = 2000 } factor = 1.5 }
+			modifier = { realm_levy_diff = { who = FROM value = 5000 } factor = 3 }
+			modifier = { realm_levy_diff = { who = FROM value = 10000 } factor = 5 }
+			modifier = { realm_levy_diff = { who = FROM value = 20000 } factor = 10 }
+			modifier = {
+				factor = 0.1
+				FROM = {
+					NOT = { has_grace_major_trigger = yes }
+				}
+			}
+			modifier = {
+				factor = 0
+				china_grants_peace_deal_boon_from_trigger = no
+			}
+			modifier = {
+				factor = 0
+				from_hates_china_trigger = yes # Might want to attack the EoC
+			}
+			modifier = {
+				factor = 0
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = china_peace_deal_breaker # The EoC broke a Peace Deal with us, so we won't agree to another
+				}
+			}
+		}
+	}
+	
+	request_doctor_china = {
+		only_playable = yes
+		ai_check_interval = 18
+		ai_target_filter = self # Not used by the AI
+	
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			has_dlc = "Reapers"
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_grants_physician_boon_trigger = yes
+			show_only_failed_conditions = yes
+			FROM = {
+				show_scope_change = no
+				check_variable = {
+					which = grace
+					value = 250
+				}
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+			}
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_physician_boon
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				sound_effect = china_grace_spend
+				change_variable = {
+					which = grace
+					value = -250
+				}
+			}
+			narrative_event = { id = grace.304 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
+		}
+		
+		ai_will_do = {
+			factor = 0
+			#modifier = {
+			#	factor = 0
+			#	NOT = {
+			#		e_china = {
+			#			holder_scope = {
+			#				is_within_diplo_range = FROM # If you're far from China, don't bother
+			#			}
+			#		}
+			#	}
+			#}
+			#factor = 1
+			#modifier = {
+			#	factor = 0.1 # slow down
+			#}
+			#modifier = {
+			#	FROM = { NOT = { any_courtier = { learning = 15 } } }
+			#	factor = 1.5
+			#}
+			#modifier = {
+			#	FROM = {
+			#		NOT = { any_courtier = { learning = 15 } }
+			#		OR = {
+			#			NOT = { health = 3 }
+			#			character_disease_trigger = yes
+			#			has_symptom_trigger = yes
+			#		}
+			#	}
+			#	factor = 10
+			#}
+			#modifier = {
+			#	FROM = {
+			#		NOT = { has_grace_medium_trigger = yes }
+			#	}
+			#	factor = 0.1
+			#}
+			#modifier = {
+			#	factor = 0
+			#	china_grants_physician_boon_from_trigger = no
+			#}
+		}
+	}
+	
+	request_artifact_china = {
+		only_playable = yes
+		ai_check_interval = 90
+		ai_target_filter = all
+	
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_grants_artifact_boon_trigger = yes
+			show_only_failed_conditions = yes
+			FROM = {
+				show_scope_change = no
+				check_variable = {
+					which = grace
+					value = 500
+				}
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+			}
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_artifact_boon
+				}
+			}
+			custom_tooltip = {
+				text = chinese_artifact_has_all_tt
+				hidden_tooltip = {
+					FROM = {
+						NAND = {
+							has_artifact = chinese_artwork
+							has_artifact = chinese_calligraphy
+							has_artifact = chinese_sculpture
+							has_artifact = chinese_ceremonial_robes
+							#OR = {
+							#	has_artifact = chinese_prev_emperor_sculpture
+							#	#offmap_china = {
+							#	#	offmap_prev_ruler = {
+							#	#		always = no
+							#	#	}
+							#	#}
+							#}
+							has_artifact = chinese_arm_protector
+							has_artifact = chinese_serpent_spear
+							has_artifact = chinese_ji
+							has_artifact = chinese_crossbow
+							has_artifact = chinese_bronze_sculpture
+							has_artifact = chinese_painting_of_glitterhoof
+							has_artifact = chinese_tapestry
+							has_artifact = chinese_tapestry_grand
+							has_artifact = water_clock
+							has_artifact = jian_sword
+							has_artifact = jade_dragon
+							# Books
+							has_artifact = chinese_book_health
+							has_artifact = chinese_book_law
+							has_artifact = chinese_book_history
+							has_artifact = chinese_book_economy
+							has_artifact = art_of_war
+							has_artifact = classic_of_poetry
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				sound_effect = china_grace_spend
+				change_variable = {
+					which = grace
+					value = -500
+				}
+			}
+			narrative_event = { id = grace.307 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}			
+			modifier = {
+				factor = 0.1 # slow down
+			}
+			modifier = {
+				factor = 0.1
+				NOT = {
+					trait = greedy
+				}
+			}
+			modifier = {
+				factor = 0
+				china_grants_artifact_boon_from_trigger = no
+			}
+		}
+	}
+	
+	request_siege_engineer_china = {
+		only_playable = yes
+		ai_check_interval = 90
+		ai_target_filter = self # Not used by the AI
+	
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_grants_siege_engineer_boon_trigger = yes
+			show_only_failed_conditions = yes
+			FROM = {
+				show_scope_change = no
+				check_variable = {
+					which = grace
+					value = 750
+				}
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+			}
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_siege_engineer_boon
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				sound_effect = china_grace_spend
+				change_variable = {
+					which = grace
+					value = -750
+				}
+			}
+			narrative_event = { id = grace.320 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	request_strategist_china = {
+		only_playable = yes
+		ai_check_interval = 90
+		ai_target_filter = all
+	
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_grants_strategist_boon_trigger = yes
+			show_only_failed_conditions = yes
+			FROM = {
+				show_scope_change = no
+				check_variable = {
+					which = grace
+					value = 750
+				}
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+			}
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_strategist_boon
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				sound_effect = china_grace_spend
+				change_variable = {
+					which = grace
+					value = -750
+				}
+			}
+			narrative_event = { id = grace.323 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1 # slow down
+			}
+			modifier = {
+				FROM = {
+					NOT = { has_grace_major_trigger = yes }
+				}
+				factor = 0.1
+			}
+			modifier = {	
+				factor = 0
+				FROM = {
+					is_nomadic = yes
+				}
+			}
+			modifier = {
+				factor = 0
+				china_grants_strategist_boon_from_trigger = no
+			}
+		}
+	}
+	
+	request_administrator_china = {
+		only_playable = yes
+		ai_check_interval = 90
+		ai_target_filter = all
+	
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_grants_administrator_boon_trigger = yes
+			show_only_failed_conditions = yes
+			FROM = {
+				show_scope_change = no
+				check_variable = {
+					which = grace
+					value = 1000
+				}
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+				custom_tooltip = {
+					text = chinese_administrator_allow_tt
+					NOT = { any_courtier = { has_minor_title = title_administrator } }
+				}
+			}
+			NOR = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_administrator_boon
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				sound_effect = china_grace_spend
+				change_variable = {
+					which = grace
+					value = -1000
+				}
+			}
+			narrative_event = { id = grace.326 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5 # slow down
+			}
+			modifier = {
+				FROM = {
+					NOT = { has_grace_major_trigger = yes }
+				}
+				factor = 0.1
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					OR = {
+						is_tribal = yes
+						is_nomadic = yes
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				china_grants_administrator_boon_from_trigger = no
+			}
+		}
+	}
+	
+	request_master_engineer_china = {
+		only_playable = yes
+		ai_check_interval = 90
+		ai_target_filter = all
+	
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_grants_master_engineer_boon_trigger = yes
+			show_only_failed_conditions = yes
+			FROM = {
+				show_scope_change = no
+				check_variable = {
+					which = grace
+					value = 1000
+				}
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+				custom_tooltip = {
+					text = chinese_master_engineer_allow_tt
+					NOT = { any_courtier = { has_minor_title = title_master_engineer } }
+				}
+			}
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_master_engineer_boon
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				sound_effect = china_grace_spend
+				change_variable = {
+					which = grace
+					value = -1000
+				}
+			}
+			narrative_event = { id = grace.329 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1 # slow down
+			}
+			modifier = {
+				FROM = {
+					NOT = { has_grace_major_trigger = yes }
+				}
+				factor = 0.1
+			}
+			modifier = {
+				factor = 0
+				FROM = {	
+					OR = {
+						is_nomadic = yes
+						is_tribal = yes
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				china_grants_master_engineer_boon_from_trigger = no
+			}
+		}
+	}
+	
+	request_silk_road_favoured_status_china = {
+		only_playable = yes
+		ai_check_interval = 54
+		ai_target_filter = all
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+
+		
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_grants_trade_contract_boon_trigger = yes
+			show_only_failed_conditions = yes
+			FROM = {
+				show_scope_change = no
+				check_variable = {
+					which = grace
+					value = 2000
+				}
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+				NOT = { has_character_modifier = chinese_imperial_trade_contract }
+				#NOT = { has_character_modifier = chinese_favored_in_trade } # TODO: Re-add?
+				custom_tooltip = {
+					text = tooltip_silk_road_required
+					hidden_tooltip = {
+						any_realm_province = {
+							trade_route = silk_road
+						}
+					}
+				}
+			}
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_refused_trade_contract_boon
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				sound_effect = china_grace_spend
+				change_variable = {
+					which = grace
+					value = -2000
+				}
+			}
+			narrative_event = { id = grace.332 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+				FROM = {
+					is_merchant_republic = no # MRs are always interested
+				}
+			}
+			modifier = {
+				factor = 0.1 # slow down
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					NOT = {
+						any_demesne_province = {
+							has_trade_post = yes
+							trade_route = silk_road
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				china_grants_trade_contract_boon_from_trigger = no
+			}
+		}
+	}
+	
+	request_imperial_marriage_china = {
+		only_playable = yes
+		ai_target_filter = all
+		
+		third_party_filter = realm_including_me
+		ai_third_party_filter = court
+		third_party = FROM
+		ai_check_interval = 9
+		show_third_party_potential = yes
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			china_grants_imperial_marriage_boon_trigger = yes
+			show_only_failed_conditions = yes
+			FROM = {
+				show_scope_change = no
+				conditional_tooltip = {
+					trigger = { NOT = { has_character_modifier = peace_deal_with_china } }
+					check_variable = {
+						which = grace
+						value = 1000
+					}
+				}
+				conditional_tooltip = {
+					trigger = { has_character_modifier = peace_deal_with_china }
+					check_variable = {
+						which = grace
+						value = 750
+					}
+				}
+				OR = {
+					custom_tooltip = {
+						text = can_marry_chinese_royal_tt
+						AND = {
+							is_adult = yes
+							is_married = no
+							is_female = no
+						}
+					}
+					custom_tooltip = {
+						text = has_courtier_eligible_for_marriage_tt
+						OR = {
+							any_dynasty_member = {
+								is_adult = yes
+								is_married = no
+								liege = { character = ROOT_FROM }
+								is_female = no
+							}
+							any_close_relative = {
+								is_adult = yes
+								is_married = no
+								liege = { character = ROOT_FROM }
+								NOT = { any_spouse = { character = ROOT_FROM } } #turns out without this, it includes your spouse
+								is_female = no
+							}
+						}
+					}
+				}
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+				NOR = {
+					reverse_has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_china_refused_imperial_marriage
+					}
+					reverse_has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_china_refused_imperial_marriage_good
+					}
+				}
+			}
+		}
+
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				show_scope_change = no
+				OR = {
+					dynasty = ROOT_FROM
+					is_close_relative = ROOT_FROM
+				}
+				OR = {
+					character = ROOT_FROM
+					AND = {
+						liege = { character = ROOT_FROM }
+						ai = yes
+					}
+				}
+				NOT = { any_spouse = { character = ROOT_FROM } }
+				is_adult = yes
+				is_betrothed = no
+				is_female = no # Vanilla allows women to get Chinese Imperial Marriages, but it would be VERY problematic to disallow regular marriages for the EoC's male relatives as they are more likely to inherit
+			}
+		}
+
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				custom_tooltip = {
+					text = can_marry_chinese_royal_tt
+					can_marry = yes
+					is_married = no
+				}
+			}
+		}
+
+		effect = {
+			FROM = {
+				show_scope_change = no
+				sound_effect = china_grace_spend
+				if = {
+					limit = { has_character_modifier = peace_deal_with_china }
+					change_variable = {
+						which = grace
+						value = -750
+					}
+				}
+				else = {
+					change_variable = {
+						which = grace
+						value = -1000
+					}
+					custom_tooltip = { text = chinese_imperial_marriage_peace_deal_tt }	
+				}				
+			}
+			narrative_event = { id = grace.335 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
+		}
+
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = FROM # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.05 # slow down
+			}
+			modifier = {
+				factor = 0.5
+				FROM = {
+					NOT = {
+						higher_tier_than = DUKE
+					}
+				}
+			}
+			modifier = {
+				factor = 0.75
+				FROM = {
+					NOT = {
+						independent = yes
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				china_grants_imperial_marriage_boon_from_trigger = no
+			}
+			modifier = {
+				factor = 0
+				china_hates_fromfrom_trigger = yes
+			}
+			modifier = {
+				factor = 0
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = china_peace_deal_breaker # The EoC broke a Peace Deal with us, so we won't agree to another
+				}
+			}
+		}
+	}
+	
+	# Player-only targeted Imperial Marriage requests
+	
+	request_imperial_marriage_china_targeted = {
+		only_playable = yes
+		ai_target_filter = self # Not used by the AI
+		
+		third_party_filter = realm_including_me
+		ai_third_party_filter = self
+		third_party = FROM
+		ai_check_interval = 12
+		show_third_party_potential = yes
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			# Is independent, king-tier, or a human player
+			OR = {
+				independent = yes
+				real_tier = king
+				ai = no
+			}
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			ai = no
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			NOT = {
+				any_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			# The EoC must be using Grace mechanics
+			e_china = {
+				holder_scope = {
+					is_chinese_emperor_trigger = yes
+					# The target must be a Chinese princess
+					ROOT = {
+						is_valid_dragon_bride_candidate = yes
+					}
+				}
+			}
+		}
+
+		allow = {
+			can_use_grace_decisions_from_trigger = yes
+			#china_grants_imperial_marriage_boon_trigger = yes
+			e_china = {
+				holder_scope = {
+					NOT = {
+						has_character_flag = china_no_imperial_marriage_boons # Player-only opt-out
+					}
+					NOT = {
+						has_character_flag = china_no_peace_deal_boons # Player-only opt-out
+					}
+				}
+			}
+			show_only_failed_conditions = yes
+			FROM = {
+				show_scope_change = no
+				conditional_tooltip = {
+					trigger = { NOT = { has_character_modifier = peace_deal_with_china } }
+					check_variable = {
+						which = grace
+						value = 1000
+					}
+				}
+				conditional_tooltip = {
+					trigger = { has_character_modifier = peace_deal_with_china }
+					check_variable = {
+						which = grace
+						value = 750
+					}
+				}
+				OR = {
+					custom_tooltip = {
+						text = can_marry_chinese_royal_tt
+						AND = {
+							is_adult = yes
+							is_married = no
+							is_female = no
+						}
+					}
+					custom_tooltip = {
+						text = has_courtier_eligible_for_marriage_tt
+						OR = {
+							any_dynasty_member = {
+								is_adult = yes
+								is_married = no
+								liege = { character = ROOT_FROM }
+								is_female = no
+							}
+							any_close_relative = {
+								is_adult = yes
+								is_married = no
+								liege = { character = ROOT_FROM }
+								NOT = { any_spouse = { character = ROOT_FROM } } #turns out without this, it includes your spouse
+								is_female = no
+							}
+						}
+					}
+				}
+				e_china = {
+					holder_scope = {
+						prisoner = no
+						NOT = { trait = incapable }
+						is_inaccessible_trigger = no
+						NOR = {
+							reverse_has_opinion_modifier = {
+								who = FROM
+								modifier = opinion_china_refused_imperial_marriage
+							}
+							reverse_has_opinion_modifier = {
+								who = FROM
+								modifier = opinion_china_refused_imperial_marriage_good
+							}
+						}
+					}
+				}
+			}
+		}
+
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				show_scope_change = no
+				OR = {
+					dynasty = ROOT_FROM
+					is_close_relative = ROOT_FROM
+				}
+				OR = {
+					character = ROOT_FROM
+					AND = {
+						liege = { character = ROOT_FROM }
+						ai = yes
+					}
+				}
+				NOT = { any_spouse = { character = ROOT_FROM } }
+				is_adult = yes
+				is_betrothed = no
+				is_female = no # Vanilla allows women to get Chinese Imperial Marriages, but it would be VERY problematic to disallow regular marriages for the EoC's male relatives as they are more likely to inherit
+			}
+		}
+
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				custom_tooltip = {
+					text = can_marry_chinese_royal_tt
+					can_marry = yes
+					is_married = no
+				}
+			}
+		}
+
+		effect = {
+			FROM = {
+				show_scope_change = no
+				sound_effect = china_grace_spend
+				if = {
+					limit = { has_character_modifier = peace_deal_with_china }
+					change_variable = {
+						which = grace
+						value = -750
+					}
+				}
+				else = {
+					change_variable = {
+						which = grace
+						value = -1000
+					}
+					custom_tooltip = { text = chinese_imperial_marriage_peace_deal_tt }	
+				}
+			}
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.339 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 0 # Far, FAR, too computationally expensive!
+		}
+	}
+	
+	### Chinese vassal Imperial Marriage requests (doesn't use Grace, but related to the system)
+	
+	request_imperial_marriage_china_vassal = {
+		only_playable = yes
+		ai_target_filter = realm
+		
+		third_party_filter = realm_including_me
+		ai_third_party_filter = court
+		third_party = FROM
+		ai_check_interval = 9
+		show_third_party_potential = yes
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+
+		allow = {
+			china_grants_imperial_marriage_boon_trigger = yes
+			show_only_failed_conditions = yes
+			FROM = {
+				wealth = 1000
+				OR = {
+					custom_tooltip = {
+						text = can_marry_chinese_royal_tt
+						AND = {
+							is_adult = yes
+							is_married = no
+							is_female = no
+						}
+					}
+					custom_tooltip = {
+						text = has_courtier_eligible_for_marriage_tt
+						OR = {
+							any_dynasty_member = {
+								is_adult = yes
+								is_married = no
+								liege = { character = ROOT_FROM }
+								is_female = no
+							}
+							any_close_relative = {
+								is_adult = yes
+								is_married = no
+								liege = { character = ROOT_FROM }
+								NOT = { any_spouse = { character = ROOT_FROM } } #turns out without this, it includes your spouse
+								is_female = no
+							}
+						}
+					}
+				}
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+				NOR = {
+					reverse_has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_china_refused_imperial_marriage
+					}
+					reverse_has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_china_refused_imperial_marriage_good
+					}
+				}
+			}
+		}
+
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				show_scope_change = no
+				OR = {
+					dynasty = ROOT_FROM
+					is_close_relative = ROOT_FROM
+				}
+				OR = {
+					character = ROOT_FROM
+					AND = {
+						liege = { character = ROOT_FROM }
+						ai = yes
+					}
+				}
+				NOT = { any_spouse = { character = ROOT_FROM } }
+				is_adult = yes
+				is_betrothed = no
+				is_female = no # Vanilla allows women to get Chinese Imperial Marriages, but it would be VERY problematic to disallow regular marriages for the EoC's male relatives as they are more likely to inherit
+			}
+		}
+
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				custom_tooltip = {
+					text = can_marry_chinese_royal_tt
+					can_marry = yes
+					is_married = no
+				}
+			}
+		}
+
+		effect = {
+			narrative_event = { id = grace.912 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
+		}
+
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.05 # slow down
+			}
+			modifier = {
+				factor = 0.5
+				FROM = {
+					NOT = {
+						higher_tier_than = DUKE
+					}
+				}
+			}
+			modifier = {
+				factor = 0.75
+				FROM = {
+					NOT = {
+						independent = yes
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				china_grants_imperial_marriage_boon_from_trigger = no
+			}
+			modifier = {
+				factor = 0
+				china_hates_fromfrom_trigger = yes
+			}
+		}
+	}
+	
+	# Targeted version of the above; player only
+	request_imperial_marriage_china_vassal_targeted = {
+		only_playable = yes
+		ai_target_filter = self # Not used by the AI
+		
+		third_party_filter = realm_including_me
+		ai_third_party_filter = self
+		third_party = FROM
+		ai_check_interval = 12
+		show_third_party_potential = yes
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			ai = no
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			mercenary = no
+			holy_order = no
+			is_landed = yes
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+
+		allow = {
+			china_grants_imperial_marriage_boon_trigger = yes
+			show_only_failed_conditions = yes
+			FROM = {
+				wealth = 1000
+				show_scope_change = no
+				conditional_tooltip = {
+					trigger = { NOT = { has_character_modifier = peace_deal_with_china } }
+					check_variable = {
+						which = grace
+						value = 1000
+					}
+				}
+				conditional_tooltip = {
+					trigger = { has_character_modifier = peace_deal_with_china }
+					check_variable = {
+						which = grace
+						value = 750
+					}
+				}
+				OR = {
+					custom_tooltip = {
+						text = can_marry_chinese_royal_tt
+						AND = {
+							is_adult = yes
+							is_married = no
+							is_female = no
+						}
+					}
+					custom_tooltip = {
+						text = has_courtier_eligible_for_marriage_tt
+						OR = {
+							any_dynasty_member = {
+								is_adult = yes
+								is_married = no
+								liege = { character = ROOT_FROM }
+								is_female = no
+							}
+							any_close_relative = {
+								is_adult = yes
+								is_married = no
+								liege = { character = ROOT_FROM }
+								NOT = { any_spouse = { character = ROOT_FROM } } #turns out without this, it includes your spouse
+								is_female = no
+							}
+						}
+					}
+				}
+				prisoner = no
+				NOT = { trait = incapable }
+				is_inaccessible_trigger = no
+				NOR = {
+					reverse_has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_china_refused_imperial_marriage
+					}
+					reverse_has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_china_refused_imperial_marriage_good
+					}
+				}
+			}
+		}
+
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				show_scope_change = no
+				OR = {
+					dynasty = ROOT_FROM
+					is_close_relative = ROOT_FROM
+				}
+				OR = {
+					character = ROOT_FROM
+					AND = {
+						liege = { character = ROOT_FROM }
+						ai = yes
+					}
+				}
+				NOT = { any_spouse = { character = ROOT_FROM } }
+				is_adult = yes
+				is_betrothed = no
+				is_female = no # Vanilla allows women to get Chinese Imperial Marriages, but it would be VERY problematic to disallow regular marriages for the EoC's male relatives as they are more likely to inherit
+			}
+		}
+
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				custom_tooltip = {
+					text = can_marry_chinese_royal_tt
+					can_marry = yes
+					is_married = no
+				}
+			}
+		}
+
+		effect = {
+			narrative_event = { id = grace.916 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
+		}
+
+		ai_will_do = {
+			factor = 0 # Far, FAR, too computationally expensive!
+		}
+	}
+	
+	### Grace checking (for players)
+	
+	check_grace = {
+		filter = self
+		ai_target_filter = self
+	
+		potential = {
+			ai = no
+		}
+		
+		effect = {
+			letter_event = { id = grace.997 }
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	### Check if China hates you
+	
+	check_eoc_opinion = {
+		filter = self
+		ai_target_filter = self
+	
+		potential = {
+			ai = no
+		}
+		
+		effect = {
+			letter_event = { id = grace.980 }
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	### Peace Deal revokation
+	
+	revoke_peace_deal = {
+		only_playable = yes
+		ai_check_interval = 12
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			ai = no
+			OR = {
+				is_chinese_emperor_trigger = yes
+				has_character_modifier = peace_deal_with_china
+			}
+		}
+		
+		potential = {
+			OR = {
+				is_chinese_emperor_trigger = yes
+				AND = {
+					FROM = {
+						is_chinese_emperor_trigger = yes
+					}
+					has_character_modifier = peace_deal_with_china
+				}
+			}
+		}
+		
+		allow = {
+			prisoner = no
+			NOT = { trait = incapable }
+			is_inaccessible_trigger = no
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					is_chinese_emperor_trigger = yes
+				}
+				letter_event = { id = grace.993 }
+				break = yes
+			}
+			letter_event = { id = grace.991 }
+		}
+		
+		ai_will_do = {
+			factor = 0 # TODO? Normal NAPs aren't broken by the AI...
+		}
+	}
+	
+	### Tribute blocking/unblocking
+	
+	enable_disable_tribute = {
+		filter = self
+		ai_target_filter = self
+					
+		potential = {
+			ai = no
+			is_chinese_emperor_trigger = yes
+		}
+		
+		effect = {
+			letter_event = { id = grace.601 }
+		}
+		
+		ai_will_do = {
+			factor = 0 # Not worth it
+		}
+	}
+	
+	### Boon blocking/unblocking
+	
+	enable_disable_boon = {
+		filter = self
+		ai_target_filter = self
+					
+		potential = {
+			ai = no
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			always = yes
+		}
+		
+		effect = {
+			letter_event = { id = grace.603 }
+		}
+		
+		ai_will_do = {
+			factor = 0 # Not worth it
+		}
+	}
+}
