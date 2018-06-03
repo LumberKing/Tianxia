@@ -13,6 +13,7 @@ character_event = {
 	id = japan.1
 	desc = EVTDESC_JAPAN_1
 	picture = GFX_evt_china_golden_age # Needs better picture!
+	border = GFX_event_normal_frame_diplomacy
 	
 	is_triggered_only = yes
 	
@@ -3419,6 +3420,419 @@ character_event = {
 		else = {
 			set_character_flag = emperor_of_japan_namelist_1
 			repeat_event = { id = japan.1 }
+		}
+	}
+}
+
+# Buddhism appears from "nowhere"
+province_event = {
+	id = japan.2
+	desc = EVTDESC_JAPAN_2
+	picture = GFX_evt_china_golden_age # Needs better picture!
+	border = GFX_event_normal_frame_religion
+	
+	trigger = {
+		religion = shinto
+	}
+	
+	mean_time_to_happen = {
+		months = 1200
+		modifier = {
+			factor = 2.0
+			religion_authority = 0.6
+		}
+		modifier = {
+			factor = 2.0
+			religion_authority = 0.8
+		}
+		modifier = {
+			factor = 2
+			has_game_rule = {
+				name = religious_conversion
+				value = slower
+			}
+		}
+		modifier = {
+			factor = 0.75
+			NOT = { religion_authority = 0.2 }
+		}
+		modifier = {
+			factor = 0.75
+			NOT = { religion_authority = 0.4 }
+		}
+	}
+	
+	immediate = {
+		religion = buddhist
+		add_province_modifier = {
+			name = religious_unrest
+			duration = 730
+		}
+	}
+	
+	option = {
+		name = {
+			text = EVTOPTA_JAPAN_2
+			trigger = {
+				owner = {
+					NOR = {
+						religion = shinto
+						religion = ROOT
+					}
+				}
+			}
+		}
+		name = {
+			text = EVTOPTB_JAPAN_2
+			trigger = { owner = { religion = ROOT } }
+		}
+		name = {
+			text = EVTOPTC_JAPAN_2
+			trigger = { owner = { religion = shinto } }
+		}
+		if = {
+			limit = { 
+				ruler = { religion = shinto }
+			}
+			ruler = { piety = -10 }
+		}
+		# News spread
+		hidden_tooltip = {
+			owner = {
+				top_liege = {
+					if = {
+						limit = {
+							NOT = { character = PREV }
+						}
+						character_event = { id = japan.3 days = 2 }
+					}
+					any_vassal = {
+						limit = {
+							OR = {
+								is_parent_religion = ROOT
+								religion = ROOT
+							}
+						}
+						character_event = { id = japan.3 days = 2 }
+					}
+				}
+			}
+		}
+	}
+}
+
+# News spread in realm
+character_event = {
+	id = japan.3
+	desc = EVTDESC_JAPAN_3
+	picture = GFX_evt_heretic
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_JAPAN_3
+		trigger = {
+			NOR = {
+				religion = shinto
+				religion = FROM
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_JAPAN_3
+		trigger = {
+			religion = FROM
+		}
+	}
+	option = {
+		name = EVTOPTC_JAPAN_3
+		trigger = {
+			religion = shinto
+		}
+	}
+}
+
+# Random religion appears from "nowehere"
+province_event = {
+	id = japan.4
+	desc = EVTDESC_JAPAN_4
+	picture = GFX_evt_china_golden_age # Needs better picture!
+	border = GFX_event_normal_frame_religion
+		
+	trigger = {
+		religion = shinto
+		any_neighbor_province = {
+			OR = {
+				AND = {
+					has_owner = yes
+					NOR = {
+						religion = shinto
+						religion_group = pagan_group
+						religion = jain # Shouldn't spread to silly places!
+						religion = buddhist # Has its own event
+					}
+				}
+				AND = {
+					is_land = no
+					any_neighbor_province = {
+						OR = {
+							AND = {
+								has_owner = yes
+								NOR = {
+									religion = shinto
+									religion_group = pagan_group
+									religion = jain # Shouldn't spread to silly places!
+									religion = buddhist # Has its own event
+								}
+							}
+							AND = {
+								is_land = no
+								any_neighbor_province = {
+									NOR = {
+										religion = shinto
+										religion_group = pagan_group
+										religion = jain # Shouldn't spread to silly places!
+										religion = buddhist # Has its own event
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 9600
+		modifier = {
+			factor = 2.0
+			religion_authority = 0.6
+		}
+		modifier = {
+			factor = 2.0
+			religion_authority = 0.8
+		}
+		modifier = {
+			factor = 2
+			has_game_rule = {
+				name = religious_conversion
+				value = slower
+			}
+		}
+		modifier = {
+			factor = 0.75
+			NOT = { religion_authority = 0.2 }
+		}
+		modifier = {
+			factor = 0.75
+			NOT = { religion_authority = 0.4 }
+		}
+	}
+	
+	immediate = {
+		random_list = {
+			34 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						any_neighbor_province = {
+							has_owner = yes
+							NOR = {
+								religion = shinto
+								religion_group = pagan_group
+								religion = jain # Shouldn't spread to silly places!
+								religion = buddhist # Has its own event
+							}
+						}
+					}
+				}
+				random_neighbor_province = {
+					limit = {
+						has_owner = yes
+						NOR = {
+							religion = shinto
+							religion_group = pagan_group
+							religion = jain # Shouldn't spread to silly places!
+							religion = buddhist # Has its own event
+						}
+					}
+					ROOT = {
+						religion = PREV
+					}
+				}
+			}
+			33 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						any_neighbor_province = {
+							is_land = no
+							any_neighbor_province = {
+								has_owner = yes
+								NOR = {
+									religion = shinto
+									religion_group = pagan_group
+									religion = jain # Shouldn't spread to silly places!
+									religion = buddhist # Has its own event
+								}
+							}
+						}
+					}
+				}
+				random_neighbor_province = {
+					limit = {
+						is_land = no
+					}
+					random_neighbor_province = {
+						limit = {
+							has_owner = yes
+							NOR = {
+								religion = shinto
+								religion_group = pagan_group
+								religion = jain # Shouldn't spread to silly places!
+								religion = buddhist # Has its own event
+							}
+						}
+						ROOT = {
+							religion = PREV
+						}
+					}
+				}
+			}
+			33 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						any_neighbor_province = {
+							is_land = no
+							any_neighbor_province = {
+								is_land = no
+								any_neighbor_province = {
+									has_owner = yes
+									NOR = {
+										religion = shinto
+										religion_group = pagan_group
+										religion = jain # Shouldn't spread to silly places!
+										religion = buddhist # Has its own event
+									}
+								}
+							}
+						}
+					}
+				}
+				random_neighbor_province = {
+					limit = {
+						is_land = no
+					}
+					random_neighbor_province = {
+						limit = {
+							is_land = no
+						}
+						random_neighbor_province = {
+							limit = {
+								has_owner = yes
+								NOR = {
+									religion = shinto
+									religion_group = pagan_group
+									religion = jain # Shouldn't spread to silly places!
+									religion = buddhist # Has its own event
+								}
+							}
+							ROOT = {
+								religion = PREV
+							}
+						}
+					}
+				}
+			}
+		}
+		add_province_modifier = {
+			name = religious_unrest
+			duration = 730
+		}
+	}
+	
+	option = {
+		name = {
+			text = EVTOPTA_JAPAN_4
+			trigger = {
+				owner = {
+					NOR = {
+						religion = shinto
+						religion = ROOT
+					}
+				}
+			}
+		}
+		name = {
+			text = EVTOPTB_JAPAN_4
+			trigger = { owner = { religion = ROOT } }
+		}
+		name = {
+			text = EVTOPTC_JAPAN_4
+			trigger = { owner = { religion = shinto } }
+		}
+		if = {
+			limit = { 
+				ruler = { religion = shinto }
+			}
+			ruler = { piety = -10 }
+		}
+		# News spread
+		hidden_tooltip = {
+			owner = {
+				top_liege = {
+					if = {
+						limit = {
+							NOT = { character = PREV }
+						}
+						character_event = { id = japan.5 days = 2 }
+					}
+					any_vassal = {
+						limit = {
+							OR = {
+								is_parent_religion = ROOT
+								religion = ROOT
+							}
+						}
+						character_event = { id = japan.5 days = 2 }
+					}
+				}
+			}
+		}
+	}
+}
+
+# News spread in realm
+character_event = {
+	id = japan.5
+	desc = EVTDESC_JAPAN_5
+	picture = GFX_evt_heretic
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_JAPAN_5
+		trigger = {
+			NOR = {
+				religion = shinto
+				religion = FROM
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_JAPAN_5
+		trigger = {
+			religion = FROM
+		}
+	}
+	option = {
+		name = EVTOPTC_JAPAN_5
+		trigger = {
+			religion = shinto
 		}
 	}
 }
