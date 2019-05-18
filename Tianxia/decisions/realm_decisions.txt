@@ -700,10 +700,9 @@ decisions = {
 								is_chinese_emperor_trigger = no
 							}
 						}
-						# A vassal cannot be the EoC
+						# A vassal cannot be the EoC, so no need to check for the case where the vassal is the EoC
 						if = {
 							limit = {
-								is_chinese_emperor_trigger = no
 								any_close_relative = {
 									dynasty = PREV
 									is_chinese_emperor_trigger = yes
@@ -713,15 +712,8 @@ decisions = {
 								detract_grace_medium_effect = yes
 							}
 						}
-						if = {
+						else_if = {
 							limit = {
-								is_chinese_emperor_trigger = no
-								NOT = {
-									any_close_relative = {
-										dynasty = PREV
-										is_chinese_emperor_trigger = yes
-									}
-								}
 								any_dynasty_member = {
 									is_chinese_emperor_trigger = yes
 								}
@@ -755,10 +747,9 @@ decisions = {
 								is_chinese_emperor_trigger = no
 							}
 						}
-						# A vassal cannot be the EoC
+						# A vassal cannot be the EoC, so no need to check for the case where the vassal is the EoC
 						if = {
 							limit = {
-								is_chinese_emperor_trigger = no
 								any_close_relative = {
 									dynasty = PREV
 									is_chinese_emperor_trigger = yes
@@ -768,15 +759,8 @@ decisions = {
 								detract_grace_medium_effect = yes
 							}
 						}
-						if = {
+						else_if = {
 							limit = {
-								is_chinese_emperor_trigger = no
-								NOT = {
-									any_close_relative = {
-										dynasty = PREV
-										is_chinese_emperor_trigger = yes
-									}
-								}
 								any_dynasty_member = {
 									is_chinese_emperor_trigger = yes
 								}
@@ -965,6 +949,7 @@ decisions = {
 		potential = {
 			has_dlc = "The Old Gods"
 			is_playable = yes
+			is_random_world = no
 			religion_group = zoroastrian_group
 			NOT = { religion = manichean }
 			NOT = { has_global_flag = saoshyant_appears }
@@ -1063,6 +1048,7 @@ decisions = {
 		potential = {
 			has_dlc = "The Old Gods"
 			is_playable = yes
+			is_random_world = no
 			religion = zoroastrian
 			NOT = { has_global_flag = zoroastrian_priesthood_founded }
 			NOT = {
@@ -1529,6 +1515,12 @@ decisions = {
 				}
 				religion = buddhist
 				culture_group = japonic
+			}
+			NOR = { # Except for possibly becoming China, Chinese Imperial rulers shouldn't do things that give them a new primary title
+				is_chinese_emperor_trigger = yes
+				primary_title = {
+					has_title_flag = pretender_chinese_empire
+				}
 			}
 		}
 		allow = {
@@ -2225,7 +2217,6 @@ decisions = {
 				new_title = {
 					copy_title_history = PREV
 				}
-				
 				hidden_tooltip = {
 					empire = {
 						ROOT = {
@@ -2675,17 +2666,68 @@ decisions = {
 				limit = {
 					NOT = { religion_group = muslim }
 					NAND = {
-						OR = {
-							culture_group = tibetan_group
-							culture_group = japonic
-						}
+						culture_group = tibetan_group
 						OR = {
 							religion = bon
 							religion = bon_reformed
 							religion = buddhist
-							religion = shinto
+						
 						}
 						higher_tier_than = BARON
+					}
+					NAND = {
+						OR = {
+							culture_group = chinese_group
+							culture_group = koreanic
+							culture = viet
+						}
+						has_acceptable_chinese_religion_trigger = yes # Same requirement as for Chinese Imperial
+					}
+					NAND = { 
+						culture_group = japonic
+						OR = {
+							religion = shinto
+							religion = buddhist
+						}
+						higher_tier_than = BARON
+						OR = {
+							any_liege = {
+								OR = {
+									AND = {
+										religion = shinto
+										controls_religion = yes
+									}
+									is_chinese_emperor_trigger = yes
+									primary_title = {
+										has_title_flag = pretender_chinese_empire
+									}
+									liege_before_war = {
+										OR = {
+											AND = {
+												religion = shinto
+												controls_religion = yes
+											}
+											is_chinese_emperor_trigger = yes
+											primary_title = {
+												has_title_flag = pretender_chinese_empire
+											}
+										}
+									}
+								}
+							}
+							liege_before_war = {
+								OR = {
+									AND = {
+										religion = shinto
+										controls_religion = yes
+									}
+									is_chinese_emperor_trigger = yes
+									primary_title = {
+										has_title_flag = pretender_chinese_empire
+									}
+								}
+							}
+						}
 					}
 				}
 				
@@ -2700,7 +2742,6 @@ decisions = {
 				}
 				set_government_type = feudal_government
 			}
-			
 			if = {
 				limit = {
 					religion_group = muslim
@@ -2717,25 +2758,13 @@ decisions = {
 				}
 				set_government_type = muslim_government
 			}
-			
 			if = {
 				limit = {
+					culture_group = tibetan_group
 					OR = {
-						AND = {
-							culture_group = tibetan_group
-							OR = {
-								religion = bon
-								religion = bon_reformed
-								religion = buddhist
-							}
-						}
-						AND = {
-							culture_group = japonic
-							OR = {
-								religion = buddhist
-								religion = shinto
-							}
-						}
+						religion = bon
+						religion = bon_reformed
+						religion = buddhist
 					}
 					higher_tier_than = BARON
 				}
@@ -2750,6 +2779,78 @@ decisions = {
 					}
 				}
 				set_government_type = theocratic_feudal_government
+			}
+			if = {
+				limit = {
+					OR = {
+						AND = {
+							OR = {
+								culture_group = chinese_group
+								culture_group = koreanic
+								culture = viet
+								culture = ryukyuan
+							}
+							has_acceptable_chinese_religion_trigger = yes # Same requirement as for Chinese Imperial
+						}
+						AND = { 
+							culture_group = japonic
+							OR = {
+								religion = shinto
+								religion = buddhist
+							}
+							higher_tier_than = BARON
+							OR = {
+								any_liege = {
+									OR = {
+										AND = {
+											religion = shinto
+											controls_religion = yes
+										}
+										is_chinese_emperor_trigger = yes
+										primary_title = {
+											has_title_flag = pretender_chinese_empire
+										}
+										liege_before_war = {
+											OR = {
+												AND = {
+													religion = shinto
+													controls_religion = yes
+												}
+												is_chinese_emperor_trigger = yes
+												primary_title = {
+													has_title_flag = pretender_chinese_empire
+												}
+											}
+										}
+									}
+								}
+								liege_before_war = {
+									OR = {
+										AND = {
+											religion = shinto
+											controls_religion = yes
+										}
+										is_chinese_emperor_trigger = yes
+										primary_title = {
+											has_title_flag = pretender_chinese_empire
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				if = {
+					limit = {
+						ai = no
+					}
+					chronicle = {
+						entry = CHRONICLE_ADOPTED_FEUDALISM
+						picture = GFX_evt_castle_construction
+					}
+				}
+				set_government_type = chinese_vassal_government
 			}
 			
 			if = {
@@ -2908,28 +3009,74 @@ decisions = {
 		effect = {
 			set_character_flag = achievement_not_a_tribe
 			
+			
+			
 			if = {
 				limit = {
 					NOT = { religion_group = muslim }
 					NAND = {
+						culture_group = tibetan_group
 						OR = {
-							AND = {
-								culture_group = tibetan_group
+							religion = bon
+							religion = bon_reformed
+							religion = buddhist
+						
+						}
+						higher_tier_than = BARON
+					}
+					NAND = {
+						OR = {
+							culture_group = chinese_group
+							culture_group = koreanic
+							culture = viet
+						}
+						has_acceptable_chinese_religion_trigger = yes # Same requirement as for Chinese Imperial
+					}
+					NAND = { 
+						culture_group = japonic
+						OR = {
+							religion = shinto
+							religion = buddhist
+						}
+						higher_tier_than = BARON
+						OR = {
+							any_liege = {
 								OR = {
-									religion = bon
-									religion = bon_reformed
-									religion = buddhist
+									AND = {
+										religion = shinto
+										controls_religion = yes
+									}
+									is_chinese_emperor_trigger = yes
+									primary_title = {
+										has_title_flag = pretender_chinese_empire
+									}
+									liege_before_war = {
+										OR = {
+											AND = {
+												religion = shinto
+												controls_religion = yes
+											}
+											is_chinese_emperor_trigger = yes
+											primary_title = {
+												has_title_flag = pretender_chinese_empire
+											}
+										}
+									}
 								}
 							}
-							AND = {
-								culture_group = japonic
+							liege_before_war = {
 								OR = {
-									religion = buddhist
-									religion = shinto
+									AND = {
+										religion = shinto
+										controls_religion = yes
+									}
+									is_chinese_emperor_trigger = yes
+									primary_title = {
+										has_title_flag = pretender_chinese_empire
+									}
 								}
 							}
 						}
-						higher_tier_than = BARON
 					}
 				}
 				
@@ -2944,7 +3091,7 @@ decisions = {
 				}
 				set_government_type = feudal_government
 			}
-			
+   
 			if = {
 				limit = {
 					religion_group = muslim
@@ -2961,25 +3108,14 @@ decisions = {
 				}
 				set_government_type = muslim_government
 			}
-			
+   
 			if = {
 				limit = {
+					culture_group = tibetan_group
 					OR = {
-						AND = {
-							culture_group = tibetan_group
-							OR = {
-								religion = bon
-								religion = bon_reformed
-								religion = buddhist
-							}
-						}
-						AND = {
-							culture_group = japonic
-							OR = {
-								religion = buddhist
-								religion = shinto
-							}
-						}
+						religion = bon
+						religion = bon_reformed
+						religion = buddhist
 					}
 					higher_tier_than = BARON
 				}
@@ -2994,6 +3130,78 @@ decisions = {
 					}
 				}
 				set_government_type = theocratic_feudal_government
+			}
+			if = {
+				limit = {
+					OR = {
+						AND = {
+							OR = {
+								culture_group = chinese_group
+								culture_group = koreanic
+								culture = viet
+								culture = ryukyuan
+							}
+							has_acceptable_chinese_religion_trigger = yes # Same requirement as for Chinese Imperial
+						}
+						AND = { 
+							culture_group = japonic
+							OR = {
+								religion = shinto
+								religion = buddhist
+							}
+							higher_tier_than = BARON
+							OR = {
+								any_liege = {
+									OR = {
+										AND = {
+											religion = shinto
+											controls_religion = yes
+										}
+										is_chinese_emperor_trigger = yes
+										primary_title = {
+											has_title_flag = pretender_chinese_empire
+										}
+										liege_before_war = {
+											OR = {
+												AND = {
+													religion = shinto
+													controls_religion = yes
+												}
+												is_chinese_emperor_trigger = yes
+												primary_title = {
+													has_title_flag = pretender_chinese_empire
+												}
+											}
+										}
+									}
+								}
+								liege_before_war = {
+									OR = {
+										AND = {
+											religion = shinto
+											controls_religion = yes
+										}
+										is_chinese_emperor_trigger = yes
+										primary_title = {
+											has_title_flag = pretender_chinese_empire
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				if = {
+					limit = {
+						ai = no
+					}
+					chronicle = {
+						entry = CHRONICLE_ADOPTED_FEUDALISM
+						picture = GFX_evt_castle_construction
+					}
+				}
+				set_government_type = chinese_vassal_government
 			}
 			
 			hidden_tooltip = {
