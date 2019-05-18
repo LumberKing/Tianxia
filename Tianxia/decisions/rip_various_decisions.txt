@@ -60,9 +60,8 @@ targeted_decisions = {
 						detract_grace_super_huge_effect = yes
 					}
 				}
-				if = {
+				else_if = {
 					limit = {
-						is_chinese_emperor_trigger = no
 						any_close_relative = {
 							dynasty = ROOT
 							is_chinese_emperor_trigger = yes
@@ -72,15 +71,8 @@ targeted_decisions = {
 						detract_grace_massive_effect = yes
 					}
 				}
-				if = {
+				else_if = {
 					limit = {
-						is_chinese_emperor_trigger = no
-						NOT = {
-							any_close_relative = {
-								dynasty = ROOT
-								is_chinese_emperor_trigger = yes
-							}
-						}
 						any_dynasty_member = {
 							is_chinese_emperor_trigger = yes
 						}
@@ -533,36 +525,35 @@ targeted_decisions = {
 		filter = court
 		ai_target_filter = court
 		ai = no
-		
-		from_potential = {
-			has_dlc = "Reapers"
-		}
 		potential = {
 			liege = { character = FROM }
-			can_be_asked_to_leave_court_trigger = yes
-			NOT = {
-				any_spouse = {
-					liege = { character = FROM }
-					can_be_asked_to_leave_court_trigger = no
-				}
-			}
 		}
 		allow = {
-			NOT = {
-				trait = incapable
-			}
-			prisoner = no
-			NOT = {
-				any_spouse = {
-					liege = { character = FROM }
-					OR = {
-						trait = incapable
-						prisoner = yes
+			can_be_asked_to_leave_court_trigger = yes
+
+			trigger_if = {
+				limit = {
+					is_married = yes
+					any_spouse = {
+						liege = { character = FROM }
+						NOT = { character = FROM }
+					}
+				}
+				# custom tooltip for their spouse not being eligble for leaving the court
+				custom_tooltip = {
+					text = their_spouse_must_be_allow_to_leave_tt
+					any_spouse = {
+						hidden_trigger = {
+							liege = { character = FROM }
+							NOT = { character = FROM }
+						}
+						can_be_asked_to_leave_court_trigger = yes
 					}
 				}
 			}
 		}
 		effect = {
+			FROM = { prestige = -5 }
 			if = {
 				limit = {
 					has_dlc = "Jade Dragon"
@@ -570,9 +561,9 @@ targeted_decisions = {
 						is_chinese_emperor_trigger = no
 					}
 				}
+				# The EoC can't be a courtier, so no need to check for that
 				if = {
 					limit = {
-						is_chinese_emperor_trigger = no
 						any_close_relative = {
 							dynasty = ROOT
 							is_chinese_emperor_trigger = yes
@@ -582,15 +573,8 @@ targeted_decisions = {
 						detract_grace_medium_effect = yes
 					}
 				}
-				if = {
+				else_if = {
 					limit = {
-						is_chinese_emperor_trigger = no
-						NOT = {
-							any_close_relative = {
-								dynasty = ROOT
-								is_chinese_emperor_trigger = yes
-							}
-						}
 						any_dynasty_member = {
 							is_chinese_emperor_trigger = yes
 						}
@@ -600,20 +584,39 @@ targeted_decisions = {
 					}
 				}
 			}
-			FROM = { prestige = -5 }
 		
-			opinion = {
-				modifier = opinion_disappointed
-				who = FROM
-				years = 10
+			if = {
+				limit = {
+					free_court_slots < -10
+				}
+				opinion = {
+					modifier = opinion_was_ordered_to_leave_crowded_court
+					who = FROM
+					years = 10
+				}
+				any_spouse = {
+					limit = { liege = { character = FROM } }
+					opinion = {
+						modifier = opinion_was_ordered_to_leave_crowded_court
+						who = FROM
+						years = 10
+					}
+				}
 			}
-			
-			any_spouse = {
-				limit = { liege = { character = FROM } }
+			else = {
 				opinion = {
 					modifier = opinion_disappointed
 					who = FROM
 					years = 10
+				}
+				
+				any_spouse = {
+					limit = { liege = { character = FROM } }
+					opinion = {
+						modifier = opinion_disappointed
+						who = FROM
+						years = 10
+					}
 				}
 			}
 			
