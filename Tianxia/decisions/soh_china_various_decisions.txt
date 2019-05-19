@@ -176,6 +176,20 @@ decisions = {
 			# Rename China
 			rename_china_after_pretender_title_or_bloodline_effect = yes
 			
+			# Move any personally held kingdoms in the China region into China, if they've drifted elsewhere
+			any_demesne_title = {
+				limit = {
+					tier = king
+					any_de_jure_vassal_title = {
+						region = world_china
+					}
+					ROOT = {
+						completely_controls = PREV
+					}
+				}
+				de_jure_liege = e_china
+			}
+			
 			# Clear out the name of any held pretender title and destroy it
 			any_demesne_title = {
 				limit = {
@@ -531,6 +545,185 @@ decisions = {
 		
 		ai_will_do = {
 			factor = 0
+		}
+	}
+}
+
+title_decisions = {
+	move_chinas_capital = {
+		ai_check_interval = 36
+		
+		potential = {
+			OR = {
+				AND = {
+					region = world_china
+					kingdom = {
+						capital_scope = {
+							county = {
+								title = ROOT
+							}
+						}
+					}
+				}
+				title = c_luoyang # The only historical capital that's not the capital of some de jure kingdom
+				FROM = {
+					ai = no
+				}
+			}
+			e_china = {
+				capital_scope = {
+					county = {
+						NOT = {
+							title = ROOT
+						}
+					}
+				}
+			}
+			de_jure_liege_or_above = e_china
+		}
+		
+		from_potential = {
+			is_chinese_emperor_trigger = yes
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		allow = {
+			ROOT = {
+				holder_scope = {
+					top_liege = {
+						character = FROM
+					}
+				}
+			}
+			FROM = {
+				war = no
+				OR = {
+					ai = no
+					NOT = {
+						has_character_flag = moved_chinas_capital
+					}
+					had_character_flag = { flag = moved_chinas_capital days = 7300 }
+				}
+				prestige = 5000
+				wealth = 1000
+			}
+		}
+		
+		effect = {
+			FROM = {
+				clr_character_flag = moved_chinas_capital
+				set_character_flag = moved_chinas_capital
+				wealth = -1000
+				ROOT = {
+					capital_scope = {
+						e_china = {
+							set_preferred_capital = PREV
+						}
+					}
+					if = {
+						limit = {
+							holder_scope = {
+								NOT = {
+									character = FROM
+								}
+							}
+						}
+						usurp_title = FROM
+					}
+					FROM = {
+						capital = PREV
+					}
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			# If the dynasty isn't historical, don't move the capital as much
+			modifier = {
+				factor = 0.05
+				FROM = {
+					NOR = {
+						dynasty = 11100 # Borjigin (Yuan)
+						dynasty = 1051150 # Li (Tang)
+						dynasty = 1051151 # Zhao (Song)
+						dynasty = 1051153 # Wanayan (Jurchen Jin)
+					}
+				}
+			}
+			# If the dynasty is historical, prefer moving the capital to the historical capital
+			modifier = {
+				factor = 0.05
+				FROM = {
+					dynasty = 11100 # Borjigin (Yuan)
+				}
+				NOT = {
+					title = c_dadu
+				}
+			}
+			modifier = {
+				factor = 0.05
+				FROM = {
+					dynasty = 1051150 # Li (Tang)
+				}
+				NOR = {
+					title = c_changan
+					AND = {
+						e_china = {
+							capital_scope = {
+								county = {
+									NOT = {
+										title = c_changan
+									}
+								}
+							}
+						}
+						title = c_luoyang
+					}
+				}
+			}
+			modifier = {
+				factor = 0.05
+				FROM = {
+					dynasty = 1051151 # Zhao (Song)
+				}
+				NOR = {
+					title = c_kaifeng
+					AND = {
+						e_china = {
+							capital_scope = {
+								county = {
+									NOT = {
+										title = c_kaifeng
+									}
+								}
+							}
+						}
+						title = c_hangzhou
+					}
+				}
+			}
+			modifier = {
+				factor = 0.05
+				FROM = {
+					dynasty = 1051153 # Wanayan (Jurchen Jin)
+				}
+				NOR = {
+					title = c_kaifeng
+					AND = {
+						e_china = {
+							capital_scope = {
+								county = {
+									NOT = {
+										title = c_kaifeng
+									}
+								}
+							}
+						}
+						title = c_dadu
+					}
+				}
+			}
 		}
 	}
 }
