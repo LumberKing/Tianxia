@@ -4,7 +4,7 @@
 
 namespace = grace
 
-##### Tributes (1-37; reserved ids 1-300)
+##### Tributes (1-40; reserved ids 1-300)
 
 ### Send Gift (1-3)
 
@@ -219,7 +219,7 @@ letter_event = {
 			value = 450
 		}
 		set_character_flag = grace_character
-		#log = "[From.GetTitledName] accepted [Root.GetTitledName]'s gold tribute!"
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted [Root.GetTitledName]'s gold tribute!"
 	}
 	
 	option = {
@@ -245,7 +245,7 @@ letter_event = {
 			value = 300
 		}
 		set_character_flag = grace_character
-		#log = "[From.GetTitledName] accepted [Root.GetTitledName]'s gold tribute!"
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted [Root.GetTitledName]'s gold tribute!"
 	}
 	
 	option = {
@@ -270,7 +270,7 @@ letter_event = {
 			value = 150
 		}
 		set_character_flag = grace_character
-		#log = "[From.GetTitledName] accepted [Root.GetTitledName]'s gold tribute!"
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted [Root.GetTitledName]'s gold tribute!"
 	}
 }
 
@@ -288,7 +288,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_gift
 		}
-		#log = "[From.GetTitledName] refused [Root.GetTitledName]'s gold tribute!"
+		log = "GRACE SYSTEM: [From.GetTitledName] refused [Root.GetTitledName]'s gold tribute!"
 	}
 }
 
@@ -378,16 +378,79 @@ letter_event = {
 		set_character_flag = grace_character
 		
 		sound_effect = china_grace_gain
-		FROM = {
-			make_tributary = {
-				who = ROOT
-				tributary_type = chinese
+		if = {
+			limit = {
+				NOT = {
+					any_realm_province = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											character = FROM
+											any_liege = {
+												character = FROM
+											}
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														character = FROM
+														any_liege = {
+															character = FROM
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													has_owner = yes
+													owner = {
+														OR = {
+															character = FROM
+															any_liege = {
+																character = FROM
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			FROM = {
+				make_tributary = {
+					who = ROOT
+					tributary_type = chinese_peripheral_tributary
+				}
+			}
+		}
+		else = {
+			FROM = {
+				make_tributary = {
+					who = ROOT
+					tributary_type = chinese_imperial_tributary
+				}
 			}
 		}
 		hidden_tooltip = {
 			character_event = { id = grace.7 days = 365 }
 		}
-		#log = "[From.GetTitledName] accepted to make [Root.GetTitledName] a tributary!"
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted to make [Root.GetTitledName] a tributary!"
 	}
 }
 
@@ -406,7 +469,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_tributary
 		}
-		#log = "[From.GetTitledName] refused to make [Root.GetTitledName] a tributary!"
+		log = "GRACE SYSTEM: [From.GetTitledName] refused to make [Root.GetTitledName] a tributary!"
 	}
 }
 
@@ -417,8 +480,19 @@ character_event = {
 	is_triggered_only = yes
 	
 	trigger = {
-		is_tributary = {
-			type = chinese
+		OR =  {
+			is_tributary = {
+				type = chinese_peripheral_tributary
+			}
+			is_tributary = {
+				type = chinese_imperial_tributary
+			}
+			is_tributary = {
+				type = chinese_protectorate
+			}
+			is_tributary = {
+				type = chinese_client_state
+			}
 		}
 		suzerain = {
 			is_chinese_emperor_trigger = yes
@@ -427,10 +501,7 @@ character_event = {
 	
 	immediate = {
 		set_character_flag = grace_character # To ensure that this character will get their Grace wiped if the imperial dynasty changes
-		change_variable = {
-			which = grace
-			value = 24
-		}
+		give_tiered_tributary_grace_effect = yes
 		# Extra Grace gain if we have the same culture group and religion as the EoC
 		if = {
 			limit = {
@@ -439,10 +510,7 @@ character_event = {
 					has_acceptable_chinese_religion_trigger = yes
 				}
 			}
-			change_variable = {
-				which = grace
-				value = 12
-			}
+			give_tiered_tributary_grace_effect = yes
 		}
 		# Extra Grace gain if we have the same culture and religion as the EoC
 		if = {
@@ -452,10 +520,7 @@ character_event = {
 					religion = ROOT
 				}
 			}
-			change_variable = {
-				which = grace
-				value = 12
-			}
+			give_tiered_tributary_grace_effect = yes
 		}
 		repeat_event = { id = grace.7 days = 365 } # Keep the Grace coming
 	}
@@ -590,7 +655,7 @@ letter_event = {
 		#hidden_tooltip = {
 		#	character_event = { id = grace.11 days = 30 } # Deprecated!
 		#}
-		#log = "[From.GetTitledName] accepted [Root.GetTitledName]'s horse tribute!"
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted [Root.GetTitledName]'s horse tribute!"
 	}
 }
 
@@ -609,7 +674,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_horses
 		}
-		#log = "[From.GetTitledName] refused [Root.GetTitledName]'s horse tribute!"
+		log = "[From.GetTitledName] refused [Root.GetTitledName]'s horse tribute!"
 	}
 }
 
@@ -1754,7 +1819,7 @@ letter_event = {
 			move_character = event_target:eoc
 			force_host = event_target:eoc
 		}
-		#log = "[From.GetTitledName] accepted [Root.GetTitledName]'s eunuch tribute, [FromFromFromFrom.GetBestName]!"
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted [Root.GetTitledName]'s eunuch tribute, [FromFromFromFrom.GetBestName]!"
 	}
 	
 	after = {
@@ -2248,7 +2313,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_eunuch
 		}
-		#log = "[From.GetTitledName] refused [Root.GetTitledName]'s eunuch tribute, [FromFromFromFrom.GetBestName]!"
+		log = "GRACE SYSTEM: [From.GetTitledName] refused [Root.GetTitledName]'s eunuch tribute, [FromFromFromFrom.GetBestName]!"
 	}
 }
 
@@ -3522,7 +3587,7 @@ letter_event = {
 				set_character_flag = ai_flag_refuse_marriage
 			}
 		}
-		#log = "[From.GetTitledName] accepted [Root.GetTitledName]'s concubine tribute, [FromFromFromFrom.GetBestName]!"
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted [Root.GetTitledName]'s concubine tribute, [FromFromFromFrom.GetBestName]!"
 	}
 	
 	after = {
@@ -4079,7 +4144,7 @@ letter_event = {
 				set_character_flag = ai_flag_refuse_marriage
 			}
 		}
-		#log = "[From.GetTitledName] accepted [Root.GetTitledName]'s concubine tribute, [FromFromFromFrom.GetBestName], for [From.GetHerHis] heir!"
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted [Root.GetTitledName]'s concubine tribute, [FromFromFromFrom.GetBestName], for [From.GetHerHis] heir!"
 	}
 	
 	after = {
@@ -4573,7 +4638,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_concubine
 		}
-		#log = "[From.GetTitledName] refused [Root.GetTitledName]'s concubine tribute, [FromFromFromFrom.GetBestName]!"
+		log = "GRACE SYSTEM: [From.GetTitledName] refused [Root.GetTitledName]'s concubine tribute, [FromFromFromFrom.GetBestName]!"
 	}
 }
 
@@ -5648,7 +5713,7 @@ letter_event = {
 			move_character = event_target:eoc
 			force_host = event_target:eoc
 		}
-		#log = "[From.GetTitledName] accepted [Root.GetTitledName]'s commander tribute, [FromFromFromFrom.GetBestName]!"
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted [Root.GetTitledName]'s commander tribute, [FromFromFromFrom.GetBestName]!"
 	}
 	
 	after = {
@@ -6148,7 +6213,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_commander
 		}
-		#log = "[From.GetTitledName] refused [Root.GetTitledName]'s commander tribute, [FromFromFromFrom.GetBestName]!"
+		log = "GRACE SYSTEM: [From.GetTitledName] refused [Root.GetTitledName]'s commander tribute, [FromFromFromFrom.GetBestName]!"
 	}
 }
 
@@ -6792,7 +6857,7 @@ letter_event = {
 				give_minor_title = title_court_physician
 			}
 		}
-		#log = "[From.GetTitledName] accepted [Root.GetTitledName]'s physician tribute, [FromFromFromFrom.GetBestName]!"
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted [Root.GetTitledName]'s physician tribute, [FromFromFromFrom.GetBestName]!"
 	}
 	
 	after = {
@@ -7073,7 +7138,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_physician
 		}
-		#log = "[From.GetTitledName] refused [Root.GetTitledName]'s physician tribute, [FromFromFromFrom.GetBestName]!"
+		log = "GRACE SYSTEM: [From.GetTitledName] refused [Root.GetTitledName]'s physician tribute, [FromFromFromFrom.GetBestName]!"
 	}
 }
 
@@ -7169,7 +7234,7 @@ letter_event = {
 			value = 500
 		}
 		set_character_flag = grace_character
-		#log = "[From.GetTitledName] accepted [Root.GetTitledName]'s relief tribute!"
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted [Root.GetTitledName]'s relief tribute!"
 	}
 }
 
@@ -7188,7 +7253,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_relief
 		}
-		#log = "[From.GetTitledName] refused [Root.GetTitledName]'s relief tribute!"
+		log = "GRACE SYSTEM: [From.GetTitledName] refused [Root.GetTitledName]'s relief tribute!"
 	}
 }
 
@@ -7650,7 +7715,7 @@ letter_event = {
 				from = ROOT
 			}
 		}
-		#log = "[From.GetTitledName] accepted [Root.GetTitledName]'s artifact tribute!"
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted [Root.GetTitledName]'s artifact tribute!"
 	}
 	
 	after = {
@@ -7852,13 +7917,176 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_artifact
 		}
-		#log = "[From.GetTitledName] refused [Root.GetTitledName]'s artifact tribute!"
+		log = "GRACE SYSTEM: [From.GetTitledName] refused [Root.GetTitledName]'s artifact tribute!"
+	}
+}
+
+### Increase tributary tier or become a subject (38-40)
+
+# The EoC gets the offer, can accept or refuse
+narrative_event = {
+	id = grace.38
+	is_triggered_only = yes
+	title = EVTTITLE_GRACE_38
+	desc = EVTDESC_GRACE_38
+	picture = GFX_evt_china_golden_age
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	immediate = {
+		log = "GRACE SYSTEM: [FromFrom.GetTitledName] asked to become a higher tier tributary or a subject"
+		if = {
+			limit = {
+				FROMFROM = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			log = "GRACE SYSTEM: [FromFrom.GetTitledName] is currently a Client State"
+		}
+		else_if = {
+			limit = {
+				FROMFROM = {
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			log = "GRACE SYSTEM: [FromFrom.GetTitledName] is currently a Protectorate"
+		}
+		else_if = {
+			limit = {
+				FROMFROM = {
+					is_tributary = {
+						type = chinese_imperial_tributary
+					}
+				}
+			}
+			log = "GRACE SYSTEM: [FromFrom.GetTitledName] is currently an Imperial Tributary"
+		}
+		else_if = {
+			limit = {
+				FROMFROM = {
+					is_tributary = {
+						type = chinese_peripheral_tributary
+					}
+				}
+			}
+			log = "GRACE SYSTEM: [FromFrom.GetTitledName] is currently a Peripheral Tributary"
+		}
+		else = {
+			log = "GRACE SYSTEM: Something is not right!"
+		}
+	}
+	
+	option = {
+		trigger = {
+			OR = {
+				ai = no
+				china_accepts_tributary_fromfrom_trigger = yes
+				test_grace_acceptance_trigger = yes
+			}
+			NOT = {
+				test_grace_refusal_trigger = yes
+			}
+		}
+		name = EVTOPTA_GRACE_38 # Accept the offer
+		
+		FROMFROM = {
+			letter_event = { id = grace.39 }
+		}
+		
+		opinion = {
+			who = FROMFROM
+			modifier = opinion_china_became_tributary
+		}
+	}
+	
+	option = {
+		trigger = {
+			china_accepts_tributary_fromfrom_trigger = no
+			NOT = {
+				test_grace_acceptance_trigger = yes
+			}
+		}
+		name = EVTOPTB_GRACE_38 # Refuse the offer, for a good reason
+		
+		FROMFROM = {
+			letter_event = { id = grace.40 }
+		}
+	}
+	
+	option = {
+		trigger = {
+			ai = no
+			china_accepts_tributary_fromfrom_trigger = yes
+		}
+		name = EVTOPTC_GRACE_38 # Refuse the tributary, without a good reason (never used by the AI)
+		
+		FROMFROM = {
+			letter_event = { id = grace.40 }
+		}
+		
+		prestige = -500
+		change_variable = {
+			which = stored_mandate_change
+			value = -500
+		}
+	}
+}
+
+# Tributary status accepted, sender gets Grace and becomes a tributary
+letter_event = {
+	id = grace.39
+	is_triggered_only = yes
+	
+	desc = EVTDESC_GRACE_39
+    border = GFX_event_letter_frame_diplomacy
+	
+	option = {
+		name = EVTOPTA_GRACE_39
+		
+		change_variable = {
+			which = grace
+			value = 200
+		}
+		FROM = {
+			opinion = {
+				who = ROOT
+				modifier = opinion_recently_became_higher_tier_tributary
+			}
+		}
+		set_character_flag = grace_character
+		
+		sound_effect = china_grace_gain
+		increase_tributary_tier_or_vassalize_effect = yes
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted the request to increase [Root.GetTitledName]'s tributary tier!"
+	}
+}
+
+# Tributary status refused, sender's opinion of the EoC lowered
+letter_event = {
+	id = grace.40
+	is_triggered_only = yes
+	
+	desc = EVTDESC_GRACE_40
+    border = GFX_event_letter_frame_diplomacy
+	
+	option = {
+		name = EVTOPTA_GRACE_40
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_china_refused_increse_tributary_tier
+		}
+		log = "GRACE SYSTEM: [From.GetTitledName] refused the request to increase [Root.GetTitledName]'s tributary tier!"
 	}
 }
 
 
 
-##### Boons (301-342, reserved ids 301-600)
+##### Boons (301-348, reserved ids 301-600)
 
 ### Peace Deal (301-303)
 
@@ -7944,7 +8172,7 @@ letter_event = {
 			name = peace_deal_with_china
 			years = 50
 		}
-		#log = "[Root.GetTitledName] was granted a Peace Deal by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted a Peace Deal by [From.GetTitledName]!"
 	}
 }
 
@@ -7963,7 +8191,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_peace_deal
 		}
-		#log = "[Root.GetTitledName] was refused a Peace Deal by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused a Peace Deal by [From.GetTitledName]!"
 	}
 }
 
@@ -8316,7 +8544,7 @@ letter_event = {
 	
 	option = {
 		name = EVTOPTA_GRACE_305
-		#log = "[Root.GetTitledName] was granted a physician by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted a physician by [From.GetTitledName]!"
 	}
 }
 
@@ -8335,7 +8563,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_physician_boon
 		}
-		#log = "[Root.GetTitledName] was refused a physician by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused a physician by [From.GetTitledName]!"
 	}
 }
 
@@ -8722,7 +8950,7 @@ letter_event = {
 	
 	option = {
 		name = EVTOPTA_GRACE_310
-		#log = "[Root.GetTitledName] was granted a tier 1 artifact by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted a tier 1 artifact by [From.GetTitledName]!"
 		clr_character_flag = getting_chinese_painting_of_glitterhoof
 		clr_character_flag = getting_chinese_prev_emperor_sculpture
 		clr_character_flag = getting_chinese_book_history
@@ -9021,7 +9249,7 @@ letter_event = {
 	
 	option = {
 		name = EVTOPTA_GRACE_312
-		#log = "[Root.GetTitledName] was granted a tier 2 artifact by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted a tier 2 artifact by [From.GetTitledName]!"
 		clr_character_flag = getting_chinese_arm_protector
 		clr_character_flag = getting_chinese_serpent_spear
 		clr_character_flag = getting_chinese_tapestry
@@ -9550,7 +9778,7 @@ letter_event = {
 	option = {
 		name = EVTOPTA_GRACE_315
 		prestige = 200
-		#log = "[Root.GetTitledName] was granted a tier 3 artifact by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted a tier 3 artifact by [From.GetTitledName]!"
 		clr_character_flag = getting_silk_shroud
 		clr_character_flag = getting_chinese_tapestry_grand
 		clr_character_flag = getting_chinese_ji
@@ -9683,7 +9911,7 @@ letter_event = {
 	option = {
 		name = EVTOPTA_GRACE_317
 		prestige = 500
-		#log = "[Root.GetTitledName] was granted a tier 4 artifact by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted a tier 4 artifact by [From.GetTitledName]!"
 		clr_character_flag = getting_water_clock
 		clr_character_flag = getting_jian_sword
 		clr_character_flag = getting_chinese_dragon_amulet
@@ -9746,7 +9974,7 @@ letter_event = {
 	option = {
 		name = EVTOPTA_GRACE_317
 		prestige = 1000
-		#log = "[Root.GetTitledName] was granted a tier 5 artifact by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted a tier 5 artifact by [From.GetTitledName]!"
 		clr_character_flag = getting_jade_dragon
 		clr_character_flag = getting_art_of_war
 		clr_character_flag = getting_classic_of_poetry
@@ -9768,7 +9996,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_artifact_boon
 		}
-		#log = "[Root.GetTitledName] was refused an artifact by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused an artifact by [From.GetTitledName]!"
 	}
 }
 
@@ -10118,7 +10346,7 @@ letter_event = {
 	
 	option = {
 		name = EVTOPTA_GRACE_321
-		#log = "[Root.GetTitledName] was granted a siege engineer by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted a siege engineer by [From.GetTitledName]!"
 	}
 }
 
@@ -10137,7 +10365,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_siege_engineer_boon
 		}
-		#log = "[Root.GetTitledName] was refused a siege engineer by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused a siege engineer by [From.GetTitledName]!"
 	}
 }
 
@@ -10449,7 +10677,7 @@ letter_event = {
 	
 	option = {
 		name = EVTOPTA_GRACE_324
-		#log = "[Root.GetTitledName] was granted a strategist by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted a strategist by [From.GetTitledName]!"
 	}
 }
 
@@ -10468,7 +10696,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_strategist_boon
 		}
-		#log = "[Root.GetTitledName] was refused a strategist by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused a strategist by [From.GetTitledName]!"
 	}
 }
 
@@ -10776,7 +11004,7 @@ letter_event = {
 			name = employing_jd_administrator
 			duration = -1
 		}
-		#log = "[Root.GetTitledName] was granted a Scholar-Bureaucrat by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted a Scholar-Bureaucrat by [From.GetTitledName]!"
 	}
 }
 
@@ -10795,7 +11023,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_administrator_boon
 		}
-		#log = "[Root.GetTitledName] was refused a Scholar-Bureaucrat by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused a Scholar-Bureaucrat by [From.GetTitledName]!"
 	}
 }
 
@@ -11108,7 +11336,7 @@ letter_event = {
 	
 	option = {
 		name = EVTOPTA_GRACE_330
-		#log = "[Root.GetTitledName] was granted a master engineer by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted a master engineer by [From.GetTitledName]!"
 	}
 }
 
@@ -11127,7 +11355,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_master_engineer_boon
 		}
-		#log = "[Root.GetTitledName] was refused a master engineer by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused a master engineer by [From.GetTitledName]!"
 	}
 }
 
@@ -11215,7 +11443,7 @@ letter_event = {
 			name = chinese_imperial_trade_contract
 			years = 25
 		}
-		#log = "[Root.GetTitledName] was granted a Trade Contract by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted a Trade Contract by [From.GetTitledName]!"
 	}
 }
 
@@ -11234,7 +11462,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_trade_contract_boon
 		}
-		#log = "[Root.GetTitledName] was refused a Trade Contract by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused a Trade Contract by [From.GetTitledName]!"
 	}
 }
 
@@ -11500,7 +11728,7 @@ letter_event = {
 			name = peace_deal_with_china
 			years = 50
 		}
-		#log = "[Root.GetTitledName] was granted an Imperial Marriage by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted an Imperial Marriage by [From.GetTitledName]!"
 	}
 }
 
@@ -11517,18 +11745,49 @@ letter_event = {
 		
 		sound_effect = china_grace_gain
 		if = {
-			limit = { has_character_modifier = peace_deal_with_china }
-			change_variable = {
-				which = grace
-				value = 750
+			limit = {
+				suzerain = {
+					is_chinese_emperor_trigger = yes
+				}
+				OR = {
+					is_tributary = {
+						type = chinese_protectorate
+					}
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			if = {
+				limit = { has_character_modifier = peace_deal_with_china }
+				change_variable = {
+					which = grace
+					value = 750
+				}
+			}
+			else = {
+				change_variable = {
+					which = grace
+					value = 1000
+				}
+				custom_tooltip = { text = chinese_imperial_marriage_peace_deal_tt }	
 			}
 		}
 		else = {
-			change_variable = {
-				which = grace
-				value = 1000
+			if = {
+				limit = { has_character_modifier = peace_deal_with_china }
+				change_variable = {
+					which = grace
+					value = 1500
+				}
 			}
-			custom_tooltip = { text = chinese_imperial_marriage_peace_deal_tt }	
+			else = {
+				change_variable = {
+					which = grace
+					value = 2000
+				}
+				custom_tooltip = { text = chinese_imperial_marriage_peace_deal_tt }	
+			}
 		}
 		
 		opinion = {
@@ -11536,7 +11795,7 @@ letter_event = {
 			modifier = opinion_china_refused_imperial_marriage_good
 			# One year long - should keep the AI (and the player) from spamming the EoC if there's no good candidate (though different AI rulers can still try...)
 		}
-		#log = "[Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName] due to no valid candidate!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName] due to no valid candidate!"
 	}
 }
 
@@ -11555,7 +11814,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_imperial_marriage
 		}
-		#log = "[Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName]!"
 	}
 }
 
@@ -11708,7 +11967,7 @@ letter_event = {
 			name = peace_deal_with_china
 			years = 50
 		}
-		#log = "[Root.GetTitledName] was granted an Imperial Marriage by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted an Imperial Marriage by [From.GetTitledName]!"
 	}
 }
 
@@ -11744,7 +12003,7 @@ letter_event = {
 			modifier = opinion_china_refused_imperial_marriage_good
 			# One year long - should keep the AI (and the player) from spamming the EoC if there's no good candidate (though different AI rulers can still try...)
 		}
-		#log = "[Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName] due to an invalid candidate!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName] due to an invalid candidate!"
 	}
 }
 
@@ -11763,13 +12022,271 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_imperial_marriage
 		}
-		#log = "[Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName]!"
+	}
+}
+
+### Decrease tributary tier (343-345)
+
+# The EoC gets the request
+narrative_event = {
+	id = grace.343
+	is_triggered_only = yes
+	title = EVTTITLE_GRACE_343
+	desc = EVTDESC_GRACE_343
+	picture = GFX_evt_china_golden_age
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	option = {
+		trigger = {
+			OR = {
+				ai = no
+				AND = {
+					china_hates_fromfrom_trigger = no
+					china_wants_fromfroms_land_trigger = no
+				}
+				test_grace_acceptance_trigger = yes
+			}
+		}
+		name = EVTOPTA_GRACE_343 # Accept the request
+		
+		FROMFROM = {
+			letter_event = { id = grace.344 }
+		}
+	}
+	
+	option = {
+		trigger = {
+			OR = {
+				china_hates_fromfrom_trigger = yes
+				china_wants_fromfroms_land_trigger = yes
+			}
+			NOT = {
+				test_grace_acceptance_trigger = yes
+			}
+		}
+		name = EVTOPTB_GRACE_343 # Refuse the request, for a good reason
+		
+		FROMFROM = {
+			letter_event = { id = grace.345 }
+		}
+	}
+	
+	option = {
+		trigger = {
+			ai = no
+			china_hates_fromfrom_trigger = no
+			china_wants_fromfroms_land_trigger = no
+		}
+		name = EVTOPTC_GRACE_343 # Refuse the request, without a good reason (never used by the AI)
+		
+		FROMFROM = {
+			letter_event = { id = grace.345 }
+		}
+		
+		prestige = -1000
+		change_variable = {
+			which = stored_mandate_change
+			value = -1000
+		}
+	}
+}
+
+# Request accepted, tributary tier lowered
+letter_event = {
+	id = grace.344
+	is_triggered_only = yes
+	
+	desc = EVTDESC_GRACE_344
+    border = GFX_event_letter_frame_diplomacy
+	
+	option = {
+		name = EVTOPTA_GRACE_344
+		FROM = {
+			opinion = {
+				who = ROOT
+				modifier = opinion_recently_became_lower_tier_tributary
+			}
+		}
+		decrease_tributary_tier_or_release_effect = yes
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted the request to decrease [Root.GetTitledName]'s tributary tier!"
+	}
+}
+
+# Request refused, sender's opinion of the EoC lowered
+letter_event = {
+	id = grace.345
+	is_triggered_only = yes
+	
+	desc = EVTDESC_GRACE_345
+    border = GFX_event_letter_frame_diplomacy
+	
+	option = {
+		name = EVTOPTA_GRACE_345
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_china_refused_decrese_tributary_tier
+		}
+		log = "GRACE SYSTEM: [From.GetTitledName] refused the request to decrease [Root.GetTitledName]'s tributary tier!"
+	}
+}
+
+### Request border adjustment (346-348)
+
+# The EoC gets the request
+narrative_event = {
+	id = grace.346
+	is_triggered_only = yes
+	title = EVTTITLE_GRACE_346
+	desc = EVTDESC_GRACE_346
+	picture = GFX_evt_china_golden_age
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	immediate = {
+		log = "GRACE SYSTEM: [FromFrom.GetTitledName] is requesting a border adjustment from [Root.GetTitledName]. [From.GetName] is the title."
+		opinion = {
+			who = FROMFROM
+			modifier = opinion_requested_border_adjustment
+		}
+	}
+	
+	option = {
+		trigger = {
+			OR = {
+				ai = no
+				china_grants_border_adjustment_fromfrom_trigger = yes
+				test_grace_acceptance_trigger = yes
+			}
+		}
+		name = EVTOPTA_GRACE_346 # Accept the request
+		
+		event_target:border_adjustment_duchy = {
+			any_direct_de_jure_vassal_title  = {
+				limit = {
+					holder_scope = {
+						top_liege = {
+							character = ROOT
+						}
+					}
+				}
+				if = {
+					limit = {
+						holder_scope = {
+							NOR = {
+								any_demesne_title = {
+									NOR = {
+										de_jure_liege_or_above = event_target:china_border_adjustment_duchy
+										title = event_target:china_border_adjustment_duchy
+									}
+								}
+								any_vassal = {
+									any_demesne_title = {
+										NOR = {
+											de_jure_liege_or_above = event_target:china_border_adjustment_duchy
+											title = event_target:china_border_adjustment_duchy
+										}
+									}
+								}
+							}
+						}
+					}
+					holder_scope = {
+						set_defacto_liege = FROMFROM
+					}
+				}
+				else = {
+					grant_title_no_opinion = FROMFROM
+				}
+			}
+			if = {
+				limit = {
+					has_holder = yes
+					holder_scope = {
+						top_liege = {
+							character = ROOT
+						}
+					}
+				}
+				grant_title_no_opinion = FROMFROM
+			}
+		}
+		
+		FROMFROM = {
+			letter_event = { id = grace.347 }
+		}
+	}
+	
+	option = {
+		trigger = {
+			china_grants_border_adjustment_fromfrom_trigger = no
+			NOT = {
+				test_grace_acceptance_trigger = yes
+			}
+		}
+		name = EVTOPTB_GRACE_346 # Refuse the request, for a good reason
+		
+		FROMFROM = {
+			letter_event = { id = grace.348 }
+		}
+	}
+	
+	option = {
+		trigger = {
+			ai = no
+			china_grants_border_adjustment_fromfrom_trigger = yes
+		}
+		name = EVTOPTC_GRACE_346 # Refuse the request, without a good reason (never used by the AI)
+		
+		FROMFROM = {
+			letter_event = { id = grace.348 }
+		}
+		
+		prestige = -1000
+		change_variable = {
+			which = stored_mandate_change
+			value = -1000
+		}
+	}
+}
+
+# Request accepted, titles transferred
+letter_event = {
+	id = grace.347
+	is_triggered_only = yes
+	
+	desc = EVTDESC_GRACE_347
+    border = GFX_event_letter_frame_diplomacy
+	
+	option = {
+		name = EVTOPTA_GRACE_347
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted the request transfer all land in [FromFrom.GetName] to [Root.GetTitledName]!"
+	}
+}
+
+# Request refused, sender's opinion of the EoC lowered
+letter_event = {
+	id = grace.348
+	is_triggered_only = yes
+	
+	desc = EVTDESC_GRACE_348
+    border = GFX_event_letter_frame_diplomacy
+	
+	option = {
+		name = EVTOPTA_GRACE_348
+		opinion = {
+			who = FROM
+			modifier = opinion_china_refused_border_adjustment
+		}
+		log = "GRACE SYSTEM: [From.GetTitledName] refused the request transfer all land in [FromFrom.GetName] to [Root.GetTitledName]!"
 	}
 }
 
 
 
-##### Requests from the EoC (601-604; reserved ids 601-900)
+##### Requests from the EoC (601-614; reserved ids 601-900)
 
 ### Tribute enabling/disabling
 
@@ -13243,6 +13760,76 @@ letter_event = {
 			has_character_flag = repeat_grace_603_1
 			has_character_flag = repeat_grace_603_2
 			has_character_flag = repeat_grace_603_3
+			NOT = {
+				has_character_flag = china_no_border_adjustment_boons
+			}
+		}
+		name = EVTOPTU_GRACE_603
+		
+		set_character_flag = china_no_border_adjustment_boons
+		prestige = -500
+		change_variable = {
+			which = stored_mandate_change
+			value = -500
+		}
+		
+		change_boon_tribute_disabling_penalty_effect = yes
+		
+		any_player = {
+			limit = {
+				OR = {
+					is_within_diplo_range = ROOT
+					any_realm_province = {
+						trade_route = silk_road
+					}
+				}
+				NOT = {
+					character = ROOT
+				}
+			}
+			narrative_event = { id = grace.604 }
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = repeat_grace_603_1
+			has_character_flag = repeat_grace_603_2
+			has_character_flag = repeat_grace_603_3
+			has_character_flag = china_no_border_adjustment_boons
+		}
+		name = EVTOPTV_GRACE_603
+		
+		clr_character_flag = china_no_border_adjustment_boons
+		prestige = -500
+		change_variable = {
+			which = stored_mandate_change
+			value = -500
+		}
+		
+		change_boon_tribute_disabling_penalty_effect = yes
+		
+		any_player = {
+			limit = {
+				OR = {
+					is_within_diplo_range = ROOT
+					any_realm_province = {
+						trade_route = silk_road
+					}
+				}
+				NOT = {
+					character = ROOT
+				}
+			}
+			narrative_event = { id = grace.604 }
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = repeat_grace_603_1
+			has_character_flag = repeat_grace_603_2
+			has_character_flag = repeat_grace_603_3
 		}
 		
 		name = EVTOPTT_GRACE_603 # Never mind
@@ -13276,6 +13863,3626 @@ narrative_event = {
 		
 	option = {
 		name = EVTOPTA_GRACE_604 # I see...
+	}
+}
+
+### EoC attempts to increase a tributary's tier (605-611)
+
+# Tributary gets the request, can accept, refuse in exchange for Grace in the bank, refuse outright (which can lead to a war)
+narrative_event = {
+	id = grace.605
+	is_triggered_only = yes
+	title = EVTTITLE_GRACE_605
+	desc = EVTDESC_GRACE_605
+	picture = GFX_evt_china_diplomatic_success
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	immediate = {
+		log = "GRACE SYSTEM: [Root.GetTitledName] is being asked by [FromFrom.GetTitledName] to become a higher tier tributary!"
+		if = {
+			limit = {
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			log = "GRACE SYSTEM: [Root.GetTitledName] is currently a Client State"
+		}
+		else_if = {
+			limit = {
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			log = "GRACE SYSTEM: [Root.GetTitledName] is currently a Protectorate"
+		}
+		else_if = {
+			limit = {
+				is_tributary = {
+					type = chinese_imperial_tributary
+				}
+			}
+			log = "GRACE SYSTEM: [Root.GetTitledName] is currently an Imperial Tributary"
+		}
+		else_if = {
+			limit = {
+				is_tributary = {
+					type = chinese_peripheral_tributary
+				}
+			}
+			log = "GRACE SYSTEM: [Root.GetTitledName] is currently a Peripheral Tributary"
+		}
+		else = {
+			log = "GRACE SYSTEM: Something is not right!"
+		}
+	}
+	
+	option = {
+		trigger = {
+			OR = {
+				ai = no
+				root_hates_china_trigger = no
+			}
+		}
+		name = EVTOPTA_GRACE_605 # Closer relations with China sounds good!
+		
+		log = "GRACE SYSTEM: [Root.GetTitledName] accepted the request!"
+		
+		# If we accept, we get half of the wealth the EoC paid
+		if = {
+			limit = {
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			if = {
+				limit = {
+					tier = emperor
+					is_nomadic = no
+				}
+				wealth = 5000
+			}
+			else_if = {
+				limit = {
+					OR = {
+						tier = king
+						AND = {
+							tier = emperor
+							is_nomadic = yes
+						}
+					}
+				}
+				wealth = 2500
+			}
+			else = {
+				wealth = 500
+			}
+		}
+		else_if = {
+			limit = {
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			if = {
+				limit = {
+					tier = emperor
+					is_nomadic = no
+				}
+				wealth = 2500
+			}
+			else_if = {
+				limit = {
+					OR = {
+						tier = king
+						AND = {
+							tier = emperor
+							is_nomadic = yes
+						}
+					}
+				}
+				wealth = 500
+			}
+			else = {
+				wealth = 250
+			}
+		}
+		else_if = {
+			limit = {
+				is_tributary = {
+					type = chinese_imperial_tributary
+				}
+			}
+			if = {
+				limit = {
+					tier = emperor
+					is_nomadic = no
+				}
+				wealth = 500
+			}
+			else_if = {
+				limit = {
+					OR = {
+						tier = king
+						AND = {
+							tier = emperor
+							is_nomadic = yes
+						}
+					}
+				}
+				wealth = 250
+			}
+			else = {
+				wealth = 50
+			}
+		}
+		else = {
+			if = {
+				limit = {
+					tier = emperor
+					is_nomadic = no
+				}
+				wealth = 250
+			}
+			else_if = {
+				limit = {
+					OR = {
+						tier = king
+						AND = {
+							tier = emperor
+							is_nomadic = yes
+						}
+					}
+				}
+				wealth = 50
+			}
+			else = {
+				wealth = 50
+			}
+		}
+		increase_tributary_tier_or_vassalize_effect = yes
+		FROMFROM = {
+			letter_event = { id = grace.606 } # Inform China that the request was accepted
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = ROOT # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.01 # Make random distant realms unlikely to try to become higher tier tributaries
+				NOT = {
+					any_realm_province = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											is_chinese_emperor_trigger = yes
+											top_liege = {
+												OR = {
+													is_chinese_emperor_trigger = yes
+													suzerain = {
+														is_chinese_emperor_trigger = yes
+													}
+												}
+											}
+											suzerain = {
+												is_chinese_emperor_trigger = yes
+											}
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																suzerain = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+														suzerain = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	suzerain = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+															suzerain = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			# Kings and nomads are less willing to upgrade their tier
+			modifier = {
+				factor = 0.1
+				OR = {
+					tier = king
+					is_nomadic = yes
+				}
+			}
+			# Emperors will refuse to have their tier upgraded
+			modifier = {
+				factor = 0
+				tier = emperor
+				is_nomadic = no
+			}
+			# Large realms are less likely to be willing to upgrade their tier
+			modifier = {
+				factor = 0.1
+				realm_size = 50
+			}
+			# At this size, the realm is too powerful to willingly upgrade their tier
+			modifier = {
+				factor = 0
+				realm_size = 100
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 0.1
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				NOR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 0.25
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Is likely to be scared of China
+			modifier = {
+				factor = 10
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# China is less than twice as powerful
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+			}
+			# China is less than four times as powerful
+			modifier = {
+				factor = 0.25
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+			}
+			# China is more than ten times as powerful
+			modifier = {
+				factor = 5
+				NOT = {
+					e_china = {
+						holder_scope = {
+							ROOT = {
+								relative_power = {
+									who = PREV
+									power = 0.1
+								}
+							}
+						}
+					}
+				}
+			}
+			# Same culture
+			modifier = {
+				factor = 5
+				e_china = {
+					holder_scope = {
+						culture = ROOT
+					}
+				}
+			}
+			# Same culture group
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						culture_group = ROOT
+						NOT = {
+							culture = ROOT
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				root_hates_china_trigger = yes # Dislikes the EoC enough to refuse
+			}
+			modifier = {
+				factor = 0.01
+				e_china = {
+					holder_scope = {
+						is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+					}
+				}
+			}
+			# Chinese
+			modifier = {
+				factor = 2
+				culture_group = chinese_group
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 2
+				has_acceptable_chinese_religion_trigger = yes
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 5
+				government = chinese_vassal_government
+			}
+			# We are uncivilized
+			modifier = {
+				factor = 0.1
+				OR = {
+					is_tribal = yes
+					is_nomadic = yes
+				}
+			}
+			# We won't willingly join China if we don't have a "Chinese enough" religion
+			modifier = {
+				factor = 0
+				is_tributary = {
+					type = chinese_client_state
+				}
+				has_acceptable_chinese_religion_trigger = no
+			}
+			# We won't willingly join China if we don't have a matching culture group or Chinese culture
+			modifier = {
+				factor = 0
+				is_tributary = {
+					type = chinese_client_state
+				}
+				NOR = {
+					e_china = {
+						holder_scope = {
+							culture_group = ROOT
+						}
+					}
+					culture_group = chinese_group
+				}
+			}
+			# Would become a vassal
+			modifier = {
+				factor = 0.1
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			# Would become a Client State
+			modifier = {
+				factor = 0.25
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Would become a Protectorate
+			modifier = {
+				factor = 0.5
+				is_tributary = {
+					type = chinese_imperial_tributary
+				}
+			}
+			# I have strong neighbours and protection would be nice
+			modifier = {
+				factor = 2
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+				NOR = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+				NOR = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.1
+							}
+						}
+					}
+				}
+				NOR = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			# More likely if China is doing well
+			modifier = {
+				factor = 10
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_5
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_4
+					}
+				}
+			}
+			modifier = {
+				factor = 0.25
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_2
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_1
+					}
+				}
+			}
+			# If someone is just too different, they should want to be free a bit more often
+			modifier = {
+				factor = 0.1
+				OR = {
+					is_nomadic = yes
+					is_tribal = yes
+				}
+				NOR = {
+					e_china = {
+						holder_scope = {
+							culture_group = ROOT
+						}
+					}
+					culture_group = chinese_group
+				}
+				has_acceptable_chinese_religion_trigger = no
+			}
+			# If we want to get border adjustments, seriously consider it
+			modifier = {
+				factor = 10
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state # Already a client state, which is all we need
+					}
+				}
+				e_china = {
+					holder_scope = {
+						any_realm_title = {
+							tier = count
+							NOR = {
+								de_jure_liege_or_above = e_china
+								region = world_china
+							}
+							de_jure_liege_or_above = ROOT
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			OR = {
+				# We have enough Grace to avoid the request (half the cost of downgrading from our current tier)
+				AND = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					OR = {
+						AND = {
+							NOT = { # If a Client State is too distant, China will be more willing to let them go
+								any_realm_province = {
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															is_chinese_emperor_trigger = yes
+														}
+														is_tributary = {
+															type = chinese_client_state
+														}
+														is_tributary = {
+															type = chinese_protectorate
+														}
+														top_liege = {
+															OR = {
+																is_tributary = {
+																	type = chinese_client_state
+																}
+																is_tributary = {
+																	type = chinese_protectorate
+																}
+															}
+														}
+													}
+													NOR = {
+														character = ROOT
+														top_liege = {
+															character = ROOT
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													OR = {
+														AND = {
+															has_owner = yes
+															owner = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	top_liege = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																	is_tributary = {
+																		type = chinese_client_state
+																	}
+																	is_tributary = {
+																		type = chinese_protectorate
+																	}
+																	top_liege = {
+																		OR = {
+																			is_tributary = {
+																				type = chinese_client_state
+																			}
+																			is_tributary = {
+																				type = chinese_protectorate
+																			}
+																		}
+																	}
+																}
+																NOR = {
+																	character = ROOT
+																	top_liege = {
+																		character = ROOT
+																	}
+																}
+															}
+														}
+														AND = {
+															is_land = no
+															any_neighbor_province = {
+																has_owner = yes
+																owner = {
+																	OR = {
+																		is_chinese_emperor_trigger = yes
+																		top_liege = {
+																			is_chinese_emperor_trigger = yes
+																		}
+																		is_tributary = {
+																			type = chinese_client_state
+																		}
+																		is_tributary = {
+																			type = chinese_protectorate
+																		}
+																		top_liege = {
+																			OR = {
+																				is_tributary = {
+																					type = chinese_client_state
+																				}
+																				is_tributary = {
+																					type = chinese_protectorate
+																				}
+																			}
+																		}
+																	}
+																	NOR = {
+																		character = ROOT
+																		top_liege = {
+																			character = ROOT
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							check_variable = {
+								which = grace
+								value = 500
+							}
+						}
+						check_variable = {
+							which = grace
+							value = 1000
+						}
+					}
+				}
+				AND = {
+					is_tributary = {
+						type = chinese_protectorate
+					}
+					OR = {
+						AND = {
+							NOT = { # If a Protectorate is too distant, China will be more willing to let them go
+								any_realm_province = {
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													OR = {
+														AND = {
+															has_owner = yes
+															owner = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	top_liege = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+														}
+														AND = {
+															is_land = no
+															any_neighbor_province = {
+																has_owner = yes
+																owner = {
+																	OR = {
+																		is_chinese_emperor_trigger = yes
+																		top_liege = {
+																			is_chinese_emperor_trigger = yes
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							check_variable = {
+								which = grace
+								value = 500
+							}
+						}
+						check_variable = {
+							which = grace
+							value = 250
+						}
+					}
+				}
+				AND = {
+					is_tributary = {
+						type = chinese_imperial_tributary
+					}
+					check_variable = {
+						which = grace
+						value = 250
+					}
+				}
+				AND = {
+					NOR = {
+						is_tributary = {
+							type = chinese_client_state
+						}
+						is_tributary = {
+							type = chinese_protectorate
+						}
+						is_tributary = {
+							type = chinese_imperial_tributary
+						}
+					}
+					check_variable = {
+						which = grace
+						value = 125
+					}
+				}
+			}
+		}
+		
+		name = EVTOPTB_GRACE_605 # How about I call in some of what you owe me and you forget all about this idea?
+		
+		log = "GRACE SYSTEM: [Root.GetTitledName] paid Grace to deflect the request!"
+		
+		if = {
+			limit = {
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			if = {
+				limit = {
+					NOT = { # If a Client State is too distant, China will be more willing to let them go
+						any_realm_province = {
+							any_neighbor_province = {
+								OR = {
+									AND = {
+										has_owner = yes
+										owner = {
+											OR = {
+												is_chinese_emperor_trigger = yes
+												top_liege = {
+													is_chinese_emperor_trigger = yes
+												}
+												is_tributary = {
+													type = chinese_client_state
+												}
+												is_tributary = {
+													type = chinese_protectorate
+												}
+												top_liege = {
+													OR = {
+														is_tributary = {
+															type = chinese_client_state
+														}
+														is_tributary = {
+															type = chinese_protectorate
+														}
+													}
+												}
+											}
+											NOR = {
+												character = ROOT
+												top_liege = {
+													character = ROOT
+												}
+											}
+										}
+									}
+									AND = {
+										is_land = no
+										any_neighbor_province = {
+											OR = {
+												AND = {
+													has_owner = yes
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																is_chinese_emperor_trigger = yes
+															}
+															is_tributary = {
+																type = chinese_client_state
+															}
+															is_tributary = {
+																type = chinese_protectorate
+															}
+															top_liege = {
+																OR = {
+																	is_tributary = {
+																		type = chinese_client_state
+																	}
+																	is_tributary = {
+																		type = chinese_protectorate
+																	}
+																}
+															}
+														}
+														NOR = {
+															character = ROOT
+															top_liege = {
+																character = ROOT
+															}
+														}
+													}
+												}
+												AND = {
+													is_land = no
+													any_neighbor_province = {
+														has_owner = yes
+														owner = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																top_liege = {
+																	is_chinese_emperor_trigger = yes
+																}
+																is_tributary = {
+																	type = chinese_client_state
+																}
+																is_tributary = {
+																	type = chinese_protectorate
+																}
+																top_liege = {
+																	OR = {
+																		is_tributary = {
+																			type = chinese_client_state
+																		}
+																		is_tributary = {
+																			type = chinese_protectorate
+																		}
+																	}
+																}
+															}
+															NOR = {
+																character = ROOT
+																top_liege = {
+																	character = ROOT
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				change_variable = {
+					which = grace
+					value = -1000
+				}
+			}
+			else = {
+				change_variable = {
+					which = grace
+					value = -2000
+				}
+			}
+		}
+		else_if = {
+			is_tributary = {
+				type = chinese_protectorate
+			}
+			if = {
+				limit = {
+					NOT = { # If a Protectorate is too distant, China will be more willing to let them go
+						any_realm_province = {
+							any_neighbor_province = {
+								OR = {
+									AND = {
+										has_owner = yes
+										owner = {
+											OR = {
+												is_chinese_emperor_trigger = yes
+												top_liege = {
+													is_chinese_emperor_trigger = yes
+												}
+											}
+										}
+									}
+									AND = {
+										is_land = no
+										any_neighbor_province = {
+											OR = {
+												AND = {
+													has_owner = yes
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+												AND = {
+													is_land = no
+													any_neighbor_province = {
+														has_owner = yes
+														owner = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																top_liege = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				change_variable = {
+					which = grace
+					value = -1000
+				}
+			}
+			else = {
+				check_variable = {
+					which = grace
+					value = -500
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				is_tributary = {
+					type = chinese_imperial_tributary
+				}
+			}
+			change_variable = {
+				which = grace
+				value = -500
+			}
+		}
+		else = {
+			change_variable = {
+				which = grace
+				value = -250
+			}
+		}
+		
+		FROMFROM = {
+			letter_event = { id = grace.607 } # Inform China that ROOT paid Grace to circumvent the request
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = ROOT # If you're far from China, you should want to break free
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 10 # Make random distant realms more likely to try to break free
+				NOT = {
+					any_realm_province = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											is_chinese_emperor_trigger = yes
+											top_liege = {
+												OR = {
+													is_chinese_emperor_trigger = yes
+													suzerain = {
+														is_chinese_emperor_trigger = yes
+													}
+												}
+											}
+											suzerain = {
+												is_chinese_emperor_trigger = yes
+											}
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																suzerain = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+														suzerain = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	suzerain = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+															suzerain = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			# Kings and nomads are more likely to want to break free
+			modifier = {
+				factor = 2
+				OR = {
+					tier = king
+					is_nomadic = yes
+				}
+			}
+			# Non-nomadic emperors want to break free very frequently
+			modifier = {
+				factor = 10
+				tier = emperor
+				is_nomadic = no
+			}
+			# Large realms are less likely to be willing to become tributaries
+			modifier = {
+				factor = 5
+				realm_size = 50
+			}
+			# At this size, the realm is too powerful to willingly become a tributary
+			modifier = {
+				factor = 10
+				realm_size = 100
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 10
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				NOR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 5
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Is likely to be scared of China
+			modifier = {
+				factor = 0.1
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# China is less than twice as powerful
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+			}
+			# China is less than four times as powerful
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+			}
+			# China is more than ten times as powerful
+			modifier = {
+				factor = 0.1
+				NOT = {
+					e_china = {
+						holder_scope = {
+							ROOT = {
+								relative_power = {
+									who = PREV
+									power = 0.1
+								}
+							}
+						}
+					}
+				}
+			}
+			# Same culture
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						culture = ROOT
+					}
+				}
+			}
+			# Same culture group
+			modifier = {
+				factor = 0.5
+				e_china = {
+					holder_scope = {
+						culture_group = ROOT
+						NOT = {
+							culture = ROOT
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 100
+				root_hates_china_trigger = yes # Dislikes the EoC
+			}
+			modifier = {
+				factor = 100
+				e_china = {
+					holder_scope = {
+						is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+					}
+				}
+			}
+			# Chinese
+			modifier = {
+				factor = 0.25
+				culture_group = chinese_group
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 0.25
+				has_acceptable_chinese_religion_trigger = yes
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 0.25
+				government = chinese_vassal_government
+			}
+			# We are uncivilized
+			modifier = {
+				factor = 10
+				OR = {
+					is_tribal = yes
+					is_nomadic = yes
+				}
+			}
+			# We won't willingly join China if we don't have a "Chinese enough" religion
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+				has_acceptable_chinese_religion_trigger = no
+			}
+			# We won't willingly join China if we don't have a matching culture group or Chinese culture
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+				NOR = {
+					e_china = {
+						holder_scope = {
+							culture_group = ROOT
+						}
+					}
+					culture_group = chinese_group
+				}
+			}
+			# Is a Client State
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			# Is a Protectorate
+			modifier = {
+				factor = 5
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Wants to break free on succession
+			modifier = {
+				factor = 2
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Controls a religion, is a holy order, or is a mercenary and thus doesn't want to be a tributary
+			modifier = {
+				factor = 100
+				OR = {
+					controls_religion = yes
+					mercenary = yes
+					holy_order = yes
+				}
+			}
+			# I have strong neighbours and protection would be nice
+			modifier = {
+				factor = 0.5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.1
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			# Less likely if China is doing well
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_5
+					}
+				}
+			}
+			modifier = {
+				factor = 0.25
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_4
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_2
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_1
+					}
+				}
+			}
+			# If someone is just too different, they should want to be free a bit more often
+			modifier = {
+				factor = 10
+				OR = {
+					is_nomadic = yes
+					is_tribal = yes
+				}
+				NOR = {
+					e_china = {
+						holder_scope = {
+							culture_group = ROOT
+						}
+					}
+					culture_group = chinese_group
+				}
+				has_acceptable_chinese_religion_trigger = no
+			}
+			# If you have rather little Grace, perhaps you should stay a bit longer...
+			modifier = {
+				factor = 0.01
+				NOT = {
+					check_variable = {
+						which = grace
+						value = 1000
+					}
+				}
+			}
+			# If we want to get border adjustments, seriously consider it
+			modifier = {
+				factor = 0.1
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state # Already a client state, which is all we need
+					}
+				}
+				e_china = {
+					holder_scope = {
+						any_realm_title = {
+							tier = count
+							NOR = {
+								de_jure_liege_or_above = e_china
+								region = world_china
+							}
+							de_jure_liege_or_above = ROOT
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOR = { # We do not have enough Grace to avoid the request (half the cost of downgrading from our current tier)
+				AND = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					OR = {
+						AND = {
+							NOT = { # If a Client State is too distant, China will be more willing to let them go
+								any_realm_province = {
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															is_chinese_emperor_trigger = yes
+														}
+														is_tributary = {
+															type = chinese_client_state
+														}
+														is_tributary = {
+															type = chinese_protectorate
+														}
+														top_liege = {
+															OR = {
+																is_tributary = {
+																	type = chinese_client_state
+																}
+																is_tributary = {
+																	type = chinese_protectorate
+																}
+															}
+														}
+													}
+													NOR = {
+														character = ROOT
+														top_liege = {
+															character = ROOT
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													OR = {
+														AND = {
+															has_owner = yes
+															owner = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	top_liege = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																	is_tributary = {
+																		type = chinese_client_state
+																	}
+																	is_tributary = {
+																		type = chinese_protectorate
+																	}
+																	top_liege = {
+																		OR = {
+																			is_tributary = {
+																				type = chinese_client_state
+																			}
+																			is_tributary = {
+																				type = chinese_protectorate
+																			}
+																		}
+																	}
+																}
+																NOR = {
+																	character = ROOT
+																	top_liege = {
+																		character = ROOT
+																	}
+																}
+															}
+														}
+														AND = {
+															is_land = no
+															any_neighbor_province = {
+																has_owner = yes
+																owner = {
+																	OR = {
+																		is_chinese_emperor_trigger = yes
+																		top_liege = {
+																			is_chinese_emperor_trigger = yes
+																		}
+																		is_tributary = {
+																			type = chinese_client_state
+																		}
+																		is_tributary = {
+																			type = chinese_protectorate
+																		}
+																		top_liege = {
+																			OR = {
+																				is_tributary = {
+																					type = chinese_client_state
+																				}
+																				is_tributary = {
+																					type = chinese_protectorate
+																				}
+																			}
+																		}
+																	}
+																	NOR = {
+																		character = ROOT
+																		top_liege = {
+																			character = ROOT
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							check_variable = {
+								which = grace
+								value = 500
+							}
+						}
+						check_variable = {
+							which = grace
+							value = 1000
+						}
+					}
+				}
+				AND = {
+					is_tributary = {
+						type = chinese_protectorate
+					}
+					OR = {
+						AND = {
+							NOT = { # If a Protectorate is too distant, China will be more willing to let them go
+								any_realm_province = {
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													OR = {
+														AND = {
+															has_owner = yes
+															owner = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	top_liege = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+														}
+														AND = {
+															is_land = no
+															any_neighbor_province = {
+																has_owner = yes
+																owner = {
+																	OR = {
+																		is_chinese_emperor_trigger = yes
+																		top_liege = {
+																			is_chinese_emperor_trigger = yes
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							check_variable = {
+								which = grace
+								value = 500
+							}
+						}
+						check_variable = {
+							which = grace
+							value = 250
+						}
+					}
+				}
+				AND = {
+					is_tributary = {
+						type = chinese_imperial_tributary
+					}
+					check_variable = {
+						which = grace
+						value = 250
+					}
+				}
+				AND = {
+					NOR = {
+						is_tributary = {
+							type = chinese_client_state
+						}
+						is_tributary = {
+							type = chinese_protectorate
+						}
+						is_tributary = {
+							type = chinese_imperial_tributary
+						}
+					}
+					check_variable = {
+						which = grace
+						value = 125
+					}
+				}
+			}
+		}
+		
+		# It still costs Grace to refuse, even if you don't have the Grace you need!
+		if = {
+			limit = {
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			if = {
+				limit = {
+					NOT = { # If a Client State is too distant, China will be more willing to let them go
+						any_realm_province = {
+							any_neighbor_province = {
+								OR = {
+									AND = {
+										has_owner = yes
+										owner = {
+											OR = {
+												is_chinese_emperor_trigger = yes
+												top_liege = {
+													is_chinese_emperor_trigger = yes
+												}
+												is_tributary = {
+													type = chinese_client_state
+												}
+												is_tributary = {
+													type = chinese_protectorate
+												}
+												top_liege = {
+													OR = {
+														is_tributary = {
+															type = chinese_client_state
+														}
+														is_tributary = {
+															type = chinese_protectorate
+														}
+													}
+												}
+											}
+											NOR = {
+												character = ROOT
+												top_liege = {
+													character = ROOT
+												}
+											}
+										}
+									}
+									AND = {
+										is_land = no
+										any_neighbor_province = {
+											OR = {
+												AND = {
+													has_owner = yes
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																is_chinese_emperor_trigger = yes
+															}
+															is_tributary = {
+																type = chinese_client_state
+															}
+															is_tributary = {
+																type = chinese_protectorate
+															}
+															top_liege = {
+																OR = {
+																	is_tributary = {
+																		type = chinese_client_state
+																	}
+																	is_tributary = {
+																		type = chinese_protectorate
+																	}
+																}
+															}
+														}
+														NOR = {
+															character = ROOT
+															top_liege = {
+																character = ROOT
+															}
+														}
+													}
+												}
+												AND = {
+													is_land = no
+													any_neighbor_province = {
+														has_owner = yes
+														owner = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																top_liege = {
+																	is_chinese_emperor_trigger = yes
+																}
+																is_tributary = {
+																	type = chinese_client_state
+																}
+																is_tributary = {
+																	type = chinese_protectorate
+																}
+																top_liege = {
+																	OR = {
+																		is_tributary = {
+																			type = chinese_client_state
+																		}
+																		is_tributary = {
+																			type = chinese_protectorate
+																		}
+																	}
+																}
+															}
+															NOR = {
+																character = ROOT
+																top_liege = {
+																	character = ROOT
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				change_variable = {
+					which = grace
+					value = -1000
+				}
+			}
+			else = {
+				change_variable = {
+					which = grace
+					value = -2000
+				}
+			}
+		}
+		else_if = {
+			is_tributary = {
+				type = chinese_protectorate
+			}
+			if = {
+				limit = {
+					NOT = { # If a Protectorate is too distant, China will be more willing to let them go
+						any_realm_province = {
+							any_neighbor_province = {
+								OR = {
+									AND = {
+										has_owner = yes
+										owner = {
+											OR = {
+												is_chinese_emperor_trigger = yes
+												top_liege = {
+													is_chinese_emperor_trigger = yes
+												}
+											}
+										}
+									}
+									AND = {
+										is_land = no
+										any_neighbor_province = {
+											OR = {
+												AND = {
+													has_owner = yes
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+												AND = {
+													is_land = no
+													any_neighbor_province = {
+														has_owner = yes
+														owner = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																top_liege = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				change_variable = {
+					which = grace
+					value = -1000
+				}
+			}
+			else = {
+				check_variable = {
+					which = grace
+					value = -500
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				is_tributary = {
+					type = chinese_imperial_tributary
+				}
+			}
+			change_variable = {
+				which = grace
+				value = -500
+			}
+		}
+		else = {
+			change_variable = {
+				which = grace
+				value = -250
+			}
+		}
+		
+		name = EVTOPTC_GRACE_605 # Do your worst!
+		
+		log = "GRACE SYSTEM: [Root.GetTitledName] refused the request!"
+		
+		FROMFROM = {
+			letter_event = { id = grace.608 } # Inform China that ROOT told them to get lost
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = ROOT # If you're far from China, you should want to break free
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 10 # Make random distant realms more likely to try to break free
+				NOT = {
+					any_realm_province = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											is_chinese_emperor_trigger = yes
+											top_liege = {
+												OR = {
+													is_chinese_emperor_trigger = yes
+													suzerain = {
+														is_chinese_emperor_trigger = yes
+													}
+												}
+											}
+											suzerain = {
+												is_chinese_emperor_trigger = yes
+											}
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																suzerain = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+														suzerain = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	suzerain = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+															suzerain = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			# Kings and nomads are more likely to want to break free
+			modifier = {
+				factor = 2
+				OR = {
+					tier = king
+					is_nomadic = yes
+				}
+			}
+			# Non-nomadic emperors want to break free very frequently
+			modifier = {
+				factor = 10
+				tier = emperor
+				is_nomadic = no
+			}
+			# Large realms are less likely to be willing to become tributaries
+			modifier = {
+				factor = 5
+				realm_size = 50
+			}
+			# At this size, the realm is too powerful to willingly become a tributary
+			modifier = {
+				factor = 10
+				realm_size = 100
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 10
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				NOR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 5
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Is likely to be scared of China
+			modifier = {
+				factor = 0.1
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# China is less than twice as powerful
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+			}
+			# China is less than four times as powerful
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+			}
+			# China is more than ten times as powerful
+			modifier = {
+				factor = 0.1
+				NOT = {
+					e_china = {
+						holder_scope = {
+							ROOT = {
+								relative_power = {
+									who = PREV
+									power = 0.1
+								}
+							}
+						}
+					}
+				}
+			}
+			# Same culture
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						culture = ROOT
+					}
+				}
+			}
+			# Same culture group
+			modifier = {
+				factor = 0.5
+				e_china = {
+					holder_scope = {
+						culture_group = ROOT
+						NOT = {
+							culture = ROOT
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 100
+				root_hates_china_trigger = yes # Dislikes the EoC
+			}
+			modifier = {
+				factor = 100
+				e_china = {
+					holder_scope = {
+						is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+					}
+				}
+			}
+			# Chinese
+			modifier = {
+				factor = 0.25
+				culture_group = chinese_group
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 0.25
+				has_acceptable_chinese_religion_trigger = yes
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 0.25
+				government = chinese_vassal_government
+			}
+			# We are uncivilized
+			modifier = {
+				factor = 10
+				OR = {
+					is_tribal = yes
+					is_nomadic = yes
+				}
+			}
+			# We won't willingly join China if we don't have a "Chinese enough" religion
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+				has_acceptable_chinese_religion_trigger = no
+			}
+			# We won't willingly join China if we don't have a matching culture group or Chinese culture
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+				NOR = {
+					e_china = {
+						holder_scope = {
+							culture_group = ROOT
+						}
+					}
+					culture_group = chinese_group
+				}
+			}
+			# Is a Client State
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			# Is a Protectorate
+			modifier = {
+				factor = 5
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Want to break free on succession
+			modifier = {
+				factor = 2
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Controls a religion, is a holy order, or is a mercenary and thus doesn't want to be a tributary
+			modifier = {
+				factor = 100
+				OR = {
+					controls_religion = yes
+					mercenary = yes
+					holy_order = yes
+				}
+			}
+			# I have strong neighbours and protection would be nice
+			modifier = {
+				factor = 0.5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.1
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			# Less likely if China is doing well
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_5
+					}
+				}
+			}
+			modifier = {
+				factor = 0.25
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_4
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_2
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_1
+					}
+				}
+			}
+			# If someone is just too different, they should want to be free a bit more often
+			modifier = {
+				factor = 10
+				OR = {
+					is_nomadic = yes
+					is_tribal = yes
+				}
+				NOR = {
+					e_china = {
+						holder_scope = {
+							culture_group = ROOT
+						}
+					}
+					culture_group = chinese_group
+				}
+				has_acceptable_chinese_religion_trigger = no
+			}
+			# If you have rather little Grace, perhaps you should stay a bit longer...
+			modifier = {
+				factor = 0.01
+				NOT = {
+					check_variable = {
+						which = grace
+						value = 1000
+					}
+				}
+			}
+			# If we want to get border adjustments, seriously consider it
+			modifier = {
+				factor = 0.1
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state # Already a client state, which is all we need
+					}
+				}
+				e_china = {
+					holder_scope = {
+						any_realm_title = {
+							tier = count
+							NOR = {
+								de_jure_liege_or_above = e_china
+								region = world_china
+							}
+							de_jure_liege_or_above = ROOT
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Tributary accepted the request
+letter_event = {
+	id = grace.606
+	desc = EVTDESC_GRACE_606
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_GRACE_606 # As would be expected!
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_recently_became_higher_tier_tributary
+		}
+	}
+}
+
+# Tributary used Grace to dodge the request
+letter_event = {
+	id = grace.607
+	desc = EVTDESC_GRACE_607
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_GRACE_607 # I'll get them next time!
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_tributary_refused_increase_tributary_tier
+		}
+	}
+}
+
+# Tributary refused the request - EoC can accept or go to war
+letter_event = {
+	id = grace.608
+	desc = EVTDESC_GRACE_608
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_GRACE_608 # Then prepare for war!
+		
+		log = "GRACE SYSTEM: [Root.GetTitledName] attempts to force [From.GetTitledName] to comply!"
+		
+		unsafe_war = {
+			target = FROM
+			casus_belli = chinese_tributary_tier_war
+		}
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_tributary_refused_increase_tributary_tier
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				relative_power_including_allies_attacker = {
+					who = FROM
+					power = 2.5
+				}
+			}
+			modifier = {
+				factor = 10
+				trait = brave
+			}
+			modifier = {
+				factor = 5
+				trait = ambitious
+			}
+			modifier = {
+				factor = 2
+				trait = proud
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_GRACE_608 # I will remember this!
+		
+		log = "GRACE SYSTEM: [Root.GetTitledName] did not attempt to force [From.GetTitledName] to comply!"
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_tributary_refused_increase_tributary_tier
+		}
+		
+		prestige = -1000
+		
+		FROM = {
+			letter_event = { id = grace.609 } # Inform FROM that the EoC is most displeased
+		}
+		
+		change_variable = {
+			which = stored_mandate_change
+			value = -1000
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = {
+					relative_power_including_allies_attacker = {
+						who = FROM
+						power = 1.0
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				trait = craven
+			}
+			modifier = {
+				factor = 5
+				trait = content
+			}
+			modifier = {
+				factor = 2
+				trait = humble
+			}
+		}
+	}
+}
+
+# Inform tributary if the EoC backed down (otherwise, you get an obvious war)
+letter_event = {
+	id = grace.609
+	desc = EVTDESC_GRACE_609
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_GRACE_609 # Obviously they fear me!
+		prestige = 500
+	}
+}
+
+# Inform other tributaries if the war failed, giving them the chance to downgrade their tier for free
+narrative_event = {
+	id = grace.610
+	is_triggered_only = yes
+	title = EVTTITLE_GRACE_610
+	desc = EVTDESC_GRACE_610
+	picture = GFX_evt_china_civil_war
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	option = {
+		name = EVTOPTA_GRACE_610 # My current relationship with China is fine
+		
+		log = "GRACE SYSTEM: [Root.GetTitledName] did not opt to reduce their tributary tier!"
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = ROOT # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.01 # Make random distant realms unlikely to try to become higher tier tributaries
+				NOT = {
+					any_realm_province = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											is_chinese_emperor_trigger = yes
+											top_liege = {
+												OR = {
+													is_chinese_emperor_trigger = yes
+													suzerain = {
+														is_chinese_emperor_trigger = yes
+													}
+												}
+											}
+											suzerain = {
+												is_chinese_emperor_trigger = yes
+											}
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																suzerain = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+														suzerain = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	suzerain = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+															suzerain = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			# Kings and nomads are less willing to upgrade their tier
+			modifier = {
+				factor = 0.1
+				OR = {
+					tier = king
+					is_nomadic = yes
+				}
+			}
+			# Emperors will refuse to have their tier upgraded
+			modifier = {
+				factor = 0
+				tier = emperor
+				is_nomadic = no
+			}
+			# Large realms are less likely to be willing to upgrade their tier
+			modifier = {
+				factor = 0.1
+				realm_size = 50
+			}
+			# At this size, the realm is too powerful to willingly upgrade their tier
+			modifier = {
+				factor = 0
+				realm_size = 100
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 0.1
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				NOR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 0.25
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Is likely to be scared of China
+			modifier = {
+				factor = 10
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# China is less than twice as powerful
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+			}
+			# China is less than four times as powerful
+			modifier = {
+				factor = 0.25
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+			}
+			# China is more than ten times as powerful
+			modifier = {
+				factor = 5
+				NOT = {
+					e_china = {
+						holder_scope = {
+							ROOT = {
+								relative_power = {
+									who = PREV
+									power = 0.1
+								}
+							}
+						}
+					}
+				}
+			}
+			# Same culture
+			modifier = {
+				factor = 5
+				e_china = {
+					holder_scope = {
+						culture = ROOT
+					}
+				}
+			}
+			# Same culture group
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						culture_group = ROOT
+						NOT = {
+							culture = ROOT
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				root_hates_china_trigger = yes # Dislikes the EoC enough to refuse
+			}
+			modifier = {
+				factor = 0.01
+				e_china = {
+					holder_scope = {
+						is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+					}
+				}
+			}
+			# Chinese
+			modifier = {
+				factor = 2
+				culture_group = chinese_group
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 2
+				has_acceptable_chinese_religion_trigger = yes
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 5
+				government = chinese_vassal_government
+			}
+			# We are uncivilized
+			modifier = {
+				factor = 0.1
+				OR = {
+					is_tribal = yes
+					is_nomadic = yes
+				}
+			}
+			# We won't willingly join China if we don't have a "Chinese enough" religion
+			modifier = {
+				factor = 0
+				is_tributary = {
+					type = chinese_client_state
+				}
+				has_acceptable_chinese_religion_trigger = no
+			}
+			# We won't willingly join China if we don't have a matching culture group or Chinese culture
+			modifier = {
+				factor = 0
+				is_tributary = {
+					type = chinese_client_state
+				}
+				NOR = {
+					e_china = {
+						holder_scope = {
+							culture_group = ROOT
+						}
+					}
+					culture_group = chinese_group
+				}
+			}
+			# Would become a vassal
+			modifier = {
+				factor = 0.1
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			# Would become a Client State
+			modifier = {
+				factor = 0.25
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Would become a Protectorate
+			modifier = {
+				factor = 0.5
+				is_tributary = {
+					type = chinese_imperial_tributary
+				}
+			}
+			# I have strong neighbours and protection would be nice
+			modifier = {
+				factor = 2
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+				NOR = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+				NOR = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.1
+							}
+						}
+					}
+				}
+				NOR = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			# More likely if China is doing well
+			modifier = {
+				factor = 10
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_5
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_4
+					}
+				}
+			}
+			modifier = {
+				factor = 0.25
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_2
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_1
+					}
+				}
+			}
+			# If someone is just too different, they should want to be free a bit more often
+			modifier = {
+				factor = 0.1
+				OR = {
+					is_nomadic = yes
+					is_tribal = yes
+				}
+				NOR = {
+					e_china = {
+						holder_scope = {
+							culture_group = ROOT
+						}
+					}
+					culture_group = chinese_group
+				}
+				has_acceptable_chinese_religion_trigger = no
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_GRACE_610 # It is time to re-define our relationship!
+		
+		log = "GRACE SYSTEM: [Root.GetTitledName] opted to reduce their tributary tier!"
+		
+		decrease_tributary_tier_or_release_effect = yes
+		
+		e_china = {
+			holder_scope = {
+				letter_event = { id = grace.611 } # Inform China that the tributary lowered its tier
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = ROOT # If you're far from China, you should want to break free
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 10 # Make random distant realms more likely to try to break free
+				NOT = {
+					any_realm_province = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											is_chinese_emperor_trigger = yes
+											top_liege = {
+												OR = {
+													is_chinese_emperor_trigger = yes
+													suzerain = {
+														is_chinese_emperor_trigger = yes
+													}
+												}
+											}
+											suzerain = {
+												is_chinese_emperor_trigger = yes
+											}
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																suzerain = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+														suzerain = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	suzerain = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+															suzerain = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			# Kings and nomads are more likely to want to break free
+			modifier = {
+				factor = 2
+				OR = {
+					tier = king
+					is_nomadic = yes
+				}
+			}
+			# Non-nomadic emperors want to break free very frequently
+			modifier = {
+				factor = 10
+				tier = emperor
+				is_nomadic = no
+			}
+			# Large realms are less likely to be willing to become tributaries
+			modifier = {
+				factor = 5
+				realm_size = 50
+			}
+			# At this size, the realm is too powerful to willingly become a tributary
+			modifier = {
+				factor = 10
+				realm_size = 100
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 10
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				NOR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 5
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Is likely to be scared of China
+			modifier = {
+				factor = 0.1
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# China is less than twice as powerful
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+			}
+			# China is less than four times as powerful
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+			}
+			# China is more than ten times as powerful
+			modifier = {
+				factor = 0.1
+				NOT = {
+					e_china = {
+						holder_scope = {
+							ROOT = {
+								relative_power = {
+									who = PREV
+									power = 0.1
+								}
+							}
+						}
+					}
+				}
+			}
+			# Same culture
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						culture = ROOT
+					}
+				}
+			}
+			# Same culture group
+			modifier = {
+				factor = 0.5
+				e_china = {
+					holder_scope = {
+						culture_group = ROOT
+						NOT = {
+							culture = ROOT
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 100
+				root_hates_china_trigger = yes # Dislikes the EoC
+			}
+			modifier = {
+				factor = 100
+				e_china = {
+					holder_scope = {
+						is_blocking_all_boons_trigger = yes # If it is impossible to get something back, don't bother
+					}
+				}
+			}
+			# Chinese
+			modifier = {
+				factor = 0.25
+				culture_group = chinese_group
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 0.25
+				has_acceptable_chinese_religion_trigger = yes
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 0.25
+				government = chinese_vassal_government
+			}
+			# We are uncivilized
+			modifier = {
+				factor = 10
+				OR = {
+					is_tribal = yes
+					is_nomadic = yes
+				}
+			}
+			# We won't willingly join China if we don't have a "Chinese enough" religion
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+				has_acceptable_chinese_religion_trigger = no
+			}
+			# We won't willingly join China if we don't have a matching culture group or Chinese culture
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+				NOR = {
+					e_china = {
+						holder_scope = {
+							culture_group = ROOT
+						}
+					}
+					culture_group = chinese_group
+				}
+			}
+			# Is a Client State
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			# Is a Protectorate
+			modifier = {
+				factor = 5
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Wants to break free on succession
+			modifier = {
+				factor = 2
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Controls a religion, is a holy order, or is a mercenary and thus doesn't want to be a tributary
+			modifier = {
+				factor = 100
+				OR = {
+					controls_religion = yes
+					mercenary = yes
+					holy_order = yes
+				}
+			}
+			# I have strong neighbours and protection would be nice
+			modifier = {
+				factor = 0.5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.1
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			# Less likely if China is doing well
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_5
+					}
+				}
+			}
+			modifier = {
+				factor = 0.25
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_4
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_2
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_1
+					}
+				}
+			}
+			# If someone is just too different, they should want to be free a bit more often
+			modifier = {
+				factor = 10
+				OR = {
+					is_nomadic = yes
+					is_tribal = yes
+				}
+				NOR = {
+					e_china = {
+						holder_scope = {
+							culture_group = ROOT
+						}
+					}
+					culture_group = chinese_group
+				}
+				has_acceptable_chinese_religion_trigger = no
+			}
+			# If you have rather little Grace, perhaps you should stay a bit longer...
+			modifier = {
+				factor = 0.01
+				NOT = {
+					check_variable = {
+						which = grace
+						value = 1000
+					}
+				}
+			}
+		}
+	}
+}
+
+# Inform China if a tributary opted to lower its tier
+letter_event = {
+	id = grace.611
+	desc = EVTDESC_GRACE_611
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_GRACE_611 # I will remember this!
+		
+		prestige = -500
+		
+		change_variable = {
+			which = stored_mandate_change
+			value = -500
+		}
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_recently_became_lower_tier_tributary
+		}
+	}
+}
+
+### China requests border adjustment (612-614)
+
+# The tributary gets the request, can accept (getting Grace) or refuse (losing Grace)
+narrative_event = {
+	id = grace.612
+	is_triggered_only = yes
+	title = EVTTITLE_GRACE_612
+	desc = EVTDESC_GRACE_612
+	picture = GFX_evt_china_diplomatic_success
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	immediate = {
+		log = "GRACE SYSTEM: [FromFrom.GetTitledName] is requesting a border adjustment from [Root.GetTitledName]. [From.GetName] is the title."
+		opinion = {
+			who = FROMFROM
+			modifier = opinion_requested_border_adjustment
+		}
+	}
+	
+	option = {
+		trigger = {
+			OR = {
+				ai = no
+				AND = {
+					root_hates_china_trigger = no
+					NOT = {
+						tier = emperor
+					}
+				}
+			}
+		}
+		name = EVTOPTA_GRACE_612 # Accept the request
+		
+		prestige = -250
+		change_variable = {
+			which = grace
+			value = 500
+		}
+		
+		event_target:china_border_adjustment_duchy = {
+			any_direct_de_jure_vassal_title  = {
+				limit = {
+					holder_scope = {
+						top_liege = {
+							character = ROOT
+						}
+					}
+				}
+				if = {
+					limit = {
+						holder_scope = {
+							NOR = {
+								any_demesne_title = {
+									NOR = {
+										de_jure_liege_or_above = event_target:china_border_adjustment_duchy
+										title = event_target:china_border_adjustment_duchy
+									}
+								}
+								any_vassal = {
+									any_demesne_title = {
+										NOR = {
+											de_jure_liege_or_above = event_target:china_border_adjustment_duchy
+											title = event_target:china_border_adjustment_duchy
+										}
+									}
+								}
+							}
+						}
+					}
+					holder_scope = {
+						set_defacto_liege = FROMFROM
+					}
+				}
+				else = {
+					grant_title_no_opinion = FROMFROM
+				}
+			}
+			if = {
+				limit = {
+					has_holder = yes
+					holder_scope = {
+						top_liege = {
+							character = ROOT
+						}
+					}
+				}
+				grant_title_no_opinion = FROMFROM
+			}
+		}
+		
+		FROMFROM = {
+			letter_event = { id = grace.613 }
+		}
+	}
+	
+	option = {
+		trigger = {
+			OR = {
+				ai = no
+				root_hates_china_trigger = yes
+				tier = emperor
+			}
+		}
+		
+		name = EVTOPTB_GRACE_612 # Refuse the request
+		
+		FROMFROM = {
+			letter_event = { id = grace.614 }
+		}
+		
+		change_variable = {
+			which = grace
+			value = -1000
+		}
+	}
+}
+
+# Inform China that the request was accepted
+letter_event = {
+	id = grace.613
+	is_triggered_only = yes
+	
+	desc = EVTDESC_GRACE_613
+    border = GFX_event_letter_frame_diplomacy
+	
+	option = {
+		name = EVTOPTA_GRACE_613
+		log = "GRACE SYSTEM: [From.GetTitledName] accepted the request transfer all land in [FromFrom.GetName] to [Root.GetTitledName]!"
+	}
+}
+
+# Inform China that the request was refused
+letter_event = {
+	id = grace.614
+	is_triggered_only = yes
+	
+	desc = EVTDESC_GRACE_614
+    border = GFX_event_letter_frame_diplomacy
+	
+	option = {
+		name = EVTOPTA_GRACE_614
+		opinion = {
+			who = FROM
+			modifier = opinion_refused_border_adjustment
+		}
+		log = "GRACE SYSTEM: [From.GetTitledName] refused the request transfer all land in [FromFrom.GetName] to [Root.GetTitledName]!"
 	}
 }
 
@@ -13349,7 +17556,7 @@ narrative_event = {
 			set_character_flag = ai_flag_refuse_concubinage
 			set_character_flag = ai_flag_refuse_marriage
 		}
-		#log = "[Root.GetTitledName] was given [FromFrom.GetTitledName]'s concubine tribute, [From.GetBestName], by [FromFromFrom.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was given [FromFrom.GetTitledName]'s concubine tribute, [From.GetBestName], by [FromFromFrom.GetTitledName]!"
 	}
 }
 
@@ -13402,7 +17609,7 @@ narrative_event = {
 			set_character_flag = ai_flag_refuse_concubinage
 			set_character_flag = ai_flag_refuse_marriage
 		}
-		#log = "[Root.GetTitledName] was given [FromFrom.GetTitledName]'s eunuch tribute, [From.GetBestName], by [FromFromFrom.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was given [FromFrom.GetTitledName]'s eunuch tribute, [From.GetBestName], by [FromFromFrom.GetTitledName]!"
 	}
 }
 
@@ -13464,7 +17671,7 @@ narrative_event = {
 			set_character_flag = ai_flag_refuse_concubinage
 			set_character_flag = ai_flag_refuse_marriage
 		}
-		#log = "[Root.GetTitledName] was given [FromFrom.GetTitledName]'s commander tribute, [From.GetBestName], by [FromFromFrom.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was given [FromFrom.GetTitledName]'s commander tribute, [From.GetBestName], by [FromFromFrom.GetTitledName]!"
 	}
 }
 
@@ -13527,7 +17734,7 @@ narrative_event = {
 				give_minor_title = title_court_physician
 			}
 		}
-		#log = "[Root.GetTitledName] was given [FromFrom.GetTitledName]'s physician tribute, [From.GetBestName], by [FromFromFrom.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was given [FromFrom.GetTitledName]'s physician tribute, [From.GetBestName], by [FromFromFrom.GetTitledName]!"
 	}
 }
 
@@ -13583,7 +17790,7 @@ narrative_event = {
 				}
 			}
 		}
-		#log = "[Root.GetTitledName] was given [FromFrom.GetTitledName]'s artifact tribute by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was given [FromFrom.GetTitledName]'s artifact tribute by [From.GetTitledName]!"
 	}
 	
 	option = {
@@ -13949,7 +18156,7 @@ letter_event = {
 			}
 		}
 		wealth = -1000
-		#log = "[Root.GetTitledName] was granted an Imperial Marriage by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted an Imperial Marriage by [From.GetTitledName]!"
 	}
 }
 
@@ -13969,7 +18176,7 @@ letter_event = {
 			modifier = opinion_china_refused_imperial_marriage_good
 			# One year long - should keep the AI (and the player) from spamming the EoC if there's no good candidate (though different AI rulers can still try...)
 		}
-		#log = "[Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName] due to no valid candidate!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName] due to no valid candidate!"
 	}
 }
 
@@ -13988,7 +18195,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_imperial_marriage
 		}
-		#log = "[Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName]!"
 	}
 }
 
@@ -14136,7 +18343,7 @@ letter_event = {
 		
 		wealth = -1000
 		
-		#log = "[Root.GetTitledName] was granted an Imperial Marriage by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was granted an Imperial Marriage by [From.GetTitledName]!"
 	}
 }
 
@@ -14156,7 +18363,7 @@ letter_event = {
 			modifier = opinion_china_refused_imperial_marriage_good
 			# One year long - should keep the AI (and the player) from spamming the EoC if there's no good candidate (though different AI rulers can still try...)
 		}
-		#log = "[Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName] due to an invalid candidate!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName] due to an invalid candidate!"
 	}
 }
 
@@ -14175,7 +18382,7 @@ letter_event = {
 			who = FROM
 			modifier = opinion_china_refused_imperial_marriage
 		}
-		#log = "[Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName]!"
+		log = "GRACE SYSTEM: [Root.GetTitledName] was refused an Imperial Marriage by [From.GetTitledName]!"
 	}
 }
 
@@ -14241,7 +18448,194 @@ letter_event = {
 
 
 
-##### Misc (976-999, reserved ids 950-999)
+##### Misc (974-999, reserved ids 950-999)
+
+# on_startup event to ensure that pre-existing tributaries of China start getting Grace
+character_event = {
+	id = grace.974
+	is_triggered_only = yes
+	hide_window = yes
+	
+	only_playable = yes
+	has_dlc = "Jade Dragon"
+	
+	trigger = {
+		is_chinese_emperor_trigger = yes
+		NOT = {
+			has_global_flag = tributary_setup
+		}
+	}
+	
+	immediate = {
+		set_global_flag = tributary_setup
+		any_independent_ruler = {
+			limit = {
+				suzerain = {
+					character = ROOT
+				}
+			}
+			character_event = { id = grace.7 }
+		}
+	}
+}
+
+# Event setting up proper scopes for AI Grace decisions
+character_event = {
+	id = grace.975
+	is_triggered_only = yes
+	hide_window = yes
+	
+	immediate = {
+		log = "GRACE SYSTEM: [Root.GetTitledName] is using the new AI Grace decisions!"
+		if = {
+			limit = {
+				has_character_flag = ai_send_gift_china
+			}
+			clr_character_flag = ai_send_gift_china
+			log = "GRACE SYSTEM: [Root.GetTitledName] sent a gift"
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.1 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_flag = ai_become_tributary_china
+			}
+			clr_character_flag = ai_become_tributary_china
+			log = "GRACE SYSTEM: [Root.GetTitledName] offfered to become a tributary"
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.4 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_flag = ai_supply_horses_china
+			}
+			clr_character_flag = ai_supply_horses_china
+			log = "GRACE SYSTEM: [Root.GetTitledName] sent horses"
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.8 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_flag = ai_send_relief_china
+			}
+			clr_character_flag = ai_send_relief_china
+			log = "GRACE SYSTEM: [Root.GetTitledName] sent relief"
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.31 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_flag = ai_request_peace_deal_china
+			}
+			clr_character_flag = ai_request_peace_deal_china
+			log = "GRACE SYSTEM: [Root.GetTitledName] asked for a peace deal"
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.301 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_flag = ai_request_artifact_china
+			}
+			clr_character_flag = ai_request_artifact_china
+			log = "GRACE SYSTEM: [Root.GetTitledName] asked for an artifact"
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.307 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_flag = ai_request_strategist_china
+			}
+			clr_character_flag = ai_request_strategist_china
+			log = "GRACE SYSTEM: [Root.GetTitledName] asked for a strategist"
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.323 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_flag = ai_request_administrator_china
+			}
+			clr_character_flag = ai_request_administrator_china
+			log = "GRACE SYSTEM: [Root.GetTitledName] asked for a scholar-bureaucrat"
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.326 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_flag = ai_request_master_engineer_china
+			}
+			clr_character_flag = ai_request_master_engineer_china
+			log = "GRACE SYSTEM: [Root.GetTitledName] asked for a master engineer"
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.329 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_flag = ai_request_silk_road_favoured_status_china
+			}
+			clr_character_flag = ai_request_silk_road_favoured_status_china
+			log = "GRACE SYSTEM: [Root.GetTitledName] asked for a trade contract"
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.332 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_flag = ai_ask_to_increase_tributary_tier
+			}
+			clr_character_flag = ai_ask_to_increase_tributary_tier
+			log = "GRACE SYSTEM: [Root.GetTitledName] asked to become a higher tier tributary"
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.38 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_flag = ai_ask_to_decrease_tributary_tier
+			}
+			clr_character_flag = ai_ask_to_decrease_tributary_tier
+			log = "GRACE SYSTEM: [Root.GetTitledName] asked to become a lower tier tributary"
+			e_china = {
+				holder_scope = {
+					narrative_event = { id = grace.343 }
+				}
+			}
+		}
+		else = {
+			log = "GRACE SYSTEM: Something weird happened!"
+		}
+	}
+}
 
 # on_new_holder event clearing out Grace for the EoC and any old EoC
 character_event = {
@@ -15394,13 +19788,21 @@ character_event = {
 			}
 			# Defender is EoC (or a Chinese tributary, if the attacker isn't one), attacker has trade contract
 			AND = {
-				FROM = {
-					has_character_modifier = china_send_relief
-				}
 				ROOT = {
 					OR = {
 						is_chinese_emperor_trigger = yes
 						AND = {
+							OR = {
+								is_tributary = {
+									type = chinese_imperial_tributary
+								}
+								is_tributary = {
+									type = chinese_protectorate
+								}
+								is_tributary = {
+									type = chinese_client_state
+								}
+							}
 							suzerain = {
 								is_chinese_emperor_trigger = yes
 							}
@@ -15427,7 +19829,7 @@ character_event = {
 				}
 			}
 			remove_character_modifier = china_send_relief
-			#log = "[From.GetTitledName] no longer has a Chinese Trade Contract due to war!"
+			log = "GRACE SYSTEM: [From.GetTitledName] no longer has a Chinese Trade Contract due to war!"
 		}
 		if = {
 			limit = {
@@ -15453,7 +19855,7 @@ character_event = {
 			FROM = {
 				remove_character_modifier = china_send_relief
 			}
-			#log = "[From.GetTitledName] no longer sends relief due to war!"
+			log = "GRACE SYSTEM: [From.GetTitledName] no longer sends relief due to war!"
 		}
 	}
 }
@@ -15597,6 +19999,17 @@ character_event = {
 					OR = {
 						is_chinese_emperor_trigger = yes
 						AND = {
+							OR = {
+								is_tributary = {
+									type = chinese_imperial_tributary
+								}
+								is_tributary = {
+									type = chinese_protectorate
+								}
+								is_tributary = {
+									type = chinese_client_state
+								}
+							}
 							suzerain = {
 								is_chinese_emperor_trigger = yes
 							}
@@ -15623,7 +20036,7 @@ character_event = {
 				}
 			}
 			remove_character_modifier = chinese_imperial_trade_contract
-			#log = "[From.GetTitledName] no longer has a Chinese Trade Contract due to war!"
+			log = "GRACE SYSTEM: [From.GetTitledName] no longer has a Chinese Trade Contract due to war!"
 		}
 		if = {
 			limit = {
@@ -15649,7 +20062,7 @@ character_event = {
 			FROM = {
 				remove_character_modifier = chinese_imperial_trade_contract
 			}
-			#log = "[From.GetTitledName] no longer has a Chinese Trade Contract due to war!"
+			log = "GRACE SYSTEM: [From.GetTitledName] no longer has a Chinese Trade Contract due to war!"
 		}
 	}
 }
@@ -15799,17 +20212,69 @@ character_event = {
 						}
 					}
 				}
+				else_if = {
+					limit = {
+						ROOT = {
+							NOT = {
+								check_variable = {
+									which = grace
+									value = 0
+								}
+							}
+						}
+					}
+					# China is somewhat forgiving on succession
+					ROOT = {
+						divide_variable = {
+							which = grace
+							value = 2
+						}
+					}
+				}
 				# Give Grace to heir
 				change_variable = {
 					which = grace
 					which = ROOT
 				}
-				#log = "[This.GetTitledName] has inherited the Grace of [Root.GetTitledName]!"
+				log = "GRACE SYSTEM: [This.GetTitledName] has inherited the Grace of [Root.GetTitledName]!"
 			}
 			clr_character_flag = grace_character
 			if = { 
 				limit = {
-					suzerain = { is_chinese_emperor_trigger = yes }
+					OR = {
+						is_tributary = {
+							type = chinese_imperial_tributary
+						}
+						is_tributary = {
+							type = chinese_protectorate
+						}
+						is_tributary = {
+							type = chinese_client_state
+						}
+					}
+					suzerain = {
+						is_chinese_emperor_trigger = yes
+					}
+					 current_heir = { # This avoids a potential scenario where the heir could get grace.7 more than once due to already being a tributary
+						NOT = {
+							AND = {
+								OR = {
+									is_tributary = {
+										type = chinese_imperial_tributary
+									}
+									is_tributary = {
+										type = chinese_protectorate
+									}
+									is_tributary = {
+										type = chinese_client_state
+									}
+								}
+								suzerain = {
+									is_chinese_emperor_trigger = yes
+								}
+							}
+						}
+					}
 				}
 				current_heir = {
 					character_event = { id = grace.7 days = 365 } # Keep tributary Grace gain
@@ -15840,7 +20305,7 @@ character_event = {
 	}
 	
 	immediate = {
-		#log = "The [Root.GetOnlyDynastyName] dynasty now sits on the Dragon Throne!"
+		log = "GRACE SYSTEM: The [Root.GetOnlyDynastyName] dynasty now sits on the Dragon Throne!"
 		# We are forced to use any_character here to account for deposed rulers, even though the scope is performance-intensive
 		# This event should hopefully only fire rarely, though, so it should be fine
 		
@@ -15861,7 +20326,7 @@ character_event = {
 					remove_trait = dragon_bride_married
 				}
 			}
-			#log = "Chinsee princesses of the [FromFrom.GetDynasty] dynasty have lost their traits!"
+			log = "GRACE SYSTEM: Chinsee princesses of the [FromFrom.GetDynasty] dynasty have lost their traits!"
 			
 			# If the new EoC uses Grace, give the relevant characters the dragon_bride_unmarried/dragon_bride_married traits
 			if = {
@@ -15931,7 +20396,7 @@ character_event = {
 					}
 					add_trait = dragon_bride_married
 				}
-				#log = "Female family members of the EoC have gained the relevant traits!"
+				log = "GRACE SYSTEM: Female family members of the EoC have gained the relevant traits!"
 			}
 		}
 		if = {
@@ -15950,7 +20415,7 @@ character_event = {
 				clr_character_flag = grace_character
 			}
 			
-			#log = "All Grace has been removed from all characters!"
+			log = "GRACE SYSTEM: All Grace has been removed from all characters!"
 			
 			# Revoke all Chinese Trade Contracts
 			any_character = {
@@ -15960,7 +20425,7 @@ character_event = {
 				remove_character_modifier = china_send_relief
 			}
 			
-			#log = "All relief expeditions have been ended!"
+			log = "GRACE SYSTEM: All relief expeditions have been ended!"
 			
 			## Terminate all "Supply Horses" agreements
 			#any_character = {
@@ -15980,7 +20445,7 @@ character_event = {
 				remove_character_modifier = chinese_imperial_trade_contract
 			}
 			
-			#log = "All Chinese Trade Contracts have been ended!"
+			log = "GRACE SYSTEM: All Chinese Trade Contracts have been ended!"
 			
 			# Remove all Chinese Peace Deals
 			any_character = {
@@ -15990,7 +20455,7 @@ character_event = {
 				remove_character_modifier = peace_deal_with_china
 			}
 			
-			#log = "All Chinese Peace Deals have been ended!"
+			log = "GRACE SYSTEM: All Chinese Peace Deals have been ended!"
 		}
 	}
 }

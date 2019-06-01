@@ -6,7 +6,6 @@
 
 
 decisions = {
-
 	adopt_chinese_imperialism = { # THIS DECISION IS INTENTIONALLY VERY DIFFERENT FROM VANILLA; DO NOT CHANGE IT!
 		only_independent = yes
 		is_high_prio = yes
@@ -203,6 +202,12 @@ decisions = {
 			}
 			detract_grace_super_huge_effect = yes # China is VERY upset with you for doing this!
 			detract_grace_super_huge_effect = yes # China is VERY upset with you for doing this!
+			if = {
+				limit = {
+					has_character_modifier = chinese_imperial_trade_contract
+				}
+				remove_character_modifier = chinese_imperial_trade_contract
+			}
 			character_event = { id = nameofchina.30 } # Name the empire
 		}
 	}
@@ -579,7 +584,16 @@ decisions = {
 					type = permanent
 				}
 				is_tributary = {
-					type = chinese
+					type = chinese_peripheral_tributary
+				}
+				is_tributary = {
+					type = chinese_imperial_tributary
+				}
+				is_tributary = {
+					type = chinese_protectoraye
+				}
+				is_tributary = {
+					type = chinese_client_state
 				}
 				is_tributary = {
 					type = nomadic
@@ -605,7 +619,16 @@ decisions = {
 							type = permanent
 						}
 						is_tributary = {
-							type = chinese
+							type = chinese_peripheral_tributary
+						}
+						is_tributary = {
+							type = chinese_imperial_tributary
+						}
+						is_tributary = {
+							type = chinese_protectoraye
+						}
+						is_tributary = {
+							type = chinese_client_state
 						}
 					}
 				}
@@ -677,44 +700,336 @@ decisions = {
 			}
 		}
 		effect = {
-			if = {
+			if = { # If the AI could have used the better decision, act as if it did so that it doesn't take a huge Grace penalty for no reason!
 				limit = {
-					has_dlc = "Jade Dragon"
-					is_chinese_emperor_trigger = no
+					ai = yes
+					suzerain = {
+						is_chinese_emperor_trigger = yes
+						NOT = {
+							reverse_has_opinion_modifier = {
+								who = ROOT
+								modifier = opinion_china_refused_decrese_tributary_tier
+							}
+						}
+					}
 				}
 				if = {
 					limit = {
-						suzerain = {
-							is_chinese_emperor_trigger = yes
+						is_tributary = {
+							type = chinese_client_state
 						}
 					}
-					detract_grace_super_huge_effect = yes
+					if = {
+						limit = {
+							NOT = { # If a Client State is too distant, China will be more willing to let them go
+								any_realm_province = {
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															is_chinese_emperor_trigger = yes
+														}
+														is_tributary = {
+															type = chinese_client_state
+														}
+														is_tributary = {
+															type = chinese_protectorate
+														}
+														top_liege = {
+															OR = {
+																is_tributary = {
+																	type = chinese_client_state
+																}
+																is_tributary = {
+																	type = chinese_protectorate
+																}
+															}
+														}
+													}
+													NOR = {
+														character = ROOT
+														top_liege = {
+															character = ROOT
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													OR = {
+														AND = {
+															has_owner = yes
+															owner = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	top_liege = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																	is_tributary = {
+																		type = chinese_client_state
+																	}
+																	is_tributary = {
+																		type = chinese_protectorate
+																	}
+																	top_liege = {
+																		OR = {
+																			is_tributary = {
+																				type = chinese_client_state
+																			}
+																			is_tributary = {
+																				type = chinese_protectorate
+																			}
+																		}
+																	}
+																}
+																NOR = {
+																	character = ROOT
+																	top_liege = {
+																		character = ROOT
+																	}
+																}
+															}
+														}
+														AND = {
+															is_land = no
+															any_neighbor_province = {
+																has_owner = yes
+																owner = {
+																	OR = {
+																		is_chinese_emperor_trigger = yes
+																		top_liege = {
+																			is_chinese_emperor_trigger = yes
+																		}
+																		is_tributary = {
+																			type = chinese_client_state
+																		}
+																		is_tributary = {
+																			type = chinese_protectorate
+																		}
+																		top_liege = {
+																			OR = {
+																				is_tributary = {
+																					type = chinese_client_state
+																				}
+																				is_tributary = {
+																					type = chinese_protectorate
+																				}
+																			}
+																		}
+																	}
+																	NOR = {
+																		character = ROOT
+																		top_liege = {
+																			character = ROOT
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							check_variable = {
+								which = grace
+								value = 1000
+							}
+						}
+						change_variable = {
+							which = grace
+							value = -1000
+						}
+						set_character_flag = ai_ask_to_decrease_tributary_tier
+						character_event = { id = grace.975 }
+						break = yes
+					}
+					else_if = {
+						limit =  {
+							check_variable = {
+								which = grace
+								value = 2000
+							}
+						}
+						change_variable = {
+							which = grace
+							value = -2000
+						}
+						set_character_flag = ai_ask_to_decrease_tributary_tier
+						character_event = { id = grace.975 }
+						break = yes
+					}
+				}
+				else_if = {
+					is_tributary = {
+						type = chinese_protectorate
+					}
+					if = {
+						limit = {
+							NOT = { # If a Protectorate is too distant, China will be more willing to let them go
+								any_realm_province = {
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													OR = {
+														AND = {
+															has_owner = yes
+															owner = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	top_liege = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+														}
+														AND = {
+															is_land = no
+															any_neighbor_province = {
+																has_owner = yes
+																owner = {
+																	OR = {
+																		is_chinese_emperor_trigger = yes
+																		top_liege = {
+																			is_chinese_emperor_trigger = yes
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							check_variable = {
+								which = grace
+								value = 500
+							}
+						}
+						change_variable = {
+							which = grace
+							value = -500
+						}
+						set_character_flag = ai_ask_to_decrease_tributary_tier
+						character_event = { id = grace.975 }
+						break = yes
+					}
+					else_if = {
+						limit =  {
+							check_variable = {
+								which = grace
+								value = 1000
+							}
+						}
+						change_variable = {
+							which = grace
+							value = -1000
+						}
+						set_character_flag = ai_ask_to_decrease_tributary_tier
+						character_event = { id = grace.975 }
+						break = yes
+					}
 				}
 				else_if = {
 					limit = {
-						suzerain = {
-							any_close_relative = {
-								dynasty = PREV
-								is_chinese_emperor_trigger = yes
-							}
+						is_tributary = {
+							type = chinese_imperial_tributary
+						}
+						check_variable = {
+							which = grace
+							value = 500
 						}
 					}
-					detract_grace_massive_effect = yes
+					change_variable = {
+						which = grace
+						value = -500
+					}
+					set_character_flag = ai_ask_to_decrease_tributary_tier
+					character_event = { id = grace.975 }
+					break = yes
 				}
 				else_if = {
 					limit = {
-						suzerain = {
-							any_dynasty_member = {
-								is_chinese_emperor_trigger = yes
-							}
+						is_tributary = {
+							type = chinese_peripheral_tributary
+						}
+						check_variable = {
+							which = grace
+							value = 250
 						}
 					}
-					detract_grace_major_effect = yes
+					change_variable = {
+						which = grace
+						value = -250
+					}
+					set_character_flag = ai_ask_to_decrease_tributary_tier
+					character_event = { id = grace.975 }
+					break = yes
 				}
 			}
-			any_suzerain = {
-				character_event = { id = JD.2200 }
-				remove_tributary = ROOT
+			else = {
+				if = {
+					limit = {
+						has_dlc = "Jade Dragon"
+						is_chinese_emperor_trigger = no
+					}
+					if = {
+						limit = {
+							suzerain = {
+								is_chinese_emperor_trigger = yes
+							}
+						}
+						detract_grace_super_huge_effect = yes
+					}
+					else_if = {
+						limit = {
+							suzerain = {
+								any_close_relative = {
+									dynasty = PREV
+									is_chinese_emperor_trigger = yes
+								}
+							}
+						}
+						detract_grace_massive_effect = yes
+					}
+					else_if = {
+						limit = {
+							suzerain = {
+								any_dynasty_member = {
+									is_chinese_emperor_trigger = yes
+								}
+							}
+						}
+						detract_grace_major_effect = yes
+					}
+				}
+				any_suzerain = {
+					character_event = { id = JD.2200 }
+					remove_tributary = ROOT
+				}
 			}
 		}
 		ai_will_do = {
