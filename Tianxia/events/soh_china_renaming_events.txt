@@ -24,11 +24,15 @@ character_event = {
 			title = e_china
 		}
 		ROOT = {
-			has_acceptable_chinese_religion_trigger = no
+			OR = {
+				has_acceptable_chinese_religion_trigger = no
+				has_acceptable_chinese_culture_trigger = no
+			}
 		}
 		FROMFROM = {
 			dynasty = ROOT
 			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
 		}
 	}
 	
@@ -39,111 +43,41 @@ character_event = {
 	option = {
 		trigger = {
 			OR = {
-				has_dlc = "Jade Dragon"
-				has_dlc = "Rajas of India"
-			}
-			OR = {
-				secret_religion = FROMFROM
-				AND = {
-					ai = no
-					NOT = {
-						trait = zealous
-					}
-				}
-				AND = {
-					OR = {
-						culture_group = chinese_group
-						culture = khitan
-						culture = tangut
-						culture = jurchen
-						culture = mongol
-						culture = viet
-						culture_group = koreanic
-					}
-					NOT = {
-						trait = zealous
-					}
-				}
-				AND = {
-					OR = {
-						religion_group = indian_group # Eastern
-						religion = tengri_pagan # Likely for nomads, but not guaranteed...
-						religion = zun_pagan # Somewhat close to China, so let them do it
-						religion = bon # Tibet
-						religion = ainu_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = chinese_pagan
-						religion = chinese_pagan_reformed # Might be allowed to keep their religion if we change the conditions for Grace being enabled...
-						#religion = shinto # If we want Shinto rulers to do this, we should check that they're not the EoJ or his liege
-						religion = korean_pagan
-						religion = korean_pagan_reformed # Disallow?
-						religion = ryukyuan_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = sanamahi_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = dayak_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = melanesian_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = viet_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					}
-					NOT = {
-						trait = zealous
-					}
-				}
+				ai = yes
+				FROMFROMs_religion_is_playable_trigger = yes
+				has_acceptable_chinese_religion_trigger = yes
 			}
 		}
+		if = {
+			limit = {
+				has_acceptable_chinese_religion_trigger = no
+				FROMFROM = {
+					has_acceptable_chinese_religion_trigger = yes
+				}
+			}
+			culture = FROMFROM
+		}
+		else_if = {
+			limit = {
+				has_acceptable_chinese_culture_trigger = no
+				FROMFROM = {
+					has_acceptable_chinese_culture_trigger = yes
+				}
+			}
+			culture = FROMFROM
+		}
+		
 		name = EVTOPTA_NAMEOFCHINA_1 # Convert to Taoist
 		
 		set_character_flag = taoist_convert
 		
-		religion = taoist
-		
 		ai_chance = {
-			factor = 10
-			modifier = {
-				factor = 0.1
-				NOR = {
-					culture_group = chinese_group
-					religion_group = indian_group # Eastern
-					religion = chinese_pagan
-					culture = khitan
-					culture = tangut
-					culture = jurchen
-					culture = mongol
-					culture = viet
-					culture_group = koreanic
-				}
-			}
-			modifier = {
-				factor = 0.1
-				NOT = {
-					secret_religion = taoist
-				}
-			}
+			factor = 1
 			modifier = {
 				factor = 0
-				NOT = {
-					secret_religion = taoist
-				}
 				NOR = {
-					religion_group = indian_group # Eastern
-					religion = tengri_pagan # Likely for nomads, but not guaranteed...
-					religion = zun_pagan # Somewhat close to China, so let them do it
-					religion = bon # Tibet
-					religion = ainu_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = chinese_pagan
-					religion = chinese_pagan_reformed # Might be allowed to keep their religion if we change the conditions for Grace being enabled...
-					#religion = shinto # If we want Shinto rulers to do this, we should check that they're not the EoJ or his liege
-					religion = korean_pagan
-					religion = korean_pagan_reformed # Disallow?
-					religion = ryukyuan_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = sanamahi_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = dayak_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = melanesian_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = viet_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					culture_group = chinese_group
-					culture = khitan
-					culture = tangut
-					culture = jurchen
-					culture = mongol
-					culture = viet
-					culture_group = koreanic
+					has_acceptable_chinese_religion_trigger = yes
+					has_acceptable_chinese_culture_trigger = yes
 				}
 			}
 		}
@@ -153,14 +87,17 @@ character_event = {
 		name = EVTOPTB_NAMEOFCHINA_1 # Do not convert
 		
 		ai_chance = {
-			factor = 90
+			factor = 1
 			modifier = {
 				factor = 0
-				secret_religion = taoist
+				OR = {
+					has_acceptable_chinese_religion_trigger = yes
+					has_acceptable_chinese_culture_trigger = yes
+				}
 			}
 		}
 		
-		#log = "The Emperor of China is no longer using Grace!"
+		log = "The Emperor of China is no longer using Grace!"
 		# We are forced to use any_character here to account for deposed rulers, even though the scope is performance-intensive
 		# This event should hopefully only fire rarely, though, so it should be fine
 		
@@ -172,7 +109,7 @@ character_event = {
 			remove_trait = dragon_bride_unmarried
 			remove_trait = dragon_bride_married
 		}
-		#log = "Chinsee princesses have lost their traits!"
+		log = "Chinsee princesses have lost their traits!"
 				
 		# Clear all Grace and stop tracking Grace characters
 		any_character = {
@@ -186,7 +123,7 @@ character_event = {
 			clr_character_flag = grace_character
 		}
 		
-		#log = "All Grace has been removed from all characters!"
+		log = "All Grace has been removed from all characters!"
 		
 		# Revoke all Chinese Trade Contracts
 		any_character = {
@@ -216,7 +153,7 @@ character_event = {
 			remove_character_modifier = chinese_imperial_trade_contract
 		}
 		
-		#log = "All Chinese Trade Contracts have been ended!"
+		log = "All Chinese Trade Contracts have been ended!"
 		
 		# Remove all Chinese Peace Deals
 		any_character = {
@@ -226,7 +163,7 @@ character_event = {
 			remove_character_modifier = peace_deal_with_china
 		}
 		
-		#log = "All Chinese Peace Deals have been ended!"
+		log = "All Chinese Peace Deals have been ended!"
 		
 		any_player = {
 			limit = {
@@ -4799,13 +4736,17 @@ character_event = {
 			title = e_china
 		}
 		ROOT = {
-			has_acceptable_chinese_religion_trigger = no
+			OR = {
+				has_acceptable_chinese_religion_trigger = no
+				has_acceptable_chinese_culture_trigger = no
+			}
 		}
 		FROMFROM = {
 			NOT = {
 				dynasty = ROOT
 			}
 			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
 		}
 	}
 	
@@ -5025,111 +4966,41 @@ character_event = {
 	option = {
 		trigger = {
 			OR = {
-				has_dlc = "Jade Dragon"
-				has_dlc = "Rajas of India"
-			}
-			OR = {
-				secret_religion = taoist
-				AND = {
-					ai = no
-					NOT = {
-						trait = zealous
-					}
-				}
-				AND = {
-					OR = {
-						culture_group = chinese_group
-						culture = khitan
-						culture = tangut
-						culture = jurchen
-						culture = mongol
-						culture = viet
-						culture_group = koreanic
-					}
-					NOT = {
-						trait = zealous
-					}
-				}
-				AND = {
-					OR = {
-						religion_group = indian_group # Eastern
-						religion = tengri_pagan # Likely for nomads, but not guaranteed...
-						religion = zun_pagan # Somewhat close to China, so let them do it
-						religion = bon # Tibet
-						religion = ainu_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = chinese_pagan
-						religion = chinese_pagan_reformed # Might be allowed to keep their religion if we change the conditions for Grace being enabled...
-						#religion = shinto # If we want Shinto rulers to do this, we should check that they're not the EoJ or his liege
-						religion = korean_pagan
-						religion = korean_pagan_reformed # Disallow?
-						religion = ryukyuan_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = sanamahi_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = dayak_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = melanesian_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = viet_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					}
-					NOT = {
-						trait = zealous
-					}
-				}
+				ai = no
+				FROMFROMs_religion_is_playable_trigger = yes
+				has_acceptable_chinese_religion_trigger = yes
 			}
 		}
-		name = EVTOPTA_NAMEOFCHINA_8 # Convert to Taoist
+		if = {
+			limit = {
+				has_acceptable_chinese_religion_trigger = no
+				FROMFROM = {
+					has_acceptable_chinese_religion_trigger = yes
+				}
+			}
+			culture = FROMFROM
+		}
+		else_if = {
+			limit = {
+				has_acceptable_chinese_culture_trigger = no
+				FROMFROM = {
+					has_acceptable_chinese_culture_trigger = yes
+				}
+			}
+			culture = FROMFROM
+		}
+		
+		name = EVTOPTA_NAMEOFCHINA_8 # Convert
 		
 		set_character_flag = taoist_convert
 		
-		religion = taoist
-		
 		ai_chance = {
-			factor = 10
-			modifier = {
-				factor = 0.1
-				NOR = {
-					culture_group = chinese_group
-					religion_group = indian_group # Eastern
-					religion = chinese_pagan
-					culture = khitan
-					culture = tangut
-					culture = jurchen
-					culture = mongol
-					culture = viet
-					culture_group = koreanic
-				}
-			}
-			modifier = {
-				factor = 0.1
-				NOT = {
-					secret_religion = taoist
-				}
-			}
+			factor = 1
 			modifier = {
 				factor = 0
-				NOT = {
-					secret_religion = taoist
-				}
 				NOR = {
-					religion_group = indian_group # Eastern
-					religion = tengri_pagan # Likely for nomads, but not guaranteed...
-					religion = zun_pagan # Somewhat close to China, so let them do it
-					religion = bon # Tibet
-					religion = ainu_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = chinese_pagan
-					religion = chinese_pagan_reformed # Might be allowed to keep their religion if we change the conditions for Grace being enabled...
-					#religion = shinto # If we want Shinto rulers to do this, we should check that they're not the EoJ or his liege
-					religion = korean_pagan
-					religion = korean_pagan_reformed # Disallow?
-					religion = ryukyuan_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = sanamahi_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = dayak_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = melanesian_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = viet_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					culture_group = chinese_group
-					culture = khitan
-					culture = tangut
-					culture = jurchen
-					culture = mongol
-					culture = viet
-					culture_group = koreanic
+					has_acceptable_chinese_religion_trigger = yes
+					has_acceptable_chinese_culture_trigger = yes
 				}
 			}
 		}
@@ -5141,10 +5012,13 @@ character_event = {
 		name = EVTOPTB_NAMEOFCHINA_8 # Do not convert
 		
 		ai_chance = {
-			factor = 90
+			factor = 1
 			modifier = {
 				factor = 0
-				secret_religion = taoist
+				OR = {
+					has_acceptable_chinese_religion_trigger = yes
+					has_acceptable_chinese_culture_trigger = yes
+				}
 			}
 		}
 		
@@ -5177,7 +5051,7 @@ character_event = {
 			clr_title_flag = shun_china
 		}
 		
-		#log = "The Emperor of China is no longer using Grace!"
+		log = "The Emperor of China is no longer using Grace!"
 		# We are forced to use any_character here to account for deposed rulers, even though the scope is performance-intensive
 		# This event should hopefully only fire rarely, though, so it should be fine
 		
@@ -5189,7 +5063,7 @@ character_event = {
 			remove_trait = dragon_bride_unmarried
 			remove_trait = dragon_bride_married
 		}
-		#log = "Chinsee princesses have lost their traits!"
+		log = "Chinsee princesses have lost their traits!"
 				
 		# Clear all Grace and stop tracking Grace characters
 		any_character = {
@@ -5203,7 +5077,7 @@ character_event = {
 			clr_character_flag = grace_character
 		}
 		
-		#log = "All Grace has been removed from all characters!"
+		log = "All Grace has been removed from all characters!"
 		
 		# Revoke all Chinese Trade Contracts
 		any_character = {
@@ -5213,7 +5087,7 @@ character_event = {
 			remove_character_modifier = china_send_relief
 		}
 		
-		#log = "All relief expeditions have been ended!"
+		log = "All relief expeditions have been ended!"
 		
 		## Terminate all "Supply Horses" agreements
 		#any_character = {
@@ -5233,7 +5107,7 @@ character_event = {
 			remove_character_modifier = chinese_imperial_trade_contract
 		}
 		
-		#log = "All Chinese Trade Contracts have been ended!"
+		log = "All Chinese Trade Contracts have been ended!"
 		
 		# Remove all Chinese Peace Deals
 		any_character = {
@@ -5243,7 +5117,7 @@ character_event = {
 			remove_character_modifier = peace_deal_with_china
 		}
 		
-		#log = "All Chinese Peace Deals have been ended!"
+		log = "All Chinese Peace Deals have been ended!"
 		
 		any_player = {
 			limit = {
@@ -13557,13 +13431,17 @@ character_event = {
 			title = e_china
 		}
 		ROOT = {
-			has_acceptable_chinese_religion_trigger = no
+			OR = {
+				has_acceptable_chinese_religion_trigger = no
+				has_acceptable_chinese_religion_trigger = no
+			}
 		}
 		FROMFROM = {
 			NOT = {
 				dynasty = ROOT
 			}
 			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
 		}
 	}
 	
@@ -13789,111 +13667,41 @@ character_event = {
 	option = {
 		trigger = {
 			OR = {
-				has_dlc = "Jade Dragon"
-				has_dlc = "Rajas of India"
-			}
-			OR = {
-				secret_religion = taoist
-				AND = {
-					ai = no
-					NOT = {
-						trait = zealous
-					}
-				}
-				AND = {
-					OR = {
-						culture_group = chinese_group
-						culture = khitan
-						culture = tangut
-						culture = jurchen
-						culture = mongol
-						culture = viet
-						culture_group = koreanic
-					}
-					NOT = {
-						trait = zealous
-					}
-				}
-				AND = {
-					OR = {
-						religion_group = indian_group # Eastern
-						religion = tengri_pagan # Likely for nomads, but not guaranteed...
-						religion = zun_pagan # Somewhat close to China, so let them do it
-						religion = bon # Tibet
-						religion = ainu_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = chinese_pagan
-						religion = chinese_pagan_reformed # Might be allowed to keep their religion if we change the conditions for Grace being enabled...
-						#religion = shinto # If we want Shinto rulers to do this, we should check that they're not the EoJ or his liege
-						religion = korean_pagan
-						religion = korean_pagan_reformed # Disallow?
-						religion = ryukyuan_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = sanamahi_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = dayak_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = melanesian_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = viet_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					}
-					NOT = {
-						trait = zealous
-					}
-				}
+				ai = yes
+				FROMFROMs_religion_is_playable_trigger = yes
+				has_acceptable_chinese_religion_trigger = yes
 			}
 		}
-		name = EVTOPTA_NAMEOFCHINA_17 # Convert to Taoist
+		if = {
+			limit = {
+				has_acceptable_chinese_religion_trigger = no
+				FROMFROM = {
+					has_acceptable_chinese_religion_trigger = yes
+				}
+			}
+			culture = FROMFROM
+		}
+		else_if = {
+			limit = {
+				has_acceptable_chinese_culture_trigger = no
+				FROMFROM = {
+					has_acceptable_chinese_culture_trigger = yes
+				}
+			}
+			culture = FROMFROM
+		}
+		
+		name = EVTOPTA_NAMEOFCHINA_17 # Convert
 		
 		set_character_flag = taoist_convert
 		
-		religion = taoist
-		
 		ai_chance = {
-			factor = 10
-			modifier = {
-				factor = 0.1
-				NOR = {
-					culture_group = chinese_group
-					religion_group = indian_group # Eastern
-					religion = chinese_pagan
-					culture = khitan
-					culture = tangut
-					culture = jurchen
-					culture = mongol
-					culture = viet
-					culture_group = koreanic
-				}
-			}
-			modifier = {
-				factor = 0.1
-				NOT = {
-					secret_religion = taoist
-				}
-			}
+			factor = 1
 			modifier = {
 				factor = 0
-				NOT = {
-					secret_religion = taoist
-				}
 				NOR = {
-					religion_group = indian_group # Eastern
-					religion = tengri_pagan # Likely for nomads, but not guaranteed...
-					religion = zun_pagan # Somewhat close to China, so let them do it
-					religion = bon # Tibet
-					religion = ainu_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = chinese_pagan
-					religion = chinese_pagan_reformed # Might be allowed to keep their religion if we change the conditions for Grace being enabled...
-					#religion = shinto # If we want Shinto rulers to do this, we should check that they're not the EoJ or his liege
-					religion = korean_pagan
-					religion = korean_pagan_reformed # Disallow?
-					religion = ryukyuan_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = sanamahi_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = dayak_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = melanesian_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = viet_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					culture_group = chinese_group
-					culture = khitan
-					culture = tangut
-					culture = jurchen
-					culture = mongol
-					culture = viet
-					culture_group = koreanic
+					has_acceptable_chinese_religion_trigger = yes
+					has_acceptable_chinese_culture_trigger = yes
 				}
 			}
 		}
@@ -13905,10 +13713,13 @@ character_event = {
 		name = EVTOPTB_NAMEOFCHINA_17 # Do not convert
 		
 		ai_chance = {
-			factor = 90
+			factor = 1
 			modifier = {
 				factor = 0
-				secret_religion = taoist
+				NOR = {
+					has_acceptable_chinese_religion_trigger = yes
+					has_acceptable_chinese_culture_trigger = yes
+				}
 			}
 		}
 		
@@ -13953,7 +13764,7 @@ character_event = {
 			remove_trait = dragon_bride_unmarried
 			remove_trait = dragon_bride_married
 		}
-		#log = "Chinsee princesses have lost their traits!"
+		log = "Chinsee princesses have lost their traits!"
 				
 		# Clear all Grace and stop tracking Grace characters
 		any_character = {
@@ -13967,7 +13778,7 @@ character_event = {
 			clr_character_flag = grace_character
 		}
 		
-		#log = "All Grace has been removed from all characters!"
+		log = "All Grace has been removed from all characters!"
 		
 		# Revoke all Chinese Trade Contracts
 		any_character = {
@@ -13977,7 +13788,7 @@ character_event = {
 			remove_character_modifier = china_send_relief
 		}
 		
-		#log = "All relief expeditions have been ended!"
+		log = "All relief expeditions have been ended!"
 		
 		## Terminate all "Supply Horses" agreements
 		#any_character = {
@@ -13997,7 +13808,7 @@ character_event = {
 			remove_character_modifier = chinese_imperial_trade_contract
 		}
 		
-		#log = "All Chinese Trade Contracts have been ended!"
+		log = "All Chinese Trade Contracts have been ended!"
 		
 		# Remove all Chinese Peace Deals
 		any_character = {
@@ -14007,7 +13818,7 @@ character_event = {
 			remove_character_modifier = peace_deal_with_china
 		}
 		
-		#log = "All Chinese Peace Deals have been ended!"
+		log = "All Chinese Peace Deals have been ended!"
 		
 		any_player = {
 			limit = {
@@ -19218,118 +19029,43 @@ character_event = {
 	trigger = {
 		has_landed_title = e_china
 		ROOT = {
-			has_acceptable_chinese_religion_trigger = no
+			OR = {
+				has_acceptable_chinese_religion_trigger = no
+				has_acceptable_chinese_culture_trigger = no
+			}
 		}
 	}
 	
 	option = {
-		trigger = {
-			OR = {
-				has_dlc = "Jade Dragon"
-				has_dlc = "Rajas of India"
-			}
-			OR = {
-				secret_religion = taoist
-				AND = {
-					ai = no
-					NOT = {
-						trait = zealous
-					}
-				}
-				AND = {
-					OR = {
-						culture_group = chinese_group
-						culture = khitan
-						culture = tangut
-						culture = jurchen
-						culture = mongol
-						culture = viet
-						culture_group = koreanic
-					}
-					NOT = {
-						trait = zealous
-					}
-				}
-				AND = {
-					OR = {
-						religion_group = indian_group # Eastern
-						religion = tengri_pagan # Likely for nomads, but not guaranteed...
-						religion = zun_pagan # Somewhat close to China, so let them do it
-						religion = bon # Tibet
-						religion = ainu_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = chinese_pagan
-						religion = chinese_pagan_reformed # Might be allowed to keep their religion if we change the conditions for Grace being enabled...
-						#religion = shinto # If we want Shinto rulers to do this, we should check that they're not the EoJ or his liege
-						religion = korean_pagan
-						religion = korean_pagan_reformed # Disallow?
-						religion = ryukyuan_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = sanamahi_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = dayak_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = melanesian_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-						religion = viet_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					}
-					NOT = {
-						trait = zealous
-					}
+		if = {
+			limit = {
+				has_acceptable_chinese_religion_trigger = no
+				FROM = {
+					has_acceptable_chinese_religion_trigger = yes
 				}
 			}
+			culture = FROM
 		}
-		name = EVTOPTA_NAMEOFCHINA_23 # Convert to Taoist
+		else_if = {
+			limit = {
+				has_acceptable_chinese_culture_trigger = no
+				FROM = {
+					has_acceptable_chinese_culture_trigger = yes
+				}
+			}
+			culture = FROM
+		}
+		name = EVTOPTA_NAMEOFCHINA_23 # Convert
 		
 		set_character_flag = taoist_convert
 		
-		religion = taoist
-		
 		ai_chance = {
-			factor = 10
-			modifier = {
-				factor = 0.1
-				NOR = {
-					culture_group = chinese_group
-					religion_group = indian_group # Eastern
-					religion = chinese_pagan
-					culture = khitan
-					culture = tangut
-					culture = jurchen
-					culture = mongol
-					culture = viet
-					culture_group = koreanic
-				}
-			}
-			modifier = {
-				factor = 0.1
-				NOT = {
-					secret_religion = taoist
-				}
-			}
+			factor = 1
 			modifier = {
 				factor = 0
-				NOT = {
-					secret_religion = taoist
-				}
 				NOR = {
-					religion_group = indian_group # Eastern
-					religion = tengri_pagan # Likely for nomads, but not guaranteed...
-					religion = zun_pagan # Somewhat close to China, so let them do it
-					religion = bon # Tibet
-					religion = ainu_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = chinese_pagan
-					religion = chinese_pagan_reformed # Might be allowed to keep their religion if we change the conditions for Grace being enabled...
-					#religion = shinto # If we want Shinto rulers to do this, we should check that they're not the EoJ or his liege
-					religion = korean_pagan
-					religion = korean_pagan_reformed # Disallow?
-					religion = ryukyuan_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = sanamahi_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = dayak_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = melanesian_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					religion = viet_pagan # Somewhat close to China, so let them do it; if reformed, they shouldn't want to!
-					culture_group = chinese_group
-					culture = khitan
-					culture = tangut
-					culture = jurchen
-					culture = mongol
-					culture = viet
-					culture_group = koreanic
+					has_acceptable_chinese_religion_trigger = yes
+					has_acceptable_chinese_culture_trigger = yes
 				}
 			}
 		}
@@ -19339,14 +19075,17 @@ character_event = {
 		name = EVTOPTB_NAMEOFCHINA_23 # Do not convert
 		
 		ai_chance = {
-			factor = 90
+			factor = 1
 			modifier = {
 				factor = 0
-				secret_religion = taoist
+				OR = {
+					has_acceptable_chinese_religion_trigger = yes
+					has_acceptable_chinese_culture_trigger = yes
+				}
 			}
 		}
 		
-		#log = "The Emperor of China is no longer using Grace!"
+		log = "The Emperor of China is no longer using Grace!"
 		# We are forced to use any_character here to account for deposed rulers, even though the scope is performance-intensive
 		# This event should hopefully only fire rarely, though, so it should be fine
 		
@@ -19358,7 +19097,7 @@ character_event = {
 			remove_trait = dragon_bride_unmarried
 			remove_trait = dragon_bride_married
 		}
-		#log = "Chinsee princesses have lost their traits!"
+		log = "Chinsee princesses have lost their traits!"
 				
 		# Clear all Grace and stop tracking Grace characters
 		any_character = {
@@ -19372,7 +19111,7 @@ character_event = {
 			clr_character_flag = grace_character
 		}
 		
-		#log = "All Grace has been removed from all characters!"
+		log = "All Grace has been removed from all characters!"
 		
 		# Revoke all Chinese Trade Contracts
 		any_character = {
@@ -19382,7 +19121,7 @@ character_event = {
 			remove_character_modifier = china_send_relief
 		}
 		
-		#log = "All relief expeditions have been ended!"
+		log = "All relief expeditions have been ended!"
 		
 		## Terminate all "Supply Horses" agreements
 		#any_character = {
@@ -19402,7 +19141,7 @@ character_event = {
 			remove_character_modifier = chinese_imperial_trade_contract
 		}
 		
-		#log = "All Chinese Trade Contracts have been ended!"
+		log = "All Chinese Trade Contracts have been ended!"
 		
 		# Remove all Chinese Peace Deals
 		any_character = {
@@ -19412,7 +19151,7 @@ character_event = {
 			remove_character_modifier = peace_deal_with_china
 		}
 		
-		#log = "All Chinese Peace Deals have been ended!"
+		log = "All Chinese Peace Deals have been ended!"
 		
 		any_player = {
 			limit = {
@@ -19471,7 +19210,7 @@ narrative_event = {
 
 
 
-### The EoC converts religion, now Chinese Imperial, China not named
+### The EoC converts religion/culture, now Chinese Imperial, China not named
 
 # Inform the EoC, let them pick a new name for China
 character_event = {
@@ -19485,6 +19224,7 @@ character_event = {
 	trigger = {
 		ROOT = {
 			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
 			NOT = {
 				has_character_flag = taoist_convert
 			}
@@ -21937,6 +21677,7 @@ character_event = {
 	trigger = {
 		ROOT = {
 			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
 			NOT = {
 				has_character_flag = taoist_convert
 			}
@@ -22024,7 +21765,10 @@ character_event = {
 	
 	trigger = {
 		ROOT = {
-			has_acceptable_chinese_religion_trigger = no
+			OR = {
+				has_acceptable_chinese_religion_trigger = no
+				has_acceptable_chinese_culture_trigger = no
+			}
 		}
 		FROM = {
 			title = e_china
@@ -22060,6 +21804,7 @@ character_event = {
 				dynasty = ROOT
 			}
 			has_acceptable_chinese_religion_trigger = no
+			has_acceptable_chinese_culture_trigger = no
 		}
 	}
 	
@@ -26525,6 +26270,7 @@ character_event = {
 	is_triggered_only = yes
 	
 	trigger = {
+		real_tier = emperor # This ensures vassal kinsmen of the EoC aren't included
 		government = chinese_imperial_government
 	}
 	
@@ -27121,10 +26867,14 @@ character_event = {
 		}
 		ROOT = {
 			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
 		}
 		FROMFROM = {
 			dynasty = ROOT
-			has_acceptable_chinese_religion_trigger = no
+			OR = {
+				has_acceptable_chinese_religion_trigger = no
+				has_acceptable_chinese_culture_trigger = no
+			}
 		}
 		# China isn't already named
 		e_china = {
@@ -27173,11 +26923,13 @@ character_event = {
 			title = e_china
 		}
 		has_acceptable_chinese_religion_trigger = yes
+		has_acceptable_chinese_culture_trigger = yes
 		FROMFROM = {
 			NOT = {
 				dynasty = ROOT
 			}
 			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
 		}
 	}
 	
@@ -27198,12 +26950,14 @@ character_event = {
 		}
 		ROOT = {
 			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
 		}
 		FROMFROM = {
 			NOT = {
 				dynasty = ROOT
 			}
 			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
 		}
 	}
 	
@@ -27224,12 +26978,16 @@ character_event = {
 		}
 		ROOT = {
 			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
 		}
 		FROMFROM = {
 			NOT = {
 				dynasty = ROOT
 			}
-			has_acceptable_chinese_religion_trigger = no
+			OR = {
+				has_acceptable_chinese_religion_trigger = no
+				has_acceptable_chinese_culture_trigger = no
+			}
 		}
 	}
 	
@@ -27249,10 +27007,14 @@ character_event = {
 		}
 		ROOT = {
 			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
 		}
 		FROMFROM = {
 			dynasty = ROOT
-			has_acceptable_chinese_religion_trigger = no
+			OR = {
+				has_acceptable_chinese_religion_trigger = no
+				has_acceptable_chinese_culture_trigger = no
+			}
 		}
 		# China isn't already named
 		e_china = {
@@ -29256,6 +29018,88 @@ character_event = {
 				is_chinese_emperor_trigger = yes
 			}
 			character_event = { id = nameofchina.45 } # Pick a new name for China
+		}
+	}
+}
+
+# Tributaries of China are transferred but have their tier lowered on usurpation
+character_event = {
+	id = nameofchina.47
+	is_triggered_only = yes
+	hide_window = yes
+	
+	trigger = {
+		FROM = {
+			title = e_china
+		}
+	}
+	
+	immediate = {
+		# Since China no longer can revoke titles for no reason, make sure the capital is transferred properly
+		if = {
+			limit = {
+				e_china = {
+					capital_scope = {
+						holder_scope = {
+							top_liege = {
+								character = ROOT
+							}
+							NOT = {
+								character = ROOT
+							}
+						}
+					}
+				}
+			}
+			e_china = {
+				capital_scope = {
+					county = {
+						usurp_title = ROOT
+					}
+				}
+			}
+		}
+		# Decrease tributary tier or free them entirely
+		FROMFROM = {
+			any_tributary = {
+				if = {
+					limit = {
+						OR = {
+							is_tributary = {
+								type = chinese_client_state
+							}
+							is_tributary = {
+								type = chinese_protectorate
+							}
+							is_tributary = {
+								type = chinese_imperial_tributary
+							}
+							is_tributary = {
+								type = chinese_peripheral_tributary
+							}
+						}
+					}
+					if = {
+						limit = {
+							PREV = {
+								dynasty = ROOT
+							}
+						}
+						decrease_tributary_tier_or_release_effect = yes
+						# TODO: Actual event alerting the tributary
+						# TODO: Actual event alerting the former suzerain
+						# TODO: Actual event alerting ROOT
+					}
+					else = {
+						FROMFROM = {
+							remove_tributary = PREV
+							# TODO: Actual event alerting the tributary
+							# TODO: Actual event alerting the former suzerain
+							# TODO: Actual event alerting ROOT
+						}
+					}
+				}
+			}
 		}
 	}
 }
