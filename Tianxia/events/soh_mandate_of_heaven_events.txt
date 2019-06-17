@@ -1,7 +1,7 @@
 # Events related to the Mandate of Heaven
 # by Silverswee(e)per
 
-# This stuff is still very WIP
+# This stuff is still a bit WIP
 
 namespace = mandate_of_heaven
 
@@ -489,28 +489,28 @@ narrative_event = {
 	
 	desc = {
 		trigger = {
-			has_character_flag = mandate_of_heaven_5
+			has_character_modifier = mandate_of_heaven_5
 		}
 		text = EVTDESC_MANDATE_OF_HEAVEN_7A
 		picture = GFX_evt_china_expansionist
 	}
 	desc = {
 		trigger = {
-			has_character_flag = mandate_of_heaven_4
+			has_character_modifier = mandate_of_heaven_4
 		}
 		text = EVTDESC_MANDATE_OF_HEAVEN_7B
 		picture = GFX_evt_china_golden_age
 	}
 	desc = {
 		trigger = {
-			has_character_flag = mandate_of_heaven_3
+			has_character_modifier = mandate_of_heaven_3
 		}
 		text = EVTDESC_MANDATE_OF_HEAVEN_7C
 		picture = GFX_evt_china_stable
 	}
 	desc = {
 		trigger = {
-			has_character_flag = mandate_of_heaven_2
+			has_character_modifier = mandate_of_heaven_2
 		}
 		text = EVTDESC_MANDATE_OF_HEAVEN_7D
 		picture = GFX_evt_china_unrest
@@ -531,31 +531,31 @@ narrative_event = {
 	
 	desc = {
 		trigger = {
-			has_character_flag = mandate_of_heaven_4
+			has_character_modifier = mandate_of_heaven_4
 		}
 		text = EVTDESC_MANDATE_OF_HEAVEN_8A
 		picture = GFX_evt_china_golden_age
 	}
 	desc = {
 		trigger = {
-			has_character_flag = mandate_of_heaven_3
+			has_character_modifier = mandate_of_heaven_3
 		}
 		text = EVTDESC_MANDATE_OF_HEAVEN_8B
 		picture = GFX_evt_china_stable
 	}
 	desc = {
 		trigger = {
-			has_character_flag = mandate_of_heaven_2
+			has_character_modifier = mandate_of_heaven_2
 		}
 		text = EVTDESC_MANDATE_OF_HEAVEN_8C
 		picture = GFX_evt_china_unrest
 	}
 	desc = {
 		trigger = {
-			has_character_flag = GFX_evt_china_civil_war
+			has_character_modifier = mandate_of_heaven_1
 		}
 		text = EVTDESC_MANDATE_OF_HEAVEN_8D
-		picture = GFX_evt_china_unrest
+		picture = GFX_evt_china_civil_war
 	}
 	
 	option = {
@@ -725,6 +725,481 @@ character_event = {
 		change_variable = {
 			which = stored_mandate_change
 			value = -500
+		}
+	}
+}
+
+### tOG revolts, modelled after liberation revolts
+# Liberation-style revolt against a low MoH realm
+# Triggered from "on_rebel_revolt"
+province_event = {
+	id = mandate_of_heaven.14
+	desc = EVTDESC_MANDATE_OF_HEAVEN_14
+	picture = GFX_evt_china_unrest
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+
+	trigger = {
+		has_dlc = "The Old Gods"
+		has_game_rule = {
+			name = mandate_of_heaven
+			value = enabled
+		}
+		has_acceptable_chinese_culture_trigger = yes
+		has_acceptable_chinese_religion_trigger = yes
+
+		any_province_holding = {
+			NOT = { holding_type = nomad }
+		}
+		
+		owner = {
+			top_liege = {
+				real_tier = emperor
+				government = chinese_imperial_government
+				OR = {
+					has_character_modifier = mandate_of_heaven_2
+					has_character_modifier = mandate_of_heaven_1
+				}
+			}
+		}
+		
+		county = {
+			OR = {
+				region = world_china
+				top_liege = {
+					primary_title = {
+						de_jure_vassal_or_below = PREVPREV
+					}
+				}
+			}
+		}
+		NOT = { # Not if there is already an ongoing MoH revolt for the title
+			owner = {
+				top_liege = {
+					war = yes
+					any_war = {
+						defender = { character = PREV }
+						using_cb = mandate_of_heaven_uprising
+						thirdparty_title_scope = {
+							ROOT = {
+								kingdom = {
+									title = PREVPREV
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		create_character = {
+			random_traits = yes
+			dynasty = random
+			religion = ROOT
+			culture = ROOT
+			female = no
+			age = 20
+			health = 7
+			fertility = 0.7
+			attributes = {
+				martial = 8
+				diplomacy = 9
+			}
+			trait = just
+			trait = brave
+			trait = gregarious
+			trait = ambitious
+			trait = brilliant_strategist
+			trait = inspiring_leader
+		}
+		
+		new_character = {
+			set_character_flag = mandate_of_heaven_uprising
+			
+			create_title = {
+				tier = DUKE
+				landless = yes
+				temporary = yes
+				rebel = yes
+				culture = ROOT
+				name = "MOH_REVOLT"
+				holder = THIS
+			}
+			
+			wealth = 100
+			
+			spawn_unit = {
+				province = ROOT
+				home = ROOT
+				owner = THIS
+				#leader = THIS
+				scaled_by_biggest_garrison = 1.75
+				troops = {
+					archers = { 6 6 }
+					light_cavalry = { 3 3 }
+					knights = { 1 1 }
+					light_infantry = { 7 7 }
+					heavy_infantry = { 3 3 }
+				}
+				attrition = 1.0
+			}
+			
+			spawn_nationalist_army_effect = yes
+			
+			if = {
+				limit = {
+					has_game_rule = {
+						name = provincial_revolt_strength
+						value = powerful
+					}
+				}
+				spawn_nationalist_army_effect = yes
+				wealth = 150
+			}
+			
+			if = {
+				limit = {
+					has_game_rule = {
+						name = provincial_revolt_strength
+						value = very_powerful
+					}
+				}
+				spawn_nationalist_army_effect = yes
+				spawn_nationalist_army_effect = yes
+				spawn_nationalist_army_effect = yes
+				wealth = 250
+			}
+			
+			if = {
+				limit = {
+					has_game_rule = {
+						name = provincial_revolt_strength
+						value = extremely_powerful
+					}
+				}
+				spawn_nationalist_army_effect = yes
+				spawn_nationalist_army_effect = yes
+				spawn_nationalist_army_effect = yes
+				spawn_nationalist_army_effect = yes
+				spawn_nationalist_army_effect = yes
+				wealth = 350
+			}
+			
+			# DoW on the province top liege
+			ROOT = {
+				owner = {
+					top_liege = {
+						reverse_war = {
+							target = PREVPREVPREV
+							casus_belli = mandate_of_heaven_uprising
+							thirdparty_title = ROOT # The county...
+							tier = KING # ... but really the de jure kingdom
+						}
+						reverse_opinion = {
+							who = PREVPREVPREV
+							modifier = opinion_evil_tyrant
+						}
+					}
+				}
+			}
+		}
+		
+		owner = {
+			any_liege = { # Inform the lieges
+				character_event = {
+					id = mandate_of_heaven.15
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = "EVTOPTA_MANDATE_OF_HEAVEN_14"
+	}
+}
+
+character_event = {
+	id = mandate_of_heaven.15
+	desc = EVTDESC_MANDATE_OF_HEAVEN_15
+	picture = GFX_evt_china_unrest
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_MANDATE_OF_HEAVEN_15
+	}
+}
+
+# Nationalists seize a holding. Fired from 'on_siege_over_winner'.
+character_event = {
+	id = mandate_of_heaven.16
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		rebel = yes
+		FROM = { 
+			is_capital = yes # The capital holding
+		}
+		any_war = {
+			attacker = { character = ROOT }
+			using_cb = mandate_of_heaven_uprising
+		}
+	}
+	
+	immediate = {
+		FROM = {
+			location = {
+				if = {
+					limit = {
+						NOT = { culture = ROOT }
+						kingdom = { culture = ROOT }
+					}
+					random = {
+						chance = 20
+						culture = ROOT
+					}
+				}
+				if = {
+					limit = {
+						culture = ROOT
+						NOT = { has_province_modifier = cultural_unrest }
+					}
+					add_province_modifier = {
+						name = cultural_unrest
+						duration = 730
+					}
+				}
+			}
+		}
+	}
+}
+
+# Rebels rise up to reinforce an ongoing revolt
+# Triggered from "on_rebel_revolt"
+province_event = {
+	id = mandate_of_heaven.17
+	desc = EVTDESC_MANDATE_OF_HEAVEN_17
+	picture = GFX_evt_china_unrest
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+
+	trigger = {
+		has_dlc = "The Old Gods"
+
+		any_province_holding = {
+			NOT = { holding_type = nomad }
+		}
+		
+		# There is already an ongoing MoH revolt for the same kingdom
+		owner = {
+			top_liege = {
+				war = yes
+				any_war = {
+					defender = { character = PREV }
+					using_cb = mandate_of_heaven_uprising
+					thirdparty_title_scope = {
+						ROOT = {
+							kingdom = {
+								title = PREVPREV
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		add_province_modifier = {
+			name = recent_county_uprising
+			duration = 1825 # Five years of -100% revolt risk in this county
+		}
+		owner = {
+			top_liege = {
+				any_war = {
+					limit = {
+						defender = { character = PREV }
+						using_cb = mandate_of_heaven_uprising
+						thirdparty_title_scope = {
+							ROOT = {
+								kingdom = {
+									title = PREVPREV
+								}
+							}
+						}
+					}
+					attacker = {
+						spawn_nationalist_reinforcements_effect = yes
+						
+						if = {
+							limit = {
+								has_game_rule = {
+									name = provincial_revolt_strength
+									value = powerful
+								}
+							}
+							spawn_nationalist_reinforcements_effect = yes
+						}
+						
+						if = {
+							limit = {
+								has_game_rule = {
+									name = provincial_revolt_strength
+									value = very_powerful
+								}
+							}
+							spawn_nationalist_reinforcements_effect = yes
+							spawn_nationalist_reinforcements_effect = yes
+							spawn_nationalist_reinforcements_effect = yes
+						}
+						
+						if = {
+							limit = {
+								has_game_rule = {
+									name = provincial_revolt_strength
+									value = extremely_powerful
+								}
+							}
+							spawn_nationalist_reinforcements_effect = yes
+							spawn_nationalist_reinforcements_effect = yes
+							spawn_nationalist_reinforcements_effect = yes
+							spawn_nationalist_reinforcements_effect = yes
+							spawn_nationalist_reinforcements_effect = yes
+						}
+					}
+				}
+			}
+		}
+		
+		owner = {
+			any_liege = { # Inform the lieges
+				character_event = {
+					id = mandate_of_heaven.18
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = "EVTOPTA_MANDATE_OF_HEAVEN_17"
+	}
+}
+
+character_event = {
+	id = mandate_of_heaven.18
+	desc = EVTDESC_MANDATE_OF_HEAVEN_18
+	picture = GFX_evt_china_unrest
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_MANDATE_OF_HEAVEN_18
+	}
+}
+
+# Test event to force a specific MoH level
+character_event = {
+	id = mandate_of_heaven.19
+	desc = TEST
+	picture = GFX_evt_china_expansionist
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			NOT = {
+				has_character_modifier = mandate_of_heaven_5
+			}
+		}
+		name = 5
+		remove_character_modifier = mandate_of_heaven_5
+		remove_character_modifier = mandate_of_heaven_4
+		remove_character_modifier = mandate_of_heaven_3
+		remove_character_modifier = mandate_of_heaven_2
+		remove_character_modifier = mandate_of_heaven_1
+		add_character_modifier = {
+			modifier = mandate_of_heaven_5
+			duration = -1
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				has_character_modifier = mandate_of_heaven_4
+			}
+		}
+		name = 4
+		remove_character_modifier = mandate_of_heaven_5
+		remove_character_modifier = mandate_of_heaven_4
+		remove_character_modifier = mandate_of_heaven_3
+		remove_character_modifier = mandate_of_heaven_2
+		remove_character_modifier = mandate_of_heaven_1
+		add_character_modifier = {
+			modifier = mandate_of_heaven_4
+			duration = -1
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				has_character_modifier = mandate_of_heaven_3
+			}
+		}
+		name = 3
+		remove_character_modifier = mandate_of_heaven_5
+		remove_character_modifier = mandate_of_heaven_4
+		remove_character_modifier = mandate_of_heaven_3
+		remove_character_modifier = mandate_of_heaven_2
+		remove_character_modifier = mandate_of_heaven_1
+		add_character_modifier = {
+			modifier = mandate_of_heaven_3
+			duration = -1
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				has_character_modifier = mandate_of_heaven_2
+			}
+		}
+		name = 2
+		remove_character_modifier = mandate_of_heaven_5
+		remove_character_modifier = mandate_of_heaven_4
+		remove_character_modifier = mandate_of_heaven_3
+		remove_character_modifier = mandate_of_heaven_2
+		remove_character_modifier = mandate_of_heaven_1
+		add_character_modifier = {
+			modifier = mandate_of_heaven_2
+			duration = -1
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				has_character_modifier = mandate_of_heaven_1
+			}
+		}
+		name = 1
+		remove_character_modifier = mandate_of_heaven_5
+		remove_character_modifier = mandate_of_heaven_4
+		remove_character_modifier = mandate_of_heaven_3
+		remove_character_modifier = mandate_of_heaven_2
+		remove_character_modifier = mandate_of_heaven_1
+		add_character_modifier = {
+			modifier = mandate_of_heaven_1
+			duration = -1
 		}
 	}
 }
