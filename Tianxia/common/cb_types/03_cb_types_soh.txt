@@ -99,6 +99,10 @@ imperial_conquest = {
 				}
 			}
 		}
+		OR = { # It should be harder for pretenders to use this CB
+			is_chinese_emperor_trigger = yes
+			prestige = 500
+		}
 	}
 	
 	on_add = {
@@ -114,6 +118,14 @@ imperial_conquest = {
 			attacker = {  
 				sound_effect = china_angered_emperor
 				detract_grace_super_huge_effect = yes 
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					is_chinese_emperor_trigger = yes
+				}
+				prestige = -500
 			}
 		}
 	}
@@ -426,7 +438,7 @@ chinese_county_conquest = {
 	}
 }
 
-# The Chinese religions can subjugate each other
+# Emperors of China and pretenders can subjugate kingdoms in China
 chinese_subjugation = {
 	name = CB_NAME_PAGAN_SUBJUGATION
 	war_name = WAR_NAME_PAGAN_SUBJUGATION
@@ -441,13 +453,15 @@ chinese_subjugation = {
 	
 	can_use_gui = {
 		ROOT = {
-			piety = 500
+			piety = 1000
+			prestige = 5000
 		}
 	}
 	
 	on_add = {
 		hidden_tooltip = { fire_haruspicy_event_effect = yes }
-		ROOT = { piety = -500 }
+		ROOT = { piety = -1000 }
+		ROOT = { prestige = -5000 }
 		if = {
 			#limit = { defender = { is_offmap_governor = offmap_china } }
 			limit = {
@@ -464,19 +478,14 @@ chinese_subjugation = {
 	}
 		
 	can_use = {
-		always = no # The rel group doesn't exist any longer!
 		ROOT = {
-			#religion_group = chinese_group
-			NOT = { same_realm = FROM }
-			NOT = { is_liege_or_above = FROM }
-			has_horde_culture = no # Should use tribal invasion instead
-			is_nomadic = no
-			mercenary = no
+			tier = emperor
+			government = chinese_imperial_government
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
-		FROM = {
-			#religion_group = chinese_group
-			culture_group = ROOT
+		FROM = { # From must be "Chinese enough" and can't already be in the process of being subjugated
+			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_no_gamerule_trigger = yes # Check the non-game rule version; we don't want the CB to be used to target too foreign cultures
 			NOT = {
 				any_war = {
 					defender = { character = PREVPREV }
@@ -488,22 +497,70 @@ chinese_subjugation = {
 	
 	can_use_title = {
 		ROOT = {
-			OR = {
-				NOT = { has_character_modifier = launched_subjugation }
-				AND = {
-					has_ambition = obj_become_king
-					capital_scope = {
-						kingdom = {
-							title = PREVPREVPREV
-						}
-					}
-				}
-			}
+			NOT = { has_character_modifier = launched_subjugation }
 		}
 
 		FROM = {
 			any_realm_title = {
 				de_jure_liege_or_above = PREVPREV
+				OR = {
+					region = world_china
+					de_jure_liege_or_above = e_china
+				}
+			}
+		}
+		any_direct_de_jure_vassal_title = { # Title must be inside holy war range (to keep pretenders from launching wars from a great distance)
+			any_direct_de_jure_vassal_title = {
+				OR = {
+					holder_scope = {
+						OR = {
+							character = ROOT
+							is_liege_or_above = ROOT
+						}
+					}
+					location = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											character = ROOT
+											is_liege_or_above = ROOT
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														character = ROOT
+														is_liege_or_above = ROOT
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															character = ROOT
+															is_liege_or_above = ROOT
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -529,9 +586,9 @@ chinese_subjugation = {
 						}
 					}
 				}
-				add_character_modifier = { 
+				add_character_modifier = {
 					name = launched_subjugation
-					years = 100
+					days = 3650 # Same as for Caliphal Subjugation
 					hidden = yes
 				}
 			}
