@@ -4008,3 +4008,260 @@ character_event = {
 		character_event = { id = japan.1 days = 1 }
 	}
 }
+
+# Government warning
+character_event = {
+	id = japan.7
+	is_triggered_only = yes
+	picture = GFX_evt_china_golden_age # Needs better picture!
+	desc = {
+		trigger = {
+			trait = japanese_feudal_trait
+		}
+		text = EVTDESCA_JAPAN_7
+	}
+	desc = {
+		trigger = {
+			trait = japanese_monastic_trait
+		}
+		text = EVTDESCB_JAPAN_7
+	}
+	
+	ai = no
+	
+	trigger = {
+		OR = {
+			religion = shinto
+			AND = {
+				culture_group = japonic
+				religion = buddhist
+			}
+		}
+		controls_religion = no
+		OR = {
+			trait = japanese_feudal_trait
+			trait = japanese_monastic_trait
+		}
+		NOT = {
+			has_global_flag = japanese_government_warning_disbled
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_JAPAN_7 # Ok
+	}
+	
+	option = {
+		name = EVTOPTB_JAPAN_7 # Don't tell me again
+		set_global_flag = japanese_government_warning_disbled
+	}
+	
+	option = {
+		name = EVTOPTC_JAPAN_7 # Change my government type
+		hidden_tooltip = {
+			remove_trait = japanese_feudal_trait
+			remove_trait = japanese_monastic_trait
+		}
+		set_government_type = chinese_vassal_government
+		character_event = { id = japan.8 }
+	}
+}
+
+# Government change
+character_event = {
+	id = japan.8
+	hide_window = yes
+	is_triggered_only = yes
+	
+	only_playable = yes
+	
+	trigger = {
+		OR = {
+			religion = shinto
+			AND = {
+				religion = buddhist
+				culture_group = japonic
+			}
+		}
+		controls_religion = no
+		NOT = {
+			is_government_potential = chinese_imperial_government
+		}
+	}
+	
+	immediate = {
+		log = "Government change in Japan!"
+		# Change government
+		if = {
+			limit = {
+				trait = japanese_monastic_trait
+			}
+			set_government_type = japanese_monastic_feudal_government
+		}
+		else_if = {
+			limit = {
+				trait = japanese_feudal_trait
+			}
+			set_government_type = japanese_feudal_government
+		}
+		else = {
+			set_government_type = chinese_vassal_government
+		}
+	}
+}
+
+# Inheritance of government trait
+character_event = {
+	id = japan.9
+	hide_window = yes
+	is_triggered_only = yes
+	
+	only_playable = yes
+	
+	trigger = {
+		OR = {
+			religion = shinto
+			AND = {
+				religion = buddhist
+				culture_group = japonic
+			}
+		}
+		controls_religion = no
+		OR = {
+			trait = japanese_feudal_trait
+			trait = japanese_monastic_trait
+		}
+	}
+	
+	immediate = {
+		log = "Government trait inheritance in Japan!"
+		if = {
+			limit = {
+				primary_title = {
+					is_vice_royalty = yes
+				}
+			}
+			current_heir = {
+				save_event_target_as = true_heir
+			}
+			log = "[Root.GetBestName]'s current heir is [true_heir.GetName]"
+			any_demesne_title = {
+				limit = {
+					is_vice_royalty = yes
+				}
+				event_target:true_heir = {
+					grant_title_no_opinion = {
+						target = PREV
+						type = inheritance
+					}
+				}
+			}
+			recalc_succession = yes
+			log = "[Root.GetBestName]'s current heir is [true_heir.GetName]"
+			current_heir = {
+				save_event_target_as = true_heir
+			}
+		}
+		else = {
+			current_heir = {
+				save_event_target_as = true_heir
+			}
+		}
+		if = {
+			limit = {
+				event_target:true_heir = {
+					AND = {
+						OR = {
+							religion = shinto
+							AND = {
+								religion = buddhist
+								culture_group = japonic
+							}
+						}
+						controls_religion = no
+					}
+					NOR = {
+						trait = japanese_feudal_trait
+						trait = japanese_monastic_trait
+					}
+					NOT = {
+						is_liege_or_above_of = ROOT
+					}
+					NOR = {
+						government = chinese_imperial_government
+						government = japanese_imperial_government
+					}
+				}
+			}
+			if = {
+				limit = {
+					trait = japanese_feudal_trait
+				}
+				event_target:true_heir = {
+					add_trait = japanese_feudal_trait
+				}
+			}
+			else = {
+				event_target:true_heir = {
+					add_trait = japanese_monastic_trait
+				}
+			}
+		}
+	}
+}
+
+# Make sure that the Tenno never holds multiple empires
+character_event = {
+	id = japan.10
+	is_triggered_only = yes
+	hide_window = yes
+	
+	religion = shinto
+	
+	trigger = {
+		controls_religion = yes
+		FROM = {
+			tier = emperor
+		}
+		NOT = {
+			has_character_flag = restoring_japan
+		}
+		num_of_emperor_titles = 2
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				any_demesne_title = {
+					title = e_japan
+				}
+			}
+			any_demesne_title = {
+				limit = {
+					tier = emperor
+					NOT = {
+						title = e_japan
+					}
+				}
+				destroy_landed_title = THIS
+			}
+		}
+		else = {
+			primary_title = {
+				set_title_flag = keep_this_title
+			}
+			any_demesne_title = {
+				limit = {
+					tier = emperor
+					NOT = {
+						has_title_flag = keep_this_title
+					}
+				}
+				unsafe_destroy_landed_title = THIS
+			}
+			primary_title = {
+				clr_title_flag = keep_this_title
+			}
+		}
+	}
+}

@@ -2133,15 +2133,15 @@ targeted_decisions = {
 								type = chinese_client_state
 							}
 						}
+						check_variable = {
+							which = grace
+							value = -750
+						}
 					}
 					check_variable = {
 						which = grace
-						value = -750
+						value = -1500
 					}
-				}
-				check_variable = {
-					which = grace
-					value = -1500
 				}
 				prisoner = no
 				NOT = { trait = incapable }
@@ -2158,9 +2158,30 @@ targeted_decisions = {
 		effect = {
 			FROM = {
 				sound_effect = china_grace_spend
-				change_variable = {
-					which = grace
-					value = -750
+				if = {
+					limit = {
+						suzerain = {
+							is_chinese_emperor_trigger = yes
+						}
+						OR = {
+							is_tributary = {
+								type = chinese_protectorate
+							}
+							is_tributary = {
+								type = chinese_client_state
+							}
+						}
+					}
+					change_variable = {
+						which = grace
+						value = -750
+					}
+				}
+				else = {
+					change_variable = {
+						which = grace
+						value = -1500
+					}
 				}
 			}
 			narrative_event = { id = grace.320 } # Fires an event for the EoC that lets him decide whether to grant the Boon or not
@@ -3506,19 +3527,234 @@ targeted_decisions = {
 	
 	### Grace checking (for players)
 	
-	check_grace = {
-		filter = self
-		ai_target_filter = none
+	#check_grace = { # Unused
+	#	filter = self
+	#	ai_target_filter = none
+	#
+	#	potential = {
+	#		ai = no
+	#	}
+	#	
+	#	effect = {
+	#		letter_event = { id = grace.997 }
+	#	}
+	#	
+	#	ai_will_do = {
+	#		factor = 0
+	#	}
+	#}
 	
+	read_grace_dec = { # Multiplayer only Grace checking
+		ai_check_interval = 1000000 # Determines how seldom the AI checks whether they can and should do the decision, in months. By default 1 (every month).
+		ai_target_filter = none #AI won't use it
+		filter = all_including_me
+		from_potential = {
+			multiplayer = yes #This system should only be used in multiplayer
+		}
 		potential = {
-			ai = no
+			NOT = { is_variable_equal = { which = grace value = 0 } }
+			OR = {
+				FROM = {
+					OR = {
+						has_landed_title = e_china
+						
+						character = ROOT
+						
+						any_spouse = {
+							character = ROOT
+						}
+						any_consort = {
+							character = ROOT
+						}
+						
+						is_ancestor_of = ROOT
+						
+						is_child_of = ROOT
+						
+						any_sibling = {
+							character = ROOT
+						}
+						
+						any_realm_character = {
+							character = ROOT
+						}
+					}
+				}
+				
+				#Now the tricky tributary conditions
+				e_china = {
+					holder_scope = {
+						OR = {
+							AND = { #Tier 1 can see Tier 1
+								FROM = {
+									is_tributary = {
+										type = chinese_peripheral_tributary #Tier 1
+										suzerain = PREV
+									}
+								}
+								ROOT = {
+									is_tributary = {
+										type = chinese_peripheral_tributary #Tier 1
+										suzerain = PREV
+									}
+								}
+							}
+							AND = { #Tier 1 can see 1 and 2
+								FROM = {
+									is_tributary = {
+										type = chinese_imperial_tributary #Tier 2
+										suzerain = PREV
+									}
+								}
+								ROOT = {
+									OR = {
+										is_tributary = {
+											type = chinese_peripheral_tributary #Tier 1
+											suzerain = PREV
+										}
+										is_tributary = {
+											type = chinese_imperial_tributary #Tier 2
+											suzerain = PREV
+										}
+									}
+								}
+							}
+							AND = { #Tier 3 can see 1, 2 and 3
+								FROM = {
+									is_tributary = {
+										type = chinese_protectorate #Tier 3
+										suzerain = PREV
+									}
+								}
+								ROOT = {
+									OR = {
+										is_tributary = {
+											type = chinese_peripheral_tributary #Tier 1
+											suzerain = PREV
+										}
+										is_tributary = {
+											type = chinese_imperial_tributary #Tier 2
+											suzerain = PREV
+										}
+										is_tributary = {
+											type = chinese_protectorate #Tier 3
+											suzerain = PREV
+										}
+									}
+								}
+							}
+							AND = { #Tier 4 or vassal can see 1, 2, 3 and 4
+								FROM = {
+									OR = {
+										is_tributary = {
+											type = chinese_client_state #Tier 4
+											suzerain = PREV
+										}
+										vassal_of = PREV
+									}
+								}
+								ROOT = {
+									OR = {
+										is_tributary = {
+											type = chinese_peripheral_tributary #Tier 1
+											suzerain = PREV
+										}
+										is_tributary = {
+											type = chinese_imperial_tributary #Tier 2
+											suzerain = PREV
+										}
+										is_tributary = {
+											type = chinese_protectorate #Tier 3
+											suzerain = PREV
+										}
+										is_tributary = {
+											type = chinese_client_state #Tier 4
+											suzerain = PREV
+										}
+									}
+								}
+							}
+							AND = { #Non-Grace tributary can see Tier 1
+								FROM = {
+									is_tributary = {
+										suzerain = PREV
+									}
+									NOR = {
+										is_tributary = {
+											type = chinese_peripheral_tributary #Tier 1
+											suzerain = PREV
+										}
+										is_tributary = {
+											type = chinese_imperial_tributary #Tier 2
+											suzerain = PREV
+										}
+										is_tributary = {
+											type = chinese_protectorate #Tier 3
+											suzerain = PREV
+										}
+										is_tributary = {
+											type = chinese_client_state #Tier 4
+											suzerain = PREV
+										}
+									}
+								}
+								ROOT = {
+									is_tributary = {
+										type = chinese_peripheral_tributary #Tier 1
+										suzerain = PREV
+									}
+								}
+							}
+							AND = { #Any tributary/vassal can see non-Grace tributary
+								FROM = {
+									OR = {
+										is_tributary = {
+											suzerain = PREV
+										}
+										vassal_of = PREV
+									}
+								}
+								ROOT = {
+									is_tributary = {
+										suzerain = PREV
+									}
+									NOR = {
+										is_tributary = {
+											type = chinese_peripheral_tributary #Tier 1
+											suzerain = PREV
+										}
+										is_tributary = {
+											type = chinese_imperial_tributary #Tier 2
+											suzerain = PREV
+										}
+										is_tributary = {
+											type = chinese_protectorate #Tier 3
+											suzerain = PREV
+										}
+										is_tributary = {
+											type = chinese_client_state #Tier 4
+											suzerain = PREV
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
-		
+		allow = {
+			always = yes
+		}
 		effect = {
-			letter_event = { id = grace.997 }
+			custom_tooltip = {
+				text = this_is_your_grace
+			}
 		}
-		
 		ai_will_do = {
+			factor = 0
+		}
+		ai_acceptance = {
 			factor = 0
 		}
 	}
