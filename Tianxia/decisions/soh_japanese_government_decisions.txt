@@ -1,0 +1,269 @@
+decisions = {
+	japanese_government_0 = { # Confucian Bureaucracy
+		only_playable = yes
+		potential = {
+			ai = no # The AI won't do it, so it doesn't need to see it
+			is_feudal = yes
+			#OR = {
+			#	religion = shinto
+			#	AND = {
+			#		religion = buddhist
+			#		culture_group = japonic
+			#	}
+			#}
+			controls_religion = no # The Tenno has his own government
+			NOT = {
+				is_government_potential = chinese_imperial_government # If we could be Chinese Imperial, that takes precedence
+			}
+			OR = {
+				government = japanese_feudal_government
+				government = japanese_monastic_feudal_government
+			}
+		}
+		allow = {
+			war = no
+			is_inaccessible_or_incapable_trigger = no
+			has_regent = no
+			is_adult = yes
+		}
+		effect = {
+			hidden_tooltip = {
+				remove_trait = japanese_feudal_trait
+				remove_trait = japanese_monastic_trait
+			}
+			character_event = { id = japan.8 }
+		}
+		ai_will_do = {
+			factor = 0 # Going Bureaucratic will restrict your options
+		}
+	}
+	japanese_government_1 = { # Japanese Feudal
+		only_playable = yes
+		ai_check_interval = 120
+		is_high_prio = yes
+		potential = {
+			is_feudal = yes
+			OR = {
+				religion = shinto
+				AND = {
+					religion = buddhist
+					culture_group = japonic
+				}
+			}
+			controls_religion = no # The Tenno has his own government
+			NOT = {
+				is_government_potential = chinese_imperial_government # If we could be Chinese Imperial, that takes precedence
+			}
+			NOT = {
+				trait = japanese_feudal_trait
+			}
+		}
+		allow = {
+			war = no
+			is_inaccessible_or_incapable_trigger = no
+			has_regent = no
+			is_adult = yes
+			OR = {
+				independent = yes
+				NOT = {
+					any_liege = {
+						OR = {
+							government = chinese_imperial_government
+							government = japanese_imperial_government
+							government = chinese_vassal_government
+						}
+					}
+					prestige = 500
+				}
+				AND = {
+					NOT = {
+						any_liege = {
+							government = chinese_imperial_government
+						}
+					}
+					any_liege = {
+						OR = {
+							government = japanese_imperial_government
+							government = chinese_vassal_government
+						}
+						PREV = {
+							vassals_can_change_to_japanese_feudal_trigger = yes
+						}
+					}
+				}
+			}
+		}
+		effect = {
+			if = {
+				limit = {
+					NOT = {
+						government = japanese_monastic_feudal_government
+					}
+				}
+				if = {
+					limit = {
+						OR = {
+							liege = {
+								OR = {
+									government = japanese_feudal_government
+									government = japanese_monastic_feudal_government
+								}
+							}
+							independent = yes
+						}
+					}
+					prestige = -500
+				}
+				else_if = {
+					limit = {
+						NOT = {
+							any_liege = {
+								OR = {
+									government = japanese_imperial_government
+									government = chinese_vassal_government
+								}
+								NOR = {
+									has_regent = yes
+									is_inaccessible_or_incapable_trigger = yes
+								}
+							}
+						}
+					}
+					prestige = -1000
+				}
+				prestige = -2500
+			}
+			hidden_tooltip = {
+				add_trait = japanese_feudal_trait
+				remove_trait = japanese_monastic_trait
+			}
+			character_event = { id = japan.8 }
+		}
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down
+			}
+			modifier = {
+				factor = 0
+				trait = japanese_monastic_trait # If you're Japanese Monastic Feudal, keep that as it is less restrictive
+			}
+		}
+	}
+	japanese_government_2 = { # Japanese Monastic Feudal
+		only_playable = yes
+		ai_check_interval = 120
+		is_high_prio = yes
+		potential = {
+			is_feudal = yes
+			religion = shinto
+			controls_religion = no # The Tenno has his own government
+			NOT = {
+				is_government_potential = chinese_imperial_government # If we could be Chinese Imperial, that takes precedence
+			}
+			NOT = {
+				trait = japanese_monastic_trait
+			}
+		}
+		allow = {
+			war = no
+			is_inaccessible_or_incapable_trigger = no
+			has_regent = no
+			is_adult = yes
+			can_become_japanese_monastic_feudal_trigger = yes
+		}
+		effect = {
+			if = {
+				limit = {
+					capital_scope = {
+						religion = shinto
+						county = {
+							OR = {
+								any_direct_de_jure_vassal_title = {
+									is_holy_site = shinto
+								}
+								is_holy_site = shinto
+							}
+						}
+						culture = PREV
+					}
+					OR = {
+						culture_group = japonic
+						k_chrysanthemum_throne = {
+							holder_scope = {
+								culture = PREV
+							}
+						}
+					}
+				}
+				piety = -2000
+			}
+			else = {
+				piety = -5000
+			}
+			hidden_tooltip = {
+				add_trait = japanese_monastic_trait
+				remove_trait = japanese_feudal_trait
+			}
+			character_event = { id = japan.8 }
+		}
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down
+			}
+			modifier = {
+				factor = 0
+				NOT = {
+					trait = zealous # We don't want everyone to flip to it just because they have the piety
+				}
+			}
+		}
+	}
+	
+	recreate_japan = { # The Tenno's government prevents empire creation, so this is necessary
+		only_playable = yes
+		is_high_prio = yes
+		potential = {
+			countrols_religion = yes
+			religion = shinto
+			independent = yes
+			is_tributary = no
+			e_japan = {
+				has_holder = no
+			}
+		}
+		allow = {
+			war = no
+			is_inaccessible_or_incapable_trigger = no
+			has_regent = no
+			is_adult = yes
+			# Controls all of Honshu, Kyushu, and Shikoku
+			completely_controls_region = world_japan_south
+			completely_controls_region = world_japan_north
+		}
+		effect = {
+			set_character_flag = restoring_japan
+			primary_title = {
+				e_japan = {
+					grant_title = ROOT
+					copy_title_laws = PREV
+					#copy_title_history = PREV # This could result in undesirable rulers showing up in e_japan's history, so don't do this!
+				}
+			}
+			# Destroy any other empire controlled by ROOT
+			any_demesne_title = {
+				limit = {
+					tier = emperor
+					NOT = {
+						title = e_japan
+					}
+				}
+				destroy_landed_title = THIS
+			}
+			clr_character_flag = restoring_japan
+		}
+	}
+}

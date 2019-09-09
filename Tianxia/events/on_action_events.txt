@@ -49,18 +49,17 @@ character_event = {
 			}
 		}
 		
-		if = {
-			limit = {
-				NOT = { trait = kinslayer }
-				NOT = { religion_group = muslim }
-				event_target:target_victim = {
-					dynasty = ROOT
-				}
-			}
-			add_trait = kinslayer
-		}
+		event_target:target_victim = { save_event_target_as = kinslayer_target }
+		add_kinslayer_trait_effect = yes
 		
 		event_target:target_victim = {
+			any_spouse = { 
+				opinion = {
+					who = ROOT
+					modifier = opinion_spouse_slayer
+					months = 60
+				}
+			}
 			any_liege = {
 				if = {
 					limit = {
@@ -84,14 +83,6 @@ character_event = {
 						who = ROOT
 						modifier = opinion_dishonorable
 						months = 60
-					}
-					if = {
-						limit = { ROOT = { any_spouse = { character = PREV } } }
-						opinion = {
-							who = ROOT
-							modifier = opinion_spouse_slayer
-							months = 60
-						}
 					}
 				}
 			}
@@ -339,6 +330,103 @@ character_event = {
 						is_female = yes
 						PREV = { is_female = no } # No one cares if two women fool around
 					}
+					if = {
+						limit = {
+							has_dlc = "Jade Dragon"
+							is_chinese_emperor_trigger = no
+						}
+						if = {
+							limit = {
+								OR = {
+									any_spouse = {
+										OR = {
+											is_chinese_emperor_trigger = yes
+											e_china = {
+												holder_scope = {
+													is_chinese_emperor_trigger = yes
+													current_heir = {
+														character = PREVPREVPREV
+														dynasty = PREV
+													}
+												}
+											}
+										}
+									}
+									any_consort = {
+										OR = {
+											is_chinese_emperor_trigger = yes
+											e_china = {
+												holder_scope = {
+													is_chinese_emperor_trigger = yes
+													current_heir = {
+														character = PREVPREVPREV
+														dynasty = PREV
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							detract_grace_super_huge_effect = yes
+							PREV = {
+								detract_grace_super_huge_effect = yes
+							}
+						}
+						else_if = {
+							limit = {
+								OR = {
+									any_spouse = {
+										is_chinese_emperor_trigger = no
+										NOT = {
+											e_china = {
+												holder_scope = {
+													is_chinese_emperor_trigger = yes
+													current_heir = {
+														character = PREVPREVPREV
+														dynasty = PREV
+													}
+												}
+											}
+										}
+										e_china = {
+											holder_scope = {
+												is_chinese_emperor_trigger = yes
+												any_child = {
+													character = PREVPREVPREV
+													dynasty = PREV
+												}
+											}
+										}
+									}
+									any_consort = {
+										is_chinese_emperor_trigger = no
+										NOT = {
+											e_china = {
+												holder_scope = {
+													is_chinese_emperor_trigger = yes
+													current_heir = {
+														character = PREVPREVPREV
+														dynasty = PREV
+													}
+												}
+											}
+										}
+										e_china = {
+											holder_scope = {
+												is_chinese_emperor_trigger = yes
+												any_child = {
+													character = PREVPREVPREV
+													dynasty = PREV
+												}
+											}
+										}
+									}
+								}
+							}
+							detract_grace_massive_effect = yes
+						}
+					}
 					
 					if = {
 						limit = {
@@ -584,6 +672,8 @@ character_event = {
 			if = {
 				limit = {
 					NOT = { has_character_flag = adultery_discovered }
+					is_alive = yes
+					is_dying = no
 				}
 				ROOT = { save_event_target_as = target_adulterer }
 				character_event = { id = 20 }
@@ -715,6 +805,17 @@ character_event = {
 	
 	option = {
 		name = "EVTOPTA40002"
+		hidden_tooltip = {
+			if = {
+				limit = {
+					has_dlc = "Jade Dragon"
+					is_chinese_emperor_trigger = yes
+				}
+				FROM = {
+					detract_grace_medium_effect = yes
+				}
+			}
+		}
 	}
 }
 
@@ -745,36 +846,55 @@ character_event = {
 	is_triggered_only = yes 
 	
 	immediate = {
-		FROM = {
-			if = {
-				limit = { 
-					dynasty = ROOT 
-					NOT = { religion_group = muslim }
+		if = {
+			limit = {
+				has_dlc = "Jade Dragon"
+				FROM = {
+					is_chinese_emperor_trigger = no
 				}
-				add_trait = kinslayer
 			}
 			if = {
-				limit = { 
-					any_spouse = { character = ROOT }
+				limit = {
+					is_chinese_emperor_trigger = yes
 				}
-				
-				#set_character_flag = achievement_spouse_killer #Moved to on_death to also cover undiscovered murder plots.
-				
-				spouse = {
-					any_dynasty_member = {
-						limit = {
-							is_alive = yes
-							NOT = { character = FROM }
-						}
-						opinion = {
-							who = FROM
-							modifier = opinion_spouse_slayer
-							months = 60
-						}
+				FROM = {
+					detract_grace_super_huge_effect = yes
+				}
+			}
+			else_if = {
+				limit = {
+					any_close_relative = {
+						dynasty = ROOT
+						is_chinese_emperor_trigger = yes
 					}
+				}
+				FROM = {
+					detract_grace_massive_effect = yes
+				}
+			}
+			else_if = {
+				limit = {
+					any_dynasty_member = {
+						is_chinese_emperor_trigger = yes
+					}
+				}
+				FROM = {
+					detract_grace_major_effect = yes
 				}
 			}
 		}
+		any_spouse = {
+			opinion = {
+				who = FROM
+				modifier = opinion_spouse_slayer
+				months = 60
+			}
+		}
+		FROM = {
+			ROOT = { save_event_target_as = kinslayer_target }
+			add_kinslayer_trait_effect = yes
+		}			
+		#set_character_flag = achievement_spouse_killer #Moved to on_death to also cover undiscovered murder plots.
 	}
 
 	option = {
@@ -958,6 +1078,41 @@ character_event = {
 	option = {
 		name = "EVTOPTA40006"
 		piety = -50
+		if = {
+			limit = {
+				has_dlc = "Jade Dragon"
+				is_chinese_emperor_trigger = no
+			}
+			if = {
+				limit = {
+					FROM = {
+						is_chinese_emperor_trigger = yes
+					}
+				}
+				detract_grace_super_huge_effect = yes
+			}
+			else_if = {
+				limit = {
+					FROM = {
+						any_close_relative = {
+							dynasty = PREV
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				detract_grace_massive_effect = yes
+			}
+			else_if = {
+				limit = {
+					FROM = {
+						any_dynasty_member = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				detract_grace_major_effect = yes
+			}
+		}
 	}
 }
 
@@ -1010,6 +1165,41 @@ character_event = {
 	option = {
 		name = "EVTOPTA40007"
 		piety = -50
+		if = {
+			limit = {
+				has_dlc = "Jade Dragon"
+				is_chinese_emperor_trigger = no
+			}
+			if = {
+				limit = {
+					FROM = {
+						is_chinese_emperor_trigger = yes
+					}
+				}
+				detract_grace_super_huge_effect = yes
+			}
+			else_if = {
+				limit = {
+					FROM = {
+						any_close_relative = {
+							dynasty = PREV
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				detract_grace_massive_effect = yes
+			}
+			else_if = {
+				limit = {
+					FROM = {
+						any_dynasty_member = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				detract_grace_major_effect = yes
+			}
+		}
 	}
 }
 
@@ -1085,6 +1275,41 @@ character_event = {
 	option = {
 		name = "EVTOPTA40008"
 		piety = -50
+		if = {
+			limit = {
+				has_dlc = "Jade Dragon"
+				is_chinese_emperor_trigger = no
+			}
+			if = {
+				limit = {
+					FROM = {
+						is_chinese_emperor_trigger = yes
+					}
+				}
+				detract_grace_super_huge_effect = yes
+			}
+			else_if = {
+				limit = {
+					FROM = {
+						any_close_relative = {
+							dynasty = PREV
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				detract_grace_massive_effect = yes
+			}
+			else_if = {
+				limit = {
+					FROM = {
+						any_dynasty_member = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				detract_grace_major_effect = yes
+			}
+		}
 	}
 }
 
@@ -1198,6 +1423,41 @@ character_event = {
 	option = {
 		name = "EVTOPTA40010"
 		piety = -50
+		if = {
+			limit = {
+				has_dlc = "Jade Dragon"
+				is_chinese_emperor_trigger = no
+			}
+			if = {
+				limit = {
+					FROM = {
+						is_chinese_emperor_trigger = yes
+					}
+				}
+				detract_grace_super_huge_effect = yes
+			}
+			else_if = {
+				limit = {
+					FROM = {
+						any_close_relative = {
+							dynasty = PREV
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				detract_grace_massive_effect = yes
+			}
+			else_if = {
+				limit = {
+					FROM = {
+						any_dynasty_member = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				detract_grace_major_effect = yes
+			}
+		}
 	}
 }
 
@@ -1491,6 +1751,41 @@ character_event = {
 			modifier = {
 				factor = 100
 				trait = arbitrary
+			}
+		}
+		if = {
+			limit = {
+				has_dlc = "Jade Dragon"
+				is_chinese_emperor_trigger = no
+			}
+			if = {
+				limit = {
+					FROM = {
+						is_chinese_emperor_trigger = yes
+					}
+				}
+				detract_grace_super_huge_effect = yes
+			}
+			else_if = {
+				limit = {
+					FROM = {
+						any_close_relative = {
+							dynasty = PREV
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				detract_grace_massive_effect = yes
+			}
+			else_if = {
+				limit = {
+					FROM = {
+						any_dynasty_member = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				detract_grace_major_effect = yes
 			}
 		}
 		reverse_opinion = {
@@ -2137,9 +2432,12 @@ narrative_event = {
 	desc = {
 		text = EVTDESC327
 		trigger = {
-			new_character = {
-				NOT = { religion_group = christian }
-				NOT = { religion_group = muslim }
+			OR = {
+				new_character = {
+					NOT = { religion_group = christian }
+					NOT = { religion_group = muslim }
+				}
+				has_alternate_start_parameter = { key = religion_names value = random }
 			}
 		}
 	}
@@ -2149,6 +2447,9 @@ narrative_event = {
 			new_character = {
 				religion_group = muslim
 			}
+			NOT = {
+				has_alternate_start_parameter = { key = religion_names value = random }
+			}
 		}
 	}
 	desc = {
@@ -2156,6 +2457,9 @@ narrative_event = {
 		trigger = {
 			new_character = {
 				religion_group = christian
+			}
+			NOT = {
+				has_alternate_start_parameter = { key = religion_names value = random }
 			}
 		}
 	}
@@ -2252,7 +2556,25 @@ narrative_event = {
 	
 	option = {
 		name = EVTOPTA328 # God and Israel!
-		trigger = { religion = ROOT }
+		trigger = {
+			religion = ROOT
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	option = {
+		name = EVTOPTA328_alt # Random variant
+		trigger = {
+			religion = ROOT
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
 	}
 	option = {
 		name = EVTOPTB200 # No concern of ours
@@ -2609,20 +2931,6 @@ diploresponse_event = {
 	trigger = {
 		ai = no
 	}
-	
-	#immediate = { # TODO
-	#	if = {
-	#		limit = {
-	#			has_dlc = "Zeus"
-	#			new_character = {
-	#				NOT = { has_focus = focus_ch_heritage }
-	#			}
-	#		}
-	#		new_character = {
-	#			set_focus = focus_ch_heritage
-	#		}
-	#	}
-	#}
 
 	option = {
 		name = "OK"
@@ -3519,6 +3827,12 @@ character_event = {
 	is_triggered_only = yes
 	
 	trigger = {
+		new_character = {
+			NOR = {
+				has_character_modifier = jd_prince
+				has_character_modifier = jd_princess
+			}
+		}
 		NOR = { 
 			religion_group = muslim 
 			has_character_flag = recieved_royal_marriage_aid_duty
@@ -3527,6 +3841,8 @@ character_event = {
 			AND = {
 				NOT = { religion = zoroastrian }
 				NOT = { religion = messalian }
+				NOT = { has_religion_feature = religion_holy_family }
+				NOT = { has_religion_feature = religion_feature_zun }
 			}
 			NOT = { new_character = { is_close_relative = FROM } }
 		}
@@ -4325,6 +4641,29 @@ narrative_event = {
 	only_rulers = yes
 	
 	is_triggered_only = yes
+
+	trigger = {
+		FROM = {
+			NOR = {
+				religion = catholic
+				religion = fraticelli
+			}
+		}
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				religion_group = FROM
+				religion_group = christian
+			}
+			sound_effect = crusade_outcome_positive
+		}
+
+		any_playable_ruler = {
+			clr_character_flag = forced_to_crusade
+		}
+	}
 	
 	option = {
 		name = "EVTOPTA620"
@@ -4362,6 +4701,12 @@ narrative_event = {
 	
 	is_triggered_only = yes
 	
+	immediate = {
+		any_playable_ruler = {
+			clr_character_flag = forced_to_crusade
+		}
+	}
+
 	option = {
 		name = "EVTOPTA621"
 		trigger = {
@@ -4420,12 +4765,60 @@ character_event = {
 # on_forced_consort
 character_event = {
 	id = 660
-	desc = EVTDESC660
+	desc = { 
+		text = EVTDESC660
+		trigger = {
+			is_female = yes
+		}
+	}
+	desc = { 
+		text = EVTDESC660_B
+		trigger = {
+			is_female = no
+		}
+	}
 	picture = GFX_evt_scandal
 	
 	is_triggered_only = yes 
 	
 	immediate = {
+		if = {
+			limit = {
+				has_dlc = "Jade Dragon"
+				FROM = {
+					is_chinese_emperor_trigger = no
+				}
+			}
+			if = {
+				limit = {
+					is_chinese_emperor_trigger = yes
+				}
+				FROM = {
+					detract_grace_super_huge_effect = yes
+				}
+			}
+			else_if = {
+				limit = {
+					any_close_relative = {
+						dynasty = PREV
+						is_chinese_emperor_trigger = yes
+					}
+				}
+				FROM = {
+					detract_grace_massive_effect = yes
+				}
+			}
+			else_if = {
+				limit = {
+					any_dynasty_member = {
+						is_chinese_emperor_trigger = yes
+					}
+				}
+				FROM = {
+					detract_grace_major_effect = yes
+				}
+			}
+		}
 		hidden_tooltip = {
 			spouse = {
 				character_event = { id = 662 }
@@ -4446,7 +4839,18 @@ character_event = {
 	}
 	
 	option = {
-		name = "EVTOPTA660"
+		name = { 
+			text = EVTOPTA660
+			trigger = {
+				is_female = yes
+			}
+		}
+		name = { 
+			text = EVTOPTA660
+			trigger = {
+				is_female = no
+			}
+		}
 		opinion = {
 			who = FROM
 			modifier = opinion_forced_consort
@@ -4474,11 +4878,39 @@ character_event = {
 
 character_event = {
 	id = 662
-	desc = "EVTDESC662"
+	desc = { 
+		text = EVTDESC662_B
+		trigger = {
+			is_female = yes
+		}
+	}
+	desc = { 
+		text = EVTDESC662
+		trigger = {
+			is_female = no
+		}
+	}
 	picture = GFX_evt_scandal
 	
 	is_triggered_only = yes 
 	
+	option = {
+		name = "EVTOPTB662"
+		trigger = {
+			NOR = {
+				is_rival = FROMFROM
+				num_of_rivals = 3
+			}
+		}
+		add_rival = FROMFROM
+		hidden_tooltip = {
+			opinion = {	
+				who = FROM
+				modifier = opinion_abducted_spouse
+				months = 1200
+			}
+		}
+	}
 	option = {
 		name = "EVTOPTA662"
 		opinion = {
@@ -4499,8 +4931,68 @@ character_event = {
 narrative_event = {
 	id = 670
 	title = "EVTNAME670"
-	desc = "EVTDESC670"
-	picture = GFX_evt_heretic
+	desc = {
+		trigger = {
+			has_dlc = "Holy Fury" 
+			NOT = {
+				has_alternate_start_parameter = { key = religion_names value = random }
+			}
+		}
+		text = EVTDESC670_HF
+		sound = pagan_reformation
+	}
+	desc = {
+		trigger = {
+			has_dlc = "Holy Fury" 
+			has_alternate_start_parameter = { key = religion_names value = random }
+		}
+		text = EVTDESC670_HF_B
+		sound = pagan_reformation
+	}
+	desc = {
+		trigger = {
+			NOT = { has_dlc = "Holy Fury" }
+		}
+		text = EVTDESC670
+		sound = pagan_reformation
+	}
+	picture = { 
+		trigger = { 
+			ROOT = { 
+				OR = { 
+					religion = hellenic_pagan
+					religion = hellenic_pagan_reformed
+				}
+			}
+		} 
+		picture = GFX_evt_hellenic_temple
+	}
+	picture = { 
+		trigger = { 
+			ROOT = { 
+				OR = { 
+					religion = west_african_pagan
+					religion = west_african_pagan_reformed
+				}
+			}
+		} 
+		picture = GFX_evt_west_african_ruler
+	}
+	picture = { 
+		trigger = { 
+			ROOT = { 
+				NOR = { 
+					religion = hellenic_pagan
+					religion = hellenic_pagan_reformed
+					religion = west_african_pagan
+					religion = west_african_pagan_reformed
+				}
+			}
+		} 
+		picture = GFX_evt_pagan_reformation
+	}
+	# TODO: Tianxia picture? - Low priority...
+	
 	border = "GFX_event_narrative_frame_religion"	
 	
 	is_triggered_only = yes
@@ -4511,112 +5003,1072 @@ narrative_event = {
 	only_rulers = yes
 	
 	immediate = {
-		if = {
-			limit = { ai = no }
-			set_character_flag = achievement_new_ways
-		}
-		any_courtier = {
-			limit = {
-				is_heresy_of = ROOT
-				employer = { character = ROOT }
+		hidden_tooltip = {
+			if = { #If hellenic reformer owns Rome, Catholic faith loses MA.
+				limit = { 
+					ROOT = { 
+						religion = hellenic_pagan_reformed 
+						completely_controls = c_roma
+					} 
+				}
+				random_playable_ruler = { 
+					limit = { religion = catholic }		
+					religion_authority = {
+						modifier = hellenic_resurgence
+						years = 100
+					}
+				}
 			}
-			religion = ROOT
-		}
-		any_dynasty_member = {
-			limit = {
-				is_heresy_of = ROOT
-				is_playable = no
+			if = { #If hellenic reformer owns Constantinople, Orthodox faith loses MA.
+				limit = { 
+					ROOT = { 
+						religion = hellenic_pagan_reformed 
+						completely_controls = c_byzantion
+					} 
+				}
+				random_playable_ruler = { 
+					limit = { religion = orthodox }	
+					religion_authority = {
+						modifier = hellenic_resurgence
+						years = 100
+					}
+				}
 			}
-			religion = ROOT
-		}
-		any_vassal = {
-			limit = {
-				is_playable = no
-				is_heresy_of = ROOT
-			}
-			religion = ROOT
-		}
-		capital_scope = {
 			if = {
-				limit = { is_heresy_of = ROOT }
+				limit = { #If religion being reformed is Western paganism, other Western pagan are emboldened, facilitating a chain reaction of reformation.
+					ROOT = { 
+						NOR = { 
+							religion = hellenic_pagan_reformed #Not that kind of paganism.
+							religion = bon_reformed
+							religion = zun_pagan_reformed
+							religion = aztec_reformed
+							religion = chinese_pagan_reformed
+							religion = korean_pagan_reformed
+							religion = ainu_pagan_reformed
+							religion = ryukyuan_pagan_reformed
+							religion = dayak_pagan_reformed
+							religion = melanesian_pagan_reformed
+							religion = sanamahi_pagan_reformed
+							religion = viet_pagan_reformed
+						} 
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = norse_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = norse_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = tengri_pagan_reformed } } } # Intentionally in two places due to being spread across a wide area
+					random_playable_ruler = { 
+						limit = { religion = tengri_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = slavic_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = slavic_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = baltic_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = baltic_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = finnish_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = finnish_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = west_african_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = west_african_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				} 
+			}
+			if = {
+				limit = { #If religion being reformed is Eastern paganism, other Eastern pagans are emboldened, facilitating a chain reaction of reformation.
+					ROOT = { 
+						NOR = { 
+							religion = hellenic_pagan_reformed #Not that kind of paganism.
+							religion = aztec_reformed
+							religion = norse_pagan_reformed
+							religion = slavic_pagan_reformed
+							religion = baltic_pagan_reformed
+							religion = finnish_pagan_reformed
+							religion = west_african_pagan_reformed
+							religion = ainu_pagan_reformed
+							religion = ryukyuan_pagan_reformed
+							religion = dayak_pagan_reformed
+							religion = melanesian_pagan_reformed
+						} 
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = sanamahi_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = sanamahi_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = bon_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = bon }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = zun_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = zun_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = tengri_pagan_reformed } } } # Intentionally in two places due to being spread across a wide area
+					random_playable_ruler = { 
+						limit = { religion = tengri_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = viet_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = viet_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = chinese_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = chinese_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				} 
+				if = { 
+					limit = { ROOT = { NOT = { religion = korean_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = korean_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+			}
+			if = {
+				limit = { #If religion being reformed is Pacific paganism, other ?acific pagans are emboldened, facilitating a chain reaction of reformation.
+					ROOT = { 
+						OR = {
+							religion = ainu_pagan_reformed
+							religion = ryukyuan_pagan_reformed
+							religion = dayak_pagan_reformed
+							religion = melanesian_pagan_reformed
+						} 
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = ainu_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = ainu_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = ryukyuan_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = ryukyuan_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = dayak_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = dayak_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+				if = { 
+					limit = { ROOT = { NOT = { religion = melanesian_pagan_reformed } } }
+					random_playable_ruler = { 
+						limit = { religion = melanesian_pagan }	
+						religion_authority = {
+							modifier = pagan_revival
+							years = 20
+						}
+					}
+				}
+			}
+			if = {
+				limit = { #Modifier not applied correctly by pagan reformation screen.
+					ROOT = { has_religion_feature = religion_cosmopolitan }
+				}
+				ROOT = { 	
+					religion_authority = {
+						modifier = cosmopolitan_religion
+						years = 1000
+					}
+					any_playable_ruler = { 
+						limit = { NOT = { distance_from_realm = { who = ROOT value = 200 } } }
+						add_intermarry = ROOT
+						ROOT = { add_intermarry = PREV }
+					}
+					any_neighbor_independent_ruler = { 
+						add_intermarry = ROOT
+						ROOT = { add_intermarry = PREV }
+					}
+				} 
+			}
+			if = {
+				limit = { #Modifier not applied correctly by pagan reformation screen.
+					ROOT = { has_religion_feature = religion_dogmatic }
+				}
+				ROOT = { 	
+					religion_authority = {
+						modifier = dogmatic_religion
+						years = 1000
+					}
+					remove_intermarry = catholic
+					remove_intermarry = orthodox
+					remove_intermarry = miaphysite
+					remove_intermarry = nestorian
+					remove_intermarry = sunni
+					remove_intermarry = shiite
+					remove_intermarry = ibadi
+					remove_intermarry = jewish
+					remove_intermarry = samaritan
+					remove_intermarry = karaite
+					remove_intermarry = hindu
+					remove_intermarry = buddhist
+					remove_intermarry = jain
+					remove_intermarry = taoist
+					remove_intermarry = zoroastrian
+					remove_intermarry = mazdaki
+					remove_intermarry = manichean
+					remove_intermarry = khurmazta
+					remove_intermarry = pagan
+					remove_intermarry = bon
+					remove_intermarry = bon_reformed
+					remove_intermarry = aztec
+					remove_intermarry = aztec_reformed
+					remove_intermarry = norse_pagan
+					remove_intermarry = norse_pagan_reformed
+					remove_intermarry = zun_pagan
+					remove_intermarry = zun_pagan_reformed
+					remove_intermarry = slavic_pagan
+					remove_intermarry = slavic_pagan_reformed
+					remove_intermarry = baltic_pagan
+					remove_intermarry = baltic_pagan_reformed
+					remove_intermarry = west_african_pagan
+					remove_intermarry = west_african_pagan_reformed
+					remove_intermarry = tengri_pagan
+					remove_intermarry = tengri_pagan_reformed
+					remove_intermarry = finnish_pagan
+					remove_intermarry = finnish_pagan_reformed
+					remove_intermarry = hellenic_pagan
+					remove_intermarry = hellenic_pagan_reformed
+					remove_intermarry = pagan_group
+					remove_intermarry = zoroastrian_group
+					remove_intermarry = christian
+					remove_intermarry = muslim
+					remove_intermarry = indian_group
+					remove_intermarry = jewish_group
+					# Tianxia
+					remove_intermarry = chinese_pagan
+					remove_intermarry = chinese_pagan_reformed
+					remove_intermarry = korean_pagan
+					remove_intermarry = korean_pagan_reformed
+					remove_intermarry = ainu_pagan
+					remove_intermarry = ainu_pagan_reformed
+					remove_intermarry = ryukyuan_pagan
+					remove_intermarry = ryukyuan_pagan_reformed
+					remove_intermarry = dayak_pagan
+					remove_intermarry = dayak_pagan_reformed
+					remove_intermarry = melanesian_pagan
+					remove_intermarry = melanesian_pagan_reformed
+					remove_intermarry = sanamahi_pagan
+					remove_intermarry = sanamahi_pagan_reformed
+					remove_intermarry = viet_pagan
+					remove_intermarry = viet_pagan_reformed
+
+				} 
+			}
+			if = {
+				limit = { #Switch to matriarchy.
+					ROOT = { 
+						has_religion_feature = religion_matriarchal 
+						NOR = {  
+							is_merchant_republic = yes
+							is_republic = yes
+						}
+					}
+				}
+				ROOT = { 
+					any_demesne_title = { 
+						add_law = {
+							law = enatic_succession
+							cooldown = no
+							opinion_effect = no
+						}
+						add_law = {
+							law = status_of_women_4
+							cooldown = no
+							opinion_effect = no
+						}
+						if = { 
+							limit = { 
+								NOT = { has_law = succ_byzantine_elective } 
+							}
+							add_law = {
+								law = succ_turkish_succession
+								cooldown = no
+								opinion_effect = no
+							}
+						}
+					} 
+					recalc_succession = yes
+				} 
+			}
+			if = {
+				limit = { #Switch to equality.
+					ROOT = { 
+						OR = { 
+							has_religion_feature = religion_equal 
+							has_religion_feature = religion_feature_bon
+							has_religion_feature = religion_feature_ryukyuan_three_mountains
+							has_religion_feature = religion_feature_ryukyuan_historical
+						}
+						NOR = {  
+							is_merchant_republic = yes
+							is_republic = yes
+						}
+					}
+				}
+				ROOT = { 
+					any_demesne_title = { 
+						add_law = {
+							law = true_cognatic_succession
+							cooldown = no
+							opinion_effect = no
+						}
+						add_law = {
+							law = status_of_women_4
+							cooldown = no
+							opinion_effect = no
+						}
+					}
+				} 
+			}
+			if = {
+				limit = { #Switch to patriarchy.
+					ROOT = { has_religion_feature = religion_patriarchal }
+				}
+				ROOT = { 
+					any_demesne_title = { 
+						add_law = {
+							law = agnatic_succession
+							cooldown = no
+							opinion_effect = no
+						}
+						add_law = {
+							law = status_of_women_0
+							cooldown = no
+							opinion_effect = no
+						}
+						if = { 
+							limit = { 
+								NOT = { has_law = succ_byzantine_elective } 
+							}
+							add_law = {
+								law = succ_turkish_succession
+								cooldown = no
+								opinion_effect = no
+							}
+						}
+					} 
+					recalc_succession = yes
+				}
+			}
+			if = {
+				limit = { #Switch to astrology.
+					ROOT = {
+						OR = {
+							has_religion_feature = religion_astrology
+							has_religion_feature = religion_feature_chinese
+						}
+					}
+				}
+				ROOT = { 
+					add_western_zodiac_trait_effect = yes 
+					# TODO: Eastern zodiac
+					character_event = { id = HF.23032 days = 5 } 
+				} 
+			}
+			if = {
+				limit = { #Apply default special features if player doesn't have dlc.
+					NOT = { has_dlc = "Holy Fury" } 
+					ROOT = { religion = norse_pagan_reformed } 
+				}
+				ROOT = { 
+					set_allow_rivermovement = yes 
+					enable_prepared_invasion = yes
+					set_seafaring = yes
+					make_reformer_head_of_religion = yes
+					grant_title_no_opinion = d_norse_pagan_reformed
+				} 
+			}
+			if = {
+				limit = { #Apply default special features if player doesn't have dlc.
+					NOT = { has_dlc = "Holy Fury" } 
+					ROOT = { 
+						OR = { 
+							religion = baltic_pagan_reformed 
+							religion = slavic_pagan_reformed 
+						}  
+					} 
+				}
+				ROOT = { 
+					set_unit_modifier = {		
+						garrison_size = 0.2
+						levy_size = 0.2
+						
+						key = "DEF_RELIGION"
+					}
+					set_unit_home_modifier = {
+						land_morale = 0.8
+						light_infantry_defensive = 0.8
+						heavy_infantry_defensive = 0.8
+						pikemen_defensive = 0.8
+						light_cavalry_defensive = 0.8
+						knights_defensive = 0.8
+						archers_defensive = 0.8
+						horse_archers_defensive = 0.8
+						camel_cavalry_defensive = 0.8
+						war_elephants_defensive = 0.8
+						
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION_HOME_TERRITORY"
+					}
+				} 
+			}
+			if = {
+				limit = { #Apply default special features if player doesn't have dlc.
+					NOT = { has_dlc = "Holy Fury" } 
+					ROOT = { 
+						religion = finnish_pagan_reformed 
+					} 
+				}
+				ROOT = { 
+					set_unit_modifier = {		
+						garrison_size = 0.3
+						levy_size = 0.1
+						
+						key = "DEF_RELIGION"
+					}
+					set_unit_home_modifier = {
+						land_morale = 0.8
+						light_infantry_defensive = 0.8
+						heavy_infantry_defensive = 0.8
+						pikemen_defensive = 0.8
+						light_cavalry_defensive = 0.8
+						knights_defensive = 0.8
+						archers_defensive = 0.8
+						horse_archers_defensive = 0.8
+						camel_cavalry_defensive = 0.8
+						war_elephants_defensive = 0.8
+						
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION_HOME_TERRITORY"
+					}
+				} 
+			}
+			if = {
+				limit = { #Apply default special features if player doesn't have dlc.
+					NOT = { has_dlc = "Holy Fury" } 
+					ROOT = {
+						OR = { 
+							religion = bon_reformed
+							religion = west_african_pagan_reformed 
+						} 
+					} 
+				}
+				ROOT = { 
+					set_unit_modifier = {		
+						garrison_size = 0.4
+					
+						key = "DEF_RELIGION"
+					}
+					set_unit_home_modifier = {
+						land_morale = 0.8
+						light_infantry_defensive = 0.8
+						heavy_infantry_defensive = 0.8
+						pikemen_defensive = 0.8
+						light_cavalry_defensive = 0.8
+						knights_defensive = 0.8
+						archers_defensive = 0.8
+						horse_archers_defensive = 0.8
+						camel_cavalry_defensive = 0.8
+						war_elephants_defensive = 0.8
+						
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION_HOME_TERRITORY"
+					}
+				} 
+			}
+			if = {
+				limit = { #Apply default special features if player doesn't have dlc.
+					NOT = { has_dlc = "Holy Fury" } 
+					ROOT = { 
+						religion = zun_pagan_reformed 
+					} 
+				}
+				ROOT = { 
+					set_unit_modifier = {
+						levy_size = 0.3
+						
+						heavy_infantry_offensive = 0.2
+						heavy_infantry_defensive = 0.2
+						
+						key = "OFF_RELIGION"
+					}
+				} 
+			}
+			if = {
+				limit = { #Apply default special features if player doesn't have dlc.
+					NOT = { has_dlc = "Holy Fury" } 
+					ROOT = { 
+						religion = ainu_pagan_reformed 
+					} 
+				}
+				ROOT = { 
+					set_unit_modifier = {
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION"
+					}
+					set_unit_home_modifier = {
+						land_morale = 0.8
+						light_infantry_defensive = 0.8
+						heavy_infantry_defensive = 0.8
+						pikemen_defensive = 0.8
+						light_cavalry_defensive = 0.8
+						knights_defensive = 0.8
+						archers_defensive = 0.8
+						horse_archers_defensive = 0.8
+						camel_cavalry_defensive = 0.8
+						war_elephants_defensive = 0.8
+						
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION_HOME_TERRITORY"
+					}
+				} 
+			}
+			if = {
+				limit = { #Apply default special features if player doesn't have dlc.
+					NOT = { has_dlc = "Holy Fury" } 
+					ROOT = {
+						religion = chinese_pagan_reformed 
+					} 
+				}
+				ROOT = { 
+					set_character_modifier = { # Was much too high at 2-2-2 (vanilla uses either 2 or 4, where relevant), and should probably be properly tied to autonomous with HF...
+						diplomacy = 1
+						martial = 1
+						stewardship = 1
+					}
+					
+					set_unit_modifier = {		
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION"
+					}
+					set_unit_home_modifier = {
+						land_morale = 0.8
+						light_infantry_defensive = 0.8
+						heavy_infantry_defensive = 0.8
+						pikemen_defensive = 0.8
+						light_cavalry_defensive = 0.8
+						knights_defensive = 0.8
+						archers_defensive = 0.8
+						horse_archers_defensive = 0.8
+						camel_cavalry_defensive = 0.8
+						war_elephants_defensive = 0.8
+						
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION_HOME_TERRITORY"
+					}
+					set_heir_designation = yes
+				} 
+			}
+			if = {
+				limit = { #Apply default special features if player doesn't have dlc.
+					NOT = { has_dlc = "Holy Fury" } 
+					ROOT = {
+						religion = korean_pagan_reformed 
+					} 
+				}
+				ROOT = { 
+					set_character_modifier = { # Was much too high at 2-2-2 (vanilla uses either 2 or 4, where relevant), and should probably be properly tied to autonomous with HF...
+						diplomacy = 1
+						stewardship = 1
+						learning = 1
+					}
+					
+					set_unit_modifier = {		
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION"
+					}
+					set_unit_home_modifier = {
+						land_morale = 0.8
+						light_infantry_defensive = 0.8
+						heavy_infantry_defensive = 0.8
+						pikemen_defensive = 0.8
+						light_cavalry_defensive = 0.8
+						knights_defensive = 0.8
+						archers_defensive = 0.8
+						horse_archers_defensive = 0.8
+						camel_cavalry_defensive = 0.8
+						war_elephants_defensive = 0.8
+						
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION_HOME_TERRITORY"
+					}
+					set_heir_designation = yes
+				} 
+			}
+			if = {
+				limit = { #Apply default special features if player doesn't have dlc.
+					NOT = { has_dlc = "Holy Fury" } 
+					ROOT = {
+						religion = ryukyuan_pagan_reformed
+					} 
+				}
+				ROOT = {
+					set_character_modifier = {
+						diplomacy = 1
+						martial = 1
+						stewardship = 1
+						intrigue = 1
+					}
+					set_unit_modifier = {
+						levy_size = 0.3
+						
+						key = "OFF_RELIGION"
+					}
+					set_heir_designation = yes
+					set_feminist = yes
+				} 
+			}
+			if = {
+				limit = { #Apply default special features if player doesn't have dlc.
+					NOT = { has_dlc = "Holy Fury" } 
+					ROOT = {
+						OR = {
+							religion = dayak_pagan_reformed
+							religion = melanesian_pagan_reformed
+						}
+					} 
+				}
+				ROOT = {
+					set_unit_modifier = {		
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION"
+					}
+					set_unit_home_modifier = {
+						land_morale = 0.8
+						light_infantry_defensive = 0.8
+						heavy_infantry_defensive = 0.8
+						pikemen_defensive = 0.8
+						light_cavalry_defensive = 0.8
+						knights_defensive = 0.8
+						archers_defensive = 0.8
+						horse_archers_defensive = 0.8
+						camel_cavalry_defensive = 0.8
+						war_elephants_defensive = 0.8
+						
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION_HOME_TERRITORY"
+					}
+				} 
+			}
+			if = {
+				limit = { #Apply default special features if player doesn't have dlc.
+					NOT = { has_dlc = "Holy Fury" } 
+					ROOT = {
+						religion = sanamahi_pagan_reformed
+					} 
+				}
+				ROOT = {
+					set_unit_modifier = {		
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION"
+					}
+					set_unit_home_modifier = {
+						land_morale = 0.8
+						light_infantry_defensive = 0.8
+						heavy_infantry_defensive = 0.8
+						pikemen_defensive = 0.8
+						light_cavalry_defensive = 0.8
+						knights_defensive = 0.8
+						archers_defensive = 0.8
+						horse_archers_defensive = 0.8
+						camel_cavalry_defensive = 0.8
+						war_elephants_defensive = 0.8
+						
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION_HOME_TERRITORY"
+					}
+					set_heir_designation = yes
+				} 
+			}
+			if = {
+				limit = { #Apply default special features if player doesn't have dlc.
+					NOT = { has_dlc = "Holy Fury" } 
+					ROOT = {
+						religion = viet_pagan_reformed 
+					} 
+				}
+				ROOT = { 
+					set_character_modifier = { # Was much too high at 2-2-2 (vanilla uses either 2 or 4, where relevant), and should probably be properly tied to autonomous with HF...
+						diplomacy = 1
+						martial = 1
+						learning = 1
+					}
+					
+					set_unit_modifier = {		
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION"
+					}
+					set_unit_home_modifier = {
+						land_morale = 0.8
+						light_infantry_defensive = 0.8
+						heavy_infantry_defensive = 0.8
+						pikemen_defensive = 0.8
+						light_cavalry_defensive = 0.8
+						knights_defensive = 0.8
+						archers_defensive = 0.8
+						horse_archers_defensive = 0.8
+						camel_cavalry_defensive = 0.8
+						war_elephants_defensive = 0.8
+						
+						garrison_size = 0.4
+						
+						key = "DEF_RELIGION_HOME_TERRITORY"
+					}
+					set_heir_designation = yes
+				} 
+			}
+
+			if = {
+				limit = { ai = no }
+				set_character_flag = achievement_new_ways
+			}
+			if = {
+				limit = {
+					ai = no
+					religion = hellenic_pagan_reformed
+				}
+				set_character_flag = achievement_by_jupiter
+			}
+			any_courtier = {
+				limit = {
+					is_heresy_of = ROOT
+					employer = { character = ROOT }
+				}
 				religion = ROOT
 			}
-		}
-		if = {
-			limit = { religion = norse_pagan_reformed }
-			d_jomsvikings = {
-				religion = norse_pagan_reformed # This Holy Order now changes religion
+			any_dynasty_member = {
+				limit = {
+					is_heresy_of = ROOT
+					is_playable = no
+				}
+				religion = ROOT
 			}
-			set_global_flag = norse_reformation
+			any_vassal = {
+				limit = {
+					is_playable = no
+					is_heresy_of = ROOT
+				}
+				religion = ROOT
+			}
+			capital_scope = {
+				if = {
+					limit = { is_heresy_of = ROOT }
+					religion = ROOT
+				}
+			}
+			if = {
+				limit = { 
+					OR = {
+						NOT = { has_dlc = "Holy Fury" } 
+						has_religion_feature = religion_temporal_head 
+					} 
+					religion = norse_pagan_reformed 
+
+				}
+				add_artifact = crown_fylkir
+			}
+			if = {
+				limit = { 
+					has_religion_feature = religion_temporal_head 
+					religion = tengri_pagan_reformed 
+
+				}
+				add_artifact = crown_tengri_fylkir
+			}
+			if = {
+				limit = { 
+					has_religion_feature = religion_temporal_head 
+					religion = finnish_pagan_reformed 
+
+				}
+				add_artifact = crown_finnish_fylkir
+			}
+			if = {
+				limit = { 
+					has_religion_feature = religion_temporal_head 
+					religion = west_african_pagan_reformed 
+
+				}
+				add_artifact = crown_west_african_fylkir
+			}
+			if = {
+				limit = { 
+					has_religion_feature = religion_temporal_head 
+					religion = slavic_pagan_reformed 
+
+				}
+				add_artifact = crown_slavic_fylkir
+			}
+			if = {
+				limit = { 
+					has_religion_feature = religion_temporal_head 
+					religion = baltic_pagan_reformed 
+
+				}
+				add_artifact = crown_romuva_fylkir
+			}
+			if = {
+				limit = { 
+					has_religion_feature = religion_temporal_head 
+					religion = zun_pagan_reformed 
+
+				}
+				add_artifact = crown_zun_fylkir
+			}
+			if = {
+				limit = { 
+					has_religion_feature = religion_temporal_head 
+					religion = aztec_reformed 
+
+				}
+				add_artifact = crown_aztec_fylkir
+			}
+			if = {
+				limit = { 
+					has_religion_feature = religion_temporal_head 
+					religion = bon_reformed 
+
+				}
+				add_artifact = scepter_bon_fylkir
+			}
+			if = {
+				limit = { 
+					has_religion_feature = religion_temporal_head 
+					religion = hellenic_pagan_reformed 
+
+				}
+				add_artifact = scepter_hellenic_fylkir
+			}
+			#hidden_effect = { reformation_god_names_changes_effect = yes }
+			#Opinion boost to new religious head (if any) and Reformer.
+			if = {
+				limit = { 
+					has_dlc = "Holy Fury" 
+					OR = {
+						has_religion_feature = religion_theocratic_head
+						has_religion_feature = religion_autocephaly 
+					} 
+
+				}
+				religion_head = { opinion = { who = ROOT modifier = opinion_my_reformer years = 50 } }
+			}
+			if = {
+				limit = { religion = norse_pagan_reformed }
+				d_jomsvikings = {
+					religion = norse_pagan_reformed # This Holy Order now changes religion
+				}
+				set_global_flag = norse_reformation
+			}
+			if = {
+				limit = { religion = tengri_pagan_reformed }
+				set_global_flag = tengri_reformation
+			}
+			if = {
+				limit = { religion = baltic_pagan_reformed }
+				set_global_flag = baltic_reformation
+			}
+			if = {
+				limit = { religion = finnish_pagan_reformed }
+				set_global_flag = finnish_reformation
+			}
+			if = {
+				limit = { religion = aztec_reformed }
+				set_global_flag = aztec_reformation
+			}
+			if = {
+				limit = { religion = slavic_pagan_reformed }
+				set_global_flag = slavic_reformation
+			}
+			if = {
+				limit = { religion = west_african_pagan_reformed }
+				set_global_flag = west_african_reformation
+			}
+			if = {
+				limit = { religion = zun_pagan_reformed }
+				set_global_flag = zun_reformation
+			}
+			if = {
+				limit = { religion = bon_reformed }
+				set_global_flag = bon_reformation
+			}
+			if = {
+				limit = { religion = hellenic_pagan_reformed }
+				set_global_flag = hellenic_reformation
+			}
+			if = {
+				limit = { religion = ainu_pagan_reformed }
+				set_global_flag = ainu_reformation
+			}
+			if = {
+				limit = { religion = chinese_pagan_reformed }
+				set_global_flag = chinese_reformation
+			}
+			if = {
+				limit = { religion = dayak_pagan_reformed }
+				set_global_flag = dayak_reformation
+			}
+			#if = {
+			#	limit = { religion = japanese_pagan_reformed }
+			#	set_global_flag = japanese_reformation
+			#}
+			if = {
+				limit = { religion = korean_pagan_reformed }
+				set_global_flag = korean_reformation
+			}
+			if = {
+				limit = { religion = melanesian_pagan_reformed }
+				set_global_flag = melanesian_reformation
+			}
+			if = {
+				limit = { religion = ryukyuan_pagan_reformed }
+				set_global_flag = ryukyuan_reformation
+			}
+			if = {
+				limit = { religion = sanamahi_pagan_reformed }
+				set_global_flag = sanamahi_reformation
+			}
+			if = {
+				limit = { religion = viet_pagan_reformed }
+				set_global_flag = viet_reformation
+			}
 		}
 		if = {
-			limit = { religion = tengri_pagan_reformed }
-			set_global_flag = tengri_reformation
+			limit = {
+				ROOT = {
+					religion = chinese_pagan_reformed
+					has_acceptable_chinese_religion_trigger = yes
+				}
+			}
+			set_global_flag = chinese_pagan_reformed_is_chinese_enough
 		}
 		if = {
-			limit = { religion = baltic_pagan_reformed }
-			set_global_flag = baltic_reformation
+			limit = {
+				ROOT = {
+					religion = korean_pagan_reformed
+					has_acceptable_chinese_religion_trigger = yes
+				}
+			}
+			set_global_flag = korean_pagan_reformed_is_chinese_enough
 		}
 		if = {
-			limit = { religion = finnish_pagan_reformed }
-			set_global_flag = finnish_reformation
+			limit = {
+				ROOT = {
+					religion = viet_pagan_reformed
+					has_acceptable_chinese_religion_trigger = yes
+				}
+			}
+			set_global_flag = viet_pagan_reformed_is_chinese_enough
 		}
-		if = {
-			limit = { religion = aztec_reformed }
-			set_global_flag = aztec_reformation
-		}
-		if = {
-			limit = { religion = slavic_pagan_reformed }
-			set_global_flag = slavic_reformation
-		}
-		if = {
-			limit = { religion = west_african_pagan_reformed }
-			set_global_flag = west_african_reformation
-		}
-		if = {
-			limit = { religion = zun_pagan_reformed }
-			set_global_flag = zun_reformation
-		}
-		if = {
-			limit = { religion = ainu_pagan_reformed }
-			set_global_flag = ainu_reformation
-		}
-		if = {
-			limit = { religion = chinese_pagan_reformed }
-			set_global_flag = chinese_reformation
-		}
-		if = {
-			limit = { religion = dayak_pagan_reformed }
-			set_global_flag = dayak_reformation
-		}
-		if = {
-			limit = { religion = japanese_pagan_reformed }
-			set_global_flag = japanese_reformation
-		}
-		if = {
-			limit = { religion = korean_pagan_reformed }
-			set_global_flag = korean_reformation
-		}
-		if = {
-			limit = { religion = melanesian_pagan_reformed }
-			set_global_flag = melanesian_reformation
-		}
-		if = {
-			limit = { religion = ryukyuan_pagan_reformed }
-			set_global_flag = ryukyuan_reformation
-		}
-		if = {
-			limit = { religion = sanamahi_pagan_reformed }
-			set_global_flag = sanamahi_reformation
-		}
-		if = {
-			limit = { religion = tibetan_pagan_reformed }
-			set_global_flag = tibetan_reformation
-		}
-		if = {
-			limit = { religion = viet_pagan_reformed }
-			set_global_flag = viet_reformation
-		}
+		# Ryukyuan isn't currently necessary, as these flags are for conversions for Chinese/Koreanic/Viet characters
 	}
 
 	option = {
@@ -4629,11 +6081,203 @@ narrative_event = {
 				portrait = [Root.GetID]
 			}
 		}
+		hidden_tooltip = {
+			if = {
+				limit = { 
+					ROOT = { has_religion_feature = religion_matriarchal }
+				}
+				ROOT = { 
+					any_demesne_title = { 
+						add_law = {
+							law = enatic_succession
+							cooldown = no
+							opinion_effect = no
+						}
+						add_law = {
+							law = status_of_women_4
+							cooldown = no
+							opinion_effect = no
+						}
+					} 
+					recalc_succession = yes
+				} 
+			}
+			if = {
+				limit = { 
+					ROOT = { has_religion_feature = religion_patriarchal }
+				}
+				ROOT = { 
+					any_demesne_title = { 
+						add_law = {
+							law = agnatic_succession
+							cooldown = no
+							opinion_effect = no
+						}
+						add_law = {
+							law = status_of_women_0
+							cooldown = no
+							opinion_effect = no
+						}
+					} 
+					recalc_succession = yes
+				} 
+			}
+			if = {
+				limit = { 
+					ROOT = {
+						OR = { 
+							has_religion_feature = religion_equal 
+							has_religion_feature = religion_feature_bon
+							has_religion_feature = religion_feature_ryukyuan_three_mountains
+							has_religion_feature = religion_feature_ryukyuan_historical
+						}
+					}
+				}
+				ROOT = { 
+					any_demesne_title = { 
+						add_law = {
+							law = true_cognatic_succession
+							cooldown = no
+							opinion_effect = no
+						}
+						add_law = {
+							law = status_of_women_4
+							cooldown = no
+							opinion_effect = no
+						}
+					} 
+					recalc_succession = yes
+				} 
+			}
+			ROOT = {
+				if = {
+					limit = { 
+						has_religion_feature = religion_matriarchal 
+					}
+					any_close_relative = { 
+					limit = { is_female = no }
+						opinion = { 
+							who = ROOT 
+							modifier = bad_succ_law_change
+							years = 100
+						}
+					}
+					any_close_relative = { 
+						limit = { is_female = yes }
+						opinion = { 
+							who = ROOT 
+							modifier = good_succ_law_change
+							years = 100
+						}
+					}
+				}
+				if = {
+					limit = { 
+						has_religion_feature = religion_patriarchal 
+					}
+					any_close_relative = { 
+						limit = { is_female = yes }
+						opinion = { 
+							who = ROOT 
+							modifier = bad_succ_law_change
+							years = 100
+						}
+					}
+					any_close_relative = { 
+						limit = { is_female = no }
+						opinion = { 
+							who = ROOT 
+							modifier = good_succ_law_change
+							years = 100
+						}
+					}
+				}
+			}
+		}
 	}
 	option = {
 		name = "EVTOPTB670" # Rulers of the old Faith - Accept
 		trigger = {
 			is_heresy_of = ROOT # The old religion has become a heresy of the Reformed one
+		}
+		if = {
+			limit = { #Offer chance to switch the vassals' succession laws.
+				ROOT = { has_religion_feature = religion_no_leader }
+				ai = yes
+			}		
+			hidden_tooltip = {  
+				character_event = { id = HF.23016 days = 20 random = 20 }
+			}
+		}
+		if = {
+			limit = { #Offer chance to switch the vassals' succession laws.
+				ROOT = { has_religion_feature = religion_matriarchal }
+			}
+			custom_tooltip = { text = tooltip_HF23014_A }
+			hidden_tooltip = { 
+				any_demesne_title = { 
+					add_law = {
+						law = enatic_succession
+						cooldown = no
+						opinion_effect = no
+					}
+					add_law = {
+						law = status_of_women_4
+						cooldown = no
+						opinion_effect = no
+					}
+				} 
+				recalc_succession = yes
+			} 
+		}
+		if = {
+			limit = { #Offer chance to switch the vassals' succession laws.
+				ROOT = { has_religion_feature = religion_patriarchal }
+			}
+			custom_tooltip = { text = tooltip_HF23015_A }
+			hidden_tooltip = { 
+				any_demesne_title = { 
+					add_law = {
+						law = agnatic_succession
+						cooldown = no
+						opinion_effect = no
+					}
+					add_law = {
+						law = status_of_women_0
+						cooldown = no
+						opinion_effect = no
+					}
+				} 
+				recalc_succession = yes
+			} 
+		}
+		if = {
+			limit = { #Offer chance to switch the vassals' succession laws.
+				ROOT = {
+					OR = { 
+						has_religion_feature = religion_equal 
+						has_religion_feature = religion_feature_bon
+						has_religion_feature = religion_feature_ryukyuan_three_mountains
+						has_religion_feature = religion_feature_ryukyuan_historical
+					}
+				}
+			}
+			custom_tooltip = { text = tooltip_HF23016_A }
+			hidden_tooltip = { 
+				any_demesne_title = { 
+					add_law = {
+						law = true_cognatic_succession
+						cooldown = no
+						opinion_effect = no
+					}
+					add_law = {
+						law = status_of_women_4
+						cooldown = no
+						opinion_effect = no
+					}
+				} 
+				recalc_succession = yes
+			} 
 		}
 		if = {
 			limit = { ai = no }
@@ -4680,6 +6324,13 @@ narrative_event = {
 				}
 				religion = ROOT
 			}
+			any_dynasty_member = {
+				limit = {
+					is_heresy_of = ROOT
+					is_playable = no
+				}
+				religion = ROOT
+			}
 			any_vassal = {
 				limit = {
 					is_playable = no
@@ -4713,6 +6364,7 @@ narrative_event = {
 				factor = 0
 				has_landed_title = d_jomsvikings
 			}
+			post_reformation_ruler_conversion_score = yes
 		}
 		tooltip = { religion = THIS }
 	}
@@ -4767,6 +6419,9 @@ character_event = {
 			in_revolt = no
 		}
 	}
+	immediate = {
+		sound_effect = pagan_reformation
+	}
 	
 	option = {
 		name = EVTOPTA_63103 # Remain a vassal
@@ -4794,6 +6449,41 @@ character_event = {
 	}
 	option = {
 		name = EVTOPTB_63103 # Go independent
+		if = {
+			limit = {
+				has_dlc = "Jade Dragon"
+				is_chinese_emperor_trigger = no
+			}
+			if = {
+				limit = {
+					liege = {
+						is_chinese_emperor_trigger = yes
+					}
+				}
+				detract_grace_super_huge_effect = yes
+			}
+			else_if = {
+				limit = {
+					liege = {
+						any_close_relative = {
+							dynasty = PREV
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				detract_grace_massive_effect = yes
+			}
+			else_if = {
+				limit = {
+					liege = {
+						any_dynasty_member = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				detract_grace_major_effect = yes
+			}
+		}
 		
 		ai_chance = {
 			factor = 100
@@ -4879,7 +6569,6 @@ character_event = {
 	option = {
 		name = EVTOPTA_63104
 	}
-	
 }
 
 # Remove patron deity modifiers for hindu converts
@@ -5303,14 +6992,14 @@ narrative_event = {
 		picture = GFX_evt_battle
 		text = EVTDESC534_converted
 		trigger = { 
-			new_character = { religion = FROM }
+			new_character = { religion_group = FROM }
 		}
 	}
 	desc = {
 		picture = GFX_evt_battle
 		text = EVTDESC534_coup
 		trigger = { 
-			new_character = { NOT = { religion = FROM } }
+			new_character = { NOT = { religion_group = FROM } }
 		}
 	}
 	
@@ -5319,14 +7008,77 @@ narrative_event = {
 	only_rulers = yes
 	
 	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			new_character = {
+				NOT = {
+					has_landed_title = ROOT
+				}
+			}
+			OR = {
+				AND = {
+					has_global_flag = 4th_crusade_official
+					crusade_target_title = {
+						title = k_thrace
+					}
+					new_character = {
+						religion = FROM
+						has_landed_title = e_byzantium
+					}	
+				}
+				AND = {
+					NOR = {
+						has_global_flag = 4th_crusade_official
+						crusade_target_title = {
+							title = k_thrace
+						}
+						new_character = {
+							has_landed_title = e_byzantium
+						}
+					}
+					new_character = {
+						religion_group = FROM
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				FROM = {
+					religion_group = christian
+				}
+				has_global_flag = 4th_crusade_official
+			}
+			character_event = { id = HFP.41199 }
+		}
+	}
 	
 	option = {
 		name = "EVTOPTA620"
 		trigger = {
+			new_character = {
+				religion_group = FROM
+			}
 			religion_group = FROM
 		}
 	}
 	
+	option = {
+		name = EVTOPTC534
+		trigger = {
+			new_character = {
+				NOT = {
+					religion_group = FROM
+				}
+			}
+			religion_group = FROM
+		}
+	}
+
 	option = {
 		name = "EVTOPTB620"
 		trigger = {
@@ -5388,5 +7140,275 @@ diploresponse_event = {
 
 	option = {
 		name = "OK"
+	}
+}
+
+# GIVE_ARTIFACT_INTERACTION_ACCEPT_EVENT =
+diploresponse_event = {
+	id = 538
+	desc = EVTDESC538
+
+	major = no
+	is_triggered_only = yes
+
+	trigger = {
+		ai = no
+	}
+
+	option = {
+		name = "OK"
+	}
+}
+
+character_event = { # Fix adventurers turning Tribal land Feudal
+	id = 539
+	hide_window = yes
+	is_triggered_only = yes
+
+	only_rulers = yes
+	
+	trigger = {
+		ai = yes
+		is_feudal = yes
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				NOT = {
+					any_realm_province = {
+						any_province_holding = {
+							holding_type = castle
+						}
+					}
+				}
+				any_realm_province = {
+					any_province_holding = {
+						holding_type = tribal
+					}
+				}
+			}
+			set_government_type = tribal_government
+		}
+	}
+}
+
+#Preserve player religion if heir has DLC locked religion
+character_event = {
+	id = 680
+	hide_window = yes
+	is_triggered_only = yes
+	ai = no
+	trigger = {
+		is_nomadic = no
+		player_heir = {
+			OR = {
+				has_unsafe_secret_religion = yes
+				has_unsafe_religion = yes
+			}
+		}
+	}
+	immediate = {
+		player_heir = {
+			if = {
+				limit = { has_unsafe_secret_religion = yes }
+				clear_secret_religion = yes
+			}
+			if = {
+				limit = { has_unsafe_religion = yes }
+				religion = ROOT
+			}
+		}
+	}
+}
+
+# On-action event: Avoided title revokation, declared independence
+character_event = {
+	id = 681
+	desc = "EVTDESC681"
+	picture = "GFX_evt_burning_house"
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes 
+
+	option = {
+		name = "EVTOPTA150"
+	}
+}
+
+# On-action event: Avoided vassal retraction, declared independence
+character_event = {
+	id = 682
+	desc = "EVTDESC682"
+	picture = "GFX_evt_burning_house"
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes 
+
+	option = {
+		name = "EVTOPTA150"
+	}
+}
+
+# On-action event: Avoided clan absorb, declared independence
+character_event = {
+	id = 683
+	desc = "EVTDESC683"
+	picture = "GFX_evt_burning_house"
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes 
+
+	option = {
+		name = "EVTOPTA150"
+	}
+}
+
+# On-action event: Avoided clan split, declared independence
+character_event = {
+	id = 684
+	desc = "EVTDESC684"
+	picture = "GFX_evt_burning_house"
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes 
+
+	option = {
+		name = "EVTOPTA150"
+	}
+}
+
+# On-action event: Remove in-hiding trait on imprisonment
+character_event = {
+	id = 685
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		trait = in_hiding
+	}
+	
+	immediate = {
+		remove_trait = in_hiding
+	}
+}
+
+###### TODO REMOVE TEST EVENT
+#character_event = {
+#	id = 686
+#	hide_window = yes
+#	is_triggered_only = yes
+#	
+#	trigger = {
+#		is_save_game = no
+#		NOT = { has_global_flag = start_seed_bloodlines }
+#		NOT = { is_shattered_world = yes }
+#	}
+#	
+#	immediate = {
+#		set_global_flag = start_seed_bloodlines
+#		any_independent_ruler = {
+#			count = 5
+#			random_list = {
+#				10 = {
+#					create_bloodline = {
+#						type = bloodline_martial
+#					}
+#				}
+#				10 = {
+#					create_bloodline = {
+#						type = bloodline_steward
+#					}
+#				}
+#				10 = {
+#					create_bloodline = {
+#						type = bloodline_intrigue
+#					}
+#				}
+#				10 = {
+#					create_bloodline = {
+#						type = bloodline_learning
+#					}
+#				}
+#				10 = {
+#					create_bloodline = {
+#						type = bloodline_diplomacy
+#					}
+#				}
+#			}
+#		}
+#	}
+#}
+
+character_event = {
+	id = 687
+	hide_window = yes
+	
+	is_triggered_only = yes
+
+	trigger = {
+		FROM = {
+			ai = no
+		}
+		is_shattered_world = yes
+		has_character_flag = great_conqueror
+	}
+	immediate = {
+		FROM = {
+			set_character_flag = achievement_not_so_great
+		}
+	}
+}
+
+character_event = {
+	id = 688
+	hide_window = yes
+	
+	is_triggered_only = yes
+
+	trigger = {
+		ai = no
+		is_shattered_world = yes
+		FROM = { 
+			has_character_flag = great_conqueror
+		}
+	}
+	immediate = {
+		set_character_flag = achievement_not_so_great
+	}
+}
+
+
+# Scripted default elective token setup
+character_event = {
+	id = 689
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	only_rulers = yes
+	
+	immediate = {
+		any_demesne_title = {
+			if = {
+				limit = {
+					has_law = succ_elective_gavelkind
+				}
+				elective_voting_rules = elective_gavelkind
+			}
+			else_if = {
+				limit = {
+					has_law = succ_tanistry
+				}
+				elective_voting_rules = tanistry
+			}
+			else_if = {
+				limit = {
+					has_law = succ_feudal_elective
+				}
+				elective_voting_rules = feudal_elective
+			}
+		}
 	}
 }
