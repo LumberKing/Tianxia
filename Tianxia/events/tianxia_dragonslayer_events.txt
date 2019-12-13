@@ -1,0 +1,82 @@
+# Dragonslayer events
+# by Silverswee(e)per
+
+namespace = dragon
+
+##### Clean up the dragon flags
+
+### dragon_injured (1-2)
+
+# Check if we can clear up the flag and do so, otherwise repeat if the dragon lives
+province_event = {
+	id = dragon.1
+	is_triggered_only = yes
+	hide_window = yes
+	
+	trigger = {
+		NOT = {
+			has_global_flag = dragon_slain
+		}
+		has_global_flag = dragon_injured
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				NOT = {
+					has_global_flag = ongoing_dragonslaying_attempt
+				}
+			}
+			clr_global_flag = dragon_injured
+			burninate_with_extreme_prejudice_effect = yes
+			any_player = {
+				character_event = { id = dragon.2 } # Inform all players that the dragon no longer is injured
+			}
+		}
+		else = {
+			repeat_event = { id = dragon.2 days = 30 } # Fire the event again, hopefully after all ongoing dragonslayer attemps
+		}
+	}
+}
+
+# Inform the world
+character_event = {
+	id = dragon.2
+	desc = EVTDESC_DRAGON_2
+	picture = GFX_evt_burning_house
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_DRAGON_2 # Terrible news!
+	}
+}
+
+### silver_dragon_active (3)
+
+# Clean up the flag if something weird happened
+character_event = {
+	id = dragon.3
+	hide_window = yes
+	is_triggered_only = yes
+	
+	only_playable = yes
+	religion = catholic
+	min_age = 16
+	
+	trigger = {
+		has_global_flag = silver_dragon_active
+		controls_religion = yes # The Pope
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				month = 3 # April or later; all LNY celebrations should be over
+			}
+			clr_global_flag = silver_dragon_active
+		}
+		else = {
+			repeat_event = { id = dragon.3 days = 30 } # If the event fired in March or earlier, repeat it after roughly a month
+		}
+	}
+}

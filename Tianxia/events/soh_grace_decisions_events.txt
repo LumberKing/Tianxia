@@ -12495,7 +12495,7 @@ narrative_event = {
 		name = EVTOPTA_GRACE_346 # Accept the request
 		
 		event_target:border_adjustment_duchy = {
-			any_direct_de_jure_vassal_title  = {
+			any_direct_de_jure_vassal_title = {
 				limit = {
 					holder_scope = {
 						top_liege = {
@@ -12529,7 +12529,9 @@ narrative_event = {
 					}
 				}
 				else = {
-					grant_title_no_opinion = FROMFROM
+					FROMFROM = {
+						grant_title_no_opinion = PREV
+					}
 				}
 			}
 			if = {
@@ -12541,7 +12543,9 @@ narrative_event = {
 						}
 					}
 				}
-				grant_title_no_opinion = FROMFROM
+				FROMFROM = {
+					grant_title_no_opinion = PREV
+				}
 			}
 		}
 		
@@ -18295,7 +18299,7 @@ narrative_event = {
 		}
 		
 		event_target:china_border_adjustment_duchy = {
-			any_direct_de_jure_vassal_title  = {
+			any_direct_de_jure_vassal_title = {
 				limit = {
 					holder_scope = {
 						top_liege = {
@@ -18329,7 +18333,9 @@ narrative_event = {
 					}
 				}
 				else = {
-					grant_title_no_opinion = FROMFROM
+					FROMFROM = {
+						grant_title_no_opinion = PREV
+					}
 				}
 			}
 			if = {
@@ -18341,7 +18347,9 @@ narrative_event = {
 						}
 					}
 				}
-				grant_title_no_opinion = FROMFROM
+				FROMFROM = {
+					grant_title_no_opinion = PREV
+				}
 			}
 		}
 		
@@ -18934,7 +18942,7 @@ narrative_event = {
 			letter_event = { id = grace.913 }
 		}
 		
-		show_portrait = dragon_bride_1
+		show_portrait = event_target:dragon_bride_1
 		show_portrait = FROMFROMFROM
 	}
 	
@@ -18962,7 +18970,7 @@ narrative_event = {
 			letter_event = { id = grace.913 }
 		}
 		
-		show_portrait = dragon_bride_2
+		show_portrait = event_target:dragon_bride_2
 		show_portrait = FROMFROMFROM
 	}
 	
@@ -18990,7 +18998,7 @@ narrative_event = {
 			letter_event = { id = grace.913 }
 		}
 		
-		show_portrait = dragon_bride_3
+		show_portrait = event_target:dragon_bride_3
 		show_portrait = FROMFROMFROM
 	}
 	
@@ -19819,6 +19827,9 @@ character_event = {
 		NOT = {
 			has_global_flag = artifacts_for_eoc
 		}
+		NOT = {
+			has_global_flag = china_recreated # To avoid cheesing things in the IC start
+		}
 	}
 	
 	immediate = {
@@ -19832,6 +19843,7 @@ character_event = {
 			set_name="chinese_calligraphy_name"
 		}
 		add_artifact = chinese_sculpture
+		add_artifact = silk_shroud
 		new_artifact = {
 			set_name="chinese_sculpture_name"
 		}
@@ -19848,6 +19860,7 @@ character_event = {
 		new_artifact = {
 			set_name="chinese_arm_protector_name"
 		}
+		add_artifact = jian_sword
 		add_artifact = chinese_serpent_spear
 		add_artifact = chinese_ji
 		add_artifact = chinese_crossbow
@@ -20101,7 +20114,7 @@ character_event = {
 		}
 		is_landed = no
 		#is_married = no
-		is_consort = no
+		#is_consort = no
 		trait = dragon_bride_unmarried
 		e_china = {
 			holder_scope = {
@@ -20159,7 +20172,7 @@ character_event = {
 		}
 		is_landed = no
 		#is_married = no
-		is_consort = no
+		#is_consort = no
 		any_dynasty_member = {
 			is_chinese_emperor_trigger = yes
 			OR = {
@@ -20188,6 +20201,13 @@ character_event = {
 					has_character_flag = china_no_imperial_marriage_boons
 				}
 			}
+			NOR = {
+				has_law = cognatic_succession # Ag-Cog; let princesses be possible rulers!
+				has_law = true_cognatic_succession
+				has_law = enatic_succession # Female heirs only!
+				has_law = enatic_cognatic_succession # En-Cog
+				has_law = status_of_women_4
+			}
 		}
 		NOR = {
 			trait = dragon_bride_unmarried
@@ -20198,12 +20218,17 @@ character_event = {
 	immediate = {
 		if = {
 			limit = {
-				is_married = yes
+				OR = {
+					is_married = yes
+					is_consort = yes
+					is_betrothed = yes
+				}
 			}
 			add_trait = dragon_bride_married
-			break = yes
 		}
-		add_trait = dragon_bride_unmarried
+		else = {
+			add_trait = dragon_bride_unmarried
+		}
 	}
 }
 
@@ -20239,12 +20264,22 @@ character_event = {
 		if = {
 			limit = {
 				is_chinese_emperor_trigger = yes # Grace stuff active!
+				e_china = {
+					NOR = {
+						has_law = cognatic_succession # Ag-Cog; let princesses be possible rulers!
+						has_law = true_cognatic_succession
+						has_law = enatic_succession # Female heirs only!
+						has_law = enatic_cognatic_succession # En-Cog
+						has_law = status_of_women_4
+					}
+				}
 			}
 			any_dynasty_member = {
 				limit = {
 					is_female = yes
 					is_married = no
 					is_consort = no
+					is_betrothed = no
 					NOR = {
 						trait = dragon_bride_unmarried
 						trait = dragon_bride_married # If married off but no longer married, don't add the trait again!
@@ -20273,6 +20308,7 @@ character_event = {
 					is_female = yes
 					is_married = no
 					is_consort = no
+					is_betrothed = no
 					NOT = {
 						host = {
 							OR = {
@@ -20297,7 +20333,11 @@ character_event = {
 			any_dynasty_member = {
 				limit = {
 					is_female = yes
-					is_married = yes
+					OR = {
+						is_married = yes
+						is_consort = yes
+						is_betrothed = yes
+					}
 				}
 				add_trait = dragon_bride_married
 			}
@@ -20405,12 +20445,22 @@ character_event = {
 		if = {
 			limit = {
 				is_chinese_emperor_trigger = yes # Grace stuff active!
+				e_china = {
+					NOR = {
+						has_law = cognatic_succession # Ag-Cog; let princesses be possible rulers!
+						has_law = true_cognatic_succession
+						has_law = enatic_succession # Female heirs only!
+						has_law = enatic_cognatic_succession # En-Cog
+						has_law = status_of_women_4
+					}
+				}
 			}
 			any_dynasty_member = {
 				limit = {
 					is_female = yes
 					is_married = no
 					is_consort = no
+					is_betrothed = no
 					NOR = {
 						trait = dragon_bride_unmarried
 						trait = dragon_bride_married # If married off but no longer married, don't add the trait again!
@@ -20439,6 +20489,7 @@ character_event = {
 					is_female = yes
 					is_married = no
 					is_consort = no
+					is_betrothed = no
 					NOT = {
 						host = {
 							OR = {
@@ -20463,7 +20514,11 @@ character_event = {
 			any_dynasty_member = {
 				limit = {
 					is_female = yes
-					is_married = yes
+					OR = {
+						is_married = yes
+						is_consort = yes
+						is_betrothed = yes
+					}
 				}
 				add_trait = dragon_bride_married
 			}
@@ -20480,7 +20535,7 @@ character_event = {
 	}
 }
 
-# on_bi_yearly_pulse chance to make concubines of the EoC pregnant (to get around the normal blocking once someone has a certain number of children)
+# on_bi_yearly_pulse chance to make concubines pregnant if their husband is Chinese or Japanese Imperial (to avoid the lack of children after a certain number of children)
 character_event = {
 	id = grace.989
 	hide_window = yes
@@ -20515,18 +20570,17 @@ character_event = {
 			}
 		}
 		is_pregnant = no
-		e_china = {
-			holder_scope = {
-				is_chinese_emperor_trigger = yes
-				OR = {
-					any_consort = {
-						character = ROOT
-					}
-					current_heir = {
-						any_consort = {
-							character = ROOT
-						}
-					}
+		any_consort = {
+			OR = {
+				government = chinese_imperial_government
+				government = japanese_imperial_government
+			}
+		}
+		NOT = {
+			any_consort = {
+				NOR = {
+					government = chinese_imperial_government
+					government = japanese_imperial_government
 				}
 			}
 		}
@@ -20538,18 +20592,8 @@ character_event = {
 				# The player's dynasty should not die out
 				modifier = {
 					factor = 2
-					any_playable_ruler = {
+					any_consort = {
 						ai = no
-						OR = {
-							any_consort = {
-								character = ROOT
-							}
-							current_heir = {
-								any_consort = {
-									character = ROOT
-								}
-							}
-						}
 					}
 				}
 				
@@ -21298,6 +21342,15 @@ character_event = {
 				limit = {
 					ROOT = {
 						is_chinese_emperor_trigger = yes
+						e_china = {
+							NOR = {
+								has_law = cognatic_succession # Ag-Cog; let princesses be possible rulers!
+								has_law = true_cognatic_succession
+								has_law = enatic_succession # Female heirs only!
+								has_law = enatic_cognatic_succession # En-Cog
+								has_law = status_of_women_4
+							}
+						}
 					}
 				}
 				any_dynasty_member = {

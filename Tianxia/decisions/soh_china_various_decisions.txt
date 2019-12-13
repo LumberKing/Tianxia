@@ -15,13 +15,7 @@ decisions = {
 					county = {
 						de_jure_liege_or_above = e_china
 					}
-					AND = {
-						region = world_china
-						NOR = {
-							region = world_dali
-							region = world_taiwan
-						}
-					}
+					region = world_china
 				}
 			}
 		}
@@ -34,13 +28,7 @@ decisions = {
 					county = {
 						de_jure_liege_or_above = e_china
 					}
-					AND = {
-						region = world_china
-						NOR = {
-							region = world_dali
-							region = world_taiwan
-						}
-					}
+					region = world_china
 				}
 			}
 			# No other pretender currently holds a significant portion of China
@@ -54,13 +42,7 @@ decisions = {
 							county = {
 								de_jure_liege_or_above = e_china
 							}
-							AND = {
-								region = world_china
-								NOR = {
-									region = world_dali
-									region = world_taiwan
-								}
-							}
+							region = world_china
 						}
 					}
 				}
@@ -69,12 +51,18 @@ decisions = {
 				ai = yes # The AI isn't guaranteed to save up money, so we want to keep it from being screwed over
 				wealth = 1000
 			}
+			# Average or better Mandate is required (should be easy enough)
+			NOR = {
+				has_character_modifier = mandate_of_heaven_2
+				has_character_modifier = mandate_of_heaven_1
+			}
 			prestige = 1000
 		}
 		
 		effect = {
 			wealth = -1000
 			set_character_flag = recreated_china # Avoids getting nameofchina.32
+			set_global_flag = china_recreated # Blocks artefact creation on game start if the title is recreated from the IC start (do not set this flag in the history files as that'll break Song and Yuan!)
 			
 			# Clear out Grace, Grace-related modifiers, and Chinese Princesses (even if ROOT happens to share the dynasty of the last EoC)
 			hidden_tooltip = {
@@ -167,6 +155,8 @@ decisions = {
 				clr_title_flag = yue_china
 				clr_title_flag = yin_china
 				clr_title_flag = shun_china
+				clr_title_flag = sui_china
+				clr_title_flag = min_china
 				set_name = ""
 				adjective = ""
 				grant_title = ROOT
@@ -237,8 +227,35 @@ decisions = {
 				clr_title_flag = yue_china
 				clr_title_flag = yin_china
 				clr_title_flag = shun_china
+				clr_title_flag = sui_china
+				clr_title_flag = min_china
 				clr_title_flag = pretender_chinese_empire
+				clr_title_flag = five_dynasties_and_ten_kingdoms
 				unsafe_destroy_landed_title = THIS
+			}
+			
+			any_independent_ruler = {
+				limit = {
+					tier = emperor # Should be unnecessary, but...
+					government = chinese_imperial_government
+					NOR = {
+						character = ROOT
+						suzerain = {
+							character = ROOT
+						}
+					}
+					any_realm_province = {
+						OR = {
+							region = world_china
+							county = {
+								de_jure_liege_or_above = e_china
+							}
+						}
+					}
+				}
+				e_china = {
+					add_weak_pressed_claim = PREV # All other Chinese Imperial rulers with land in China get a free inheritable weak claim on China
+				}
 			}
 			
 			# Assign traits to new Chinese princesses
@@ -253,6 +270,15 @@ decisions = {
 					limit = {
 						ROOT = {
 							is_chinese_emperor_trigger = yes
+						}
+						e_china = {
+							NOR = {
+								has_law = cognatic_succession # Ag-Cog; princesses could be heirs!
+								has_law = true_cognatic_succession
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession; En-Cog; princesses could be heirs!
+								has_law = status_of_women_4
+							}
 						}
 					}
 					any_dynasty_member = {
@@ -318,6 +344,41 @@ decisions = {
 			add_character_modifier = {
 				modifier = mandate_of_heaven_5
 				duration = -1
+			}
+			
+			e_china = {
+				add_law = {
+					law = succ_primogeniture
+					cooldown = no
+					opinion_effect = no
+				}
+				if = {
+					limit = {
+						has_dlc = "Conclave"
+					}
+					add_law = {
+						law = ze_administration_laws_2
+						cooldown = no
+						opinion_effect = no
+					}
+				}
+				else = {
+					add_law = {
+						law = imperial_administration
+						cooldown = no
+						opinion_effect = no
+					}
+				}
+				if = {
+					limit = {
+						has_dlc = "Charlemagne"
+					}
+					add_law = {
+						law = vice_royalty_2
+						cooldown = no
+						opinion_effect = no
+					}
+				}
 			}
 			
 			# Inform the world
@@ -602,7 +663,7 @@ decisions = {
 											religion = shinto
 											AND = {
 												religion = buddhist
-												culture = japonic
+												culture_group = japonic
 											}
 										}
 										has_claim = k_chrysanthemum_throne
@@ -633,6 +694,134 @@ decisions = {
 		}
 		ai_will_do = {
 			factor = 1
+		}
+	}
+	celebrate_lny = {
+		only_playable = yes
+		ai_check_interval = 12
+		potential = {
+			is_playable = yes
+			OR = {
+				is_feudal = yes
+				is_tribal = yes
+				is_republic = yes
+			}
+			prisoner = no
+			OR = {
+				religion = taoist
+				religion = chinese_pagan
+				religion = chinese_pagan_reformed
+				AND = {
+					# Intentionally excludes non-Chinese Buddhists
+					culture_group = chinese_group
+					religion = buddhist
+				}
+				# Intentionally excludes religions that are "Chinese enough" unless Chinese Imperial
+				government = chinese_imperial_government # Overridse religion restrictions not part of the government type
+			}
+			NOT = {
+				has_character_modifier = lny_in_progress
+			}
+			#NOT = {
+			#	has_character_modifier = lny_timer
+			#}
+			OR = {
+				NOT = {
+					has_character_flag = recent_lny
+				}
+				had_character_flag = { flag = recent_lny days = 365 }
+			}
+			NOT = {
+				liege = {
+					has_character_modifier = lny_in_progress
+				}
+			}			
+			num_of_vassals = 1
+		}
+		allow = {
+			war = no
+			custom_tooltip = {
+				text = UNOCCUPIED_DEMESNE_TITLE
+				hidden_tooltip = {
+					any_demesne_title = {
+						NOT = { higher_tier_than = count }
+						is_occupied = no
+					}
+				}
+			}
+			is_adult = yes # Important!
+			NOT = {
+				trait = incapable # Important!
+			}
+			prisoner = no
+			NOT = { is_inaccessible_trigger = yes }
+			wealth = 25
+			NOT = {
+				month = 2 # Before March
+			}
+			prestige = 100
+			custom_tooltip = {
+				text = is_not_busy_trigger_tooltip
+				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
+			}
+		}
+		effect = {
+			wealth = -25
+			add_character_modifier = {
+				name = lny_in_progress
+				duration = -1
+			}
+			set_character_flag = recent_minor_decision
+			set_character_flag = do_not_disturb
+			hidden_tooltip = { character_event = { id = LNY.214 days = 150 } } # Safety catch flag clearing
+			
+			hidden_tooltip = {
+				character_event = { id = LNY.1 }
+			}
+			if = {
+				limit = {
+					has_dlc = "Reapers"
+				}
+				custom_tooltip = {
+					text = capital_prospers_custom_tooltip
+					hidden_tooltip = {
+						capital_scope = {
+							change_variable = { which = prosperity_value value = 8 }
+						}
+					}
+				}
+			}
+		}
+		revoke_allowed = {
+			always = no
+		}
+		ai_will_do = {
+			factor = 1
+			
+			modifier = {
+				factor = 0
+				NOT = {
+					wealth = 200
+				}
+			}
+			modifier = {
+				factor = 0
+				trait = shy
+			}
+			modifier = {
+				factor = 0
+				NOT = { diplomacy = 10 }
+			}	
+			modifier = {
+				factor = 0
+				has_character_flag = recent_minor_decision
+				NOT = {
+					had_character_flag = {
+						flag = recent_minor_decision
+						days = 730
+					}
+				}
+			}
 		}
 	}
 }
@@ -703,10 +892,8 @@ title_decisions = {
 				set_character_flag = moved_chinas_capital
 				wealth = -1000
 				ROOT = {
-					capital_scope = {
-						e_china = {
-							set_preferred_capital = PREV
-						}
+					e_china = {
+						set_preferred_capital = PREV
 					}
 					if = {
 						limit = {
