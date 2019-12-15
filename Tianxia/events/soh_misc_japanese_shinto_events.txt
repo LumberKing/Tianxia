@@ -7,7 +7,7 @@
 
 namespace = japan
 
-# on_new_holder event for k_chrysanthemum throne
+# on_new_holder event for k_chrysanthemum_throne
 
 character_event = {
 	id = japan.1
@@ -4127,10 +4127,6 @@ character_event = {
 			}
 		}
 		controls_religion = no
-		OR = {
-			trait = japanese_feudal_trait
-			trait = japanese_monastic_trait
-		}
 	}
 	
 	immediate = {
@@ -4201,11 +4197,30 @@ character_event = {
 					add_trait = japanese_feudal_trait
 				}
 			}
-			else = {
+			else_if = {
+				limit = {
+					trait = japanese_monastic_trait
+				}
 				event_target:true_heir = {
 					add_trait = japanese_monastic_trait
 				}
 			}
+		}
+		
+		if = {
+			limit = {
+				trait = japanese_regent
+				event_target:true_heir = {
+					NOT = {
+						religion = shinto
+						controls_religion = yes
+					}
+				}
+			}
+			event_target:true_heir = {
+				add_trait = japanese_regent
+			}
+			log = "[true_heir.GetBestName] is now the regent!"
 		}
 	}
 }
@@ -4263,5 +4278,199 @@ character_event = {
 				clr_title_flag = keep_this_title
 			}
 		}
+	}
+}
+
+# on_startup regency setup
+character_event = {
+	id = japan.11
+	hide_window = yes
+	is_triggered_only = yes
+	
+	religion = shinto
+	
+	trigger = {
+		trait = under_regency
+	}
+	
+	immediate = {
+		any_vassal = {
+			limit = {
+				trait = japanese_regent
+			}
+			give_minor_title = title_regent
+		}
+	}
+}
+
+# on_new_holder event making sure the under_regency trait is passed on properly
+character_event = {
+	id = japan.12
+	hide_window = yes
+	is_triggered_only = yes
+	
+	religion = shinto
+	
+	trigger = {
+		FROM = {
+			title = k_chrysanthemum_throne
+		}
+		has_global_flag = japanese_regency
+	}
+	
+	immediate = {
+		under_regency = {
+			remove_trait = under_regency
+		}
+		add_trait = under_regency
+	}
+}
+
+# on_yearly_pulse event clearing out the japanese_regent trait if we shouldn't have it
+character_event = {
+	id = japan.13
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		trait = japanese_regent
+		NOR = {
+			liege = {
+				religion = shinto
+				controls_religion = yes
+			}
+			top_liege = {
+				liege_before_war = {
+					religion = shinto
+					controls_religion = yes
+				}
+			}
+			liege_before_war = {
+				religion = shinto
+				controls_religion = yes
+			}
+		}
+	}
+	
+	immediate = {
+		remove_trait = japanese_regent
+	}
+}
+
+# on_new_holder event making sure that we become the regent if we should be
+character_event = {
+	id = japan.14
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		trait = japanese_regent
+		OR = {
+			liege = {
+				religion = shinto
+				controls_religion = yes
+			}
+		}
+		FROMFROM = {
+			is_alive = no
+		}
+		has_regent = no
+	}
+	
+	immediate = {
+		give_minor_title = title_regent
+	}
+}
+
+
+# on_new_holder_usurpation event passing on the japanese_regent trait if the former character no longer should have it
+character_event = {
+	id = japan.15
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		FROMFROM = {
+			trait = japanese_regent
+			OR = {
+				is_ruler = no
+				NOR = {
+					liege = {
+						religion = shinto
+						controls_religion = yes
+					}
+					top_liege = {
+						liege_before_war = {
+							religion = shinto
+							controls_religion = yes
+						}
+					}
+					liege_before_war = {
+						religion = shinto
+						controls_religion = yes
+					}
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		FROMFROM = {
+			remove_trait = japanese_regent
+		}
+		if = {
+			limit = {
+				religion = shinto
+				controls_religion = yes
+			}
+			add_trait = japanese_regent
+			give_minor_title = title_regent
+		}
+	}
+}
+
+# on_adulthood and on_yearly_pulse regent switching if necessary
+character_event = {
+	id = japan.16
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		trait = japanese_regent
+		OR = {
+			liege = {
+				religion = shinto
+				controls_religion = yes
+			}
+		}
+		liege = {
+			has_actual_regency_trigger = yes
+			regent = {
+				NOT = {
+					trait = japanese_regent
+				}
+			}
+		}
+		has_regent = no
+	}
+	
+	immediate = {
+		give_minor_title = title_regent
+	}
+}
+
+# on_new_holder event clearing out the japanese_regent trait if you are the Tenno, since being your own regent is weird!
+character_event = {
+	id = japan.17
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		religion = shinto
+		controls_religion = yes
+	}
+	
+	immediate = {
+		remove_trait = japanese_regent
 	}
 }
