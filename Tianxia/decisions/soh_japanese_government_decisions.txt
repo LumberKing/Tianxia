@@ -823,3 +823,721 @@ decisions = {
 		}
 	}
 }
+
+targeted_decisions = {
+	regent_get_vassal_from_liege = {
+		filter = realm
+		ai_target_filter = realm
+		ai_check_interval = 12
+		
+		potential = {
+			OR = {
+				AND = {
+					tier = count
+					FROM = {
+						NOT = {
+							tier = count
+						}
+					}
+				}
+				AND = {
+					tier = duke
+					FROM = {
+						tier = king
+					}
+				}
+			}
+		}
+		
+		from_potential = {
+			is_playable = yes
+			trait = japanese_regent
+			has_minor_title = title_regent
+			liege = {
+				religion = shinto
+				controls_religion = yes
+				trait = under_regency
+			}
+			has_regent = no # Should be impossible if you have the "Regent" minor title, but best to be certain
+		}
+		
+		allow = {
+			OR = {
+				AND = {
+					tier = count
+					FROM = {
+						prestige = 500
+					}
+				}
+				AND = {
+					tier = duke
+					FROM = {
+						prestige = 1000
+					}
+				}
+			}
+			FROM = {
+				liege = {
+					NOT = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = took_a_vassal
+						}
+					}
+					war = no
+				}
+				war = no
+			}
+			war = no
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					tier = count
+				}
+				FROM = {
+					prestige = -500
+				}
+			}
+			else_if = {
+				limit = {
+					tier = duke
+				}
+				FROM = {
+					prestige = -1000
+				}
+			}
+			set_defacto_liege = FROM
+			FROM = {
+				liege = {
+					letter_event = { id = japan.40 }
+				}
+			}
+			letter_event = { id = japan.41 }
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							de_jure_liege = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				OR = {
+					AND = {
+						tier = count
+						FROM = {
+							NOT = {
+								prestige = 1000
+							}
+						}
+					}
+					AND = {
+						tier = duke
+						FROM = {
+							NOT = {
+								prestige = 2000
+							}
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = envious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = deceitful
+				}
+			}
+			modifier = {
+				factor = 0.1
+				tier = duke
+				FROM = {
+					NOT = {
+						trait = ambitious
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				tier = count
+				FROM = {
+					NOT = {
+						trait = ambitious
+					}
+				}
+			}
+		}
+	}
+	
+	regent_marry_liege_to_my_dynasty = {
+		filter = liege
+		ai_target_filter = liege
+		third_party_filter = realm
+		ai_third_party_filter = realm
+		third_party = FROMFROM
+		ai_check_interval = 60
+		
+		potential = {
+			# Our liege is the Tenno, is an adult, and has a Permanent Regency
+			is_adult = yes
+			is_female = no
+			religion = shinto
+			controls_religion = yes
+			trait = under_regency
+			# The current spouse can't be the mother of the heir
+			current_heir = {
+				NAND = {
+					dynasty = ROOT
+					father = {
+						character = ROOT
+					}
+					mother = {
+						spouse = {
+							character = ROOT
+						}
+					}
+				}
+			}
+			spouse = {
+				NOR = {
+					# Spouse must not be (known to be) pregnant
+					trait = pregnant
+					trait = hard_pregnancy
+					trait = troubled_pregnancy
+					trait = pregnancy_finishing
+					# If the Tenno loves their spouse, they'll probably care more (particularly if a player), so let's just forbid ending that...
+					any_lover = {
+						character = ROOT
+					}
+					dynasty = FROM # If we've already done this, don't do it again!
+					is_playable = yes # A playable spouse probably has enough power to oppose it
+				}
+			}
+			NOT = {
+				dynasty = FROM # No need for marriage ties
+			}
+		}
+		
+		from_potential = {
+			is_playable = yes
+			trait = japanese_regent
+			has_minor_title = title_regent
+			liege = {
+				religion = shinto
+				controls_religion = yes
+				trait = under_regency
+			}
+			has_regent = no # Should be impossible if you have the "Regent" minor title, but best to be certain
+		}
+		
+		allow = {
+			NOT = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = changed_my_spouse
+				}
+			}
+			FROM = {
+				prestige = 500
+			}
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				show_scope_change = no
+				is_female = yes
+				has_negative_congenial_trait_trigger = no
+				OR = {
+					# Already a consort of the Tenno
+					AND = {
+						any_consort = {
+							character = ROOT
+						}
+						NOT = {
+							any_lover = {
+								NOT = {
+									character = ROOT
+								}
+							}
+						}
+					}
+					# Subset of is_virgin_trigger; blocking Lustful is a bit too harsh...
+					AND = {
+						NOR = {
+							any_lover = { always = yes }
+							any_child_even_if_dead = { always = yes }
+							any_spouse_even_if_dead = { always = yes }
+							any_consort = { always = yes } # This is missing in vanilla but should probably be here...
+							has_focus = focus_seduction
+							trait = pregnant
+							trait = hard_pregnancy # This is missing in vanilla but should probably be here...
+							trait = troubled_pregnancy # This is missing in vanilla but should probably be here...
+							trait = pregnancy_finishing # This is missing in vanilla but should probably be here...
+							#trait = lustful
+							trait = hedonist
+							trait = seducer
+							trait = seductress
+							trait = lovers_pox
+							trait = has_aztec_disease
+							trait = syphilitic
+						}
+						OR = {
+							NOT = { age = 25 }
+							trait = celibate
+							trait = chaste
+							trait = shy
+							is_ascetic_trigger = yes
+						}
+					}
+				}
+				# Close relative of yours
+				custom_tooltip = {
+					text = is_close_relative_or_same_dynasty_tt
+					OR = {
+						is_close_relative = ROOT_FROM
+						dynasty = ROOT_FROM
+					}
+				}
+				#custom_tooltip = {
+					#text = is_adult_under_35_tt
+					is_adult = yes
+					NOT = { age = 35 } # Needs to be of childbearing age, with a decent margin
+					ROOT = {
+						spouse = {
+							is_older_than = FROMFROM # Needs to be younger than the Tenno's spouse to be an attractive match
+						}
+					}
+				#}
+				NOT = { is_landed = yes }
+				NOT = { is_ruler = yes }
+				NOT = { is_heir = yes }
+				# Either in our court or a concubine of the Tenno
+				OR = {
+					employer = {
+						character = ROOT_FROM
+					}
+					any_consort = {
+						character = ROOT
+					}
+				}
+				custom_tooltip = {
+					text = is_not_incapable_inbred_or_imbecile_tt
+					NOT = { trait = incapable }
+					NOT = { trait = inbred }
+					NOT = { trait = imbecile }
+				}
+				custom_tooltip = {
+					text = is_not_maimed_or_infirm_tt
+					NOT = { trait = maimed }
+					NOT = { trait = infirm }
+				}
+				custom_tooltip = {
+					text = is_not_wounded_severely_injured_tt
+					NOT = { trait = wounded }
+					NOT = { trait = severely_injured }
+				}
+				custom_tooltip = {
+					text = is_not_one_eyed_handed_legged_disfigured_or_mangled_tt
+					NOT = { trait = one_eyed }
+					NOT = { trait = one_handed }
+					NOT = { trait = one_legged }
+					NOT = { trait = disfigured }
+					NOT = { trait = mangled }
+				}
+				OR = {
+					NOT = { prisoner = yes }
+					host = {
+						character = ROOT_FROM
+					}
+				}
+				# If there would be no children the marriage is useless
+				custom_tooltip = {
+					text = is_not_ascetic_or_celibate_tt
+					NOT = { is_ascetic_trigger = yes }
+					NOT = { trait = celibate }
+				}
+				# Don't marry off our lovers or someone that's pregnant
+				NOR = {
+					trait = pregnant # Known to be pregnant
+					trait = hard_pregnancy
+					trait = troubled_pregnancy
+					trait = pregnancy_finishing
+					any_lover = {
+						character = ROOT_FROM
+					}
+				}
+			}
+		}
+		
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				is_ill = no
+				is_inaccessible_or_incapable_trigger = no
+			}
+		}
+		
+		effect = {
+			letter_event = { id = japan.42 } # Inform the liege and carry things out
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.5
+				always = yes
+			}
+			modifier = {
+				factor = 0.01
+				spouse = {
+					OR = {
+						# We like the spouse
+						reverse_opinion = {
+							who = FROM
+							value = 50
+						}
+						any_friend = {
+							character = FROM
+						}
+						any_lover = {
+							character = FROM
+						}
+					}
+				}
+				FROM = {
+					NOR = {
+						trait = deceitful
+						trait = ambitious
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			modifier = {
+				factor = 0
+				trait = celibate # Unlikely to have an effect...
+			}
+		}
+	}
+}
+
+title_decisions = {
+	regent_get_title_from_liege = {
+		filter = realm_owned
+		ai_target_filter = realm_owned
+		ai_check_interval = 12
+		
+		potential = {
+			OR = {
+				AND = {
+					tier = count
+					# We can't take the capital (or Yamashiro, if the liege has a different capital)
+					NOR = {
+						title = c_yamashiro
+						FROM = {
+							liege = {
+								capital_scope = {
+									county = {
+										title = ROOT
+									}
+								}
+							}
+						}
+					}
+				}
+				tier = duke
+				AND = {
+					FROM = {
+						liege = {
+							tier = emperor # If the Tenno isn't an emperor taking a kingdom would make us stop being his vassal...
+						}
+					}
+					tier = king
+					NOT = {
+						title = k_chrysanthemum_throne # That would be a full usurpation!
+					}
+				}
+			}
+		}
+		
+		from_potential = {
+			is_playable = yes
+			trait = japanese_regent
+			has_minor_title = title_regent
+			liege = {
+				religion = shinto
+				controls_religion = yes
+				trait = under_regency
+			}
+			has_regent = no # Should be impossible if you have the "Regent" minor title, but best to be certain
+		}
+		
+		allow = {
+			OR = {
+				AND = {
+					tier = count
+					FROM = {
+						prestige = 500
+					}
+				}
+				AND = {
+					tier = duke
+					FROM = {
+						prestige = 1000
+					}
+				}
+				AND = {
+					tier = king
+					FROM = {
+						prestige = 2500
+					}
+				}
+			}
+			FROM = {
+				liege = {
+					NOT = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = took_a_title
+						}
+					}
+					war = no
+				}
+				war = no
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					tier = count
+				}
+				FROM = {
+					prestige = -500
+				}
+			}
+			else_if = {
+				limit = {
+					tier = duke
+				}
+				FROM = {
+					prestige = -1000
+				}
+			}
+			else_if = {
+				limit = {
+					tier = king
+				}
+				FROM = {
+					prestige = -2500
+				}
+			}
+			grant_title_no_opinion = FROM
+			FROM = {
+				liege = {
+					letter_event = { id = japan.43 }
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							claimed_by = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				OR = {
+					AND = {
+						tier = count
+						FROM = {
+							NOT = {
+								prestige = 1000
+							}
+						}
+					}
+					AND = {
+						tier = duke
+						FROM = {
+							NOT = {
+								prestige = 2000
+							}
+						}
+					}
+					AND = {
+						tier = king
+						FROM = {
+							NOT = {
+								prestige = 5000
+							}
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = envious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = deceitful
+				}
+			}
+			modifier = {
+				factor = 0.1
+				tier = king
+				FROM = {
+					NOR = {
+						trait = ambitious
+						capital_scope = {
+							duchy = {
+								title = ROOT
+							}
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				tier = duke
+				FROM = {
+					NOR = {
+						trait = ambitious
+						capital_scope = {
+							kingdom = {
+								title = ROOT
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
