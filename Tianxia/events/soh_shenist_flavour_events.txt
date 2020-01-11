@@ -1,0 +1,1132 @@
+namespace = shenist
+
+##### Shenist flavour
+
+### Shenist mourning
+
+# on_death event firing for descendants
+character_event = {
+	id = shenist.1
+	is_triggered_only = yes
+	hide_window = yes
+	
+	immediate = {
+		any_descendant = {
+			limit = {
+				# Publicly Shenist/Reformed Shenist
+				OR = {
+					religion = chinese_pagan
+					religion = chinese_pagan_reformed
+				}
+				# Not secretly following a different religion
+				OR = {
+					true_religion = chinese_pagan
+					true_religion = chinese_pagan_reformed
+				}
+			}
+			character_event = { id = shenist.2 days = 1 }
+		}
+	}
+}
+
+# Check if the descendant is a Shenist/Reformed Shenist ruler
+character_event = {
+	id = shenist.2
+	is_triggered_only = yes
+	hide_window = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				is_playable = yes
+				# Publicly Shenist/Reformed Shenist
+				OR = {
+					religion = chinese_pagan
+					religion = chinese_pagan_reformed
+				}
+				# Not secretly following a different religion
+				OR = {
+					true_religion = chinese_pagan
+					true_religion = chinese_pagan_reformed
+				}
+				NOT = {
+					trait = in_mourning
+				}
+				has_regent = no # Might be incapable, a prisoner, etc.
+				war = no # If you're fighting a war that should take precedence
+			}
+			character_event = { id = shenist.3 }
+		}
+	}
+}
+
+# Decide if you wish to mourn
+character_event = {
+	id = shenist.3
+	desc = EVTDESC_SHENIST_3
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	immediate = {
+		# Clear all mourning flags
+		clr_character_flag = mourning_sackcloth
+		clr_character_flag = mourning_hair
+		clr_character_flag = mourning_incense
+		clr_character_flag = mourning_diet
+		clr_character_flag = mourning_mystic
+		clr_character_flag = mourning_cynical
+		clr_character_flag = mourning_zealous
+		clr_character_flag = mourning_depressed
+		clr_character_flag = mourning_no_longer_depressed
+		clr_character_flag = mourning_large_offering
+		clr_character_flag = mourning_sympathy
+		clr_character_flag = mourning_stop_early
+		clr_character_flag = mourning_no_more_stress
+		clr_character_flag = mourning_slothful
+	}
+	
+	option = {
+		name = EVTOPTA_SHENIST_3 # Mourn
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = zealous
+				NOR = {
+					AND = {
+						has_religion_feature = religion_patriarchial
+						FROMFROM = {
+							is_female = no
+						}
+					}
+					AND = {
+						has_religion_feature = religion_matriarchial
+						FROMFROM = {
+							is_female = yes
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.01
+				FROMFROM = {
+					NOR = {
+						religion = chinese_pagan
+						religion = chinese_pagan_reformed
+						religion = taoist
+						religion = buddhist
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				has_religion_feature = religion_beatification
+			}
+		}
+		
+		add_trait = in_mourning
+		FROMFROM = {
+			save_event_target_as = ancestor_to_mourn
+		}
+		character_event = { id = shenist.4 days = 1095 } # End mourning
+		character_event = { id = shenist.5 days = 60 random = 30 } # Mourning events
+	}
+	
+	option = {
+		name = EVTOPTB_SHENIST_3 # Do not mourn
+		
+		if = {
+			limit = {
+				NOR = {
+					AND = {
+						has_religion_feature = religion_patriarchial
+						FROMFROM = {
+							is_female = yes
+						}
+					}
+					AND = {
+						has_religion_feature = religion_matriarchial
+						FROMFROM = {
+							is_female = no
+						}
+					}
+				}
+				FROMFROM = {
+					dynasty = ROOT
+					OR = {
+						religion = chinese_pagan
+						religion = chinese_pagan_reformed
+						religion = taoist
+						religion = buddhist
+					}
+				}
+			}
+			piety = -100
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = cynical
+			}
+			modifier = {
+				factor = 10
+				FROMFROM = {
+					is_female = yes
+				}
+				NOR = {
+					has_religion_feature = religion_equal
+					has_religion_feature = religion_matriarchial
+				}
+			}
+			modifier = {
+				factor = 1000
+				trait = zealous
+				OR = {
+					AND = {
+						has_religion_feature = religion_patriarchial
+						FROMFROM = {
+							is_female = yes
+						}
+						is_female = no
+					}
+					AND = {
+						has_religion_feature = religion_matriarchial
+						FROMFROM = {
+							is_female = no
+						}
+						ís_female = yes
+					}
+				}
+			}
+			modifier = {
+				factor = 100
+				FROMFROM = {
+					NOT = {
+						dynasty = ROOT
+					}
+				}
+			}
+		}
+	}
+}
+
+# End mourning
+character_event = {
+	id = shenist.4
+	desc = EVTDESC_SHENIST_4
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	trigger = {
+		trait = in_mourning
+	}
+	
+	option = {
+		name = EVTOPTA_SHENIST_4 # It is time to stop mourning
+		remove_trait = in_mourning
+		
+		if = { # Extra piety with Ancestor Veneration
+			limit = {
+				has_religion_feature = religion_beatification 
+				NOR = {
+					AND = {
+						has_religion_feature = religion_patriarchial
+						event_target:ancestor_to_mourn = {
+							is_female = yes
+						}
+					}
+					AND = {
+						has_religion_feature = religion_matriarchial
+						event_target:ancestor_to_mourn = {
+							is_female = no
+						}
+					}
+				}
+			}
+			piety = 100
+		}
+		# Clear all mourning flags
+		clr_character_flag = mourning_sackcloth
+		clr_character_flag = mourning_hair
+		clr_character_flag = mourning_incense
+		clr_character_flag = mourning_diet
+		clr_character_flag = mourning_mystic
+		clr_character_flag = mourning_cynical
+		clr_character_flag = mourning_zealous
+		clr_character_flag = mourning_depressed
+		clr_character_flag = mourning_no_longer_depressed
+		clr_character_flag = mourning_large_offering
+		clr_character_flag = mourning_sympathy
+		clr_character_flag = mourning_stop_early
+		clr_character_flag = mourning_no_more_stress
+		clr_character_flag = mourning_slothful
+	}
+}
+
+# Select mourning event
+character_event = {
+	id = shenist.5
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		trait = in_mourning
+		is_playable = yes
+	}
+	
+	immediate = {
+		random_list = {
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_sackcloth
+				}
+				set_character_flag = mourning_sackcloth
+				character_event = { id = shenist.6 } # Sackcloth
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_hair
+				}
+				modifier = {
+					factor = 0
+					OR = {
+						trait = ugly
+						trait = fair
+					}
+				}
+				set_character_flag = mourning_hair
+				character_event = { id = shenist.7 } # Hair
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_incense
+				}
+				set_character_flag = mourning_incense
+				character_event = { id = shenist.8 } # Incense offering
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_diet
+				}
+				set_character_flag = mourning_diet
+				character_event = { id = shenist.9 } # Diet
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_mystic
+				}
+				modifier = {
+					factor = 0
+					num_of_lifestyle_traits = 1
+				}
+				set_character_flag = mourning_mystic
+				character_event = { id = shenist.10 } # Mystic
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_cynical
+				}
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_zealous
+				}
+				modifier = {
+					factor = 0
+					trait = zealous
+				}
+				set_character_flag = mourning_cynical
+				character_event = { id = shenist.11 } # Cynical
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_zealous
+				}
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_cynical
+				}
+				modifier = {
+					factor = 0
+					trait = cynical
+				}
+				set_character_flag = mourning_zealous
+				character_event = { id = shenist.12 } # Zealous
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_depressed
+				}
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_no_longer_depressed
+				}
+				modifier = {
+					factor = 0
+					trait = depressed
+				}
+				set_character_flag = mourning_depressed
+				character_event = { id = shenist.13 } # Depressed
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_no_longer_depressed
+				}
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_depressed
+				}
+				modifier = {
+					factor = 0
+					NOT = {
+						trait = depressed
+					}
+				}
+				set_character_flag = mourning_no_longer_depressed
+				character_event = { id = shenist.14 } # No longer depressed
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_sympathy
+				}
+				modifier = {
+					factor = 0
+					trait = zealous
+				}
+				modifier = {
+					factor = 0
+					event_target:ancestor_to_mourn = {
+						religion_group = pagan_group
+					}
+				}
+				modifier = {
+					factor = 0
+					event_target:ancestor_to_mourn = {
+						ROOT = {
+							true_religion_group = PREV
+						}
+					}
+				}
+				set_character_flag = mourning_sympathy
+				character_event = { id = shenist.15 } # Sympathy
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_large_offering
+				}
+				modifier = {
+					factor = 0
+					NOT = {
+						wealth = 100
+					}
+				}
+				set_character_flag = mourning_large_offering
+				character_event = { id = shenist.16 } # Large offering
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_stop_early
+				}
+				modifier = {
+					factor = 0
+					trait = slothful
+				}
+				modifier = {
+					factor = 2
+					trait = diligent
+				}
+				modifier = {
+					factor = 2
+					trait = cynical
+				}
+				set_character_flag = mourning_stop_early
+				character_event = { id = shenist.18 } # End the mourning early?
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_no_more_stress
+				}
+				modifier = {
+					factor = 0
+					NOT = {
+						trait = stressed
+					}
+				}
+				set_character_flag = mourning_no_more_stress
+				character_event = { id = shenist.19 } # Lose stressed
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_slothful
+				}
+				modifier = {
+					factor = 0
+					trait = slothful
+				}
+				set_character_flag = mourning_slothful
+				character_event = { id = shenist.20 } # Become more slothful
+			}
+			50 = {} # Nothing
+		}
+		
+		repeat_event = { id = shenist.5 days = 180 random = 30 }
+	}
+}
+
+# Wear sackcloth clothing?
+character_event = {
+	id = shenist.6
+	desc = EVTDESC_SHENIST_6
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_6 # Yes!
+		
+		piety = 10
+		random = {
+			chance = 5
+			if = {
+				limit = {
+					NOT = {
+						trait = proud
+					}
+				}
+				add_trait = humble
+			}
+			else = {
+				remove_trait = proud
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = proud
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SHENIST_6 # No!
+		
+		piety = -25
+		prestige = 25
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = humble
+			}
+		}
+	}
+}
+
+# Unkempt hair -- fix it?
+character_event = {
+	id = shenist.7
+	desc = EVTDESC_SHENIST_7
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_7 # Yes!
+		
+		piety = -10
+		random = {
+			chance = 10
+			if = {
+				limit = {
+					NOT = {
+						trait = uncouth
+					}
+				}
+				add_trait = groomed
+			}
+			else = {
+				remove_trait = uncouth
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOR = {
+					trait = groomed
+					trait = proud
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SHENIST_7 # No!
+		
+		piety = 25
+		random = {
+			chance = 25
+			if = {
+				limit = {
+					NOT = {
+						trait = groomed
+					}
+				}
+				add_trait = uncouth
+			}
+			else = {
+				remove_trait = groomed
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = proud
+			}
+			modifier = {
+				factor = 0
+				trait = groomed
+			}
+		}
+	}
+}
+
+# Make a small incense offering?
+character_event = {
+	id = shenist.8
+	desc = EVTDESC_SHENIST_8
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_6 # Yes!
+		
+		piety = 10
+		wealth = -5
+		
+		random = {
+			chance = 5
+			if = {
+				limit = {
+					NOT = {
+						trait = cynical
+					}
+				}
+				add_trait = zealous
+			}
+			else = {
+				remove_trait = cynical
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = cynical
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SHENIST_6 # No!
+		
+		piety = -10
+		random = {
+			chance = 25
+			if = {
+				limit = {
+					NOT = {
+						trait = zealous
+					}
+				}
+				add_trait = cynical
+			}
+			else = {
+				remove_trait = zealous
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = zealous
+			}
+		}
+	}
+}
+
+# Go on a diet?
+character_event = {
+	id = shenist.9
+	desc = EVTDESC_SHENIST_9
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_9 # Yes!
+		
+		piety = 10
+		random = {
+			chance = 10
+			if = {
+				limit = {
+					NOT = {
+						trait = gluttonous
+					}
+				}
+				add_trait = temperate
+			}
+			else = {
+				remove_trait = gluttonous
+			}
+		}
+		random = {
+			chance = 25
+			lose_weight_small_effect = yes
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = gluttonous
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SHENIST_9 # No!
+		
+		piety = -10
+		random = {
+			chance = 10
+			if = {
+				limit = {
+					trait = temperate
+					}
+				}
+				remove_trait = temperate
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = temperate
+			}
+		}
+	}
+}
+
+# Embrace mysticism?
+character_event = {
+	id = shenist.10
+	desc = EVTDESC_SHENIST_10
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_10 # Yes!
+		
+		add_trait = mystic
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = cynical
+				NOR = {
+					trait = lunatic
+					trait = possessed
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SHENIST_10 # No!
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				OR = {
+					trait = lunatic
+					trait = possessed
+				}
+			}
+		}
+	}
+}
+
+# Become cynical
+character_event = {
+	id = shenist.11
+	desc = EVTDESC_SHENIST_11
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_11 # This is pointless...
+		
+		piety = -25
+		
+		if = {
+			limit = {
+				NOT = {
+					trait = zealous
+				}
+			}
+			add_trait = cynical
+		}
+		else = {
+			remove_trait = zealous
+		}
+	}
+}
+
+# Become zealous
+character_event = {
+	id = shenist.12
+	desc = EVTDESC_SHENIST_12
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_12 # Faith is the answer!
+		
+		piety = 25
+		
+		if = {
+			limit = {
+				NOT = {
+					trait = cynical
+				}
+			}
+			add_trait = zealous
+		}
+		else = {
+			remove_trait = cynical
+		}
+	}
+}
+
+# Become depressed
+character_event = {
+	id = shenist.13
+	desc = EVTDESC_SHENIST_13
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_13 # Everything is pointless...
+		
+		add_trait = depressed
+	}
+}
+
+# Stop being depressed
+character_event = {
+	id = shenist.14
+	desc = EVTDESC_SHENIST_14
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_14 # Things could be worse...
+		
+		remove_trait = depressed
+	}
+}
+
+# Gain sympathy
+character_event = {
+	id = shenist.15
+	desc = EVTDESC_SHENIST_15
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_15 # They might have some answers...
+		
+		event_target:ancestor_to_mourn = {
+			ROOT = {
+				add_sympathy_for_prevs_open_religion_effect = yes
+			}
+		}
+	}
+}
+
+# Make a big offering?
+character_event = {
+	id = shenist.16
+	desc = EVTDESC_SHENIST_16
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_16 # Yes!
+		
+		wealth = -100
+		
+		random = {
+			chance = 5
+			if = {
+				limit = {
+					NOT = {
+						trait = humble
+					}
+				}
+				add_trait = proud
+			}
+			else = {
+				remove_trait = humble
+			}
+		}
+		
+		event_target:ancestor_to_mourn = {
+			any_descendant = {
+				limit = {
+					OR = {
+						religion = chinese_pagan
+						religion = chinese_pagan_reformed
+						religion = taoist
+						religion = buddhist
+						has_religion_feature = religion_beatification
+						has_religion_feature = religion_feature_viet
+					}
+				}
+				if = {
+					limit = {
+						has_religion_feature = religion_beatification
+					}
+					opinion = {
+						who = ROOT
+						modifier = opinion_large_ancestor_offering_beatification
+					}
+				}
+				else = {
+					opinion = {
+						who = ROOT
+						modifier = opinion_large_ancestor_offering
+					}
+				}
+				if = {
+					limit = {
+						ai = no
+					}
+					character_event = { id = shenist.17 } # Inform the player, if relevant
+				}
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = greedy
+				NOT = {
+					trait = zealous
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SHENIST_16 # No!
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = charitable
+				NOT = {
+					trait = cynical
+				}
+			}
+		}
+	}
+}
+
+# Inform players of offerings
+character_event = {
+	id = shenist.17
+	desc = EVTDESC_SHENIST_17
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_17 # Good to hear!
+	}
+}
+
+# End mourning early?
+character_event = {
+	id = shenist.18
+	desc = EVTDESC_SHENIST_18
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_18 # Yes!
+		
+		remove_trait = in_mourning
+		
+		piety = -25
+		
+		# Clear all mourning flags
+		clr_character_flag = mourning_sackcloth
+		clr_character_flag = mourning_hair
+		clr_character_flag = mourning_incense
+		clr_character_flag = mourning_diet
+		clr_character_flag = mourning_mystic
+		clr_character_flag = mourning_cynical
+		clr_character_flag = mourning_zealous
+		clr_character_flag = mourning_depressed
+		clr_character_flag = mourning_no_longer_depressed
+		clr_character_flag = mourning_large_offering
+		clr_character_flag = mourning_sympathy
+		clr_character_flag = mourning_stop_early
+		clr_character_flag = mourning_no_more_stress
+		clr_character_flag = mourning_slothful
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = slothful
+				NOT = {
+					trait = cynical
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SHENIST_18 # No!
+		
+		piety = 10
+		random = {
+			chance = 10
+			if = {
+				limit = {
+					NOT = {
+						trait = different
+					}
+				}
+				add_trait = slothful
+			}
+			else = {
+				remove_trait = diligent
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = diligent
+				NOT = {
+					trait = zealous
+				}
+			}
+		}
+	}
+}
+
+# Lose stressed
+character_event = {
+	id = shenist.19
+	desc = EVTDESC_SHENIST_19
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_19 # I needed a break!
+		
+		remove_trait = stressed
+	}
+}
+
+# Become more slothful
+character_event = {
+	id = shenist.20
+	desc = EVTDESC_SHENIST_20
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SHENIST_20 # I should relax more often!
+		
+		if = {
+			limit = {
+				NOT = {
+					trait = different
+				}
+			}
+			add_trait = slothful
+		}
+		else = {
+			remove_trait = diligent
+		}
+	}
+}
+
+# on_war_started, stop mourning
+character_event = {
+	id = shenist.21
+	desc = EVTDESC_SHENIST_21
+	picture = GFX_evt_chinese_bureaucrat
+    border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	
+	trigger = {
+		trait = in_mourning
+	}
+	
+	option = {
+		name = EVTOPTA_SHENIST_21 # I have a war to fight!
+		
+		remove_trait = in_mourning
+	}
+}
