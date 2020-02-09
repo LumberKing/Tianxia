@@ -1,0 +1,156 @@
+## normal scopes(including posttitle scopes) ##
+# ROOT = receiver
+# FROM = giver
+# <no scope change> = attacker or receiver
+## title scopes ##
+# ROOT = receiver
+# FROM = giver
+# <no scope change> = thirdparty landed title	
+#
+# the following effects/triggers exists (example execution order: on_success->on_success_title->on_success_posttitle):
+# is_valid, is_valid_title, on_add, on_add_title, on_add_posttitle, on_success, on_success_title, on_success_posttitle, on_fail, on_fail_title, on_fail_posttitle, on_reverse_demand, on_reverse_demand_title, on_reverse_demand_posttitle
+#
+# Added on_attacker_leader_death, on_defender_leader_death and on_thirdparty_death, which all trigger when corresponding character dies
+# These three all have war scopes, which currently has the following scope changes: 
+# attacker, defender, thirdparty(only valid if thirdparty character is involved), thirdparty_title(only valid if thirdparty title is involved)
+#
+# ai_will_do: modifies value AI places on the CB compared to other CBs (default: 1) Note: is in title scope
+# can_use_gui: If otherwise valid, the CB is listed in the Diplo View, but you can't declare war unless 'can_use_gui' is also valid (also shows a trigger tooltip.)
+#
+
+# Potential Liao-Jin over all of China if the Sixteen Prefectures aren't handed over
+khitan_invasion = {
+	name = CB_NAME_KHITAN_INVASION
+	war_name = WAR_NAME_KHITAN_INVASION
+	sprite = 8
+	truce_days = 3650
+	diplo_view_region = world_china
+	is_permanent = no # Only started from script
+
+	allowed_to_target_tributaries = no
+	can_ask_to_join_war = no
+	can_call_allies = no
+	allow_whitepeace = no # You win, or you lose
+	
+	# No need to check Chinese Peace Deals
+
+	can_use = {
+		always = no # Should only be triggered in script
+	}
+	
+	is_valid = {
+		FROM = {
+			has_landed_title = e_black_turtle
+		}
+	}
+
+	on_success = {
+		ROOT = {
+			participation_scaled_prestige = 1000
+		}
+		
+		# 1: Usurp all vassals
+		FROM = {
+			any_vassal = {
+				limit = {
+					higher_tier_than = baron
+				}
+				set_defacto_liege = ROOT
+			}
+		}
+		
+		# 2: Destroy any emperor titles held by FROM and vassalize and imprison FROM
+		ROOT = {
+			e_black_turtle = {
+				clr_title_flag = tang_china
+				clr_title_flag = jin_china
+				clr_title_flag = wei_china
+				clr_title_flag = qi_china
+				clr_title_flag = zhou_china
+				clr_title_flag = han_china
+				clr_title_flag = qin_china
+				clr_title_flag = yan_china
+				clr_title_flag = zhao_china
+				clr_title_flag = liao_china
+				clr_title_flag = yuan_china
+				clr_title_flag = xia_china
+				clr_title_flag = qing_china
+				clr_title_flag = dai_china
+				clr_title_flag = cheng_china
+				clr_title_flag = liang_china
+				clr_title_flag = song_china
+				clr_title_flag = ming_china
+				clr_title_flag = shu_china
+				clr_title_flag = wu_china
+				clr_title_flag = chu_china
+				clr_title_flag = yue_china
+				clr_title_flag = yin_china
+				clr_title_flag = shun_china
+				clr_title_flag = sui_china
+				clr_title_flag = min_china
+				clr_title_flag = five_dynasties_and_ten_kingdoms
+				destroy_landed_title = THIS
+			}
+		}
+		FROM = {
+			set_defacto_liege = ROOT
+			imprison = ROOT
+		}
+		
+		# 3: Prestige for allies
+		any_attacker = {
+			limit = { NOT = { character = ROOT } }
+			hidden_tooltip = { participation_scaled_prestige = 1000 }
+		}
+		
+		# Prestige loss for the defender
+		FROM = {
+			prestige = -1000
+		}
+	}
+	
+	on_fail = {
+		FROM = {
+			participation_scaled_prestige = 500
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = 100 }
+		}
+		ROOT = {
+			prestige = -500
+		}
+	}
+
+	on_reverse_demand = {
+		ROOT = {
+			prestige = -1000
+			transfer_scaled_wealth = {
+				to = FROM
+				value = 2.0
+			}
+		}
+		FROM = {
+			participation_scaled_prestige = 2000
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = 2000 }
+		}
+	}
+	attacker_ai_victory_worth = {
+		factor = -1
+	}
+
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1
+	}
+
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+}
