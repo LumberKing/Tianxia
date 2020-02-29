@@ -323,19 +323,25 @@ decisions = {
 				AND = {
 					prestige = 2000
 					regent = {
-						any_owned_bloodline = {
-							has_bloodline_flag = regency_bloodline
-							bloodline_is_active_for = PREV
+						custom_tooltip = {
+							text = has_regency_bloodline
+							any_owned_bloodline = {
+								has_bloodline_flag = regency_bloodline
+								bloodline_is_active_for = PREV
+							}
 						}
 					}
 				}
 				AND = {
 					prestige = 1000
 					regent = {
-						NOT = {
-							any_owned_bloodline = {
-								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = PREV
+						custom_tooltip = {
+							text = has_no_regency_bloodline
+							NOT = {
+								any_owned_bloodline = {
+									has_bloodline_flag = regency_bloodline
+									bloodline_is_active_for = PREV
+								}
 							}
 						}
 					}
@@ -348,11 +354,13 @@ decisions = {
 			if = {
 				limit = {
 					regent = {
-						any_owned_bloodline = {
-							has_bloodline_flag = regency_bloodline
-							bloodline_is_active_for = PREV
+						custom_tooltip = {
+							text = has_regency_bloodline
+							any_owned_bloodline = {
+								has_bloodline_flag = regency_bloodline
+								bloodline_is_active_for = PREV
+							}
 						}
-						
 					}
 				}
 				prestige = -1000
@@ -627,15 +635,29 @@ decisions = {
 				controls_religion = yes
 				has_regent = no
 			}
+			NOT = {
+				religion = shinto
+				controls_religion = yes
+			}
+			OR = {
+				religion = shinto
+				AND = {
+					religion = buddhist
+					culture_group = japonic
+				}
+			}
 		}
 		
 		allow = {
 			OR = {
 				prestige = 1000
 				AND = {
-					any_owned_bloodline = {
-						has_bloodline_flag = regency_bloodline
-						bloodline_is_active_for = PREV
+					custom_tooltip = {
+						text = has_regency_bloodline
+						any_owned_bloodline = {
+							has_bloodline_flag = regency_bloodline
+							bloodline_is_active_for = PREV
+						}
 					}
 					prestige = 500
 				}
@@ -651,9 +673,12 @@ decisions = {
 			OR = {
 				is_voter = yes # Safe to use here!
 				among_most_powerful_vassals = 7
-				any_owned_bloodline = {
-					has_bloodline_flag = regency_bloodline
-					bloodline_is_active_for = PREV
+				custom_tooltip = {
+					text = has_regency_bloodline
+					any_owned_bloodline = {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+					}
 				}
 			}
 		}
@@ -661,9 +686,12 @@ decisions = {
 		effect = {
 			if = {
 				limit = {
-					any_owned_bloodline = {
-						has_bloodline_flag = regency_bloodline
-						bloodline_is_active_for = PREV
+					custom_tooltip = {
+						text = has_regency_bloodline
+						any_owned_bloodline = {
+							has_bloodline_flag = regency_bloodline
+							bloodline_is_active_for = PREV
+						}
 					}
 				}
 				prestige = -500
@@ -819,6 +847,144 @@ decisions = {
 			modifier = {
 				factor = 2
 				tier = king
+			}
+		}
+	}
+	
+	overthrow_my_regent_decision = {
+		only_playable = yes
+		is_high_prio = yes
+		ai_check_interval = 12
+		
+		potential = {
+			religion = shinto
+			controls_religion = yes
+			trait = under_regency
+			NOT = { has_character_flag = overthrow_my_regent_decision_taken }
+		}
+		allow = {
+			war = no
+			has_actual_regency_trigger = no
+			# We've got a good amount of prestige; this hopefully prevents weak historical regents from being overthrown in an instant
+			OR = {
+				AND = {
+					prestige = 2000
+					regent = {
+						custom_tooltip = {
+							text = has_regency_bloodline
+							any_owned_bloodline = {
+								has_bloodline_flag = regency_bloodline
+								bloodline_is_active_for = PREV
+							}
+						}
+					}
+				}
+				AND = {
+					prestige = 1000
+					regent = {
+						custom_tooltip = {
+							text = has_no_regency_bloodline
+							NOT = {
+								any_owned_bloodline = {
+									has_bloodline_flag = regency_bloodline
+									bloodline_is_active_for = PREV
+								}
+							}
+						}
+					}
+				}
+			}
+			will_liege_enforce_peace = no
+			has_liege_enforced_peace = no
+			NOT = {
+				regent = {
+					reverse_has_truce = ROOT
+				}
+			}
+			regent = {
+				is_landed = yes
+				trait = japanese_regent
+			}
+		}
+		effect = {
+			set_character_flag = overthrow_my_regent_decision_taken
+			if = {
+				limit = {
+					regent = {
+						NOT = {
+							leads_faction = faction_regent_loyalists
+						}
+					}
+				}
+				regent = {
+					character_event = { id = japan.58 } # Non-faction version
+				}
+			}
+			else = {
+				regent = {
+					character_event = { id = japan.61 } # Faction version
+				}
+			}
+		}
+		revoke_allowed = {
+			always = no
+		}
+		ai_will_do = {
+			factor = 1
+			
+			# Reversed faction ultimatum logic, plus relative_power_to_liege checks if there isn't a faction
+			modifier = {
+				factor = 0.1
+				OR = {
+					regent = { 
+						faction_power = {
+							faction = faction_regent
+							power = 0.75
+						}
+					}
+					regent = {
+						relative_power_to_liege = 0.75
+					}
+				}
+			}
+			
+			modifier = {
+				factor = 0.1
+				OR = {
+					regent = { 
+						faction_power = {
+							faction = faction_regent
+							power = 1.0
+						}
+					}
+					regent = {
+						relative_power_to_liege = 1.0
+					}
+				}
+			}	
+
+			modifier = {
+				factor = 0
+				OR = {
+					regent = { 
+						faction_power = {
+							faction = faction_regent
+							power = 1.5
+						}
+					}
+					regent = {
+						relative_power_to_liege = 1.5
+					}
+				}
+			}
+			
+			modifier = { # If the liege is already fighting a regency war, slow it down to avoid war spam
+				factor = 0.05
+				regent = {
+					any_war = {
+						using_cb = take_over_regency_war
+					}
+				}
 			}
 		}
 	}
