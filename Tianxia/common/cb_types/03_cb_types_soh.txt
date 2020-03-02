@@ -1625,7 +1625,7 @@ unification_of_korea = { # For historical wars
 	}
 }
 
-# War vs. regent
+# War vs. regent for the Tenno
 end_regency_war = {
 	name = CB_NAME_END_REGENCY
 	war_name = WAR_NAME_END_REGENCY
@@ -1792,6 +1792,8 @@ take_over_regency_war = {
 	sort_priority = 900
 
 	allowed_to_target_tributaries = no
+	
+	allow_whitepeace = no
 
 	infamy_modifier = 0.85
 	
@@ -1806,6 +1808,12 @@ take_over_regency_war = {
 				religion = shinto
 				controls_religion = yes
 				trait = under_regency
+				OR = {
+					NOT = {
+						dynasty = ROOT
+					}
+					dynasty = FROM
+				}
 			}
 			OR = {
 				religion = shinto
@@ -1857,6 +1865,12 @@ take_over_regency_war = {
 				trait = under_regency
 			}
 			trait = japanese_regent
+		}
+	}
+	
+	on_invalidation = {
+		ROOT = {
+			prestige = 500
 		}
 	}
 
@@ -1953,6 +1967,14 @@ take_over_regency_war = {
 	ai_will_do = {
 		factor = 2
 		modifier = {
+			factor = 0.1
+			ROOT = {
+				NOT = {
+					prestige = 1000
+				}
+			}
+		}
+		modifier = {
 			factor = 2
 			ROOT = {
 				trait = ambitious
@@ -1991,7 +2013,7 @@ take_over_regency_war = {
 	}
 }
 
-# Faction war to install a regent
+# Faction war to install a regent for the Tenno
 regency_faction_war = {
 	name = CB_NAME_REGENCY_FACTION
 	war_name = WAR_NAME_REGENCY_FACTION
@@ -2322,33 +2344,6 @@ end_regency_war_faction = {
 		}
 		ROOT = {
 			give_minor_title = title_regent
-			if = {
-				limit = {
-					NOT = {
-						custom_tooltip = {
-							text = has_regency_bloodline
-							any_owned_bloodline = {
-								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = ROOT
-							}
-						}
-					}
-				}
-				if = {
-					limit = {
-						is_female = no
-					}
-					create_bloodline = {
-						type = regency_bloodline
-					}
-				}
-				else = {
-					create_bloodline = {
-						type = regency_bloodline
-						inheritance = matrilineal
-					}
-				}
-			}
 		}
 	}
 			
@@ -2396,6 +2391,898 @@ end_regency_war_faction = {
 		}
 		ROOT = {
 			remove_trait = japanese_regent
+			if = { 
+				limit = { NOT = { reverse_has_opinion_modifier = { modifier = opinion_traitor who = FROM } } } #Allow free revocation of a title.
+				reverse_opinion = {
+					who = FROM
+					modifier = opinion_traitor
+				}
+			}
+			imprison = FROM # Fighting against your liege should be punished!
+		}
+		
+		hidden_tooltip = {
+			any_attacker = {
+				limit = { liege = { character = FROM } }
+				disband_event_forces = faction_revolters
+				prisoner = FROM
+			}
+		}
+	}
+	
+	on_attacker_leader_death = {
+		end_war = invalid
+	}
+	
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+}
+
+# Faction war to install a regent for the Shogun
+regency_faction_war2 = {
+	name = CB_NAME_REGENCY_FACTION
+	war_name = WAR_NAME_REGENCY_FACTION
+	sprite = 3
+	truce_days = 3650
+	hostile_against_others = yes
+	is_permanent = no # Declared through an event
+
+	#press_claim = yes
+	can_call_vassals = no
+	#attacker_can_call_allies = no
+	major_revolt = yes
+
+	allowed_to_target_tributaries = no
+
+	infamy_modifier = 0.85
+	
+	is_valid = {
+		FROM = {
+			OR = {
+				AND = {
+					religion = shinto
+					controls_religion = no
+				}
+				AND = {
+					religion = buddhist
+					culture_group = japonic
+				}
+			}
+			NOT = {
+				government = chinese_imperial_government
+			}
+			NOT = {
+				trait = under_regency2 # If someone else managed to become the regent the war is no longer possible
+			}
+		}
+		ROOT = {
+			has_regent = no
+			OR = {
+				AND = {
+					religion = shinto
+					controls_religion = no
+				}
+				AND = {
+					religion = buddhist
+					culture_group = japonic
+				}
+			}
+		}
+	}
+
+	on_add = {
+		hidden_tooltip = { fire_haruspicy_event_effect = yes }
+	}
+	
+	# No need to check Chinese Peace Deals or if China cares
+
+	on_success = {
+		ROOT = {
+			participation_scaled_prestige = 100
+			hidden_tooltip = {
+				disband_event_forces = faction_revolters
+			}
+		}
+		any_attacker = {
+			limit = { NOT = { character = ROOT } }
+			hidden_tooltip = { participation_scaled_prestige = 100 }
+			hidden_tooltip = {
+				disband_event_forces = faction_revolters
+			}
+		}
+		
+		FROM = {
+			add_trait = under_regency2
+			hidden_tooltip = { disband_event_forces = faction_loyalists }
+			
+			if = {
+				limit = { NOT = { has_dlc = "Zeus" } }
+				any_demesne_title = { # All titles
+					limit = {
+						OR = {
+							tier = king
+							tier = emperor
+						}
+	#					is_titular = no
+						NOT = { has_law = crown_authority_0 }
+					}
+					if = {
+						limit = { has_law = crown_authority_1 }
+						add_law = crown_authority_0
+					}
+					if = {
+						limit = { has_law = crown_authority_2 }
+						add_law = crown_authority_1
+					}
+					if = {
+						limit = { has_law = crown_authority_3 }
+						add_law = crown_authority_2
+					}
+					if = {
+						limit = { has_law = crown_authority_4 }
+						add_law = crown_authority_3
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				ROOT = {
+					prisoner = yes
+					host = { character = FROM  }
+				}
+			}
+			ROOT = { prisoner = no }
+		}
+		if = {
+			limit = {
+				FROM = {
+					prisoner = yes
+					host = { character = ROOT  }
+				}
+			}
+			FROM = { prisoner = no }
+		}
+		ROOT = {
+			add_trait = japanese_regent2
+			give_minor_title = title_regent
+			if = {
+				limit = {
+					NOT = {
+						custom_tooltip = {
+							text = has_regency_bloodline
+							any_owned_bloodline = {
+								has_bloodline_flag = regency_bloodline
+								bloodline_is_active_for = ROOT
+							}
+						}
+					}
+				}
+				if = {
+					limit = {
+						is_female = no
+					}
+					create_bloodline = {
+						type = regency_bloodline
+					}
+				}
+				else = {
+					create_bloodline = {
+						type = regency_bloodline
+						inheritance = matrilineal
+					}
+				}
+			}
+		}
+	}
+	
+	on_fail = {
+		ROOT = {
+			prestige = -100
+		}
+		FROM = {
+			participation_scaled_prestige = 50
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = 50 }
+		}
+		
+		hidden_tooltip = {
+			any_attacker = {
+				limit = { liege = { character = FROM } }
+				disband_event_forces = faction_revolters
+			}
+		}
+		
+		FROM = { hidden_tooltip = { disband_event_forces = faction_loyalists } }
+	}
+
+	on_reverse_demand = {
+		ROOT = {
+			prestige = -150
+		}
+		
+		FROM = {
+			participation_scaled_prestige = 100
+			hidden_tooltip = { 
+				if = { 
+					limit = { NOT = { has_opinion_modifier = { modifier = opinion_traitor who = ROOT } } } #Allow free revocation of a title.
+					opinion = {
+						who = ROOT
+						modifier = opinion_traitor
+					}
+				}
+			}
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = 100 }
+		}
+		
+		hidden_tooltip = {
+			any_attacker = {
+				limit = { liege = { character = FROM } }
+				disband_event_forces = faction_revolters
+				prisoner = FROM
+			}
+		}
+		
+		FROM = { hidden_tooltip = { disband_event_forces = faction_loyalists } }
+	}
+	
+	on_attacker_leader_death = {
+		end_war = invalid
+	}
+	
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+}
+
+# War vs. regent for the Shogun
+end_regency_war2 = {
+	name = CB_NAME_END_REGENCY
+	war_name = WAR_NAME_END_REGENCY
+	sprite = 3
+	truce_days = 3650
+	allow_whitepeace = no # You win, or you lose
+	is_permanent = no # Declared through an event
+
+	can_attack_vassals = yes
+
+	allowed_to_target_tributaries = no
+
+	infamy_modifier = 0.85
+	
+	# No need to check Chinese Peace Deals
+		
+	is_valid = {
+		ROOT = {
+			OR = {
+				AND = {
+					religion = shinto
+					controls_religion = no
+				}
+				AND = {
+					religion = buddhist
+					culture_group = japonic
+				}
+			}
+			NOT = {
+				government = chinese_imperial_government
+			}
+			#trait = under_regency
+		}
+		FROM = {
+			trait = japanese_regent2
+			has_regent = no
+			is_ruler = yes
+		}
+	}
+
+	on_add = {
+		hidden_tooltip = { fire_haruspicy_event_effect = yes }
+		ROOT = {
+			remove_trait = under_regency2
+		}
+	}
+
+	on_success = {
+		ROOT = {
+			remove_trait = under_regency2
+		}
+		FROM = {
+			remove_trait = japanese_regent2
+			if = { 
+				limit = { NOT = { reverse_has_opinion_modifier = { modifier = opinion_traitor who = ROOT } } } #Allow free revocation of a title.
+				reverse_opinion = {
+					who = ROOT
+					modifier = opinion_traitor
+				}
+			}
+			imprison = ROOT # Fighting against your liege should be punished!
+		}
+	}	
+			
+	on_invalidation = {
+		ROOT = {
+			cancel_plot = plot_overthrow_my_regent
+			clr_character_flag = plot_overthrow_my_regent_taken
+		}
+		FROM = {
+			if = {
+				limit = {
+					trait = japanese_regent2
+					has_regent = yes
+				}
+				ROOT = {
+					remove_trait = under_regency2
+				}
+				remove_trait = japanese_regent2
+			}
+			else_if = {
+				limit = {
+					trait = japanese_regent2
+				}
+				ROOT = {
+					add_trait = under_regency2
+					#any_vassal = {
+					#	limit = {
+					#		lower_tier_than = FROM
+					#		reverse_has_opinion_modifier = {
+					#			who = FROM
+					#			modifier = opinion_seeks_to_overthrow_me
+					#		}
+					#	}
+					#	reverse_remove_opinion = {
+					#		who = FROM
+					#		modifier = opinion_seeks_to_overthrow_me
+					#	}
+					#	set_defacto_liege = FROM
+					#}
+				}
+			}
+		}
+	}
+
+	on_reverse_demand = {
+		ROOT = {
+			add_trait = under_regency2
+			# The regent assumes control much more thoroguhly, making sure we can't spam the faction and making sure there are consequences
+			add_character_modifier = {
+				modifier = failed_to_overthrow_regent
+				days = 3650
+			}
+		}
+		FROM = {
+			add_trait = japanese_regent2
+			give_minor_title = title_regent
+			#ROOT = {
+			#	any_vassal = {
+			#		limit = {
+			#			lower_tier_than = FROM
+			#			reverse_has_opinion_modifier = {
+			#				who = FROM
+			#				modifier = opinion_seeks_to_overthrow_me
+			#			}
+			#		}
+			#		reverse_remove_opinion = {
+			#			who = FROM
+			#			modifier = opinion_seeks_to_overthrow_me
+			#		}
+			#		set_defacto_liege = FROM
+			#		imprison = FROM
+			#	}
+			#}
+		}
+		if = {
+			limit = {
+				ROOT = {
+					prisoner = yes
+					host = { character = FROM  }
+				}
+			}
+			ROOT = { prisoner = no }
+		}
+	}
+	
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+}
+
+# Other vassal's war for the regency
+take_over_regency_war2 = {
+	name = CB_NAME_TAKE_REGENCY
+	war_name = WAR_NAME_TAKE_REGENCY
+	sprite = 3
+	truce_days = 3650
+	is_permanent = yes
+	hostile_against_others = yes
+	
+	defender_unoccupied_warscore = yes
+	
+	sort_priority = 900
+
+	allowed_to_target_tributaries = no
+	
+	allow_whitepeace = no
+
+	infamy_modifier = 0.85
+	
+	# No need to check Chinese Peace Deals
+	
+	can_use = {
+		ROOT = {
+			independent = no
+			prestige = 500
+			has_regent = no
+			liege = {
+				OR = {
+					AND = {
+						religion = shinto
+						controls_religion = no
+					}
+					AND = {
+						religion = buddhist
+						culture_group = japonic
+					}
+				}
+				NOT = {
+					government = chinese_imperial_government
+				}
+				trait = under_regency2
+				OR = {
+					NOT = {
+						dynasty = ROOT
+					}
+					dynasty = FROM
+				}
+			}
+			OR = {
+				AND = {
+					religion = shinto
+					controls_religion = no
+				}
+				AND = {
+					religion = buddhist
+					culture_group = japonic
+				}
+			}
+		}
+		FROM = {
+			independent = no
+			liege = {
+				OR = {
+					AND = {
+						religion = shinto
+						controls_religion = no
+					}
+					AND = {
+						religion = buddhist
+						culture_group = japonic
+					}
+				}
+				NOT = {
+					government = chinese_imperial_government
+				}
+				trait = under_regency2
+			}
+			has_regent = no # Use the plot instead!
+			trait = japanese_regent2
+		}
+	}
+	
+	on_add = {
+		hidden_tooltip = { fire_haruspicy_event_effect = yes }
+		ROOT = {
+			prestige = -500
+		}
+	}
+	
+	is_valid = {
+		ROOT = {
+			has_regent = no
+			liege = {
+				OR = {
+					AND = {
+						religion = shinto
+						controls_religion = no
+					}
+					AND = {
+						religion = buddhist
+						culture_group = japonic
+					}
+				}
+				NOT = {
+					government = chinese_imperial_government
+				}
+				trait = under_regency2
+			}
+			OR = {
+				AND = {
+					religion = shinto
+					controls_religion = no
+				}
+				AND = {
+					religion = buddhist
+					culture_group = japonic
+				}
+			}
+		}
+		FROM = {
+			liege = {
+				OR = {
+					AND = {
+						religion = shinto
+						controls_religion = no
+					}
+					AND = {
+						religion = buddhist
+						culture_group = japonic
+					}
+				}
+				NOT = {
+					government = chinese_imperial_government
+				}
+				trait = under_regency2
+			}
+			trait = japanese_regent2
+		}
+	}
+	
+	on_invalidation = {
+		ROOT = {
+			prestige = 500
+		}
+	}
+
+	on_success = {
+		ROOT = {
+			add_trait = japanese_regent2
+			give_minor_title = title_regent
+			participation_scaled_prestige = 1000
+			liege = {
+				letter_event = { id = japan.39 } # Inform the liege that there's a new regent in town
+			}
+		}
+		any_attacker = {
+			limit = { NOT = { character = ROOT } }
+			hidden_tooltip = { participation_scaled_prestige = 1000 }
+		}
+		FROM = {
+			remove_trait = japanese_regent2
+			hidden_tooltip = { participation_scaled_prestige = -1000 }
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = -1000 }
+		}
+	}
+
+	on_fail = {
+		ROOT = {
+			participation_scaled_prestige = -500
+		}
+		any_attacker = {
+			limit = { NOT = { character = ROOT } }
+			hidden_tooltip = { participation_scaled_prestige = -500 }
+		}
+		FROM = {
+			participation_scaled_prestige = 500
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = 500 }
+		}
+	}
+	
+	on_reverse_demand = {
+		ROOT = {
+			participation_scaled_prestige = -1000
+			if = {
+				limit = {
+					lower_tier_than = FROM
+				}
+				set_defacto_liege = FROM
+			}
+			imprison = FROM
+		}
+		any_attacker = {
+			limit = { NOT = { character = ROOT } }
+			hidden_tooltip = { participation_scaled_prestige = -1000 }
+			if = {
+				limit = {
+					liege = {
+						any_vassal = {
+							character = FROM
+						}
+					}
+				}
+				imprison = FROM
+			}
+		}
+		FROM = {
+			participation_scaled_prestige = 1000
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = 1000 }
+		}
+	}
+	
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+	
+	ai_will_do = {
+		factor = 2
+		modifier = {
+			factor = 0.1
+			ROOT = {
+				NOT = {
+					prestige = 1000
+				}
+			}
+		}
+		modifier = {
+			factor = 2
+			ROOT = {
+				trait = ambitious
+			}
+		}
+		modifier = {
+			factor = 2
+			ROOT = {
+				trait = envious
+			}
+		}
+		modifier = {
+			factor = 2
+			ROOT = {
+				trait = proud
+			}
+		}
+		modifier = {
+			factor = 0
+			ROOT = {
+				trait = content
+			}
+		}
+		modifier = {
+			factor = 0.5
+			ROOT = {
+				trait = humble
+			}
+		}
+		modifier = {
+			factor = 0.5
+			ROOT = {
+				trait = kind
+			}
+		}
+	}
+}
+
+# War vs. the faction_regent_loyalists2 faction
+end_regency_war_faction2 = {
+	name = CB_NAME_END_REGENCY_FACTION
+	war_name = WAR_NAME_END_REGENCY_FACTION
+	sprite = 3
+	truce_days = 3650
+	hostile_against_others = yes
+	is_permanent = no # Declared through an event
+
+	#press_claim = yes
+	can_call_vassals = no
+	#attacker_can_call_allies = no
+	major_revolt = yes
+
+	allowed_to_target_tributaries = no
+	
+	# No need to check Chinese Peace Deals
+
+	infamy_modifier = 0.85
+	
+	is_valid = {
+		FROM = {
+			OR = {
+				AND = {
+					religion = shinto
+					controls_religion = no
+				}
+				AND = {
+					religion = buddhist
+					culture_group = japonic
+				}
+			}
+			NOT = {
+				government = chinese_imperial_government
+			}
+			#trait = under_regency
+		}
+		ROOT = {
+			trait = japanese_regent2
+			has_regent = no
+			is_ruler = yes
+		}
+	}
+
+	on_add = {
+		hidden_tooltip = { fire_haruspicy_event_effect = yes }
+		ROOT = {
+			remove_trait = under_regency2
+		}
+	}
+	
+	# No need to check Chinese Peace Deals or if China cares
+
+	on_success = {
+		ROOT = {
+			participation_scaled_prestige = 100
+			hidden_tooltip = {
+				disband_event_forces = faction_revolters
+			}
+		}
+		any_attacker = {
+			limit = { NOT = { character = ROOT } }
+			hidden_tooltip = { participation_scaled_prestige = 100 }
+			hidden_tooltip = {
+				disband_event_forces = faction_revolters
+			}
+		}
+		
+		FROM = {
+			add_trait = under_regency2
+			hidden_tooltip = { disband_event_forces = faction_loyalists }
+			
+			if = {
+				limit = { NOT = { has_dlc = "Zeus" } }
+				any_demesne_title = { # All titles
+					limit = {
+						OR = {
+							tier = king
+							tier = emperor
+						}
+	#					is_titular = no
+						NOT = { has_law = crown_authority_0 }
+					}
+					if = {
+						limit = { has_law = crown_authority_1 }
+						add_law = crown_authority_0
+					}
+					if = {
+						limit = { has_law = crown_authority_2 }
+						add_law = crown_authority_1
+					}
+					if = {
+						limit = { has_law = crown_authority_3 }
+						add_law = crown_authority_2
+					}
+					if = {
+						limit = { has_law = crown_authority_4 }
+						add_law = crown_authority_3
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				ROOT = {
+					prisoner = yes
+					host = { character = FROM  }
+				}
+			}
+			ROOT = { prisoner = no }
+		}
+		if = {
+			limit = {
+				FROM = {
+					prisoner = yes
+					host = { character = ROOT  }
+				}
+			}
+			FROM = { prisoner = no }
+		}
+		ROOT = {
+			give_minor_title = title_regent
+		}
+	}
+			
+			
+	on_invalidation = {
+		ROOT = {
+			if = {
+				limit = {
+					trait = japanese_regent2
+					has_regent = yes
+				}
+				FROM = {
+					remove_trait = under_regency2
+				}
+				remove_trait = japanese_regent2
+			}
+			else_if = {
+				limit = {
+					trait = japanese_regent2
+				}
+				FROM = {
+					add_trait = under_regency2
+					#any_vassal = {
+					#	limit = {
+					#		lower_tier_than = FROM
+					#		reverse_has_opinion_modifier = {
+					#			who = FROM
+					#			modifier = opinion_seeks_to_overthrow_me
+					#		}
+					#	}
+					#	reverse_remove_opinion = {
+					#		who = FROM
+					#		modifier = opinion_seeks_to_overthrow_me
+					#	}
+					#	set_defacto_liege = FROM
+					#}
+				}
+			}
+		}
+	}
+	
+	on_reverse_demand = {
+		FROM = {
+			remove_trait = under_regency2
+		}
+		ROOT = {
+			remove_trait = japanese_regent2
 			if = { 
 				limit = { NOT = { reverse_has_opinion_modifier = { modifier = opinion_traitor who = FROM } } } #Allow free revocation of a title.
 				reverse_opinion = {
@@ -3696,6 +4583,34 @@ shogunate_war = {
 		}
 	}
 	on_success_title = {
+		# If the Regent is a king, he loses his kingdoms
+		ROOT = {
+			if = {
+				limit = {
+					any_vassal = {
+						tier = king
+						trait = japanese_regent
+					}
+				}
+				any_vassal = {
+					limit = {
+						tier = king
+						trait = japanese_regent
+					}
+					any_demesne_title = {
+						limit = {
+							tier = king
+							NOT = {
+								title = k_chrysanthemum_throne # To prevent weirdness
+							}
+						}
+						unsafe_destroy_landed_title = THIS
+						add_pressed_claim = PREV
+					}
+				}
+			}
+		}
+		
 		ROOT = {
 			usurp_title = {
 				target = PREV
@@ -3882,6 +4797,18 @@ end_shogunate_war = {
 			}
 			ROOT = { prisoner = no }
 		}
+		
+		# Secondary empires are forfeit, to prevent the ex-Shogun from somehow walking away with e_japan
+		FROM = {
+			any_demesne_title = {
+				limit = {
+					tier = emperor
+					is_primary_holder_title = no
+				}
+				unsafe_destroy_landed_title = THIS
+				add_pressed_claim = PREV
+			}
+		}
 	}
 	on_success_title = {
 		k_chrysanthemum_throne = {
@@ -3932,16 +4859,21 @@ end_shogunate_war = {
 			}
 			any_vassal = {
 				limit = {
-					trait = japanese_regent
+					trait = japanese_regent2
 				}
-				remove_trait = japanese_regent
+				remove_trait = japanese_regent2
 				set_defacto_liege = ROOT
 			}
+			remove_trait = under_regency2
 		}
+		# Destroy extra kingdoms
 		FROM = {
 			any_demesne_title = {
 				limit = {
 					tier = king
+					NOT = {
+						is_primary_holder_title = yes
+					}
 				}
 				unsafe_destroy_landed_title = THIS
 				add_pressed_claim = PREV
