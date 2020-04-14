@@ -4385,6 +4385,33 @@ character_event = {
 			}
 			add_trait = under_regency
 		}
+		if = {
+			limit = {
+				trait = under_regency2
+			}
+			remove_trait = under_regency2
+			if = {
+				limit = {
+					any_vassal = {
+						trait = japanese_regent2
+					}
+				}
+				any_vassal = {
+					limit = {
+						trait = japanese_regent
+					}
+					remove_trait = japanese_regent
+				}
+				any_vassal = {
+					limit = {
+						trait = japanese_regent2
+					}
+					remove_trait = japanese_regent2
+					add_trait = japanese_regent
+					give_minor_title = title_regent
+				}
+			}
+		}
 	}
 }
 
@@ -7923,6 +7950,35 @@ character_event = {
 				}
 				add_trait = under_regency2
 			}
+			# If the Tenno inherited from the Shogun, the Shogun's old regent becomes the Tenno's regent
+			else_if = {
+				limit = {
+					religion = shinto
+					controls_religion = yes	
+				}
+				add_trait = under_regency
+				if = {
+					limit = {
+						any_vassal = {
+							trait = japanese_regent2
+						}
+					}
+					any_vassal = {
+						limit = {
+							trait = japanese_regent
+						}
+						remove_trait = japanese_regent
+					}
+					any_vassal = {
+						limit = {
+							trait = japanese_regent2
+						}
+						remove_trait = japanese_regent2
+						add_trait = japanese_regent
+						give_minor_title = title_regent
+					}
+				}
+			}
 		}
 	}
 }
@@ -9850,5 +9906,850 @@ character_event = {
 	
 	immediate = {
 		set_global_flag = imperial_family_deposed
+	}
+}
+
+##### Wako (Wokou) events - add cultural buildings + game rule + localization
+
+# Low chance of a Yamato or Japanese island or coastal province swapping to Wako culture
+province_event = {
+	id = japan.406
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_JAPAN_406
+	
+	trigger = {
+		port = yes
+		OR = {
+			# In Japan or Korea
+			region = world_japan
+			region = custom_yezo
+			region = world_japan_islands
+			region = world_korea
+		}
+		OR = {
+			culture = japanese
+			culture = yamato
+		}
+		OR = {
+			religion = shinto
+			religion = buddhist
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 360
+		
+		# Is not an island or "island"
+		modifier = {
+			factor = 5
+			any_neighbor_province = {
+				count = 2
+				is_land = yes
+			}
+		}
+		
+		# Is really not an island
+		modifier = {
+			factor = 10
+			any_neighbor_province = {
+				is_land = yes
+				port = no
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				NOT = {
+					culture = wako
+				}
+			}
+		}
+		name = EVTOPTA_JAPAN_406 # Let's hope they behave...
+		culture = wako
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				culture = wako
+			}
+		}
+		name = EVTOPTB_JAPAN_406 # That's... good?
+		culture = wako
+	}
+}
+
+# Low chance of a Pirate Haven spawning in a Wako province
+province_event = {
+	id = japan.407
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_JAPAN_407
+	
+	trigger = {
+		port = yes
+		OR = {
+			# In Japan or Korea
+			region = world_japan
+			region = custom_yezo
+			region = world_japan_islands
+			region = world_korea
+		}
+		culture = wako
+		OR = {
+			religion = shinto
+			religion = buddhist
+		}
+		NOT = {
+			has_province_modifier = pirate_haven
+		}
+		owner = {
+			NOR = {
+				AND = {
+					culture = wako
+					independent = yes
+				}
+				top_liege = {
+					culture = wako
+				}
+			}
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 120
+		
+		# Is not an island or "island"
+		modifier = {
+			factor = 5
+			any_neighbor_province = {
+				count = 2
+				is_land = yes
+			}
+		}
+		
+		# Is really not an island
+		modifier = {
+			factor = 10
+			any_neighbor_province = {
+				is_land = yes
+				port = no
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_JAPAN_407 # Let's hope they know not to raid my coasts!
+		add_province_modifier = {
+			modifier = pirate_haven
+			duration = -1
+		}
+	}
+}
+
+# Pirate Haven modifier removed
+province_event = {
+	id = japan.408
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_JAPAN_408
+	
+	trigger = {
+		port = yes
+		has_province_modifier = pirate_haven
+	}
+	
+	mean_time_to_happen = {
+		months = 240
+		
+		# Isn't a Wako province
+		modifier = {
+			factor = 0.1
+			NAND = {
+				culture = wako
+				OR = {
+					religion = shinto
+					religion = buddhist
+				}
+			}
+		}
+		
+		# Owner or liege is Wako
+		modifier = {
+			factor = 0.1
+			owner = {
+				OR = {
+					culture = wako
+					any_liege = {
+						culture = wako
+					}
+				}
+			}
+		}
+		
+		# Owner has high stewardship
+		modifier = {
+			factor = 0.8
+			owner = {
+				stewardship = 12
+			}
+		}
+		modifier = {
+			factor = 0.8
+			owner = {
+				stewardship = 16
+			}
+		}
+		modifier = {
+			factor = 0.8
+			owner = {
+				stewardship = 20
+			}
+		}
+		modifier = {
+			factor = 0.8
+			owner = {
+				stewardship = 24
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				NOT = {
+					culture = wako
+				}
+			}
+		}
+		name = EVTOPTA_JAPAN_408 # Good riddance!
+		remove_province_modifier = pirate_haven
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				culture = wako
+			}
+		}
+		name = EVTOPTB_JAPAN_408 # I can organize my own raids!
+		remove_province_modifier = pirate_haven
+	}
+}
+
+# Low chance of a Wako raid spawning in a province with a Pirate Haven
+character_event = {
+	id = japan.409
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_JAPAN_409
+	
+	has_dlc = "Horse Lords" # Raiding adventurers
+	
+	trigger = {
+		any_demesne_title = {
+			culture = wako
+			has_province_modifier = pirate_haven
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 120
+	}
+	
+	immediate = {
+		random_demesne_province = {
+			limit = {
+				culture = wako
+				has_province_modifier = pirate_haven
+			}
+			save_event_target_as = wako_province
+			random_list = {
+				95 = {
+					create_character = {
+						random_traits = no
+						age = 25
+						female = no
+						dynasty = none
+						culture = wako
+						religion = shinto
+						attributes = {
+							martial = 5
+						}
+						trait = tough_soldier
+						trait = pirate
+					}
+				}
+				5 = {
+					create_character = {
+						random_traits = no
+						age = 25
+						female = yes
+						dynasty = none
+						culture = wako
+						religion = shinto
+						trait = pirate
+						attributes = {
+							martial = 5
+						}
+						trait = tough_soldier
+						trait = pirate
+					}
+				}
+			}
+			new_character = {
+				# Pirate flavour
+				random_list = {
+					5 = {
+						add_trait = one_legged
+					}
+					5 = {
+						add_trait = one_eyed
+					}
+					5 = {
+						add_trait = one_handed
+					}
+					5 = {
+						add_trait = duelist
+					}
+					5 = {
+						add_trait = scurvy
+					}
+					5 = {
+						add_trait = drunkard
+					}
+					5 = {
+						add_trait = hedonist
+					}
+					5 = {
+						if = {
+							limit = {
+								is_female = yes
+							}
+							add_trait = seductress
+						}
+						else = {
+							add_trait = seducer
+						}
+					}
+					5 = {
+						add_trait = falconer
+					}
+					5 = {
+						add_trait = lustful
+					}
+					5 = {
+						add_trait = greedy
+					}
+					5 = {
+						add_trait = arbitrary
+					}
+					5 = {
+						add_trait = deceitful
+					}
+					5 = {
+						add_trait = envious
+					}
+					5 = {
+						add_trait = brave
+					}
+					5 = {
+						add_trait = cruel
+					}
+					5 = {
+						add_trait = craven
+					}
+					5 = {
+						add_trait = aggressive_leader
+					}
+					5 = {
+						add_trait = inspiring_leader
+					}
+					5 = {
+						add_trait = trickster
+					}
+				}
+				random_list = {
+					5 = {
+						add_trait = one_legged
+					}
+					5 = {
+						add_trait = one_eyed
+					}
+					5 = {
+						add_trait = one_handed
+					}
+					5 = {
+						add_trait = duelist
+					}
+					5 = {
+						add_trait = scurvy
+					}
+					5 = {
+						add_trait = drunkard
+					}
+					5 = {
+						add_trait = hedonist
+					}
+					5 = {
+						if = {
+							limit = {
+								is_female = yes
+							}
+							add_trait = seductress
+						}
+						else = {
+							add_trait = seducer
+						}
+					}
+					5 = {
+						add_trait = falconer
+					}
+					5 = {
+						add_trait = lustful
+					}
+					5 = {
+						add_trait = greedy
+					}
+					5 = {
+						add_trait = arbitrary
+					}
+					5 = {
+						add_trait = deceitful
+					}
+					5 = {
+						add_trait = envious
+					}
+					5 = {
+						add_trait = brave
+					}
+					5 = {
+						add_trait = cruel
+					}
+					5 = {
+						add_trait = craven
+					}
+					5 = {
+						add_trait = aggressive_leader
+					}
+					5 = {
+						add_trait = inspiring_leader
+					}
+					5 = {
+						add_trait = trickster
+					}
+				}
+				random_list = {
+					5 = {
+						add_trait = one_legged
+					}
+					5 = {
+						add_trait = one_eyed
+					}
+					5 = {
+						add_trait = one_handed
+					}
+					5 = {
+						add_trait = duelist
+					}
+					5 = {
+						add_trait = scurvy
+					}
+					5 = {
+						add_trait = drunkard
+					}
+					5 = {
+						add_trait = hedonist
+					}
+					5 = {
+						if = {
+							limit = {
+								is_female = yes
+							}
+							add_trait = seductress
+						}
+						else = {
+							add_trait = seducer
+						}
+					}
+					5 = {
+						add_trait = falconer
+					}
+					5 = {
+						add_trait = lustful
+					}
+					5 = {
+						add_trait = greedy
+					}
+					5 = {
+						add_trait = arbitrary
+					}
+					5 = {
+						add_trait = deceitful
+					}
+					5 = {
+						add_trait = envious
+					}
+					5 = {
+						add_trait = brave
+					}
+					5 = {
+						add_trait = cruel
+					}
+					5 = {
+						add_trait = craven
+					}
+					5 = {
+						add_trait = aggressive_leader
+					}
+					5 = {
+						add_trait = inspiring_leader
+					}
+					5 = {
+						add_trait = trickster
+					}
+				}
+				random_list = {
+					5 = {
+						add_trait = one_legged
+					}
+					5 = {
+						add_trait = one_eyed
+					}
+					5 = {
+						add_trait = one_handed
+					}
+					5 = {
+						add_trait = duelist
+					}
+					5 = {
+						add_trait = scurvy
+					}
+					5 = {
+						add_trait = drunkard
+					}
+					5 = {
+						add_trait = hedonist
+					}
+					5 = {
+						if = {
+							limit = {
+								is_female = yes
+							}
+							add_trait = seductress
+						}
+						else = {
+							add_trait = seducer
+						}
+					}
+					5 = {
+						add_trait = falconer
+					}
+					5 = {
+						add_trait = lustful
+					}
+					5 = {
+						add_trait = greedy
+					}
+					5 = {
+						add_trait = arbitrary
+					}
+					5 = {
+						add_trait = deceitful
+					}
+					5 = {
+						add_trait = envious
+					}
+					5 = {
+						add_trait = brave
+					}
+					5 = {
+						add_trait = cruel
+					}
+					5 = {
+						add_trait = craven
+					}
+					5 = {
+						add_trait = aggressive_leader
+					}
+					5 = {
+						add_trait = inspiring_leader
+					}
+					5 = {
+						add_trait = trickster
+					}
+				}
+				random_list = {
+					5 = {
+						add_trait = one_legged
+					}
+					5 = {
+						add_trait = one_eyed
+					}
+					5 = {
+						add_trait = one_handed
+					}
+					5 = {
+						add_trait = duelist
+					}
+					5 = {
+						add_trait = scurvy
+					}
+					5 = {
+						add_trait = drunkard
+					}
+					5 = {
+						add_trait = hedonist
+					}
+					5 = {
+						if = {
+							limit = {
+								is_female = yes
+							}
+							add_trait = seductress
+						}
+						else = {
+							add_trait = seducer
+						}
+					}
+					5 = {
+						add_trait = falconer
+					}
+					5 = {
+						add_trait = lustful
+					}
+					5 = {
+						add_trait = greedy
+					}
+					5 = {
+						add_trait = arbitrary
+					}
+					5 = {
+						add_trait = deceitful
+					}
+					5 = {
+						add_trait = envious
+					}
+					5 = {
+						add_trait = brave
+					}
+					5 = {
+						add_trait = cruel
+					}
+					5 = {
+						add_trait = craven
+					}
+					5 = {
+						add_trait = aggressive_leader
+					}
+					5 = {
+						add_trait = inspiring_leader
+					}
+					5 = {
+						add_trait = trickster
+					}
+				}
+				random_list = {
+					5 = {
+						add_trait = one_legged
+					}
+					5 = {
+						add_trait = one_eyed
+					}
+					5 = {
+						add_trait = one_handed
+					}
+					5 = {
+						add_trait = duelist
+					}
+					5 = {
+						add_trait = scurvy
+					}
+					5 = {
+						add_trait = drunkard
+					}
+					5 = {
+						add_trait = hedonist
+					}
+					5 = {
+						if = {
+							limit = {
+								is_female = yes
+							}
+							add_trait = seductress
+						}
+						else = {
+							add_trait = seducer
+						}
+					}
+					5 = {
+						add_trait = falconer
+					}
+					5 = {
+						add_trait = lustful
+					}
+					5 = {
+						add_trait = greedy
+					}
+					5 = {
+						add_trait = arbitrary
+					}
+					5 = {
+						add_trait = deceitful
+					}
+					5 = {
+						add_trait = envious
+					}
+					5 = {
+						add_trait = brave
+					}
+					5 = {
+						add_trait = cruel
+					}
+					5 = {
+						add_trait = craven
+					}
+					5 = {
+						add_trait = aggressive_leader
+					}
+					5 = {
+						add_trait = inspiring_leader
+					}
+					5 = {
+						add_trait = trickster
+					}
+				}
+				save_event_target_as = wako_raider
+				#set_character_flag = raiding_adventurer
+				create_title = {
+					tier = DUKE
+					landless = yes
+					adventurer = yes
+					culture = ROOT
+					name = "PIRATE_RAIDERS"
+					holder = THIS
+					base_title = THIS
+				}
+				# Create a fleet
+				spawn_unit = {
+					province = event_target:wako_province
+					owner = event_target:wako_raider
+					troops = {
+						light_infantry = { 250 250 }
+						archers = { 250 250 }
+						heavy_infantry = { 50 50 }
+						pikemen = { 50 50 }
+					}
+					attrition = 0
+					reinforces = yes
+					is_looter = yes
+					can_toggle_looting = no
+					cannot_inherit = yes
+				}
+				spawn_fleet = {
+					province = closest # closest sea zone
+					owner = event_target:wako_raider
+					troops = {
+						galleys = { 10 10 }
+					}
+					cannot_inherit = yes
+				}
+				random = {
+					chance = 25
+					modifier = {
+						factor = 2
+						year = 1000
+					}
+					spawn_unit = {
+						province = event_target:wako_province
+						owner = event_target:wako_raider
+						troops = {
+							light_infantry = { 250 250 }
+							archers = { 250 250 }
+							heavy_infantry = { 50 50 }
+							pikemen = { 50 50 }
+						}
+						attrition = 0
+						reinforces = yes
+						is_looter = yes
+						can_toggle_looting = no
+						cannot_inherit = yes
+					}
+					spawn_fleet = {
+						province = closest # closest sea zone
+						owner = event_target:wako_raider
+						troops = {
+							galleys = { 10 10 }
+						}
+						cannot_inherit = yes
+					}
+				}
+				random = {
+					chance = 5
+					modifier = {
+						factor = 2
+						year = 1200
+					}
+					spawn_unit = {
+						province = event_target:wako_province
+						owner = event_target:wako_raider
+						troops = {
+							light_infantry = { 250 250 }
+							archers = { 250 250 }
+							heavy_infantry = { 50 50 }
+							pikemen = { 50 50 }
+						}
+						attrition = 0
+						reinforces = yes
+						is_looter = yes
+						can_toggle_looting = no
+						cannot_inherit = yes
+					}
+					spawn_fleet = {
+						province = closest # closest sea zone
+						owner = event_target:wako_raider
+						troops = {
+							galleys = { 10 10 }
+						}
+						cannot_inherit = yes
+					}
+				}
+				ROOT = {
+					reverse_opinion = {
+						who = event_target:wako_raider
+						modifier = forbidden_raid_target
+					}
+					any_liege = {
+						reverse_opinion = {
+							who = event_target:wako_raider
+							modifier = forbidden_raid_target
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				NOT = {
+					culture = wako
+				}
+			}
+		}
+		name = EVTOPTA_JAPAN_409 # Be gone!
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				culture = wako
+			}
+		}
+		name = EVTOPTB_JAPAN_409 # I don't need them!
 	}
 }
