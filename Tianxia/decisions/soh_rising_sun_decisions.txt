@@ -1,0 +1,970 @@
+society_decisions = {
+	request_to_rank_up_rising_sun = {
+		only_playable = yes
+
+		hide_in_decisions_list = yes # This is shown in the Society View
+		
+		potential = {
+			hidden_tooltip = {
+				society_rank < 3
+				days_in_society > 365
+				OR = {
+					AND = {
+						ai = no
+						society_rank == 1
+					}
+					society_can_rank_up = yes
+				}
+			}
+			society_member_of = warriors_of_the_rising_sun
+		}
+		
+		allow = {
+			OR = {
+				AND = {
+					society_rank == 1
+					society_currency >= 750
+					custom_tooltip = {
+						text = proved_yourself_to_mentor
+						has_character_flag = proved_myself_to_mentor
+					}
+				}
+				AND = {
+					society_rank == 2
+					OR = {
+						society_currency >= 2000
+						AND = {
+							custom_tooltip = {
+								text = won_wars_of_honor
+								check_variable = {
+									which = wars_of_honor
+									value = 2
+								}
+							}
+							society_currency >= 1000
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			society = { save_event_target_as = my_society }
+			#Rank up cost
+			if = {
+				limit = { society_rank == 1 }
+				change_society_currency = -750
+			}
+			if = {
+				limit = { society_rank == 2 }
+				if = {
+					limit = {
+						custom_tooltip = {
+							text = won_war_of_honor
+							custom_tooltip = {
+								text = won_wars_of_honor
+								check_variable = {
+									which = wars_of_honor
+									value = 2
+								}
+							}
+						}
+					}
+					change_society_currency = -1000
+				}
+				else = {
+					change_society_currency = -2000
+				}
+			}
+
+			#Perform rank up
+			hidden_tooltip = {
+				save_event_target_as = rank_up_target
+				set_character_flag = has_sent_request_to_rank_up
+				character_event = { id = MNM.10002 days = 20 random = 10 } # sends hidden delayed event to self, which then sends request to Leader of the society
+			}
+		}
+
+		revoke_allowed = {
+			always = no
+		}
+		
+		ai_will_do = {
+			factor = 1
+
+			modifier = {
+				factor = 0.5 #Slow down
+			}
+			modifier = {
+				factor = 0.5
+				trait = content
+			}
+			modifier = {
+				factor = 2 
+				trait = ambitious
+			}
+		}
+	}
+}
+
+targeted_decisions = {
+	call_into_my_war_independent = {
+		ai_check_interval = 12
+		ai_target_filter = independent_rulers
+		only_playable = yes
+		
+		from_potential = {
+			independent = yes
+			is_playable = yes
+			is_in_society = warriors_of_the_rising_sun
+			war = yes
+			NOT = {
+				any_war = {
+					using_cb = war_of_honor
+				}
+			}
+			OR = {
+				any_war = {
+					attacker = {
+						character = ROOT
+					}
+				}
+				any_war = {
+					defender = {
+						character = ROOT
+					}
+				}
+			}
+		}
+		
+		potential = {
+			independent = yes
+			is_in_society = warriors_of_the_rising_sun
+			war = no
+			NOT = {
+				any_rival = {
+					character = FROM
+				}
+			}
+			FROM = {
+				OR = {
+					# Has a higher rank and 100+ Honor
+					AND = {
+						society_currency >= 100
+						OR = {
+							society_rank == 4
+							AND = {
+								society_rank == 3
+								ROOT = {
+									society_rank <= 2
+								}
+							}
+							AND = {
+								society_rank >= 2
+								ROOT = {
+									society_rank == 1
+								}
+							}
+						}
+					}
+					# Has the same rank and 200+ Honor
+					AND = {
+						society_currency >= 200
+						OR = {
+							AND = {
+								society_rank == 3
+								ROOT = {
+									society_rank == 3
+								}
+							}
+							AND = {
+								society_rank == 2
+								ROOT = {
+									society_rank == 2
+								}
+							}
+							AND = {
+								society_rank == 1
+								ROOT = {
+									society_rank == 1
+								}
+							}
+						}
+					}
+					# Is one rank below and has 500+ Honor
+					AND = {
+						society_currency >= 200
+						OR = {
+							AND = {
+								society_rank == 3
+								ROOT = {
+									society_rank == 4
+								}
+							}
+							AND = {
+								society_rank == 2
+								ROOT = {
+									society_rank == 3
+								}
+							}
+							AND = {
+								society_rank == 1
+								ROOT = {
+									society_rank == 2
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		allow = {
+			FROM = {
+				custom_tooltip = {
+					text = root_is_not_blocked_by_truce_nap_liege_relationship
+					NOR = {
+						any_war = {
+							attacker = {
+								character = FROM
+							}
+							defender = {
+								OR = {
+									has_truce = ROOT
+									has_non_aggression_pact_with = ROOT
+									any_liege = {
+										character = ROOT
+									}
+									ROOT = {
+										any_liege = {
+											character = PREV
+										}
+									}
+								}
+							}
+						}
+						any_war = {
+							attacker = {
+								OR = {
+									has_truce = ROOT
+									has_non_aggression_pact_with = ROOT
+									any_liege = {
+										character = ROOT
+									}
+									ROOT = {
+										any_liege = {
+											character = PREV
+										}
+									}
+								}
+							}
+							defender = {
+								character = FROM
+							}
+						}
+					}
+				}
+				custom_tooltip = {
+					text = root_can_reach_the_enemy
+					OR = {
+						any_war = {
+							attacker = {
+								character = FROM
+							}
+							defender = {
+								any_realm_title = {
+									location = {
+										ROOT = {
+											capital_scope = {
+												OR = {
+													AND = { #Either you can travel via water to them...
+														is_coastal = yes
+														can_naval_path_to = { target = PREVPREV distance < 1000 }
+													}
+													AND = {
+														#Or they are accessible via land...
+														event_target:home_capital = { is_coastal = no }
+														can_land_path_to = { target = PREVPREV distance < 1000 }
+													}
+													AND = { #Or not a coastal place...
+														is_coastal = no
+														can_land_path_to = { target = PREVPREV distance < 1000 }
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						any_war = {
+							attacker = {
+								any_realm_title = {
+									location = {
+										ROOT = {
+											capital_scope = {
+												OR = {
+													AND = { #Either you can travel via water to them...
+														is_coastal = yes
+														can_naval_path_to = { target = PREVPREV distance < 1000 }
+													}
+													AND = {
+														#Or they are accessible via land...
+														event_target:home_capital = { is_coastal = no }
+														can_land_path_to = { target = PREVPREV distance < 1000 }
+													}
+													AND = { #Or not a coastal place...
+														is_coastal = no
+														can_land_path_to = { target = PREVPREV distance < 1000 }
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							defender = {
+								character = FROM
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				if = {
+					limit = {
+						# Has a higher rank and 100+ Honor
+						OR = {
+							society_rank == 4
+							AND = {
+								society_rank == 3
+								ROOT = {
+									society_rank <= 2
+								}
+							}
+							AND = {
+								society_rank >= 2
+								ROOT = {
+									society_rank == 1
+								}
+							}
+						}
+					}
+					change_society_currency = -100
+				}
+				else_if = {
+					limit = {
+						# Has the same rank and 200+ Honor
+						OR = {
+							AND = {
+								society_rank == 3
+								ROOT = {
+									society_rank == 3
+								}
+							}
+							AND = {
+								society_rank == 2
+								ROOT = {
+									society_rank == 2
+								}
+							}
+							AND = {
+								society_rank == 1
+								ROOT = {
+									society_rank == 1
+								}
+							}
+						}
+					}
+					change_society_currency = -200
+				}
+				else = {
+					change_society_currency = -500
+				}
+			}
+			letter_event = { id = risingsun.33 } # ROOT gets the CtA
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						any_war = {
+							attacker = {
+								character = ROOT
+							}
+							defender = {
+								relative_power_including_allies_defender = {
+									who = FROM
+									power = 2
+								}
+							}
+						}
+						any_war = {
+							defender = {
+								character = ROOT
+							}
+							attacker = {
+								relative_power_including_allies_attacker = {
+									who = FROM
+									power = 2
+								}
+							}
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.01
+				trait = brave
+			}
+			modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			modifier = {
+				factor = 10
+				trait = humble
+			}
+		}
+	}
+	
+	call_into_my_wa = {
+		ai_check_interval = 12
+		ai_target_filter = realm
+		only_playable = yes
+		
+		from_potential = {
+			independent = no
+			is_playable = yes
+			is_in_society = warriors_of_the_rising_sun
+			war = yes
+			NOT = {
+				any_war = {
+					using_cb = war_of_honor
+				}
+			}
+			OR = {
+				any_war = {
+					attacker = {
+						character = ROOT
+					}
+				}
+				any_war = {
+					defender = {
+						character = ROOT
+					}
+				}
+			}
+		}
+		
+		potential = {
+			independent = no
+			is_in_society = warriors_of_the_rising_sun
+			war = no
+			NOT = {
+				any_rival = {
+					character = FROM
+				}
+			}
+			FROM = {
+				OR = {
+					# Has a higher rank and 100+ Honor
+					AND = {
+						society_currency >= 100
+						OR = {
+							society_rank == 4
+							AND = {
+								society_rank == 3
+								ROOT = {
+									society_rank <= 2
+								}
+							}
+							AND = {
+								society_rank >= 2
+								ROOT = {
+									society_rank == 1
+								}
+							}
+						}
+					}
+					# Has the same rank and 200+ Honor
+					AND = {
+						society_currency >= 200
+						OR = {
+							AND = {
+								society_rank == 3
+								ROOT = {
+									society_rank == 3
+								}
+							}
+							AND = {
+								society_rank == 2
+								ROOT = {
+									society_rank == 2
+								}
+							}
+							AND = {
+								society_rank == 1
+								ROOT = {
+									society_rank == 1
+								}
+							}
+						}
+					}
+					# Is one rank below and has 500+ Honor
+					AND = {
+						society_currency >= 200
+						OR = {
+							AND = {
+								society_rank == 3
+								ROOT = {
+									society_rank == 4
+								}
+							}
+							AND = {
+								society_rank == 2
+								ROOT = {
+									society_rank == 3
+								}
+							}
+							AND = {
+								society_rank == 1
+								ROOT = {
+									society_rank == 2
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		allow = {
+			FROM = {
+				custom_tooltip = {
+					text = root_is_not_blocked_by_truce_nap_liege_relationship
+					NOR = {
+						any_war = {
+							attacker = {
+								character = FROM
+							}
+							defender = {
+								OR = {
+									has_truce = ROOT
+									has_non_aggression_pact_with = ROOT
+									any_liege = {
+										character = ROOT
+									}
+									ROOT = {
+										any_liege = {
+											character = PREV
+										}
+									}
+								}
+							}
+						}
+						any_war = {
+							attacker = {
+								OR = {
+									has_truce = ROOT
+									has_non_aggression_pact_with = ROOT
+									any_liege = {
+										character = ROOT
+									}
+									ROOT = {
+										any_liege = {
+											character = PREV
+										}
+									}
+								}
+							}
+							defender = {
+								character = FROM
+							}
+						}
+					}
+				}
+				custom_tooltip = {
+					text = root_can_reach_the_enemy
+					OR = {
+						any_war = {
+							attacker = {
+								character = FROM
+							}
+							defender = {
+								any_realm_title = {
+									location = {
+										ROOT = {
+											capital_scope = {
+												OR = {
+													AND = { #Either you can travel via water to them...
+														is_coastal = yes
+														can_naval_path_to = { target = PREVPREV distance < 1000 }
+													}
+													AND = {
+														#Or they are accessible via land...
+														event_target:home_capital = { is_coastal = no }
+														can_land_path_to = { target = PREVPREV distance < 1000 }
+													}
+													AND = { #Or not a coastal place...
+														is_coastal = no
+														can_land_path_to = { target = PREVPREV distance < 1000 }
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						any_war = {
+							attacker = {
+								any_realm_title = {
+									location = {
+										ROOT = {
+											capital_scope = {
+												OR = {
+													AND = { #Either you can travel via water to them...
+														is_coastal = yes
+														can_naval_path_to = { target = PREVPREV distance < 1000 }
+													}
+													AND = {
+														#Or they are accessible via land...
+														event_target:home_capital = { is_coastal = no }
+														can_land_path_to = { target = PREVPREV distance < 1000 }
+													}
+													AND = { #Or not a coastal place...
+														is_coastal = no
+														can_land_path_to = { target = PREVPREV distance < 1000 }
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							defender = {
+								character = FROM
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				if = {
+					limit = {
+						# Has a higher rank and 100+ Honor
+						OR = {
+							society_rank == 4
+							AND = {
+								society_rank == 3
+								ROOT = {
+									society_rank <= 2
+								}
+							}
+							AND = {
+								society_rank >= 2
+								ROOT = {
+									society_rank == 1
+								}
+							}
+						}
+					}
+					change_society_currency = -100
+				}
+				else_if = {
+					limit = {
+						# Has the same rank and 200+ Honor
+						OR = {
+							AND = {
+								society_rank == 3
+								ROOT = {
+									society_rank == 3
+								}
+							}
+							AND = {
+								society_rank == 2
+								ROOT = {
+									society_rank == 2
+								}
+							}
+							AND = {
+								society_rank == 1
+								ROOT = {
+									society_rank == 1
+								}
+							}
+						}
+					}
+					change_society_currency = -200
+				}
+				else = {
+					change_society_currency = -500
+				}
+			}
+			letter_event = { id = risingsun.33 } # ROOT gets the CtA
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						any_war = {
+							attacker = {
+								character = ROOT
+							}
+							defender = {
+								relative_power_including_allies_defender = {
+									who = FROM
+									power = 2
+								}
+							}
+						}
+						any_war = {
+							defender = {
+								character = ROOT
+							}
+							attacker = {
+								relative_power_including_allies_attacker = {
+									who = FROM
+									power = 2
+								}
+							}
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.01
+				trait = brave
+			}
+			modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			modifier = {
+				factor = 10
+				trait = humble
+			}
+		}
+	}
+	
+	ask_to_be_my_mentor = {
+		ai_check_interval = 12
+		ai_target_filter = society
+		
+		from_potential = {
+			is_in_society = warriors_of_the_rising_sun
+			society_rank == 1
+			NOR = {
+				has_any_opinion_modifier = opinion_rising_sun_mentor
+				has_character_flag = proved_myself_to_mentor
+			}
+		}
+		
+		potential = {
+			is_in_society = warriors_of_the_rising_sun
+			society_rank >= 2
+			NOT = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_former_student
+				}
+			}
+		}
+		
+		allow = {
+			has_actual_regency_trigger = no
+			FROM = {
+				has_actual_regency_trigger = no
+				society_currency >= 0
+			}
+			NOR = {
+				FROM = {
+					has_character_modifier = asked_possible_mentor
+					reverse_has_opinion_modifier = {
+						who = ROOT
+						modifier = opinion_refused_mentoring
+					}
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				add_character_modifier = {
+					modifier = asked_possible_mentor
+					days = 30
+				}
+			}
+			letter_event = { id = risingsun.36 days = 7 random = 7 }
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.02 # Slow it down a bit
+				always = yes
+			}
+			modifier = {
+				factor = 0 # Don't bother if we don't have the quest (to leave some possible students for people looking for students)
+				FROM = {
+					NOT = {
+						has_quest = quest_rising_sun_get_mentor
+					}
+				}
+			}
+			modifier = {
+				factor = 5 # Prioritize asking people with the quest
+				has_quest = quest_rising_sun_get_student
+			}
+			modifier = {
+				factor = 0.1 # Prioritize asking low-ranking members as they're more likely to accept
+				society_rank == 3
+			}
+			modifier = {
+				factor = 0.01 # Prioritize asking low-ranking members as they're more likely to accept
+				society_rank == 4
+			}
+		}
+	}
+	
+	ask_to_be_my_student = {
+		ai_check_interval = 36
+		ai_target_filter = society
+		
+		from_potential = {
+			is_in_society = warriors_of_the_rising_sun
+			society_rank >= 2
+			NOT = {
+				has_opinion_modifier = {
+					who = ROOT
+					modifier = opinion_former_student
+				}
+			}
+		}
+		
+		potential = {
+			is_in_society = warriors_of_the_rising_sun
+			society_rank == 1
+			NOR = {
+				has_any_opinion_modifier = {
+					who = FROM
+					modifier = opinion_rising_sun_mentor
+				}
+				has_character_flag = proved_myself_to_mentor
+			}
+			OR = { # It is better for the player to ask someone to mentor them
+				FROM = {
+					ai = no
+				}
+				ai = yes
+			}
+		}
+		
+		allow = {
+			has_actual_regency_trigger = no
+			FROM = {
+				has_actual_regency_trigger = no
+				OR = {
+					AND = {
+						society_currency >= 0
+						has_quest = quest_rising_sun_get_student
+					}
+					society_currency >= 500
+				}
+			}
+			NOR = {
+				FROM = {
+					has_character_modifier = asked_possible_student
+					has_opinion_modifier = {
+						who = ROOT
+						modifier = opinion_refused_mentoring
+					}
+				}
+				has_character_modifier = asked_possible_mentor
+			}
+		}
+		
+		effect = {
+			# Keep the player from grabbing too many students
+			if = {
+				limit = {
+					FROM = {
+						NOT = {
+							has_quest = quest_rising_sun_get_student
+						}
+					}
+				}
+				FROM = {
+					change_society_currency = -200
+				}
+			}
+			FROM = {
+				add_character_modifier = {
+					modifier = asked_possible_student
+					days = 30
+				}
+			}
+			letter_event = { id = risingsun.70 days = 7 random = 7 }
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.02 # Slow it down a bit
+				always = yes
+			}
+			modifier = {
+				factor = 0 # Don't bother if we don't have the quest (to leave some possible students for people looking for students)
+				FROM = {
+					NOT = {
+						has_quest = quest_rising_sun_get_student
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5 # Make it harder for women to get mentors that aren't women
+				is_female = yes
+				FROM = {
+					is_female = no
+				}
+			}
+			modifier = {
+				factor = 5 # Try to mentor other women, if you can
+				is_female = yes
+				FROM = {
+					is_female = yes
+				}
+			}
+			modifier = {
+				factor = 5 # Prioritize asking people with the quest
+				has_quest = quest_rising_sun_get_mentor
+				ai = yes
+			}
+			modifier = {
+				factor = 0.1 # If we have a high rank, don't do it very often
+				FROM = {
+					society_rank == 3
+				}
+			}
+			modifier = {
+				factor = 0.01 # If we have a high rank, don't do it very often
+				FROM = {
+					society_rank == 4
+				}
+			}
+		}
+	}
+}
