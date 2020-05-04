@@ -31,7 +31,7 @@ imperial_conquest = {
 	can_use = {
 		ROOT = {
 			#is_chinese_emperor_trigger = yes
-			independent = yes
+			#independent = yes
 			#religion_group = chinese_group
 			NOT = { same_realm = FROM }
 			mercenary = no
@@ -39,8 +39,26 @@ imperial_conquest = {
 				government = chinese_imperial_government # This allows pretenders to use the CB, meaning pretenders in/near China will have a CB to try to conquer China
 				AND = {
 					has_character_flag = mandate_of_heaven_uprising # A successful Mandate revolter can try to take over more of China
-					has_acceptable_chinese_culture_no_gamerule_trigger = yes
-					has_acceptable_chinese_religion_trigger = yes
+					culture_group = chinese_group
+					OR = {
+						religion = taoist
+						religion = buddhist
+						religion = chinese_pagan
+						religion = chinese_pagan_reformed
+					}
+				}
+				AND = {
+					culture_group = chinese_group # Only for Chinese characters!
+					government = chinese_vassal_government
+					OR = { # Only for the truly Chinese religions
+						religion = taoist
+						religion = buddhist
+						religion = chinese_pagan
+						religion = chinese_pagan_reformed
+					}
+					e_china = {
+						has_holder = no
+					}
 				}
 			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
@@ -106,17 +124,39 @@ imperial_conquest = {
 				}
 			}
 		}
-		OR = { # It should be harder for pretenders to use this CB if there's a China
-			ROOT = {
-				is_chinese_emperor_trigger = yes
-			}
-			AND = {
-				e_china = {
-					has_holder = yes
+		ROOT = {
+			OR = { # It should be harder for pretenders to use this CB if there's a China
+				AND = {
+					is_chinese_emperor_trigger = yes
+					prestige = 100
 				}
-				prestige = 500
+				AND = {
+					is_chinese_emperor_trigger = no
+					government = chinese_imperial_government
+					OR = {
+						AND = {
+							e_china = {
+								has_holder = yes
+							}
+							prestige = 500
+						}
+						prestige = 100
+					}
+				}
+				AND = {
+					government = chinese_vassal_government
+					e_china = {
+						has_holder = no
+					}
+					OR = {
+						AND = {
+							higher_tier_than = duke
+							prestige = 500
+						}
+						prestige = 1000
+					}
+				}
 			}
-			prestige = 100
 		}
 	}
 	
@@ -135,22 +175,37 @@ imperial_conquest = {
 				detract_grace_super_huge_effect = yes 
 			}
 		}
-		if = {
-			limit = {
-				ROOT = {
-					NOT = {
-						is_chinese_emperor_trigger = yes
-					}
-				}
-			}
+		ROOT = {
 			if = {
 				limit = {
-					e_china = {
-						has_holder = yes
-					}
+					is_chinese_emperor_trigger = no
 				}
-				ROOT = {
+				if = {
+					limit = {
+						e_china = {
+							has_holder = yes
+						}
+					}
 					prestige = -500
+				}
+				else = {
+					if = {
+						limit = {
+							government = chinese_imperial_government
+						}
+						prestige = -100
+					}
+					else = {
+						if = {
+							limit = {
+								higher_tier_than = duke
+							}
+							prestige = -500
+						}
+						else = {
+							prestige = -1000
+						}
+					}
 				}
 			}
 			else = {
@@ -163,9 +218,11 @@ imperial_conquest = {
 	
 	is_valid = {
 		ROOT = {
-			independent = yes
+			#independent = yes
 			#is_chinese_emperor_trigger = yes
-			government = chinese_imperial_government
+			#government = chinese_imperial_government
+			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
 			NOT = { same_realm = FROM }
 		}
 	}
@@ -4924,7 +4981,7 @@ end_shogunate_war = {
 			add_law_w_cooldown = ze_administration_laws_2 # Imperial
 			add_law_w_cooldown = out_of_realm_inheritance_law_1 # No external inheritance (should already be in place, but...)
 			add_law_w_cooldown = vassal_wars_law_0 # Unrestricted vassal wars
-			succession = primogeniture # Should already be in place, but...
+			add_law_w_cooldown = tenno
 		}
 		else = {
 			add_law_w_cooldown = crown_authority_1 # Unrestricted vassal wars; unfortunately, this won't igve the rest of the necessary laws
@@ -5134,7 +5191,7 @@ war_of_honor = {
 					who = ROOT
 					power = 1.0 # Higher than the mission
 				}
-				# TODO: Mark of Dishonor
+				has_character_modifier = mark_of_dishonor
 			}
 		}
 	}
@@ -5157,7 +5214,7 @@ war_of_honor = {
 									}
 									AND = {
 										#Or they are accessible via land...
-										event_target:home_capital = { is_coastal = no }
+										PREVPREVPREV = { is_coastal = no }
 										can_land_path_to = { target = PREVPREVPREV distance < 1000 }
 									}
 									AND = { #Or not a coastal place...
@@ -5490,10 +5547,6 @@ war_of_honor = {
 	attacker_ai_victory_worth = {
 		factor = -1 # always accept
 	}
-	
-	attacker_ai_defeat_worth = {
-		factor = 100
-	}
 
 	defender_ai_victory_worth = {
 		factor = -1 # always accept
@@ -5788,5 +5841,276 @@ war_of_honor = {
 				}
 			}
 		}
+	}
+}
+
+rising_sun_subjugation_cb = {
+	name = CB_NAME_RISING_SUN_SUBJUGATION
+	war_name = WAR_NAME_RISING_SUN_SUBJUGATION
+	sprite = 7
+	truce_days = 3650
+	is_permanent = yes
+	is_holy_war = yes
+	allowed_to_target_tributaries = no
+	defender_unoccupied_warscore = yes
+	
+	attacker_can_call_allies = no # We don't want non-WotRS people to get dragged in as attackers
+	
+	sort_priority = 10000 # We want this to be very visible
+	
+	can_use_gui = {
+		check_if_crusader_trigger = yes
+		ROOT = {
+			war = no
+			has_actual_regency_trigger = no
+			society = {
+				society_progress >= 100
+			}
+			society_currency >= 1000
+		}
+	}
+	
+	can_use = {
+		ROOT = {
+			is_in_society = warriors_of_the_rising_sun
+			society_rank == 4
+			has_character_modifier = preparing_rising_sun_subjugation
+		}
+		FROM = {
+			independent = yes
+			NOR = {
+				AND = {
+					religion = shinto
+					controls_religion = yes
+				}
+				any_realm_lord = {
+					religion = shinto
+					controls_religion = yes
+				}
+			}
+		}
+	}
+	
+	can_use_title = {
+		ROOT = {
+			event_target:rising_sun_subjugation_target = {
+				title = PREVPREV
+			}
+			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
+		}
+		FROM = {
+			any_realm_title = {
+				location = {
+					ROOT = {
+						any_realm_title = {
+							location = {
+								OR = {
+									AND = { #Either you can travel via water to them...
+										is_coastal = yes
+										can_naval_path_to = { target = PREVPREVPREV distance < 1000 }
+									}
+									AND = {
+										#Or they are accessible via land...
+										PREVPREVPREV = { is_coastal = no }
+										can_land_path_to = { target = PREVPREVPREV distance < 1000 }
+									}
+									AND = { #Or not a coastal place...
+										is_coastal = no
+										can_land_path_to = { target = PREVPREVPREV distance < 1000 }
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	on_add = {
+		ROOT = {
+			society = {
+				set_society_progress = 0
+				stop_society_progress = yes
+			}
+			change_society_currency = -1000
+			add_character_modifier = {
+				modifier = launched_rising_sun_subjugation
+				years = 50
+			}
+			remove_character_modifier = preparing_rising_sun_subjugation
+			# TODO: Inform the world
+			any_society_member = {
+				limit = {
+					is_landed = yes
+					NOR = {
+						has_truce = FROM
+						has_non_aggression_pact_with = FROM
+						any_liege = {
+							character = FROM
+						}
+					}
+				}
+				join_attacker_wars = ROOT
+				# TODO: Inform THIS
+			}
+		}
+		hidden_tooltip = { fire_haruspicy_event_effect = yes }
+		if = {
+			#limit = { defender = { is_offmap_governor = offmap_china } }
+			limit = {
+				has_dlc = "Jade Dragon"
+				defender = {
+					is_china_or_defended_chinese_tributary_trigger = yes
+				}
+			}
+			attacker = {  
+				sound_effect = china_angered_emperor
+				detract_grace_super_huge_effect = yes
+			}
+		}
+	}
+	
+	is_valid = {
+		ROOT = {
+			is_in_society = warriors_of_the_rising_sun
+			society_rank == 4
+		}
+	}
+
+	on_success = {
+		any_attacker = {
+			limit = { character = ROOT }
+			participation_scaled_prestige = 200
+		}
+		any_attacker = {
+			limit = { NOT = { character = ROOT } }
+			hidden_tooltip = { participation_scaled_prestige = 200 }
+		}
+		any_attacker = {
+			limit = {
+				is_in_society = warriors_of_the_rising_sun
+			}
+			change_society_currency = 500
+		}
+		ROOT = {
+			change_society_currency = 500
+		}
+		FROM = {
+			prestige = -200
+		}
+	}
+	
+	on_success_title = {
+		most_participating_attacker = {
+			# Usurp the target kingdom itself, if the enemy holds it
+			if = {
+				limit = {
+					PREV = {
+						holder_scope = {
+							character = FROM
+						}
+						NOT = { PREV = { tier = EMPEROR } }
+					}
+				}
+				usurp_title = { target = PREV type = invasion }
+			}
+			
+			if = {
+				# Take the enemy's duchies within the target kingdom, if we are the same or lower tier
+				limit = {
+					NOT = { higher_tier_than = FROM }
+				}
+				FROM = {
+					any_demesne_title = {
+						limit = {
+							tier = DUKE
+							OR = {
+								title = PREVPREVPREV
+								de_jure_liege_or_above = PREVPREVPREV
+							}
+						}
+						PREVPREV = { usurp_title = { target = PREV type = invasion } }
+					}
+				}
+			}
+			
+			# Have I become the vassal of the loser due to taking a duchy or kingdom?
+			if = {
+				limit = {
+					is_liege_or_above = FROM	
+				}
+				set_defacto_liege = ROOT
+			}
+			
+			# Vassalize the rest
+			custom_tooltip = {
+				text = pagan_subjugation_tip
+				hidden_tooltip = {
+					subjugate_or_take_under_title = { # If the target only has territory within the kingdom, he is simply vassalized
+						title = PREV
+						enemy = FROM
+					}
+				}
+			}
+		}
+	}
+
+	on_fail = {
+		any_defender = {
+			limit = { character = FROM }
+			participation_scaled_prestige = 100
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = 100 }
+		}
+		ROOT = {
+			prestige = -100
+			change_society_currency = -500
+		}
+	}
+	
+	on_invalidation = {
+		# TODO: Inform the world
+	}
+
+	on_reverse_demand = {
+		ROOT = {
+			prestige = -200
+			transfer_scaled_wealth = {
+				to = FROM
+				value = 2.0
+			}
+			change_society_currency = -1000
+		}
+		any_defender = {
+			limit = { character = FROM }
+			participation_scaled_prestige = 200
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = 200 }
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = 200
+	}
+	
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+	
+	ai_will_do = { 
+		factor = 0 # The AI launches it from a decision as it wouldn't be smart enough to understand if it is strong enough or not
 	}
 }
