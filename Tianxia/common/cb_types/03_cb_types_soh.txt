@@ -1794,6 +1794,7 @@ end_regency_war = {
 				}
 			}
 			give_minor_title = title_regent
+			give_minor_title = title_appointed_regent
 			#ROOT = {
 			#	any_vassal = {
 			#		limit = {
@@ -1945,6 +1946,7 @@ take_over_regency_war = {
 				}
 			}
 			give_minor_title = title_regent
+			give_minor_title = title_appointed_regent
 			participation_scaled_prestige = 1000
 			liege = {
 				letter_event = { id = japan.39 } # Inform the liege that there's a new regent in town
@@ -2141,6 +2143,7 @@ regency_faction_war = {
 		
 		FROM = {
 			add_trait = under_regency
+			regency_setup_not_nice_effect = yes
 			hidden_tooltip = { disband_event_forces = faction_loyalists }
 			
 			if = {
@@ -2199,6 +2202,7 @@ regency_faction_war = {
 				}
 			}
 			give_minor_title = title_regent
+			give_minor_title = title_appointed_regent
 			if = {
 				limit = {
 					NOT = {
@@ -2364,6 +2368,7 @@ end_regency_war_faction = {
 		
 		FROM = {
 			add_trait = under_regency
+			increase_regent_powers_twice_effect = yes
 			hidden_tooltip = { disband_event_forces = faction_loyalists }
 			
 			if = {
@@ -2421,6 +2426,7 @@ end_regency_war_faction = {
 				}
 			}
 			give_minor_title = title_regent
+			give_minor_title = title_appointed_regent
 		}
 	}
 			
@@ -2583,6 +2589,7 @@ regency_faction_war2 = {
 		
 		FROM = {
 			add_trait = under_regency2
+			regency_setup_not_nice_effect = yes
 			hidden_tooltip = { disband_event_forces = faction_loyalists }
 			
 			if = {
@@ -2641,6 +2648,7 @@ regency_faction_war2 = {
 				}
 			}
 			give_minor_title = title_regent
+			give_minor_title = title_appointed_regent
 			if = {
 				limit = {
 					NOT = {
@@ -2856,6 +2864,7 @@ end_regency_war2 = {
 	on_reverse_demand = {
 		ROOT = {
 			add_trait = under_regency2
+			increase_regent_powers_twice_effect = yes
 			# The regent assumes control much more thoroguhly, making sure we can't spam the faction and making sure there are consequences
 			add_character_modifier = {
 				modifier = failed_to_overthrow_regent
@@ -2870,6 +2879,7 @@ end_regency_war2 = {
 				}
 			}
 			give_minor_title = title_regent
+			give_minor_title = title_appointed_regent
 			#ROOT = {
 			#	any_vassal = {
 			#		limit = {
@@ -3071,6 +3081,7 @@ take_over_regency_war2 = {
 				}
 			}
 			give_minor_title = title_regent
+			give_minor_title = title_appointed_regent
 			participation_scaled_prestige = 1000
 			liege = {
 				letter_event = { id = japan.39 } # Inform the liege that there's a new regent in town
@@ -3276,6 +3287,7 @@ end_regency_war_faction2 = {
 		
 		FROM = {
 			add_trait = under_regency2
+			increase_regent_powers_twice_effect = yes
 			hidden_tooltip = { disband_event_forces = faction_loyalists }
 			
 			if = {
@@ -3333,6 +3345,7 @@ end_regency_war_faction2 = {
 				}
 			}
 			give_minor_title = title_regent
+			give_minor_title = title_appointed_regent
 		}
 	}
 			
@@ -4673,6 +4686,7 @@ shogunate_war = {
 		
 		FROM = {
 			hidden_tooltip = { disband_event_forces = faction_loyalists }
+			copy_regency_setup_effect = yes
 		}
 		if = {
 			limit = {
@@ -4811,6 +4825,11 @@ shogunate_war = {
 				unsafe_destroy_landed_title = THIS
 				add_pressed_claim = PREV
 			}
+		}
+	}
+	on_success_posttitle = {
+		FROM = {
+			paste_regency_setup_effect = yes
 		}
 	}
 	
@@ -5202,32 +5221,27 @@ war_of_honor = {
 			is_in_society = warriors_of_the_rising_sun
 		}
 		FROM = {
-			any_realm_title = {
-				location = {
-					ROOT = {
-						any_realm_title = {
-							location = {
-								OR = {
-									AND = { #Either you can travel via water to them...
-										is_coastal = yes
-										can_naval_path_to = { target = PREVPREVPREV distance < 1000 }
-									}
-									AND = {
-										#Or they are accessible via land...
-										PREVPREVPREV = { is_coastal = no }
-										can_land_path_to = { target = PREVPREVPREV distance < 1000 }
-									}
-									AND = { #Or not a coastal place...
-										is_coastal = no
-										can_land_path_to = { target = PREVPREVPREV distance < 1000 }
-									}
-								}
+			any_realm_province = {
+				ROOT = {
+					capital_scope = {
+						OR = {
+							AND = { #Either you can travel via water to them...
+								is_coastal = yes
+								can_naval_path_to = { target = PREVPREV distance < 1000 }
+							}
+							AND = {
+								#Or they are accessible via land...
+								PREVPREV = { is_coastal = no }
+								can_land_path_to = { target = PREVPREV distance < 1000 }
+							}
+							AND = { #Or not a coastal place...
+								is_coastal = no
+								can_land_path_to = { target = PREVPREV distance < 1000 }
 							}
 						}
 					}
 				}
 			}
-			# Either independent 
 			NOR = {
 				ROOT = {
 					any_liege = {
@@ -5891,32 +5905,53 @@ rising_sun_subjugation_cb = {
 		}
 	}
 	
-	can_use_title = {
-		ROOT = {
-			event_target:rising_sun_subjugation_target = {
-				title = PREVPREV
-			}
-			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
-		}
-		FROM = {
-			any_realm_title = {
-				location = {
-					ROOT = {
-						any_realm_title = {
-							location = {
-								OR = {
-									AND = { #Either you can travel via water to them...
-										is_coastal = yes
-										can_naval_path_to = { target = PREVPREVPREV distance < 1000 }
+	can_use_title = { # The target must be adjacent/within two sea zones
+		any_direct_de_jure_vassal_title = {
+			any_direct_de_jure_vassal_title = {
+				OR = {
+					holder_scope = {
+						OR = {
+							character = ROOT
+							is_liege_or_above = ROOT
+						}
+					}
+					location = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											character = ROOT
+											is_liege_or_above = ROOT
+										}
 									}
-									AND = {
-										#Or they are accessible via land...
-										PREVPREVPREV = { is_coastal = no }
-										can_land_path_to = { target = PREVPREVPREV distance < 1000 }
-									}
-									AND = { #Or not a coastal place...
-										is_coastal = no
-										can_land_path_to = { target = PREVPREVPREV distance < 1000 }
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														character = ROOT
+														is_liege_or_above = ROOT
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															character = ROOT
+															is_liege_or_above = ROOT
+														}
+													}
+												}
+											}
+										}
 									}
 								}
 							}
