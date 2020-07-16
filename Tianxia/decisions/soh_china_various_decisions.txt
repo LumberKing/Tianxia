@@ -1,5 +1,6 @@
 decisions = {
 	create_china = {
+		only_playable = yes
 		only_independent = yes
 		is_high_prio = yes
 		
@@ -702,6 +703,7 @@ decisions = {
 			factor = 1
 		}
 	}
+	
 	celebrate_lny = {
 		only_playable = yes
 		ai_check_interval = 12
@@ -827,6 +829,7 @@ decisions = {
 			}
 		}
 	}
+	
 	hunt_down_dragon = {
 		only_playable = yes
 		ai_check_interval = 120
@@ -1024,6 +1027,325 @@ decisions = {
 					has_global_flag = dragon_slain
 				}
 			}
+		}
+	}
+	
+	prepare_treasure_fleet = { # Not DLC-locked, so various parts of it need to be locked separately!
+		ai_check_interval = 60
+		only_playable = yes
+		only_independent = yes
+		is_high_prio = yes
+		
+		potential = {
+			NOR = {
+				has_global_flag = preparing_treasure_fleet
+				has_global_flag = treasure_fleet_is_active
+			}
+			NOT = {
+				2753 = { # Hangzhou
+					has_province_flag = abort_treasure_fleet_asap
+				}
+			}
+			is_chinese_emperor_trigger = yes # Only for the EoC!
+			NOR = {
+				AND = { # Sunrise Invasion takes precedence
+					has_global_flag = sunrise_invasion_happened
+					NOT = {
+						has_global_flag = inca_defeated
+					}
+				}
+				e_treasure_fleet = { # If someone used the Treasure Fleet to create an empire, deal with that!
+					has_holder = yes
+				}
+			}
+		}
+		
+		allow = {
+			war = no # Can't be done if at war!
+			has_regent = no # Can't have a regent!
+			is_inaccessible_or_incapable_trigger = no # If regencies are disabled, you still can't do it if you should have a regent!
+			NOT = { # You must own a large part of the Chinese coast
+				any_province = {
+					any_province_holding = {
+						OR = {
+							holding_type = castle
+							holding_type = city
+						}
+					}
+					OR = {
+						region = world_canton
+						region = world_chinese_coast
+					}
+					port = yes
+					owner = {
+						top_liege = {
+							NOT = {
+								character = ROOT
+							}
+						}
+					}
+				}
+			}
+			any_province = { # A coastal province needs to have high enough Shipbuilding tech
+				any_province_holding = {
+					OR = {
+						holding_type = castle
+						holding_type = city
+					}
+				}
+				OR = {
+					region = world_canton
+					region = world_chinese_coast
+				}
+				port = yes
+				owner = {
+					top_liege = {
+						NOT = {
+							character = ROOT
+						}
+					}
+				}
+				TECH_NAVAL = 5
+			}
+			capital_scope = { # Your capital needs high enough Shipbuilding tech - yes, even if it is inland!
+				TECH_NAVAL = 5
+			}
+			OR = { # Can't have sub-Average MoH
+				has_character_modifier = mandate_of_heaven_5
+				has_character_modifier = mandate_of_heaven_4
+				has_character_modifier = mandate_of_heaven_3
+			}
+			prestige = 1000
+			wealth = 5000
+		}
+		
+		effect = {
+			wealth = -5000
+			prestige = -1000
+			add_trait = treasure_fleet_preparation
+			hidden_tooltip = {
+				2753 = { # Hangzhou
+					treasure_fleet_setup_effect = yes
+				}
+			}
+			narrative_event = { id = treasurefleet.1 } # Confirmation
+			any_realm_lord = {
+				limit = {
+					ai = no
+				}
+				narrative_event = { id = treasurefleet.2 } # Inform vassals
+			}
+			any_player = {
+				limit = {
+					NOR = {
+						character = ROOT
+						any_liege = {
+							character = ROOT
+						}
+					}
+				}
+				narrative_event = { id = treasurefleet.3 } # Inform others
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01 # Slow it down
+				always = yes
+			}
+			modifier = {
+				factor = 0.1 # Reconquer China instead!
+				any_province = {
+					any_province_holding = {
+						OR = {
+							holding_type = castle
+							holding_type = city
+						}
+					}
+					OR = {
+						region = world_china
+						county = {
+							de_jure_liege_or_above = e_china
+						}
+					}
+					owner = {
+						NOR = {
+							suzerain = {
+								character = ROOT
+							}
+							top_liege = {
+								character = ROOT
+							}
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.8
+				NOT = {
+					year = 1400
+				}
+			}
+			modifier = {
+				factor = 0.8
+				NOT = {
+					year = 1300
+				}
+			}
+			modifier = {
+				factor = 0.8
+				NOT = {
+					year = 1200
+				}
+			}
+			modifier = {
+				factor = 0.8
+				NOT = {
+					year = 1100
+				}
+			}
+			modifier = {
+				factor = 0.8
+				NOT = {
+					year = 1000
+				}
+			}
+			modifier = {
+				factor = 0.8
+				NOT = {
+					year = 900
+				}
+			}
+			modifier = {
+				factor = 0.8
+				NOT = {
+					year = 800
+				}
+			}
+			modifier = {
+				factor = 0.1
+				NOT = {
+					wealth = 6000
+				}
+			}
+			modifier = {
+				factor = 0.1
+				NOT = {
+					prestige = 2000
+				}
+			}
+		}
+	}
+	
+	ask_to_join_treasure_fleet = {
+		ai_check_interval = 12
+		only_playable = yes
+		is_high_prio = yes
+		potential = {
+			is_feudal = yes
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+		}
+		
+		allow = {
+			war = no
+			is_adult = yes
+			is_inaccessible_or_incapable_trigger = no
+			NOR = {
+				trait = treasure_fleet_preparation
+				has_character_modifier = tf_join_request
+				has_character_modifier = tf_joining_refused
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					e_china = {
+						holder_scope = {
+							owes_favor_to = ROOT
+						}
+					}
+				}
+				character_event = { id = treasurefleet.29 } # Use favor or not?
+			}
+			else = {
+				# TODO: Add modifier
+				e_china = {
+					holder_scope = {
+						character_event = { id = treasurefleet.31 } # Ask the EoC
+					}
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.05
+				always = yes
+			}
+			modifier = {
+				factor = 0.1
+				in_faction = yes
+			}
+			modifier = {
+				factor = 0.01
+				leads_faction = yes
+			}
+			modifier = {
+				factor = 0.1
+				trait = content
+			}
+			modifier = {
+				factor = 0.1
+				trait = slothful
+			}
+		}
+	}
+	
+	end_treasure_fleet_preparation_participation = {
+		only_playable = yes
+		ai = no
+		potential = {
+			trait = treasure_fleet_preparation
+		}
+		allow = {
+			always = yes
+		}
+		effect = {
+			prestige = -100
+			remove_trait = treasure_fleet_preparation
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	end_treasure_fleet_voyage_participation = {
+		only_playable = yes
+		ai = no
+		potential = {
+			trait = treasure_fleet_voyage
+		}
+		allow = {
+			custom_tooltip = {
+				text = tresure_fleet_is_in_port
+				NOT = {
+					2753 = { # Hangzhou
+						has_province_flag = treasure_fleet_port_flag
+					}
+				}
+			}
+		}
+		effect = {
+			prestige = -100
+			remove_trait = treasure_fleet_voyage # TODO: Move this to a delayed event?
+		}
+		ai_will_do = {
+			factor = 0
 		}
 	}
 }
