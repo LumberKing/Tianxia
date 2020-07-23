@@ -525,6 +525,14 @@ add_one_of_each_jd_character_effect = { # Exactly what it says on the tin
 		which = tf_master_engineer
 		value = 1
 	}
+	change_variable = {
+		which = tf_peace_deal_with_china
+		value = 1
+	}
+	change_variable = {
+		which = tf_chinese_imperial_trade_contract
+		value = 1
+	}
 }
 
 add_random_people_to_treasure_fleet_effect = {
@@ -1276,6 +1284,18 @@ add_random_jd_character_effect = {
 				value = 1
 			}
 		}
+		1 = {
+			change_variable = {
+				which = tf_peace_deal_with_china
+				value = 1
+			}
+		}
+		1 = {
+			change_variable = {
+				which = tf_chinese_imperial_trade_contract
+				value = 1
+			}
+		}
 	}
 }
 
@@ -1991,6 +2011,14 @@ remove_one_of_each_jd_character_effect = { # Exactly what it says on the tin
 	}
 	change_variable = {
 		which = tf_master_engineer
+		value = -1
+	}
+	change_variable = {
+		which = tf_peace_deal_with_china
+		value = -1
+	}
+	change_variable = {
+		which = tf_chinese_imperial_trade_contract
 		value = -1
 	}
 	zero_everything_negative_effect = yes
@@ -2733,6 +2761,18 @@ remove_random_jd_character_effect = {
 		1 = {
 			change_variable = {
 				which = tf_master_engineer
+				value = -1
+			}
+		}
+		1 = {
+			change_variable = {
+				which = tf_peace_deal_with_china
+				value = -1
+			}
+		}
+		1 = {
+			change_variable = {
+				which = tf_chinese_imperial_trade_contract
 				value = -1
 			}
 		}
@@ -3791,6 +3831,34 @@ zero_everything_negative_effect = {
 		limit = {
 			NOT = {
 				check_variable = {
+					which = tf_peace_deal_with_china
+					value = 0
+				}
+			}
+		}
+		set_variable = {
+			which = tf_peace_deal_with_china
+			value = 0
+		}
+	}
+	if = {
+		limit = {
+			NOT = {
+				check_variable = {
+					which = tf_chinese_imperial_trade_contract
+					value = 0
+				}
+			}
+		}
+		set_variable = {
+			which = tf_chinese_imperial_trade_contract
+			value = 0
+		}
+	}
+	if = {
+		limit = {
+			NOT = {
+				check_variable = {
 					which = tf_noble
 					value = 0
 				}
@@ -3971,24 +4039,780 @@ zero_everything_negative_effect = {
 	}
 }
 
-reduce_army_if_ships_sink_effect = {
+### Misc
+
+disembark_regiments_until_stronger_or_unable_to_continue_effect = {
 	while = {
 		limit = {
-			NOT = {
-				check_variable = {
-					which = treasure_fleet_ship_strength
-					which = treasure_fleet_army_strength
+			check_variable = {
+				which = treasure_fleet_army_strength
+				value = 15
+			}
+			event_target:treasure_fleet_attacker = {
+				relative_power = {
+					who = event_target:treasure_fleet_punitive_expedition_leader
+					power = 1
 				}
 			}
 		}
-		change_variable =  {
+		change_variable = {
 			which = treasure_fleet_army_strength
 			value = -1
+		}
+		event_target:treasure_fleet_punitive_expedition_leader = {
+			event_target:treasure_fleet_beachhead = {
+				spawn_unit = {
+					province = PREV
+					home = PREV
+					owner = event_target:treasure_fleet_punitive_expedition_leader
+					earmark = tf_punitive_expedition
+					troops = {
+						light_infantry = { 300 300 } # Sailors
+						heavy_infantry = { 200 200 }
+						pikemen = { 200 200 }
+						archers = { 200 200 }
+						light_cavalry = { 50 50 } # Very little cavalry; horses are annoying to transport
+						knights = { 50 50 } # Very little cavalry; horses are annoying to transport
+					}
+				}
+				sea_zone = {
+					event_target:treasure_fleet_punitive_expedition_leader = {
+						spawn_unit = {
+							province = PREV
+							home = FROM
+							owner = event_target:treasure_fleet_punitive_expedition_leader
+							earmark = tf_punitive_expedition
+							troops = {
+								galleys = { 10 10 }
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }
 
-### Misc
+disembark_regiments_until_unable_to_continue_effect = {
+	while = {
+		limit = {
+			check_variable = {
+				which = treasure_fleet_army_strength
+				value = 1
+			}
+		}
+		change_variable = {
+			which = treasure_fleet_army_strength
+			value = -1
+		}
+		ROOT = {
+			event_target:potential_tf_invasion_target_beachhead = {
+				spawn_unit = {
+					province = PREV
+					home = PREV
+					owner = ROOT
+					earmark = tf_invasion
+					troops = {
+						light_infantry = { 300 300 } # Sailors
+						heavy_infantry = { 200 200 }
+						pikemen = { 200 200 }
+						archers = { 200 200 }
+						light_cavalry = { 50 50 } # Very little cavalry; horses are annoying to transport
+						knights = { 50 50 } # Very little cavalry; horses are annoying to transport
+					}
+				}
+				sea_zone = {
+					ROOT = {
+						spawn_unit = {
+							province = PREV
+							home = FROM
+							owner = ROOT
+							earmark = tf_invasion
+							troops = {
+								galleys = { 10 10 }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+gift_random_artifact_effect = {
+	set_character_flag = treasure_fleet_artifact_naming_flag
+	2753 = { # Hangzhou
+		random_list = {
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_jade_dragon
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_jade_dragon
+					value = -1
+				}
+				ROOT = {
+					add_artifact = jade_dragon
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_dragon_amulet
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_dragon_amulet
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_dragon_amulet
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_artwork
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_artwork
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_artwork
+					new_artifact = {
+						set_name="chinese_artwork_name"
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_calligraphy
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_calligraphy
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_calligraphy
+					new_artifact = {
+						set_name="chinese_calligraphy_name"
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_sculpture
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_sculpture
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_sculpture
+					new_artifact = {
+						set_name="chinese_sculpture_name"
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_ceremonial_robes
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_ceremonial_robes
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_ceremonial_robes
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_silk_shroud
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_silk_shroud
+					value = -1
+				}
+				ROOT = {
+					add_artifact = silk_shroud
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_water_clock
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_water_clock
+					value = -1
+				}
+				ROOT = {
+					add_artifact = water_clock
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_jian_sword
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_jian_sword
+					value = -1
+				}
+				ROOT = {
+					add_artifact = jian_sword
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			#1 = {
+			#	modifier = {
+			#		factor = 0
+			#		NOT = {
+			#			check_variable = {
+			#				which = xxx
+			#				value = 1
+			#			}
+			#		}
+			#	}
+			#	#change_variable = {
+			#	#	which = tf_chinese_prev_emperor_sculpture
+			#	#	value = -1
+			#	#}
+			#	ROOT = {
+			#		set_character_flag = xxx
+			#	}
+			#}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_arm_protector
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_arm_protector
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_arm_protector
+					new_artifact = {
+						set_name="chinese_arm_protector_name"
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_serpent_spear
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_serpent_spear
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_serpent_spear
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_ji
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_ji
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_ji
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_crossbow
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_crossbow
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_crossbow
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_bronze_sculpture
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_bronze_sculpture
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_bronze_sculpture
+					new_artifact = {
+						set_name="chinese_bronze_sculpture_name"
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_painting_of_glitterhoof
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_painting_of_glitterhoof
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_painting_of_glitterhoof
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_tapestry
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_tapestry
+					value = -1
+				}
+				ROOT = {
+					random_independent_ruler = {
+						limit = {
+							any_realm_province = {
+								trade_route = silk_road
+							}
+						}
+						random_realm_province = {
+							limit = {
+								trade_route = silk_road
+							}
+							save_event_target_as = tapestry_target
+						}
+					}
+					add_artifact = chinese_tapestry
+					new_artifact = {
+						set_name="chinese_tapestry_name"
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_tapestry_grand
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_tapestry_grand
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_tapestry_grand
+					new_artifact = {
+						set_name="chinese_tapestry_grand_name"
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_art_of_war
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_art_of_war
+					value = -1
+				}
+				ROOT = {
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_classic_of_poetry
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_classic_of_poetry
+					value = -1
+				}
+				ROOT = {
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_book_health
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_book_health
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_book_health
+					new_artifact = {
+						set_name="chinese_book_health_name"
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_book_law
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_book_law
+					value = -1
+				}
+				ROOT = {
+					new_artifact = {
+						set_name="chinese_book_law_name"
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_book_history
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_book_history
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_book_history
+					new_artifact = {
+						set_name="chinese_book_history_name"
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_chinese_book_economy
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_chinese_book_economy
+					value = -1
+				}
+				ROOT = {
+					add_artifact = chinese_book_economy
+					new_artifact = {
+						set_name="chinese_book_economy_name"
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_art_of_war_page
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_art_of_war_page
+					value = -1
+				}
+				ROOT = {
+					add_artifact = art_of_war_page
+					new_artifact = {
+						set_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_random_world_sword
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_random_world_sword
+					value = -1
+				}
+				ROOT = {
+					add_artifact = random_world_sword
+					new_artifact = {
+						random_list = {
+							10 = {
+								set_name="random_world_sword_1_FROM"
+								set_description = "random_world_sword_desc_1"
+							}
+							10 = {
+								set_name="random_world_sword_2_FROM"
+								set_description = "random_world_sword_desc_2"
+							}
+							10 = {
+								set_name="random_world_sword_3_FROM"
+								set_description = "random_world_sword_desc_3"
+							}
+							10 = {
+								set_name="random_world_sword_4_FROM"
+								set_description = "random_world_sword_desc_4"
+							}
+							10 = {
+								set_name="random_world_sword_5_FROM"
+								set_description = "random_world_sword_desc_5"
+							}
+							10 = {
+								set_name="random_world_sword_6_FROM"
+								set_description = "random_world_sword_desc_6"
+							}
+						}
+						random_list = {
+							10 = {
+								set_picture = "GFX_sword_golden"
+							}
+							10 = {
+								set_picture = "GFX_sword_of_heroes"
+							}
+							10 = {
+								set_picture = "GFX_sword_engraved"
+							}
+							10 = {
+								set_picture = "GFX_sword_T3_glow_green"
+							}
+							10 = {
+								set_picture = "GFX_sword_T3_glow_purple"
+							}
+							10 = {
+								set_picture = "GFX_sword_T3_glow_red"
+							}
+						}
+						set_artifact_original_owner = FROM
+					}
+				}
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						check_variable = {
+							which = tf_random_world_armor
+							value = 1
+						}
+					}
+				}
+				change_variable = {
+					which = tf_random_world_armor
+					value = -1
+				}
+				ROOT = {
+					add_artifact = random_world_armor
+					new_artifact = {
+						random_list = {
+								10 = {
+									set_name="random_world_armor_1_FROM"
+									set_description = "random_world_armor_desc_1"
+								}
+								10 = {
+									set_name="random_world_armor_2_FROM"
+									set_description = "random_world_armor_desc_2"
+								}
+								10 = {
+									set_name="random_world_armor_3_FROM"
+									set_description = "random_world_armor_desc_3"
+								}
+								10 = {
+									set_name="random_world_armor_4_FROM"
+									set_description = "random_world_armor_desc_4"
+								}
+								10 = {
+									set_name="random_world_armor_5_FROM"
+									set_description = "random_world_armor_desc_5"
+								}
+						}
+						random_list = {
+							10 = {
+								set_picture = "GFX_guardian_armor"
+							}
+							10 = {
+								set_picture = "GFX_champion_armor"
+							}
+							10 = {
+								set_picture = "GFX_warden_armor"
+							}
+						}
+						set_artifact_original_owner = FROM
+					}
+				}
+			}
+		}
+		zero_everything_negative_effect = yes
+	}
+	
+	clr_province_flag = treasure_fleet_artifact_naming_flag
+}
 
 ### Cleanup
 
@@ -3999,7 +4823,3 @@ clean_up_old_treasure_fleet_effect = { # If there's a dynasty change, the TF res
 do_some_damage_to_inactive_treasure_fleet_effect = {}
 
 abort_treasure_fleet_for_everyone_effect = {}
-
-abort_treasure_fleet_for_everyone_but_me_effect = {}
-
-abort_treasure_fleet_for_me_effect = {}
