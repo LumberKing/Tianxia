@@ -66,7 +66,7 @@ society_decisions = {
 				if = {
 					limit = {
 						custom_tooltip = {
-							text = won_war_of_honor
+							text = won_wars_of_honor
 							custom_tooltip = {
 								text = won_wars_of_honor
 								check_variable = {
@@ -89,10 +89,6 @@ society_decisions = {
 				set_character_flag = has_sent_request_to_rank_up
 				character_event = { id = MNM.10002 days = 20 random = 10 } # sends hidden delayed event to self, which then sends request to Leader of the society
 			}
-		}
-
-		revoke_allowed = {
-			always = no
 		}
 		
 		ai_will_do = {
@@ -633,9 +629,7 @@ society_decisions = {
 			}
 			character_event = { id = risingsun.232 }
 		}
-		revoke_allowed = {
-			always = no
-		}
+		
 		ai_will_do = {
 			factor = 0.1
 			modifier = {
@@ -782,9 +776,7 @@ society_decisions = {
 				} 
 			}
 		}
-		revoke_allowed = {
-			always = no
-		}
+		
 		ai_will_do = {
 			factor = 0 # decisions with the "is_mercenary" will not be calculated from the script
 		}
@@ -965,7 +957,170 @@ society_decisions = {
 					has_non_aggression_pact_with = ROOT
 				}
 				ROOT = {
-					china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
+					OR = {
+						# Attacker or any liege has a Chinese Peace Deal, defender is China
+						AND = {
+							OR = {
+								has_character_modifier = peace_deal_with_china
+								any_liege = {
+									has_character_modifier = peace_deal_with_china
+								}
+							}
+							PREV = {
+								is_chinese_emperor_trigger = yes
+							}
+						}
+						# Attacker is the EoC and defender has a Chinese Peace Deal
+						AND = {
+							ROOT = {
+								is_chinese_emperor_trigger = yes
+							}
+							PREV = {
+								has_character_modifier = peace_deal_with_china
+							}
+						}
+						# Attacker or any liege has a peace deal with China and defender is a tributary China might defend
+						AND = {
+							ROOT = {
+								OR = {
+									has_character_modifier = peace_deal_with_china
+									any_liege = {
+										has_character_modifier = peace_deal_with_china
+									}
+								}
+							}
+							PREV = {
+								OR = {
+									is_tributary = {
+										type = chinese_imperial_tributary
+									}
+									is_tributary = {
+										type = chinese_protectorate
+									}
+									is_tributary = {
+										type = chinese_client_state
+									}
+								}
+								suzerain = {
+									is_chinese_emperor_trigger = yes
+								}
+							}
+						}
+						# Attacker is a tributary of China (or a subject of such a tributary) and defender is a high-tier tributary of China
+						AND = {
+							ROOT = {
+								OR = {
+									AND = {
+										OR = {
+											is_tributary = {
+												type = chinese_peripheral_tributary
+											}
+											is_tributary = {
+												type = chinese_imperial_tributary
+											}
+											is_tributary = {
+												type = chinese_protectorate
+											}
+											is_tributary = {
+												type = chinese_client_state
+											}
+										}
+										suzerain = {
+											is_chinese_emperor_trigger = yes
+										}
+									}
+									top_liege = {
+										OR = {
+											is_tributary = {
+												type = chinese_peripheral_tributary
+											}
+											is_tributary = {
+												type = chinese_imperial_tributary
+											}
+											is_tributary = {
+												type = chinese_protectorate
+											}
+											is_tributary = {
+												type = chinese_client_state
+											}
+										}
+										suzerain = {
+											is_chinese_emperor_trigger = yes
+										}
+									}
+								}
+							}
+							PREV = {
+								OR = {
+									AND = {
+										ROOT = {
+											NOT = {
+												is_tributary = {
+													type = chinese_protectorate
+												}
+											}
+										}
+										is_tributary = {
+											type = chinese_protectorate
+										}
+									}
+									is_tributary = {
+										type = chinese_client_state
+									}
+								}
+							}
+						}
+						# Attacker is a Client State (or vassal of a Client State) or a vassal of China and defender is any kind of Chinese tributary or has a Chinese Peace Deal
+						AND = {
+							ROOT = {
+								OR = {
+									AND = {
+										is_tributary = {
+											type = chinese_client_state
+										}
+										suzerain = {
+											is_chinese_emperor_trigger = yes
+										}
+									}
+									top_liege = {
+										is_tributary = {
+											type = chinese_client_state
+										}
+										suzerain = {
+											is_chinese_emperor_trigger = yes
+										}
+									}
+									top_liege = {
+										is_chinese_emperor_trigger = yes
+									}
+								}
+							}
+							PREV = {
+								OR = {
+									AND = {
+										OR = {
+											is_tributary = {
+												type = chinese_peripheral_tributary
+											}
+											is_tributary = {
+												type = chinese_imperial_tributary
+											}
+											is_tributary = {
+												type = chinese_protectorate
+											}
+											is_tributary = {
+												type = chinese_client_state
+											}
+										}
+										suzerain = {
+											is_chinese_emperor_trigger = yes
+										}
+									}
+									has_character_modifier = peace_deal_with_china
+								}
+							}
+						}
+					}
 				}
 				any_realm_province = {
 					any_neighbor_province = {
@@ -981,22 +1136,6 @@ society_decisions = {
 							}
 							AND = {
 								is_land = no
-								OR = {
-									ROOT = { religion_group = muslim }
-									FROM = { religion_group = muslim }
-									AND = {
-										ROOT = { religion_group = pagan_group }
-										has_global_flag = pagan_ghws_unlocked
-									}
-									AND = {
-										ROOT = { religion_group = christian }
-										has_global_flag = christian_crusades_unlocked
-									}
-									AND = {
-										ROOT = { religion_group = muslim }
-										has_global_flag = muslim_jihads_unlocked
-									}
-								}
 								any_neighbor_province = {
 									OR = {
 										AND = {
@@ -2240,8 +2379,6 @@ targeted_decisions = {
 				piety = -150
 			}
 		}
-		
-		revoke_allowed = { always = no }
 
 		ai_will_do = {
 			factor = 1

@@ -5967,6 +5967,7 @@ rising_sun_subjugation_cb = {
 	truce_days = 3650
 	is_permanent = yes
 	is_holy_war = yes
+	check_de_jure_tier = KING
 	allowed_to_target_tributaries = no
 	defender_unoccupied_warscore = yes
 	
@@ -6327,6 +6328,14 @@ punitive_expedition = {
 					}
 				}
 			}
+			hidden_tooltip = {
+				if = {
+					limit = {
+						has_dlc = "Jade Dragon"
+					}
+					character_event = { id = grace.7 days = 365 }
+				}
+			}
 		}
 	}
 	
@@ -6400,6 +6409,14 @@ treasure_fleet_tributary_war = {
 						who = FROM
 						tributary_type = chinese_imperial_tributary
 					}
+				}
+			}
+			hidden_tooltip = {
+				if = {
+					limit = {
+						has_dlc = "Jade Dragon"
+					}
+					character_event = { id = grace.7 days = 365 }
 				}
 			}
 		}
@@ -6586,8 +6603,21 @@ tf_invasion = {
 	
 	defender_unoccupied_warscore = yes
 	
+	on_add = {
+		ROOT = {
+			set_global_flag = treasure_fleet_invasion_ongoing
+		}
+	}
+	
+	is_valid = {
+		top_liege = {
+			has_landed_title = e_china
+		}
+	}
+	
 	on_success = {
 		ROOT = {
+			clr_global_flag = treasure_fleet_invasion_ongoing
 			prestige = 1000
 			# TODO: Grab TF wealth
 			if = {
@@ -6634,8 +6664,19 @@ tf_invasion = {
 						NOT = {
 							title = e_treasure_fleet
 						}
+						is_titular = no
 					}
 					set_title_flag = give_to_china
+				}
+			}
+			ROOT = {
+				event_target:potential_tf_invasion_target_beachhead = { # To ensure that we've got a potential capital in the region...
+					county = {
+						usurp_title = {
+							target = ROOT
+							type = invasion
+						}
+					}
 				}
 			}
 			custom_tooltip = {
@@ -6648,7 +6689,7 @@ tf_invasion = {
 							is_crusade = no # Even if the title holder is not participating in the war, gain holdings occupied by all Crusade participants
 							type = invasion
 						}
-						if = {
+						if = { # TODO
 							limit = {
 								OR = {
 									this_has_lame_nickname_trigger = yes
@@ -6782,6 +6823,7 @@ tf_invasion = {
 	
 	on_reverse_demand = {
 		ROOT = {
+			clr_global_flag = treasure_fleet_invasion_ongoing
 			prestige = -1000
 			disband_event_forces = tf_invasion
 			e_china = {
@@ -6790,6 +6832,10 @@ tf_invasion = {
 						who = ROOT
 						modifier = opinion_traitor
 					}
+					ROOT = {
+						set_defacto_liege = PREV
+					}
+					imprison = FROM # Better than having the target do it...
 				}
 			}
 			any_demesne_title = {
@@ -6799,7 +6845,6 @@ tf_invasion = {
 					}
 				}
 			}
-			imprison = FROM
 			hidden_tooltip = {
 				2753 = { # Hangzhou
 					clean_up_old_treasure_fleet_effect = yes
@@ -6818,7 +6863,11 @@ tf_invasion = {
 							is_chinese_emperor_trigger = yes
 						}
 					}
+					NOT = {
+						government = chinese_imperial_government # Pretender emperors
+					}
 				}
+				add_grace_super_huge_effect = yes
 				add_grace_super_huge_effect = yes
 			}
 		}
@@ -6826,6 +6875,7 @@ tf_invasion = {
 	
 	on_invalidation = {
 		2753 = { # Hangzhou
+			clr_global_flag = treasure_fleet_invasion_ongoing
 			clean_up_old_treasure_fleet_effect = yes
 		}
 		ROOT = {
