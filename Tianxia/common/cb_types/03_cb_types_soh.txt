@@ -6291,7 +6291,7 @@ punitive_expedition = {
 	war_name = WAR_NAME_PUNITIVE_EXPEDITION
 	sprite = 36
 	truce_days = 365
-	is_permanent = yes
+	is_permanent = no
 	hostile_against_others = yes
 	allow_whitepeace = no # You win, or you lose
 	can_ask_to_join_war = no
@@ -6309,6 +6309,9 @@ punitive_expedition = {
 			NOT = {
 				has_province_flag = abort_treasure_fleet_asap
 			}
+		}
+		FROM = {
+			independent = yes
 		}
 	}
 	
@@ -6328,14 +6331,14 @@ punitive_expedition = {
 					}
 				}
 			}
-			hidden_tooltip = {
-				if = {
-					limit = {
-						has_dlc = "Jade Dragon"
-					}
-					character_event = { id = grace.7 days = 365 }
-				}
-			}
+			#hidden_tooltip = {
+			#	if = {
+			#		limit = {
+			#			has_dlc = "Jade Dragon"
+			#		}
+			#		character_event = { id = grace.7 days = 365 }
+			#	}
+			#}
 		}
 	}
 	
@@ -6372,11 +6375,11 @@ punitive_expedition = {
 }
 
 treasure_fleet_tributary_war = {
-	name = CB_NAME_TRIBUTARY
-	war_name = WAR_NAME_TRIBUTARY
+	name = CB_NAME_TREASURE_FLEET_TRIBUTARY
+	war_name = WAR_NAME_TREASURE_FLEET_TRIBUTARY
 	sprite = 36
+	is_permanent = no
 	truce_days = 365
-	is_permanent = yes
 	hostile_against_others = yes
 	can_ask_to_join_war = no
 	
@@ -6394,6 +6397,9 @@ treasure_fleet_tributary_war = {
 				has_province_flag = abort_treasure_fleet_asap
 			}
 		}
+		FROM = {
+			independent = yes
+		}
 	}
 	
 	on_success = {
@@ -6407,18 +6413,18 @@ treasure_fleet_tributary_war = {
 				holder_scope = {
 					make_tributary = {
 						who = FROM
-						tributary_type = chinese_imperial_tributary
+						tributary_type = chinese_peripheral_tributary
 					}
 				}
 			}
-			hidden_tooltip = {
-				if = {
-					limit = {
-						has_dlc = "Jade Dragon"
-					}
-					character_event = { id = grace.7 days = 365 }
-				}
-			}
+			#hidden_tooltip = {
+			#	if = {
+			#		limit = {
+			#			has_dlc = "Jade Dragon"
+			#		}
+			#		character_event = { id = grace.7 days = 365 }
+			#	}
+			#}
 		}
 	}
 	
@@ -6595,9 +6601,10 @@ tf_invasion = {
 	war_name = WAR_NAME_TREASURE_FLEET_INVASION
 	sprite = 36
 	truce_days = 365
-	is_permanent = yes
+	is_permanent = no
 	hostile_against_others = yes
 	allow_whitepeace = no # You win, or you lose
+	attacker_can_call_allies = no # This might let vassals of China join, which would be stupid...
 	can_ask_to_join_war = no
 	check_de_jure_tier = KING
 	
@@ -6610,8 +6617,13 @@ tf_invasion = {
 	}
 	
 	is_valid = {
-		top_liege = {
-			has_landed_title = e_china
+		ROOT = {
+			top_liege = {
+				has_landed_title = e_china
+			}
+		}
+		FROM = {
+			independent = yes
 		}
 	}
 	
@@ -6619,21 +6631,7 @@ tf_invasion = {
 		ROOT = {
 			clr_global_flag = treasure_fleet_invasion_ongoing
 			prestige = 1000
-			# TODO: Grab TF wealth
-			if = {
-				limit = {
-					is_female = no
-				}
-				create_bloodline = {
-					type = regency_bloodline
-				}
-			}
-			else = {
-				create_bloodline = {
-					type = regency_bloodline
-					inheritance = matrilineal
-				}
-			}
+			take_tf_wealth_effect = yes
 			remove_trait = treasure_fleet_voyage
 			clr_character_flag = do_not_disturb
 		}
@@ -6679,35 +6677,37 @@ tf_invasion = {
 					}
 				}
 			}
-			custom_tooltip = {
-				text = other_invasion_succ_tip
-				hidden_tooltip = {
-					ROOT = {
-						vassalize_or_take_under_title_destroy_duchies = {
-							title = PREV
-							enemy = FROM
-							is_crusade = no # Even if the title holder is not participating in the war, gain holdings occupied by all Crusade participants
-							type = invasion
+		}
+		custom_tooltip = {
+			text = other_invasion_succ_tip
+			hidden_tooltip = {
+				ROOT = {
+					vassalize_or_take_under_title_destroy_duchies = {
+						title = PREV
+						enemy = FROM
+						is_crusade = no # Even if the title holder is not participating in the war, gain holdings occupied by all Crusade participants
+						type = invasion
+					}
+					if = { # TODO
+						limit = {
+							OR = {
+								this_has_lame_nickname_trigger = yes
+								has_nickname = no
+							}
 						}
-						if = { # TODO
-							limit = {
-								OR = {
-									this_has_lame_nickname_trigger = yes
-									has_nickname = no
-								}
-							}
-							random_list = {
-								10 = { give_nickname = nick_the_holy }
-								10 = { give_nickname = nick_the_glorious }
-								10 = { give_nickname = nick_the_lionheart }
-								10 = { give_nickname = nick_the_great }
-								10 = { give_nickname = nick_the_hammer }
-								10 = { give_nickname = nick_the_magnificent }
-							}
+						random_list = {
+							10 = { give_nickname = nick_the_holy }
+							10 = { give_nickname = nick_the_glorious }
+							10 = { give_nickname = nick_the_lionheart }
+							10 = { give_nickname = nick_the_great }
+							10 = { give_nickname = nick_the_hammer }
+							10 = { give_nickname = nick_the_magnificent }
 						}
 					}
 				}
 			}
+		}
+		ROOT = {
 			custom_tooltip = {
 				text = GIVE_TITLES_TO_CHINA
 				any_demesne_title = {
@@ -6816,6 +6816,27 @@ tf_invasion = {
 						remove_character_modifier = chinese_imperial_trade_contract
 					}
 					character_event = { id = nameofchina.30 } # Name the empire
+				}
+			}
+			hidden_tooltip = {
+				2753 = { # Hangzhou
+					clean_up_old_treasure_fleet_effect = yes
+				}
+			}
+			
+			# Bloodline added here; we want to ensure ROOT is an emperor when it is given
+			if = {
+				limit = {
+					is_female = no
+				}
+				create_bloodline = {
+					type = treasure_fleet_invader_bloodline 
+				}
+			}
+			else = {
+				create_bloodline = {
+					type = treasure_fleet_invader_bloodline 
+					inheritance = matrilineal
 				}
 			}
 		}
