@@ -20191,10 +20191,12 @@ character_event = {
 	is_triggered_only = yes
 	hide_window = yes
 	
-	only_rulers = yes
+	only_playable = yes
+	only_independent = yes
 	has_dlc = "Jade Dragon"
 	
 	trigger = {
+		has_landed_title = e_china
 		has_game_rule = {
 			name = grace_interactions
 			value = enabled
@@ -20206,75 +20208,111 @@ character_event = {
 	}
 	
 	immediate = {
+		log = "Chinese Princess update!"
 		if = {
 			limit = {
-				top_liege = {
-					is_chinese_emperor_trigger = no
+				is_chinese_emperor_trigger = yes
+				e_china = {
+					holder_scope = {
+						NOT = {
+							has_character_flag = china_no_imperial_marriage_boons
+						}
+					}
+					NOR = {
+						has_law = cognatic_succession # Ag-Cog; let princesses be possible rulers!
+						has_law = true_cognatic_succession
+						has_law = enatic_succession # Female heirs only!
+						has_law = enatic_cognatic_succession # En-Cog
+						has_law = status_of_women_4
+					}
 				}
 			}
-			any_courtier = {
+			log = "The emperor of China, [Root.GetBestName], should have Chinese Princesses!"
+			any_dynasty_member = {
 				limit = {
 					is_female = yes
-					is_landed = no
-					is_married = no
-					is_consort = no
-					is_betrothed = no
-					trait = dragon_bride_unmarried
-				}
-				remove_trait = dragon_bride_unmarried
-			}
-		}
-		else = {
-			any_courtier = {
-				limit = {
-					is_female = yes
-					is_landed = no
-					is_married = no
-					is_consort = no
-					is_betrothed = no
-					trait = dragon_bride_unmarried
+					is_alive = yes
 				}
 				if = {
 					limit = {
+						is_married = no
+						is_consort = no
+						NOR = {
+							trait = dragon_bride_unmarried
+							trait = dragon_bride_married # If married off but no longer married, don't add the trait again!
+						}
+						host = {
+							OR = {
+								character = ROOT
+								any_liege = {
+									OR = {
+										character = ROOT
+										liege_before_war = {
+											character = ROOT
+										}
+									}
+								}
+								liege_before_war = {
+									character = ROOT
+								}
+							}
+						}
+					}
+					add_trait = dragon_bride_unmarried
+					log = "[This.GetBestName] gained dragon_bride_unmarried!"
+				}
+				else_if = {
+					limit = {
+						is_married = no
+						is_consort = no
+						trait = dragon_bride_unmarried
 						NOT = {
-							any_dynasty_member = {
-								is_chinese_emperor_trigger = yes
+							host = {
+								OR = {
+									character = ROOT
+									any_liege = {
+										OR = {
+											character = ROOT
+											liege_before_war = {
+												character = ROOT
+											}
+										}
+									}
+									liege_before_war = {
+										character = ROOT
+									}
+								}
 							}
 						}
 					}
 					remove_trait = dragon_bride_unmarried
+					log = "[This.GetBestName] lost dragon_bride_unmarried!"
+				}
+				else_if = {
+					limit = {
+						OR = {
+							is_married = yes
+							is_consort = yes
+						}
+						NOT = {
+							trait = dragon_bride_married
+						}
+					}
+					remove_trait = dragon_bride_unmarried
+					add_trait = dragon_bride_married
+					log = "[This.GetBestName] gained dragon_bride_married!"
 				}
 			}
-			any_courtier = {
+		}
+		else = {
+			log = "The emperor of China, [Root.GetBestName], shouldn't have Chinese Princesses!"
+			any_dynasty_member = {
 				limit = {
 					is_female = yes
-					is_landed = no
-					is_married = no
-					is_consort = no
-					is_betrothed = no
-					any_dynasty_member = {
-						is_chinese_emperor_trigger = yes
-					}
+					is_alive = yes
 				}
-				add_trait = dragon_bride_unmarried
-			}
-			any_courtier = {
-				limit = {
-					is_female = yes
-					is_landed = no
-					OR = {
-						is_married = yes
-						is_consort = yes
-					}
-					is_betrothed = no
-					NOT = {
-						trait = dragon_bride_married
-					}
-					any_dynasty_member = {
-						is_chinese_emperor_trigger = yes
-					}
-				}
-				add_trait = dragon_bride_married
+				remove_trait = dragon_bride_unmarried
+				log = "[This.GetBestName] lost dragon_bride_unmarried!"
 			}
 		}
 	}
@@ -20349,7 +20387,6 @@ character_event = {
 				OR = {
 					is_married = yes
 					is_consort = yes
-					is_betrothed = yes
 				}
 			}
 			add_trait = dragon_bride_married
@@ -20360,7 +20397,7 @@ character_event = {
 	}
 }
 
-# on_startup, on_character_convert_religion, OFFER_VASSALIZATION_INTERACTION_ACCEPT_EVENT event for the EoC, also triggered by an event triggered from on_war_ended_victory, on_war_ended_whitepeace, on_war_ended_invalid, and from event 63100
+# on_startup, on_character_convert_religion, on_character_convert_culturew event for the EoC
 character_event = {
 	id = grace.986
 	is_triggered_only = yes
@@ -20379,110 +20416,14 @@ character_event = {
 			value = enabled
 		}
 		has_landed_title = e_china
-		e_china = {
-			holder_scope = {
-				NOT = {
-					has_character_flag = china_no_imperial_marriage_boons
-				}
-			}
-		}
 	}
 	
 	immediate = {
-		if = {
-			limit = {
-				is_chinese_emperor_trigger = yes # Grace stuff active!
-				e_china = {
-					NOR = {
-						has_law = cognatic_succession # Ag-Cog; let princesses be possible rulers!
-						has_law = true_cognatic_succession
-						has_law = enatic_succession # Female heirs only!
-						has_law = enatic_cognatic_succession # En-Cog
-						has_law = status_of_women_4
-					}
-				}
-			}
-			any_dynasty_member = {
-				limit = {
-					is_female = yes
-					is_married = no
-					is_consort = no
-					is_betrothed = no
-					NOR = {
-						trait = dragon_bride_unmarried
-						trait = dragon_bride_married # If married off but no longer married, don't add the trait again!
-					}
-					host = {
-						OR = {
-							character = ROOT
-							any_liege = {
-								OR = {
-									character = ROOT
-									liege_before_war = {
-										character = ROOT
-									}
-								}
-							}
-							liege_before_war = {
-								character = ROOT
-							}
-						}
-					}
-				}
-				add_trait = dragon_bride_unmarried
-			}
-			any_dynasty_member = {
-				limit = {
-					is_female = yes
-					is_married = no
-					is_consort = no
-					is_betrothed = no
-					NOT = {
-						host = {
-							OR = {
-								character = ROOT
-								any_liege = {
-									OR = {
-										character = ROOT
-										liege_before_war = {
-											character = ROOT
-										}
-									}
-								}
-								liege_before_war = {
-									character = ROOT
-								}
-							}
-						}
-					}
-				}
-				remove_trait = dragon_bride_unmarried
-			}
-			any_dynasty_member = {
-				limit = {
-					is_female = yes
-					OR = {
-						is_married = yes
-						is_consort = yes
-						is_betrothed = yes
-					}
-				}
-				add_trait = dragon_bride_married
-			}
-			break = yes
-		}
-		# The EoC converted to a religion that doesn't use the Grace mechanics -> Go here
-		any_dynasty_member = {
-			limit = {
-				is_female = yes
-			}
-			remove_trait = dragon_bride_unmarried
-			remove_trait = dragon_bride_married
-		}
+		character_event = { id = grace.984 } # Update princesses
 	}
 }
 
-# on_war_ended_victory, on_war_ended_whitepeace, on_war ended_invalid event for the EoC, triggering further event
+# on_war_ended_victory, on_war_ended_whitepeace, on_war ended_invalid event for the EoC, triggering further event - deprecated
 character_event = {
 	id = grace.987
 	is_triggered_only = yes
@@ -20560,106 +20501,10 @@ character_event = {
 				}
 			}
 		}
-		e_china = {
-			holder_scope = {
-				NOT = {
-					has_character_flag = china_no_imperial_marriage_boons
-				}
-			}
-		}
 	}
 	
 	immediate = {
-		if = {
-			limit = {
-				is_chinese_emperor_trigger = yes # Grace stuff active!
-				e_china = {
-					NOR = {
-						has_law = cognatic_succession # Ag-Cog; let princesses be possible rulers!
-						has_law = true_cognatic_succession
-						has_law = enatic_succession # Female heirs only!
-						has_law = enatic_cognatic_succession # En-Cog
-						has_law = status_of_women_4
-					}
-				}
-			}
-			any_dynasty_member = {
-				limit = {
-					is_female = yes
-					is_married = no
-					is_consort = no
-					is_betrothed = no
-					NOR = {
-						trait = dragon_bride_unmarried
-						trait = dragon_bride_married # If married off but no longer married, don't add the trait again!
-					}
-					host = {
-						OR = {
-							character = ROOT
-							any_liege = {
-								OR = {
-									character = ROOT
-									liege_before_war = {
-										character = ROOT
-									}
-								}
-							}
-							liege_before_war = {
-								character = ROOT
-							}
-						}
-					}
-				}
-				add_trait = dragon_bride_unmarried
-			}
-			any_dynasty_member = {
-				limit = {
-					is_female = yes
-					is_married = no
-					is_consort = no
-					is_betrothed = no
-					NOT = {
-						host = {
-							OR = {
-								character = ROOT
-								any_liege = {
-									OR = {
-										character = ROOT
-										liege_before_war = {
-											character = ROOT
-										}
-									}
-								}
-								liege_before_war = {
-									character = ROOT
-								}
-							}
-						}
-					}
-				}
-				remove_trait = dragon_bride_unmarried
-			}
-			any_dynasty_member = {
-				limit = {
-					is_female = yes
-					OR = {
-						is_married = yes
-						is_consort = yes
-						is_betrothed = yes
-					}
-				}
-				add_trait = dragon_bride_married
-			}
-			break = yes
-		}
-		# The new EoC doesn't use Grace stuff due to e.g. wrong religion
-		any_dynasty_member = {
-			limit = {
-				is_female = yes
-			}
-			remove_trait = dragon_bride_unmarried
-			remove_trait = dragon_bride_married
-		}
+		character_event = { id = grace.984 } # Update princesses
 	}
 }
 
@@ -21463,7 +21308,7 @@ character_event = {
 						is_female = yes
 					}
 					remove_trait = dragon_bride_unmarried
-					remove_trait = dragon_bride_married
+					#remove_trait = dragon_bride_married # Let them keep it...
 				}
 			}
 			log = "GRACE SYSTEM: Chinsee princesses of the [FromFrom.GetDynasty] dynasty have lost their traits!"

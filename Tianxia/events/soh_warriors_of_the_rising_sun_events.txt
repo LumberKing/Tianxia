@@ -4262,6 +4262,10 @@ character_event = {
 	
 	is_triggered_only = yes
 	
+	trigger = {
+		society_member_of = warriors_of_the_rising_sun
+	}
+	
 	immediate = {
 		if = {
 			limit = {
@@ -35367,4 +35371,135 @@ letter_event = {
 		clr_quest = quest_the_very_best
 		detract_society_currency_major_effect = yes
 	}
+}
+
+##### Misc
+
+# Make the AI join
+#(fired from on_five_year_pulse)
+# Root = Character
+# From = Society
+character_event = {
+    id = risingsun.638
+    picture = GFX_evt_battle
+    border = GFX_event_normal_frame_war
+    hide_window = yes
+    only_independent = yes
+    has_dlc = "Holy Fury"
+    
+    is_triggered_only = yes
+
+    trigger = {
+        is_alive = yes
+    }
+
+    immediate = {
+        #Make others join a warrior lodge...
+        any_realm_lord = {
+            limit = {
+                ai = yes
+				OR = {
+					religion = shinto
+					AND = {
+						OR = {
+							religion = buddhist
+							religion_group = christian
+						}
+						culture_group = japonic
+					}
+					religion = ryukyuan_pagan
+					religion = ryukyuan_pagan_reformed
+				}
+                is_in_society = no
+                has_secret_religion_trait_trigger = no
+                is_adult = yes
+                NOT = { block_general_event_trigger = yes }
+				higher_tier_than = BARON
+				NOT = { character = ROOT }
+            }
+            score_value = { #Prioritizes selecting some kind of warrior...
+                value = 10
+                warrior_recruit_score = yes
+            }
+            count = 2
+            character_event = { id = risingsun.639 }
+        }
+		any_realm_character = {
+            limit = {
+                ai = yes
+				OR = {
+					religion = shinto
+					AND = {
+						OR = {
+							religion = buddhist
+							religion_group = christian
+						}
+						culture_group = japonic
+					}
+					religion = ryukyuan_pagan
+					religion = ryukyuan_pagan_reformed
+				}
+                is_in_society = no
+                has_secret_religion_trait_trigger = no
+                is_adult = yes
+                NOT = { block_general_event_trigger = yes }
+            }
+            score_value = { #Prioritizes selecting some kind of warrior...
+                value = 10
+                warrior_recruit_score = yes
+            }
+            count = 1
+            character_event = { id = risingsun.639 }
+        }
+
+        #And maybe join yourself?
+        if = {
+            limit = {
+                ai = yes
+				OR = {
+					religion = shinto
+					AND = {
+						OR = {
+							religion = buddhist
+							religion_group = christian
+						}
+						culture_group = japonic
+					}
+					religion = ryukyuan_pagan
+					religion = ryukyuan_pagan_reformed
+				}
+                is_in_society = no
+                has_secret_religion_trait_trigger = no
+                is_adult = yes
+                NOT = { block_general_event_trigger = yes }
+            }
+            log = "[Root.GetTitledName] joins the Warriors of the Rising Sun!"
+            character_event = { id = risingsun.639 }
+        }
+    }
+}
+
+### Follow-up: If was eligible, AI joins WotRS
+character_event = {
+    id = risingsun.639
+    hide_window = yes
+    is_triggered_only = yes
+    immediate = {
+        join_society = warriors_of_the_rising_sun
+
+        if = {
+            limit = {
+                NOT = {
+                    society = {
+                        any_society_member = {
+                            is_society_grandmaster = yes
+                        }
+                    }
+                }
+            }
+            log = "[This.Society.GetName] is a society without a grandmaster and I am trying to be set as the grandmaster."
+            set_society_grandmaster = yes # Set character as Grand Master (if there was none)
+            add_society_currency_massive_effect = yes
+        }
+    }
 }
