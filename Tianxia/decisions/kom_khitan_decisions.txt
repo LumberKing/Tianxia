@@ -1,0 +1,432 @@
+title_decisions = {
+	embrace_chinese_imperialism = {
+		ai = no # Moved on an on_bi_yearly_pulse event
+		#ai_check_interval = 18
+		filter = all
+		#ai_target_filter = all
+		only_playable = yes
+		
+		potential = {
+			# Should NOT require JD; Liao existed and was somewhat Chinese Imperial!
+			location = {
+				OR = {
+					region = world_china
+					county = {
+						de_jure_liege_or_above = e_china
+					}
+				}
+				capital_holding = {
+					holding_type = castle
+				}
+				holder_scope = {
+					OR = {
+						NOT = {
+							tier = emperor
+						}
+						character = FROM
+					}
+					top_liege = {
+						OR = {
+							NOT = {
+								tier = emperor
+							}
+							character = FROM
+						}
+						OR = {
+							character = FROM
+							suzerain = {
+								character = FROM
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		from_potential = {
+			tier = emperor
+			is_nomadic = yes
+			is_tributary = no
+			culture = khitan
+			NOT = {
+				has_global_flag = khitan_china_created
+			}
+			# Only for the Liao (or their descendants)!
+			any_owned_bloodline = { # Related by blood to the founder of a pretender dynasty (and not currently the EoC)
+				OR = {
+					has_bloodline_flag = real_chinese_imperial_bloodline
+					has_bloodline_flag = pretender_chinese_imperial_bloodline
+				}
+				bloodline_is_active_for = PREV
+			}
+			OR = {
+				ai = no
+				NOT = {
+					has_game_rule = {
+						name = liao_settling
+						value = never_settle
+					}
+				}
+			}
+		}
+		
+		allow = {
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				has_acceptable_chinese_religion_trigger = yes
+				war = no
+				# Cannot be the heir to e_china
+				e_china = {
+					holder_scope = {
+						NOR = {
+							current_heir = {
+								character = FROM
+							}
+						}
+						# The AI should not do this if it shares the dynasty of the EoC
+						OR = {
+							FROM = {
+								ai = no
+							}
+							NOT = {
+								dynasty = FROM
+							}
+						}
+					}
+				}
+				NOT = {
+					has_character_modifier = peace_deal_with_china # If you have a Chinese Peace Deal, you need to break it or wait for it to expire
+				}
+			}
+			# Don't unland the player!
+			holder_scope = {
+				OR = {
+					ai = yes
+					num_of_count_titles = 2
+				}
+			}
+		}
+		
+		effect = {
+			# This MUST be done in the right order as nomadic stuff is very hardcoded and we're working around that
+			# Order of operations:
+			# - Spawn event troops in all current Khitan provinces
+			# - Usurp the target province
+			# - Create a new character and give him all provinces not in the China region that don't have a castle or a city, then grant him independence and make him an Imperial Tributary
+			# - Usurp all vassal khans' provinces and vassals in the China region
+			# - Release all vassal khans and make them Imperial Tributaries
+			# - Set up opinion modifiers for all vassals
+			# - Destroy all titular titles
+			# - Get the Confucian Bureaucracy government and fire an event
+			# The event does the following for FROM (ROOT in the event)
+			# - Activates, flags, and grants e_northern_steppe
+			# - Re-vassalizes people
+			# - Makes all non-nomadic tributaries located in China that aren't empires into vassals, and make the rest into Imperial Tributaries
+			# - Usurps/create capital duchy and possibly kingdom
+			# - Makes FROM Chinese Imperial, removes all Grace, penalizes Grace, and fires the naming event
+			
+			# Spawn a bunch of troops so that the new realm can try to expand (and so that tributaries don't immediately break off)
+			if = {
+				limit = {
+					has_game_rule = {
+						name = khitan_doomstacks
+						value = enabled
+					}
+				}
+				custom_tooltip = {
+					text = khitan_troops_appear
+					FROM = {
+						any_realm_province = {
+							limit = {
+								culture = khitan
+							}
+							PREV = {
+								if = {
+									limit = {
+										year = 1066 # Stamford Bridge or later: China will probably be united-ish, so we need extra troops to survive...
+									}
+									spawn_unit = {
+										owner = FROM
+										province = PREV
+										home = PREV
+											troops = {
+											# Intentionally less than for the Jurchen decision as Liao is supposed to be less likely to successfully blob all over China
+											light_cavalry = { 350 350 }
+											horse_archers = { 150 150 }
+											knights = { 50 50 }
+										}
+									}
+								}
+								else = { # IC: China is not united, so let's not drown them in event troops...
+									spawn_unit = {
+										owner = FROM
+										province = PREV
+										home = PREV
+											troops = {
+											# Intentionally less than for the Jurchen decision as Liao is supposed to be less likely to successfully blob all over China
+											light_cavalry = { 200 200 }
+											horse_archers = { 100 100 }
+											knights = { 50 50 }
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			custom_tooltip = {
+				text = found_khitan_empire
+				# Take over the target province
+				FROM = {
+					ROOT = {
+						grant_title_no_opinion = PREV
+						FROM = {
+							capital = PREV
+						}
+						location = {
+							culture = FROM
+							religion = FROM
+						}
+					}
+				}
+				
+				# Create courtier that'll be a new nomadic ruler and throw a bunch of provinces at him, then make him independent and a tributary
+				FROM = {
+					create_random_soldier = {
+						random_traits = yes
+						dynasty = random
+						religion = FROM
+						culture = FROM
+						female = no
+						age = 25
+					}
+					new_character = {
+						save_event_target_as = new_nomad
+					}
+					any_demesne_province = {
+						limit = {
+							NOR = {
+								region = world_china
+								county = {
+									de_jure_liege_or_above = e_china
+								}
+								any_province_holding = {
+									OR = {
+										holding_type = castle
+										holding_type = city
+									}
+								}
+							}
+						}
+						county = {
+							event_target:new_nomad = {
+								grant_title = PREV
+							}
+						}
+					}
+					event_target:new_nomad = {
+						set_defacto_liege = THIS
+						FROM = {
+							make_tributary = {
+								who = event_target:new_nomad
+								tributary_type = chinese_imperial_tributary
+							}
+						}
+					}
+				}
+				
+				# Take over provinces and vassals in China from vassal khans, then make the khans Imperial Tributaries
+				FROM = {
+					any_vassal = {
+						limit = {
+							is_nomadic = yes
+						}
+						any_demesne_province = {
+							limit = {
+								OR = {
+									region = world_china
+									county = {
+										de_jure_liege_or_above = e_china
+									}
+								}
+							}
+							county = {
+								FROM = {
+									grant_title_no_opinion = PREV
+								}
+							}
+						}
+						# Two tiers of vassals (dukes and kings)
+						any_vassal = {
+							limit = {
+								OR = {
+									any_demesne_province = {
+										OR = {
+											region = world_china
+											county = {
+												de_jure_liege_or_above = e_china
+											}
+										}
+									}
+									any_vassal = {
+										any_demesne_province = {
+											OR = {
+												region = world_china
+												county = {
+													de_jure_liege_or_above = e_china
+												}
+											}
+										}
+									}
+								}
+							}
+							set_defacto_liege = FROM
+						}
+						set_defacto_liege = THIS
+						FROM = {
+							make_tributary = {
+								who = PREV
+								tributary_type = chinese_imperial_tributary
+							}
+						}
+					}
+				}
+				
+				# Set up opinion modifiers for all vassals, then release them
+				FROM = {
+					any_vassal = {
+						limit = {
+							higher_tier_than = baron
+						}
+						opinion = {
+							who = FROM
+							modifier = i_will_become_a_vassal_again
+							months = 1
+						}
+						set_defacto_liege = THIS
+					}
+				}
+				
+				# Destroy all titular titles
+				FROM = {
+					any_demesne_title = {
+						limit = {
+							is_titular = yes
+						}
+						unsafe_destroy_landed_title = THIS
+					}
+				}
+				
+				# Become Confucian Bureaucracy (we don't want to be nomadic) and get the proper title) and go to the event that does the rest
+				FROM = {
+					set_government_type = chinese_vassal_government
+					character_event = { id = khitan.1 }
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			# Delay unless we always should settle
+			modifier = {
+				factor = 0.001
+				FROM = {
+					ai = yes
+				}
+				NOT = {
+					has_game_rule = {
+						name = liao_settling
+						value = settle_asap
+					}
+				}
+			}
+			# Settle ASAP if we should
+			modifier = {
+				factor = 1000
+				FROM = {
+					ai = yes
+				}
+				location = {
+					num_of_settlements = 4 # Prefer a good province
+				}
+				has_game_rule = {
+					name = liao_settling
+					value = settle_asap
+				}
+			}
+			# Prefer to do it if we've got a bunch of holdngs
+			modifier = {
+				factor = 0.01
+				FROM = {
+					ai = yes
+				}
+				NOT = {
+					any_province = {
+						count = 20
+						OR = {
+							region = world_china
+							county = {
+								de_jure_liege_or_above = e_china
+							}
+						}
+						any_province_holding = {
+							OR = {
+								holding_type = castle
+								holding_type = city
+							}
+						}
+						holder_scope = {
+							top_liege = {
+								OR = {
+									character = FROM
+									suzerain = {
+										character = FROM
+									}
+								}
+							}
+						}
+					}
+				}
+				NOT = {
+					has_game_rule = {
+						name = liao_settling
+						value = settle_asap
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				FROM = {
+					ai = yes
+				}
+				any_province = {
+					count = 50
+					OR = {
+						region = world_china
+						county = {
+							de_jure_liege_or_above = e_china
+						}
+					}
+					any_province_holding = {
+						OR = {
+							holding_type = castle
+							holding_type = city
+						}
+					}
+					holder_scope = {
+						top_liege = {
+							OR = {
+								character = FROM
+								suzerain = {
+									character = FROM
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

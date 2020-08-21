@@ -14,6 +14,9 @@ decisions = {
 			is_feudal = yes
 			NOT = { government = chinese_imperial_government }
 			NOT = {
+				government = japanese_imperial_government
+			}
+			NOT = {
 				has_landed_title = e_china # Already the real EoC
 			}
 			has_dlc = "Jade Dragon"
@@ -48,6 +51,7 @@ decisions = {
 			is_adult = yes
 			prisoner = no
 			NOT = { trait = incapable }
+			has_regent = no # Can't do this while having a regent
 			is_tributary = no
 			tier = EMPEROR
 			realm_size = 200
@@ -59,9 +63,10 @@ decisions = {
 				text = has_chinese_enough_culture
 				has_acceptable_chinese_culture_trigger = yes # If your culture wouldn't let you keep the government type, it is impossible to enact the decision	
 			}
-			OR = { # We don't want the ruler of Japan to become a pretender empire
-				NOT = {
-					culture = japanese
+			OR = { # We don't want the ruler of Japan to become a pretender empire if they should focus on Japanese stuff
+				NAND = {
+					culture_group = japonic
+					religion = buddhist
 				}
 				NOR = {
 					has_landed_title = k_chrysanthemum_throne
@@ -88,10 +93,10 @@ decisions = {
 					OR = {
 						# Pretenders and former rulers of China have an easier time
 						any_owned_bloodline = {
-							has_flag = pretender_chinese_imperial_bloodline
+							has_bloodline_flag = pretender_chinese_imperial_bloodline
 						}
 						any_owned_bloodline = {
-							has_flag = real_chinese_imperial_bloodline
+							has_bloodline_flag = real_chinese_imperial_bloodline
 						}
 					}
 				}
@@ -103,10 +108,10 @@ decisions = {
 					NOR = {
 						# Pretenders and former rulers of China have an easier time
 						any_owned_bloodline = {
-							has_flag = pretender_chinese_imperial_bloodline
+							has_bloodline_flag = pretender_chinese_imperial_bloodline
 						}
 						any_owned_bloodline = {
-							has_flag = real_chinese_imperial_bloodline
+							has_bloodline_flag = real_chinese_imperial_bloodline
 						}
 					}
 				}
@@ -144,6 +149,10 @@ decisions = {
 			#}
 		}
 		effect = {
+			hidden_tooltip = {
+				remove_trait = japanese_feudal_trait
+				remove_trait = japanese_monastic_trait
+			}
 			if = {
 			    limit = { religion = taoist }
 			    wealth = -500
@@ -168,6 +177,33 @@ decisions = {
 					law = succ_primogeniture
 					cooldown = no
 					opinion_effect = no
+				}
+				if = {
+					limit = {
+						has_dlc = "Conclave"
+					}
+					add_law = {
+						law = ze_administration_laws_2
+						cooldown = no
+						opinion_effect = no
+					}
+				}
+				else = {
+					add_law = {
+						law = imperial_administration
+						cooldown = no
+						opinion_effect = no
+					}
+				}
+				if = {
+					limit = {
+						has_dlc = "Charlemagne"
+					}
+					add_law = {
+						law = vice_royalty_2
+						cooldown = no
+						opinion_effect = no
+					}
 				}
 			}
 			any_demesne_title = {
@@ -204,6 +240,11 @@ decisions = {
 					}
 				}
 			}
+		
+			# Claim China
+			e_china = {
+				add_weak_pressed_claim = PREV
+			}
 			if = {
 				limit = {
 					has_character_modifier = chinese_imperial_trade_contract
@@ -211,6 +252,25 @@ decisions = {
 				remove_character_modifier = chinese_imperial_trade_contract
 			}
 			character_event = { id = nameofchina.30 } # Name the empire
+		}
+		
+		ai_will_do = {
+			factor = 1
+			# Characters that should focus on the Japanese stuff shouldn't do this!
+			modifier = {
+				factor = 0
+				OR = {
+					culture = yamato
+					culture = japanese
+				}
+				religion = buddhist
+			}
+			modifier = {
+				factor = 0
+				NOT = {
+					has_acceptable_chinese_culture_no_gamerule_trigger = yes
+				}
+			}
 		}
 	}
 #	# DO NOT REACTIVATE THESE; THEY'RE LEFTOVERS FROM OFFMAP CHINA AND ALSO DON'T WORK!
@@ -592,7 +652,7 @@ decisions = {
 					type = chinese_imperial_tributary
 				}
 				is_tributary = {
-					type = chinese_protectoraye
+					type = chinese_protectorate
 				}
 				is_tributary = {
 					type = chinese_client_state
@@ -627,7 +687,7 @@ decisions = {
 							type = chinese_imperial_tributary
 						}
 						is_tributary = {
-							type = chinese_protectoraye
+							type = chinese_protectorate
 						}
 						is_tributary = {
 							type = chinese_client_state

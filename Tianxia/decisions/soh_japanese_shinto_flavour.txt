@@ -10,10 +10,12 @@ decisions = {
 				is_republic = yes
 			}
 			prisoner = no
-			culture_group = japonic
 			OR = {
 				religion = shinto
-				religion = buddhist
+				AND = {
+					culture_group = japonic
+					religion = buddhist
+				}
 			}
 			NOT = {
 				has_character_modifier = hanami_in_progress
@@ -168,7 +170,7 @@ decisions = {
 
 	shinto_become_buddhist = {
 		only_playable = yes
-		ai_check_interval = 120
+		ai_check_interval = 180
 		potential = {
 			religion = shinto
 			is_adult = yes
@@ -240,7 +242,7 @@ decisions = {
 	
 	buddhist_become_shinto = {
 		only_playable = yes
-		ai_check_interval = 120
+		ai_check_interval = 180
 		potential = {
 			OR = {
 				culture_group = japonic
@@ -309,6 +311,438 @@ decisions = {
 				factor = 0
 				NOT = {
 					culture_group = japonic
+				}
+			}
+		}
+	}
+	
+	japanese_pilgrimage = {
+		only_playable = yes
+		ai_check_interval = 120
+		potential = {
+			has_dlc = "Mystics"
+			OR = {
+				NOT = { has_dlc = "Way of Life" }
+				has_focus = focus_theology
+				has_quest = quest_indian_monastic_order_pilgrimage
+			}
+			is_playable = yes
+			OR = {
+				religion = shinto
+				AND = {
+					religion = buddhist
+					culture_group = japonic
+				}
+			}
+			NOT = { trait = indian_pilgrim }
+			NOT = {
+				has_alternate_start_parameter = { key = religion_names value = random }
+			}
+		}
+		allow = {
+			war = no
+			in_command = no
+			custom_tooltip = {
+				text = UNOCCUPIED_DEMESNE_TITLE
+				hidden_tooltip = {
+					any_demesne_title = {
+						NOT = { higher_tier_than = count }
+						is_occupied = no
+					}
+				}
+			}
+			prisoner = no
+			NOT = { is_inaccessible_trigger = yes }
+			scaled_wealth = 0.2
+			age = 16
+			custom_tooltip = {
+				text = health_travel_condition
+				hidden_tooltip = {
+					NOT = {	trait = pregnant }
+					NOT = {	trait = incapable }
+					NOT = {	trait = blinded }
+					NOT = {	trait = has_tuberculosis }
+					NOT = {	trait = has_typhoid_fever }
+					NOT = {	trait = has_typhus }
+					NOT = {	trait = has_bubonic_plague }
+					NOT = {	trait = has_measles }
+					NOT = {	trait = has_small_pox }
+					NOT = {	trait = has_aztec_disease }
+				}
+			}
+			custom_tooltip = {
+				text = is_not_busy_trigger_tooltip
+				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
+			}
+		}
+		effect = {
+			scaled_wealth = -0.2
+			set_character_flag = activated_pilgrimage
+			set_character_flag = do_not_disturb
+			hidden_tooltip = {
+				character_event = { 
+					id = shinto.1
+				}
+			}
+		}
+		revoke_allowed = {
+			always = no
+		}
+		ai_will_do = {
+			factor = 1
+			
+			#modifier = {
+			#	factor = 100
+			#	has_quest = quest_indian_monastic_order_pilgrimage
+			#}
+			modifier = {
+				factor = 0.1             # Only a small minority ever go on a pilgrimage
+			}
+			modifier = {
+				factor = 3
+				trait = zealous
+			}
+			modifier = {
+				factor = 0
+				NOT = { wealth = 200 }
+			}			
+			modifier = {
+				factor = 0
+				NOT = { age = 30 }
+			}
+		}
+	}
+}
+
+targeted_decisions = {
+	appoint_saio_saiin = {
+		ai_check_interval = 120
+		ai_target_filter = realm
+		only_playable = yes
+		third_party = FROM
+		filter = realm
+		third_party_filter = dynasty
+		
+		from_potential = {
+			controls_religion = yes
+			religion = shinto
+			has_actual_regency_trigger = no
+		}
+		
+		potential = {
+			OR = {
+				tier = baron
+				is_theocracy = yes
+				character = FROM
+			}
+			any_demesne_title = {
+				OR = {
+					title = b_ise
+					title = b_kamo
+				}
+				holding_type = temple
+			}
+			NOR = {
+				has_character_flag = i_am_saio
+				has_character_flag = i_am_saiin
+			}
+		}
+		
+		third_party_potential = {
+			FROMFROM = {
+				is_female = yes
+				show_scope_change = no
+				# Close relative of yours
+				is_close_relative = ROOT_FROM
+				is_adult = no # Most were quite young
+				is_married = no
+				is_consort = no
+				NOT = { is_landed = yes }
+				NOT = { is_ruler = yes }
+				NOT = { is_heir = yes }
+				custom_tooltip = {
+					text = is_not_incapable_inbred_or_imbecile_tt
+					NOT = { trait = incapable }
+					NOT = { trait = inbred }
+					NOT = { trait = imbecile }
+				}
+				custom_tooltip = {
+					text = is_not_maimed_or_infirm_tt
+					NOT = { trait = maimed }
+					NOT = { trait = infirm }
+				}
+				custom_tooltip = {
+					text = is_not_wounded_severely_injured_tt
+					NOT = { trait = wounded }
+					NOT = { trait = severely_injured }
+				}
+				custom_tooltip = {
+					text = is_not_one_eyed_handed_legged_disfigured_or_mangled_tt
+					NOT = { trait = one_eyed }
+					NOT = { trait = one_handed }
+					NOT = { trait = one_legged }
+					NOT = { trait = disfigured }
+					NOT = { trait = mangled }
+				}
+				NOT = { prisoner = yes }
+				NOR = {
+					has_character_modifier = incestuous_adulterer
+					has_character_modifier = incestuous_adulteress
+					has_character_modifier = adulteress
+					has_character_modifier = adulterer
+					has_character_modifier = known_sodomite
+					has_character_modifier = known_sodomite_pagan
+					has_character_modifier = cradle_robber
+					has_character_modifier = adulterous_priest
+				}
+			}
+			show_only_failed_conditions = yes
+			FROMFROM = {
+				is_ill = no
+				is_inaccessible_or_incapable_trigger = no
+			}
+		}
+		
+		effect = {
+			FROMFROM = {
+				if = {
+					limit = {
+						is_betrothed = yes
+					}
+					break_betrothal = yes
+				}
+				add_trait = japanese_monastic_trait
+			}
+			# Give the title to the new holder; if the same person holds b_ise and b_kamo, give away Kamo
+			if = {
+				limit = {
+					has_landed_title = b_kamo
+					b_kamo = {
+						holding_type = temple
+					}
+				}
+				b_kamo = {
+					grant_title_no_opinion = FROMFROM
+				}
+				# If you've not been spamming the decision, you gain piety
+				if = {
+					limit = {
+						FROM = {
+							OR = {
+								NOT = {
+									has_character_flag = appointed_saiin
+								}
+								had_character_flag = { flag = appointed_saiin days = 3650 }
+								ROOT = {
+									NOT = {
+										dynasty = FROM
+									}
+								}
+							}
+						}
+					}
+					FROM = {
+						clr_character_flag = appointed_saiin
+						piety = 100
+					}
+				}
+				FROMFROM = {
+					if = {
+						limit = {
+							NOT = {
+								has_character_flag = i_am_saiin
+							}
+						}
+						set_character_flag = i_am_saiin
+						set_character_flag = ai_flag_refuse_marriage
+						add_trait = imperial_priestess
+						piety = 100
+					}
+				}
+			}
+			else = {
+				b_ise = {
+					grant_title_no_opinion = FROMFROM
+				}
+				# If you've not been spamming the decision, you gain piety
+				if = {
+					limit = {
+						FROM = {
+							OR = {
+								NOT = {
+									has_character_flag = appointed_saio
+								}
+								had_character_flag = { flag = appointed_saio days = 3650 }
+								ROOT = {
+									NOT = {
+										dynasty = FROM
+									}
+								}
+							}
+						}
+					}
+					FROM = {
+						clr_character_flag = appointed_saio
+						piety = 100
+					}
+				}
+				FROMFROM = {
+					if = {
+						limit = {
+							NOT = {
+								has_character_flag = i_am_saio
+							}
+						}
+						set_character_flag = i_am_saio
+						set_character_flag = ai_flag_refuse_marriage
+						add_trait = imperial_priestess
+						piety = 100
+					}
+				}
+			}
+			# Ensure the proper liege is set
+			FROMFROM = {
+				set_defacto_liege = ROOT_FROM
+			}
+			
+			# If the former holder was unlanded by this, remove the relevant traits
+			if = {
+				limit = {
+					is_landed = no
+				}
+				remove_trait = japanese_monastic_trait
+				remove_trait = imperial_priestess
+				move_character = FROM
+				clr_character_flag = ai_flag_refuse_marriage
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01 # Slow it down
+				always = yes
+			}
+			modifier = {
+				factor = 100
+				character = FROM # Don't hog these titles!
+			}
+			modifier = {
+				factor = 1000 # If there's a non-dynastic holder, replace them
+				NOT = {
+					dynasty = FROM
+				}
+			}
+			modifier = { # If the Saio/Saiin has been sleeping around, she should be replaced
+				factor = 100
+				is_adult = yes
+				dynasty = FROM
+				is_virgin_trigger = no
+				NOR = {
+					any_lover = {
+						character = FROM
+					}
+					any_spouse = {
+						character = FROM
+					}
+					any_friend = {
+						character = FROM
+					}
+				}
+			}
+			modifier = { # If you hate them, get rid of them!
+				factor = 1000
+				any_rival = {
+					character = FROM
+				}
+			}
+			modifier = { # If they're a guy, replace them!
+				factor = 1000
+				is_female = no
+			}
+			modifier = { # Don't waste time replacing young ones very often
+				factor = 0.01
+				dynasty = FROM
+				is_adult = no
+			}
+			modifier = { # Don't spam it!
+				factor = 0
+				has_landed_title = b_ise
+				NOT = {
+					has_landed_title = b_kamo
+				}
+				FROM = {
+					NAND = {
+						has_character_flag = appointed_saio
+						NOT = {
+							had_character_flag = { flag = appointed_saio days = 3650 }
+						}
+					}
+				}
+			}
+			modifier = { # Don't spam it!
+				factor = 0
+				has_landed_title = b_kamo
+				NOT = {
+					has_landed_title = b_ise
+				}
+				FROM = {
+					NAND = {
+						has_character_flag = appointed_saiin
+						NOT = {
+							had_character_flag = { flag = appointed_saiin days = 3650 }
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+society_decisions = {
+	monastic_order_japanese_become_japanese_monastic_feudal = {
+		only_playable = yes
+		ai_check_interval = 60
+		is_high_prio = yes
+		is_in_society = yes
+		potential = {
+			has_dlc = "Holy Fury"
+			is_playable = yes
+			is_adult = yes
+			society_member_of = monastic_order_japanese
+			society_rank >= 3
+			religion = shinto
+			NOR = {
+				government = japanese_imperial_government
+				government = chinese_imperial_government
+				government = japanese_monastic_feudal_government
+			}
+		}
+		allow = {
+			has_actual_regency_trigger = no
+			society_currency >= 1000
+		}
+		effect = {
+			change_society_currency = -1000
+			hidden_tooltip = {
+				add_trait = japanese_monastic_trait
+				remove_trait = japanese_feudal_trait
+			}
+			character_event = { id = japan.8 }
+		}
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				NOT = {
+					society_rank == 4
+				}
+			}
+			modifier = {
+				factor = 0
+				trait = japanese_feudal_trait # Don't bother
+				NOT = {
+					trait = zealous
 				}
 			}
 		}

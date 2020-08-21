@@ -1,0 +1,200 @@
+county_adventure = {
+	name = CB_NAME_COUNTY_ADVENTURE
+	war_name = WAR_COUNTY_ADVENTURE
+	sprite = 9
+	truce_days = 365
+	hostile_against_others = yes
+	check_de_jure_tier = COUNT
+	is_permanent = no
+
+	can_use = {
+		ROOT = { has_character_flag = duchy_adventurer }
+		ROOT = {
+			# Probably irrelevant, but...
+			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
+		}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+		}
+	}
+
+	is_valid = {
+		always = yes
+	}
+
+	on_add = {
+		hidden_tooltip = { fire_haruspicy_event_effect = yes }
+		if = {
+			#limit = { defender = { is_offmap_governor = offmap_china } }
+			limit = {
+				has_dlc = "Jade Dragon"
+				defender = {
+					is_china_or_defended_chinese_tributary_trigger = yes
+				}
+			}
+			attacker = {  
+				sound_effect = china_angered_emperor
+				detract_grace_super_huge_effect = yes 
+			}
+		}
+	}
+	
+	on_success = {
+		ROOT = { 
+			prestige = 100
+			hidden_tooltip = {
+				clr_character_flag = duchy_adventurer
+				give_nickname = nick_the_conqueror
+			}
+		}
+		FROM = {
+			prestige = -100 
+		}
+	}
+
+	on_success_title = {
+		custom_tooltip = {
+			text = other_invasion_succ_tip
+			hidden_tooltip = {
+				ROOT = {
+					vassalize_or_take_under_title = {
+						title = PREV
+						enemy = FROM
+						type = host
+					}
+				}
+			}
+		}
+		ROOT = {
+			any_realm_province = {
+				limit = {
+					has_province_flag = papuan_invasion_target
+				}
+				culture = papuan
+				religion = melanesian_pagan
+				clr_province_flag = papuan_invasion_target
+			}
+			any_realm_province = {
+				limit = {
+					has_province_flag = inca_landfall
+				}
+				culture = quechua
+				religion = inca_religion
+				clr_province_flag = inca_landfall
+			}
+			if = {
+				limit = {
+					culture = quechua
+					religion = inca_religion
+					e_tawantinsuyu = {
+						has_holder = yes
+					}
+				}
+				set_defacto_liege = e_tawantinsuyu
+			}
+		}
+
+		hidden_tooltip = {
+			check_if_reconquista_finished_effect = yes # Should be irrelevant...
+			FROM = {
+				landless_pope_effect = yes
+			}
+		}
+	}
+
+	on_fail = {
+		FROM = {
+			prestige = 50
+			hidden_tooltip = {
+				opinion = {
+					modifier = opinion_rebel_traitor 
+					who = ROOT
+					months = 1200
+				}
+			}
+		}
+		ROOT = {
+			clear_wealth = yes
+			imprison = FROM 
+			hidden_tooltip = {
+				disband_event_forces = yes
+				clr_character_flag = duchy_adventurer
+			}
+		}
+	
+		ROOT = { prestige = -50 }
+	}
+
+	on_reverse_demand = {
+		ROOT = {
+			transfer_scaled_wealth = {
+				to = FROM
+				value = 4.0
+			}
+		}
+		
+		FROM = {
+			prestige = 100
+		}
+		
+		ROOT = {
+			clear_wealth = yes
+			imprison = FROM
+			prestige = -100
+			hidden_tooltip = {
+				disband_event_forces = yes
+				clr_character_flag = duchy_adventurer
+			}
+		}
+	}
+	
+	on_attacker_leader_death = {
+		ROOT = {
+			hidden_tooltip = {
+				disband_event_forces = yes
+				clr_character_flag = duchy_adventurer
+			}
+		}
+		end_war = invalid
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+}

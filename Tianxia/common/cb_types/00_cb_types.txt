@@ -17,6 +17,10 @@ claim = {
 	
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
 	}
@@ -91,6 +95,57 @@ claim = {
 						}
 					}
 					is_contested = yes # Is already being contested in some form of Claim or Succession War
+					
+					# If China's Mandate is Poor or Lost, weak claims on China can be pressed by Chinese Imperial rulers
+					AND = {
+						ROOT = {
+							government = chinese_imperial_government
+						}
+						title = e_china
+						holder_scope = {
+							OR = {
+								has_character_flag = mandate_of_heaven_2
+								has_character_flag = mandate_of_heaven_1
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		# Can't claim war the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			NOR = {
+				title = c_yamashiro
+				FROM = {
+					capital_scope = {
+						county = {
+							title = PREVPREVPREV # Contains the Tenno's current capital
+						}
+					}
 				}
 			}
 		}
@@ -325,6 +380,10 @@ other_claim = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			mercenary = no
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
@@ -409,6 +468,43 @@ other_claim = {
 					value = limited
 				}
 				lower_tier_than = KING
+			}
+		}
+		
+		# Can't claim war the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			NOR = {
+				title = c_yamashiro
+				FROM = {
+					capital_scope = {
+						county = {
+							title = PREVPREVPREV # Contains the Tenno's current capital
+						}
+					}
+				}
 			}
 		}
 	}
@@ -1877,12 +1973,49 @@ claim_all = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			total_claims = {
 				who = FROM
 				strong = yes # Count only strong claims
 				value = 2
 			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
+		}
+		
+		# Can't use this against the Tenno unless you're going after k_chrysanthemum_throne
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			ROOT = {
+				religion = shinto
+				k_chrysanthemum_throne = {
+					claimed_by = ROOT
+				}
+			}
 		}
 	}
 	
@@ -2779,6 +2912,10 @@ invasion = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			mercenary = no
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
@@ -3239,13 +3376,35 @@ tribal_invasion = {
 
 	can_use_gui = {
 		ROOT = {
-			prestige = 500
+			OR = {
+				prestige = 500
+				AND = { # It's silly if the Aztecs stop invading...
+					culture = nahuatl
+					OR = {
+						religion = aztec
+						religion = aztec_reformed
+					}
+					has_landed_title = e_mexikha
+				}
+				AND = { # It's silly if the Inca stop invading...
+					culture = quechua
+					OR = {
+						religion = inca_religion
+						religion = inca_religion_reformed
+					}
+					has_landed_title = e_tawantinsuyu
+				}
+			}
 		}
 		check_if_crusader_trigger = yes
 	}
 	
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
 	}
@@ -3306,9 +3465,15 @@ tribal_invasion = {
 								culture_group = altaic
 								culture_group = magyar
 								culture_group = mesoamerican
+								culture_group = andean
 							}
-							FROM = {
-								NOT = { religion_group = pagan_group } # Should subjugate these instead
+							OR = {
+								FROM = {
+									NOT = { religion_group = pagan_group } # Should subjugate these instead
+								}
+								# Don't break the invasions!
+								has_landed_title = e_mexikha
+								has_landed_title = e_tawantinsuyu
 							}
 							OR = {
 								is_tribal = yes
@@ -3317,6 +3482,7 @@ tribal_invasion = {
 								}
 								has_landed_title = e_mongol_empire
 								has_landed_title = e_mexikha
+								has_landed_title = e_tawantinsuyu
 							}
 						}
 					}
@@ -3339,6 +3505,7 @@ tribal_invasion = {
 						culture_group = altaic
 						culture_group = magyar
 						culture_group = mesoamerican
+						culture_group = andean
 					}
 					OR = {
 						has_horde_culture = yes
@@ -3388,12 +3555,54 @@ tribal_invasion = {
 				OR = {
 					has_landed_title = e_mongol_empire
 					has_landed_title = e_mexikha
+					has_landed_title = e_tawantinsuyu
 				}
 			}
 			FROM = {
 				num_of_realm_counties = {
 					value = 3
 					title = PREV
+				}
+			}
+		}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			NOR = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						title = c_yamashiro
+					}
+				}
+				FROM = {
+					capital_scope = {
+						kingdom = {
+							title = PREVPREVPREV # Contains the Tenno's current capital
+						}
+					}
 				}
 			}
 		}
@@ -3499,6 +3708,23 @@ tribal_invasion = {
 							religion = aztec
 							clr_province_flag = aztec_explorers
 							clr_province_flag = aztec_second_wave
+						}
+					}
+				}
+				if = {
+					limit = {
+						e_tawantinsuyu = {
+							holder = ROOT
+						}
+					}
+					ROOT = {
+						any_realm_province = {
+							limit = {
+								has_province_flag = inca_landfall
+							}
+							culture = quechua
+							religion = inca_religion
+							clr_province_flag = inca_landfall
 						}
 					}
 				}
@@ -3793,6 +4019,20 @@ crusade = {
 
 	can_use_gui = {
 		ROOT = {
+			top_liege = {
+				OR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
+					}
+				}
+			}
 			uses_new_crusade = no
 			has_called_crusade = no
 			religion_authority = 0.05
@@ -3852,6 +4092,10 @@ crusade = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			uses_new_crusade = no
 			can_call_crusade = yes
 		}
@@ -4425,6 +4669,10 @@ new_crusade = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			uses_new_crusade = yes
 			can_call_crusade = yes
 			hidden_tooltip = {
@@ -4600,7 +4848,7 @@ new_crusade = {
 					set_character_flag = achievement_venetian_guile
 				}
 			}
-
+			
 			if = {
 				limit = {
 					ai = yes
@@ -5992,6 +6240,10 @@ religious = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			OR = {
 				NOR = { # If your government type ignores religion, don't wage holy war!
 					government = chinese_imperial_government
@@ -6102,6 +6354,18 @@ religious = {
 					AND = {
 						is_heretic = no
 						ROOT = { is_heretic = no }
+					}
+				}
+				OR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
 					}
 				}
 			}
@@ -6662,6 +6926,10 @@ excommunicated_ruler = {
 			}
 		}
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			NOT = { excommunicated_for = ROOT }
 			mercenary = no
 			# Should be irrelevant as an excommunicated EoC won't use the Grace mechanics, but you never know...
@@ -6878,6 +7146,10 @@ bid_for_independence = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			de_facto_liege = FROM
 			
 			higher_tier_than = BARON
@@ -8352,6 +8624,10 @@ coastal_republic = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			OR = {
 				is_merchant_republic = yes
 				is_patrician = yes
@@ -8535,6 +8811,10 @@ coastal_county_republic = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			OR = {
 				is_merchant_republic = yes
 				is_patrician = yes
@@ -8597,6 +8877,42 @@ coastal_county_republic = {
 									}
 								}
 							}
+						}
+					}
+				}
+			}
+		}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			NOT = {
+				FROM = {
+					capital_scope = {
+						county = {
+							title = PREVPREVPREV # Contains the Tenno's current capital
 						}
 					}
 				}
@@ -9200,6 +9516,10 @@ muslim_invasion = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			OR = {
 				ai = yes
 				multiplayer = no
@@ -9858,6 +10178,10 @@ imperial_reconquest = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			has_landed_title = e_roman_empire
 			independent = yes
 			OR = { 
@@ -9913,13 +10237,12 @@ imperial_reconquest = {
 			de_jure_liege_or_above = k_mauretania
 			de_jure_liege_or_above = k_papal_state
 			de_jure_liege_or_above = k_papacy
-			de_jure_liege_or_above = k_venice
 			de_jure_liege_or_above = k_asturias
 			de_jure_liege_or_above = k_sardinia
 			de_jure_liege_or_above = k_antioch
 			de_jure_liege_or_above = k_cyprus
 			de_jure_liege_or_above = k_amalfi
-			#de_jure_liege_or_above = k_venice # Duplicate
+			de_jure_liege_or_above = k_venice
 			de_jure_liege_or_above = k_pisa
 			de_jure_liege_or_above = k_genoa
 			de_jure_liege_or_above = k_switzerland
@@ -10073,6 +10396,10 @@ embargo_cb = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			independent = yes
 			NOT = { has_embargo = FROM }
 			mercenary = no
@@ -10321,6 +10648,10 @@ seize_trade_post = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			OR = {
 				is_merchant_republic = yes
 				is_patrician = yes
@@ -10514,6 +10845,10 @@ viking_invasion = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			has_opinion_modifier = { who = FROM modifier = preparing_to_invade }
 			NOT = { is_liege_or_above = FROM }
 			mercenary = no
@@ -10725,9 +11060,19 @@ pagan_subjugation = {
 	
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			religion_group = pagan_group
 			is_reformed_religion = no
+			holy_order = no
+			controls_religion = no
 			NOT = { religion = hellenic_pagan }
+			NOT = { religion = chinese_pagan }
+			NOT = { religion = korean_pagan }
+			NOT = { religion = viet_pagan }
+			NOT = { religion = ryukyuan_pagan }
 			NOT = { same_realm = FROM }
 			NOT = { is_liege_or_above = FROM }
 			mercenary = no
@@ -10771,9 +11116,15 @@ pagan_subjugation = {
 			NOT = { ROOT = { religion = aztec } }
 			FROM = { religion = aztec }
 		}
+		OR = {
+			NOT = { ROOT = { religion = inca_religion } }
+			FROM = { religion = inca_religion }
+		}
 		
 		FROM = {
 			in_revolt = no
+			holy_order = no
+			controls_religion = no
 			religion_group = pagan_group
 			is_nomadic = no
 			NOT = { is_offmap_governor = yes }
@@ -11635,6 +11986,33 @@ duchy_adventure = {
 			# Probably irrelevant, but...
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+		}
 	}
 
 	is_valid = {
@@ -11825,11 +12203,42 @@ kingdom_adventure = { # Used mainly for Muslims adventuring into India
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			OR = {
 				has_character_flag = duchy_adventurer
 				has_character_flag = rum_creator
 			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
+		}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -11906,7 +12315,6 @@ kingdom_adventure = { # Used mainly for Muslims adventuring into India
 		custom_tooltip = {
 			text = other_invasion_succ_tip
 			hidden_tooltip = {
-			
 				if = { # Special stuff for player Child of Destiny (AI Children do not have this flag)
 					limit = {
 						ROOT = { has_character_flag = child_of_destiny_outwards_focus }
@@ -11989,22 +12397,45 @@ kingdom_adventure = { # Used mainly for Muslims adventuring into India
 								}
 							}
 						}
-						ROOT = {
-							create_title = {
-								tier = KING
-								landless = no
-								temporary = no
-								custom_created = yes
-								culture = ROOT
-								holder = ROOT
-								name = "INDIAN_MUSLIM_KINGDOM"
-								base_title = PREV
-								copy_title_laws = yes
+						if = {
+							limit = {
+								capital_scope = {
+									kingdom = {
+										has_holder = yes
+									}
+								}
+							}
+							ROOT = {
+								create_title = {
+									tier = KING
+									landless = no
+									temporary = no
+									custom_created = yes
+									culture = ROOT
+									holder = ROOT
+									name = "INDIAN_MUSLIM_KINGDOM"
+									base_title = PREV
+									copy_title_laws = yes
+								}
+							}
+						}
+						else = {
+							capital_scope = {
+								kingdom = {
+									grant_title = ROOT # Why create a fake title?
+								}
 							}
 						}
 					}
 					else = {
-						ROOT = {
+						if = {
+							limit = {
+								capital_scope = {
+									kingdom = {
+										has_holder = yes
+									}
+								}
+							}
 							save_event_target_as = target_name
 							create_title = {
 								tier = KING
@@ -12017,13 +12448,22 @@ kingdom_adventure = { # Used mainly for Muslims adventuring into India
 								base_title = PREV
 								copy_title_laws = yes
 							}
-							capital_scope = {
-								county = {
-									save_event_target_as = coa_target
+							ROOT = {
+								capital_scope = {
+									county = {
+										save_event_target_as = coa_target
+									}
+								}
+								primary_title = {
+									set_coa = event_target:coa_target
 								}
 							}
-							primary_title = {
-								set_coa = event_target:coa_target
+						}
+						else = {
+							capital_scope = {
+								kingdom = {
+									grant_title = ROOT # Why create a fake title?
+								}
 							}
 						}
 					}
@@ -12289,6 +12729,10 @@ pagan_holy_war = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			OR = {
 				NOR = { # If your government type ignores religion, don't wage holy war!
 					government = chinese_imperial_government
@@ -12299,6 +12743,20 @@ pagan_holy_war = {
 				}
 				FROM = {
 					has_character_modifier = known_satanist
+				}
+			}
+			top_liege = {
+				OR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
+					}
 				}
 			}
 		}
@@ -12324,6 +12782,8 @@ pagan_holy_war = {
 				religion = chinese_pagan_reformed
 				religion = korean_pagan_reformed
 				religion = viet_pagan_reformed
+				religion = inca_religion
+				religion = inca_religion_reformed
 			}
 			NOT = { has_religion_feature = religion_peaceful }
 			NOT = { same_realm = FROM }
@@ -12415,6 +12875,8 @@ pagan_holy_war = {
 				religion = chinese_pagan_reformed
 				religion = korean_pagan_reformed
 				religion = viet_pagan_reformed
+				religion = inca_religion
+				religion = inca_religion_reformed
 			}
 			NOT = { same_realm = FROM }
 			NOT = { religion = FROM }
@@ -12683,6 +13145,10 @@ caliphal_subjugation = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			OR = {
 				ai = yes
 				multiplayer = no
@@ -12886,6 +13352,10 @@ muslim_county_conquest = {
 	
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			NOT = { is_liege_or_above = FROM }
 			mercenary = no
 			is_nomadic = no # Use the 'pagan_county_conquest' CB instead
@@ -12926,6 +13396,43 @@ muslim_county_conquest = {
 					OR = {
 						character = ROOT
 						is_liege_or_above = ROOT
+					}
+				}
+			}
+		}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			NOR = {
+				title = c_yamashiro
+				FROM = {
+					capital_scope = {
+						county = {
+							title = PREVPREVPREV # Contains the Tenno's current capital
+						}
 					}
 				}
 			}
@@ -13122,6 +13629,10 @@ pagan_county_conquest = {
 	
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			mercenary = no
 		}
 		OR = {
@@ -13183,6 +13694,33 @@ pagan_county_conquest = {
 					port = yes
 				}
 				has_global_flag = viking_age_started
+			}
+			AND = {
+				ROOT = {
+					religion = ryukyuan_pagan_reformed
+					has_religion_feature = religion_feature_ryukyuan_three_mountains
+				}
+				location = {
+					port = yes
+				}
+			}
+			AND = {
+				ROOT = {
+					religion = aztec_reformed
+					has_religion_feature = religion_feature_aztec
+				}
+				location = {
+					port = yes
+				}
+			}
+			AND = {
+				ROOT = {
+					religion = inca_religion_reformed
+					has_religion_feature = religion_feature_inca
+				}
+				location = {
+					port = yes
+				}
 			}
 			location = {
 				any_neighbor_province = {
@@ -13544,6 +14082,10 @@ dejure_county_claim = {
 	
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
 	}
@@ -13713,6 +14255,98 @@ dejure_county_claim = {
 						primary_title = { title = d_zun_warriors }
 						ROOT = {
 							has_character_modifier = expelled_d_zun_warriors
+						}
+					}
+					# Tianxia
+					AND = {
+						primary_title = { title = d_chosen_of_heaven }
+						ROOT = {
+							has_character_modifier = expelled_d_chosen_of_heaven
+						}
+					}
+					AND = {
+						primary_title = { title = d_children_of_the_morning_calm }
+						ROOT = {
+							has_character_modifier = expelled_d_children_of_the_morning_calm
+						}
+					}
+					AND = {
+						primary_title = { title = d_bear_guard }
+						ROOT = {
+							has_character_modifier = expelled_d_bear_guard
+						}
+					}
+					AND = {
+						primary_title = { title = d_conquerors }
+						ROOT = {
+							has_character_modifier = expelled_d_conquerors
+						}
+					}
+					AND = {
+						primary_title = { title = d_pakhangbas_faithful }
+						ROOT = {
+							has_character_modifier = expelled_d_pakhangbas_faithful
+						}
+					}
+					AND = {
+						primary_title = { title = d_servants_of_the_ancestors }
+						ROOT = {
+							has_character_modifier = expelled_d_servants_of_the_ancestors
+						}
+					}
+					AND = {
+						primary_title = { title = d_warriors_of_the_waves }
+						ROOT = {
+							has_character_modifier = expelled_d_warriors_of_the_waves
+						}
+					}
+					AND = {
+						primary_title = { title = d_headhunters }
+						ROOT = {
+							has_character_modifier = expelled_d_headhunters
+						}
+					}
+					AND = {
+						primary_title = { title = d_sunray_knights }
+						ROOT = {
+							has_character_modifier = expelled_d_sunray_knights
+						}
+					}
+				}
+			}
+		}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			NOR = {
+				title = c_yamashiro
+				FROM = {
+					capital_scope = {
+						county = {
+							title = PREVPREVPREV # Contains the Tenno's current capital
 						}
 					}
 				}
@@ -14058,10 +14692,69 @@ dejure_barony_claim = {
 							has_character_modifier = expelled_d_zun_warriors
 						}
 					}
+					# Tianxia
+					AND = {
+						primary_title = { title = d_chosen_of_heaven }
+						ROOT = {
+							has_character_modifier = expelled_d_chosen_of_heaven
+						}
+					}
+					AND = {
+						primary_title = { title = d_children_of_the_morning_calm }
+						ROOT = {
+							has_character_modifier = expelled_d_children_of_the_morning_calm
+						}
+					}
+					AND = {
+						primary_title = { title = d_bear_guard }
+						ROOT = {
+							has_character_modifier = expelled_d_bear_guard
+						}
+					}
+					AND = {
+						primary_title = { title = d_conquerors }
+						ROOT = {
+							has_character_modifier = expelled_d_conquerors
+						}
+					}
+					AND = {
+						primary_title = { title = d_pakhangbas_faithful }
+						ROOT = {
+							has_character_modifier = expelled_d_pakhangbas_faithful
+						}
+					}
+					AND = {
+						primary_title = { title = d_servants_of_the_ancestors }
+						ROOT = {
+							has_character_modifier = expelled_d_servants_of_the_ancestors
+						}
+					}
+					AND = {
+						primary_title = { title = d_warriors_of_the_waves }
+						ROOT = {
+							has_character_modifier = expelled_d_warriors_of_the_waves
+						}
+					}
+					AND = {
+						primary_title = { title = d_headhunters }
+						ROOT = {
+							has_character_modifier = expelled_d_headhunters
+						}
+					}
+					AND = {
+						primary_title = { title = d_sunray_knights }
+						ROOT = {
+							has_character_modifier = expelled_d_sunray_knights
+						}
+					}
 				}
 			}
 		}
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
 	}
@@ -14084,6 +14777,51 @@ dejure_barony_claim = {
 					character = ROOT
 					is_liege_or_above = ROOT
 				}
+			}
+		}
+		# Don't de jure war the Saio/Saiin!
+		NAND = {
+			OR = {
+				AND = {
+					title = c_yamashiro
+					FROM = {
+						has_landed_title = b_kamo
+						b_kamo = {
+							holding_type = temple
+						}
+						religion = shinto
+						trait = imperial_priestess
+						any_dynasty_member = {
+							religion = shinto
+							controls_religion = yes
+						}
+					}
+				}
+				AND = {
+					title = c_ise
+					FROM = {
+						has_landed_title = b_ise
+						b_ise = {
+							holding_type = temple
+						}
+						religion = shinto
+						trait = imperial_priestess
+						any_dynasty_member = {
+							religion = shinto
+							controls_religion = yes
+						}
+					}
+				}
+			}
+			ROOT = {
+				OR = {
+					religion = shinto
+					AND = {
+						culture_group = japonic
+						religion = buddhist
+					}
+				}
+				controls_religion = no # The Tenno is an exception!
 			}
 		}
 	}
@@ -14388,12 +15126,71 @@ other_dejure_county_claim = {
 							has_character_modifier = expelled_d_zun_warriors
 						}
 					}
+					# Tianxia
+					AND = {
+						primary_title = { title = d_chosen_of_heaven }
+						ROOT = {
+							has_character_modifier = expelled_d_chosen_of_heaven
+						}
+					}
+					AND = {
+						primary_title = { title = d_children_of_the_morning_calm }
+						ROOT = {
+							has_character_modifier = expelled_d_children_of_the_morning_calm
+						}
+					}
+					AND = {
+						primary_title = { title = d_bear_guard }
+						ROOT = {
+							has_character_modifier = expelled_d_bear_guard
+						}
+					}
+					AND = {
+						primary_title = { title = d_conquerors }
+						ROOT = {
+							has_character_modifier = expelled_d_conquerors
+						}
+					}
+					AND = {
+						primary_title = { title = d_pakhangbas_faithful }
+						ROOT = {
+							has_character_modifier = expelled_d_pakhangbas_faithful
+						}
+					}
+					AND = {
+						primary_title = { title = d_servants_of_the_ancestors }
+						ROOT = {
+							has_character_modifier = expelled_d_servants_of_the_ancestors
+						}
+					}
+					AND = {
+						primary_title = { title = d_warriors_of_the_waves }
+						ROOT = {
+							has_character_modifier = expelled_d_warriors_of_the_waves
+						}
+					}
+					AND = {
+						primary_title = { title = d_headhunters }
+						ROOT = {
+							has_character_modifier = expelled_d_headhunters
+						}
+					}
+					AND = {
+						primary_title = { title = d_sunray_knights }
+						ROOT = {
+							has_character_modifier = expelled_d_sunray_knights
+						}
+					}
 				}
 			}
 		}
 		
 		mercenary = no
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
 	}
@@ -14422,6 +15219,43 @@ other_dejure_county_claim = {
 			}
 			holder_scope = {
 				is_liege_or_above = FROM
+			}
+		}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			NOR = {
+				title = c_yamashiro
+				FROM = {
+					capital_scope = {
+						county = {
+							title = PREVPREVPREV # Contains the Tenno's current capital
+						}
+					}
+				}
 			}
 		}
 	}
@@ -14830,6 +15664,10 @@ depose_antipope = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			religion = FROM
 			OR = {
 				religion = catholic
@@ -15245,6 +16083,10 @@ buddhist_holy_war = {
 	
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			OR = {
 				NOR = { # If your government type ignores religion, don't wage holy war!
 					government = chinese_imperial_government
@@ -15295,6 +16137,18 @@ buddhist_holy_war = {
 								has_character_modifier = known_satanist
 							}
 						}
+					}
+				}
+				OR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
 					}
 				}
 			}
@@ -15642,6 +16496,7 @@ indian_subjugation = {
 					NOR = { # These shouldn't operate like standard Dharmics
 						government = chinese_imperial_government
 						government = chinese_vassal_government
+						government = japanese_feudal_government
 					}
 					has_dharmic_religion_trigger = yes
 					NOT = { same_realm = FROM }
@@ -15654,6 +16509,7 @@ indian_subjugation = {
 					NOR = { # These shouldn't operate like standard Dharmics
 						government = chinese_imperial_government
 						government = chinese_vassal_government
+						government = japanese_feudal_government
 					}
 					NOT = { is_offmap_governor = yes }
 					has_dharmic_religion_trigger = yes
@@ -15691,7 +16547,17 @@ indian_subjugation = {
 							culture_group = japonic
 						}
 					}
-					culture_group = ROOT
+					controls_religion = no # Can't use this against the Tenno
+					OR = {
+						culture_group = ROOT
+						AND = {
+							religion = shinto
+							ROOT = {
+								religion = shinto
+								controls_religion = yes # The Tenno can go after all Shinto rulers
+							}
+						}
+					}
 					NOT = {
 						any_war = {
 							defender = { character = PREVPREV }
@@ -15702,6 +16568,10 @@ indian_subjugation = {
 			}
 		}
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
 	}
@@ -15738,6 +16608,47 @@ indian_subjugation = {
 		#		}
 		#	}
 		#}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			NOR = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						title = c_yamashiro
+					}
+				}
+				FROM = {
+					capital_scope = {
+						kingdom = {
+							title = PREVPREVPREV # Contains the Tenno's current capital
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	is_valid_title = {
@@ -15975,26 +16886,26 @@ indian_subjugation = {
 				}
 			}
 		}
-		modifier = {
-			factor = 0
-			FROM = {
-				is_nomadic = yes
-			}
-			ROOT = {
-				is_tribal = yes
-			}
-			NOT = {
-				any_direct_de_jure_vassal_title = {
-					any_direct_de_jure_vassal_title = {
-						OR = {
-							holding_type = castle
-							holding_type = city
-							holding_type = tribal
-						}
-					}
-				}
-			}
-		}
+		#modifier = { # Duplicate
+		#	factor = 0
+		#	FROM = {
+		#		is_nomadic = yes
+		#	}
+		#	ROOT = {
+		#		is_tribal = yes
+		#	}
+		#	NOT = {
+		#		any_direct_de_jure_vassal_title = {
+		#			any_direct_de_jure_vassal_title = {
+		#				OR = {
+		#					holding_type = castle
+		#					holding_type = city
+		#					holding_type = tribal
+		#				}
+		#			}
+		#		}
+		#	}
+		#}
 	}
 }
 
@@ -16016,6 +16927,10 @@ manifest_destiny_invasion = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			OR = {
 				ai = yes
 				multiplayer = no
@@ -16078,6 +16993,47 @@ manifest_destiny_invasion = {
 									is_liege_or_above = ROOT
 								}
 							}
+						}
+					}
+				}
+			}
+		}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			NOR = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						title = c_yamashiro
+					}
+				}
+				FROM = {
+					capital_scope = {
+						kingdom = {
+							title = PREVPREVPREV # Contains the Tenno's current capital
 						}
 					}
 				}
@@ -16305,7 +17261,11 @@ cb_decadence_usurption = {
 	allowed_to_target_tributaries = no
 	
 	can_use = {
-		ROOT = { 
+		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			religion_group = muslim
 		}
 	
@@ -16450,6 +17410,10 @@ rivalry_cb = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			is_rival = FROM
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
@@ -16614,6 +17578,10 @@ tributary_cb = {
 		has_dlc = "Horse Lords"
 
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			mercenary = no
 			OR = {
 				is_tributary = no
@@ -16997,6 +17965,13 @@ tributary_cb = {
 
 	ai_will_do = {
 		factor = 1
+		modifier = {
+			factor = 0
+			has_dlc = "Jade Dragon"
+			ROOT = {
+				government = chinese_imperial_government # Go for permanent tributaries instead!
+			}
+		}
 		
 		modifier = { #Focus on Coronation first.
 			factor = 0.1
@@ -17041,6 +18016,54 @@ tributary_cb = {
 				trait = greedy
 			}
 		}
+		modifier = {
+			factor = 2
+			NOT = {
+				has_dlc = "Jade Dragon"
+			}
+			ROOT = {
+				NOT = {
+					any_owned_bloodline = {
+						has_bloodline_flag = genghis_khan_line # The Mongols will be a bit more conquest-prone...
+					}
+				}
+				government = chinese_imperial_government
+			}
+			FROM = {
+				NOT = {
+					any_realm_province = {
+						OR = {
+							region = world_china
+							county = {
+								de_jure_liege_or_above = e_china
+							}
+						}
+					}
+				}
+			}
+		}
+		modifier = {
+			factor = 2
+			OR = {
+				NOT = {
+					has_dlc = "Jade Dragon"
+				}
+				has_game_rule = {
+					name = jade_dragon_cbs
+					value = off
+				}
+			}
+			ROOT = {
+				NOT = {
+					any_owned_bloodline = {
+						has_bloodline_flag = genghis_khan_line # The Mongols will be a bit more conquest-prone...
+					}
+				}
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_cheaper_tributaries
+				}
+			}
+		}
 	}
 }
 
@@ -17059,6 +18082,10 @@ free_tributary_cb = {
 
 	can_use = {
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			OR = {
 				AND = {
 					is_tributary = yes
@@ -17811,6 +18838,10 @@ cb_liberate_nomad_duchy = {
 			is_nomadic = yes
 		}
 		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			is_nomadic = no
 			NOT = { pacifist = yes }
 			NOT = { same_realm = FROM }
@@ -17867,6 +18898,43 @@ cb_liberate_nomad_duchy = {
 							holding_type = city
 							holding_type = castle
 							holding_type = tribal
+						}
+					}
+				}
+			}
+		}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			NOR = {
+				title = d_rokuhara # Contains Yamashiro
+				FROM = {
+					capital_scope = {
+						duchy = {
+							title = PREVPREVPREV # Contains the Tenno's current capital
 						}
 					}
 				}
@@ -18325,6 +19393,33 @@ nomad_subjugation = {
 		ROOT = {
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	on_add = {
@@ -18647,7 +19742,12 @@ nomad_invasion = {
 		ROOT = {
 			NOT = { same_realm = FROM }
 		}
-		
+		ROOT = {
+			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
+		}
+	}
+	
+	can_use_title = {
 		OR = { # This ensures that the AI doesn't declare this type of war against someone who only holds a few counties within the targeted title...
 			ROOT = {
 				ai = no
@@ -18662,8 +19762,45 @@ nomad_invasion = {
 				}
 			}
 		}
-		ROOT = {
-			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			NOR = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						title = c_yamashiro
+					}
+				}
+				FROM = {
+					capital_scope = {
+						kingdom = {
+							title = PREVPREVPREV # Contains the Tenno's current capital
+						}
+					}
+				}
+			}
 		}
 	}
 	
@@ -18982,7 +20119,6 @@ nomad_invasion = {
 					title = e_manchuria
 					title = e_byzantium
 					title = e_arabia
-					title = e_russia
 					title = e_tibet
 					title = e_carpathia
 				}
@@ -19092,6 +20228,43 @@ nomad_expansion = {
 								character = ROOT
 								is_liege_or_above = ROOT
 							}
+						}
+					}
+				}
+			}
+		}
+		
+		# Can't use this against the Tenno under some circumstances
+		OR = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
+					religion = shinto
+				}
+			}
+			ROOT = {
+				NOT = {
+					top_liege = {
+						any_vassal = {
+							character = FROM
+						}
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+				}
+			}
+			NOR = {
+				title = d_rokuhara # Contains Yamashiro
+				FROM = {
+					capital_scope = {
+						duchy = {
+							title = PREVPREVPREV # Contains the Tenno's current capital
 						}
 					}
 				}
@@ -20191,6 +21364,24 @@ reconquista_leon = {
 
 	can_use = {
 		ROOT = {
+			top_liege = {
+				NOR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
+					}
+				}
+			}
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 			has_character_flag = currently_reconquering_iberia
 			not_reconquista_check_trigger = yes
@@ -20425,6 +21616,24 @@ reconquista_castille = {
 
 	can_use = {
 		ROOT = {
+			top_liege = {
+				NOR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
+					}
+				}
+			}
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 			has_character_flag = currently_reconquering_iberia
 			not_reconquista_check_trigger = yes
@@ -20647,6 +21856,24 @@ reconquista_aragon = {
 
 	can_use = {
 		ROOT = {
+			top_liege = {
+				NOR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
+					}
+				}
+			}
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 			has_character_flag = currently_reconquering_iberia
 			not_reconquista_check_trigger = yes
@@ -20868,6 +22095,24 @@ reconquista_galicia = {
 	}
 	can_use = {
 		ROOT = {
+			top_liege = {
+				NOR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
+					}
+				}
+			}
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 			has_character_flag = currently_reconquering_iberia
 			not_reconquista_check_trigger = yes
@@ -21098,6 +22343,24 @@ reconquista_beja = {
 
 	can_use = {
 		ROOT = {
+			top_liege = {
+				NOR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
+					}
+				}
+			}
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 			has_character_flag = currently_reconquering_iberia
 			not_reconquista_check_trigger = yes
@@ -21322,6 +22585,24 @@ reconquista_granada = {
 
 	can_use = {
 		ROOT = {
+			top_liege = {
+				NOR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
+					}
+				}
+			}
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 			has_character_flag = currently_reconquering_iberia
 			not_reconquista_check_trigger = yes	
@@ -21543,6 +22824,24 @@ reconquista_cordoba = {
 
 	can_use = {
 		ROOT = {
+			top_liege = {
+				NOR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
+					}
+				}
+			}
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 			has_character_flag = currently_reconquering_iberia
 			not_reconquista_check_trigger = yes
@@ -21763,6 +23062,24 @@ reconquista_valencia = {
 
 	can_use = {
 		ROOT = {
+			top_liege = {
+				NOR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
+					}
+				}
+			}
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 			has_character_flag = currently_reconquering_iberia
 			not_reconquista_check_trigger = yes
@@ -21983,6 +23300,24 @@ reconquista_navarra = {
 
 	can_use = {
 		ROOT = {
+			top_liege = {
+				NOR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
+					}
+				}
+			}
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 			has_character_flag = currently_reconquering_iberia
 			not_reconquista_check_trigger = yes
@@ -22203,6 +23538,24 @@ reconquista_balearic = {
 
 	can_use = {
 		ROOT = {
+			top_liege = {
+				NOR = {
+					NOR = { # If your government type ignores religion, don't wage holy war!
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = japanese_imperial_government
+						government = japanese_feudal_government
+						government = confucian_bureaucracy # Not used at present, but should still be here...
+					}
+					FROM = {
+						has_character_modifier = known_satanist
+					}
+				}
+			}
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 			has_character_flag = currently_reconquering_iberia
 			not_reconquista_check_trigger = yes

@@ -13,6 +13,7 @@ character_event = {
 	is_triggered_only = yes
 	
 	only_independent = yes
+	only_playable = yes
 	
 	trigger = {
 		real_tier = emperor
@@ -33,6 +34,7 @@ character_event = {
 	is_triggered_only = yes
 	
 	only_independent = yes
+	only_playable = yes
 	
 	trigger = {
 		real_tier = emperor
@@ -236,6 +238,8 @@ character_event = {
 	hide_window = yes
 	is_triggered_only = yes
 	
+	only_playable = yes # Not ideal, as it doesn't remove it for courtiers that obviously don't possess the Mandate of Heaven, but much better from an optimization perspective...
+	
 	trigger = {
 		NAND = {
 			real_tier = emperor
@@ -259,6 +263,7 @@ character_event = {
 	is_triggered_only = yes
 	
 	only_independent = yes
+	only_playable = yes
 	
 	trigger = {
 		real_tier = emperor
@@ -268,6 +273,7 @@ character_event = {
 			OR = {
 				title = e_china
 				has_title_flag = pretender_chinese_empire
+				has_title_flag = five_dynasties_and_ten_kingdoms
 			}
 		}
 	}
@@ -414,6 +420,7 @@ character_event = {
 	is_triggered_only = yes
 	
 	only_independent = yes
+	only_playable = yes
 	
 	trigger = {
 		real_tier = emperor
@@ -425,7 +432,11 @@ character_event = {
 			OR = {
 				title = e_china
 				has_title_flag = pretender_chinese_empire
+				has_title_flag = five_dynasties_and_ten_kingdoms
 			}
+		}
+		NOT = {
+			has_character_flag = special_usurpation
 		}
 	}
 	
@@ -459,11 +470,14 @@ character_event = {
 	}
 }
 
-# Clean out MoH modifiers, in case we inherited the title and did NOT opt to keep the old dynasty name
+# Clean out bad MoH modifiers
 character_event = {
 	id = mandate_of_heaven.6
 	hide_window = yes
 	is_triggered_only = yes
+	
+	only_playable = yes
+	only_independent = yes
 	
 	trigger = {
 		real_tier = emperor
@@ -471,9 +485,6 @@ character_event = {
 	}
 	
 	immediate = {
-		remove_character_modifier = mandate_of_heaven_5
-		remove_character_modifier = mandate_of_heaven_4
-		remove_character_modifier = mandate_of_heaven_3
 		remove_character_modifier = mandate_of_heaven_2
 		remove_character_modifier = mandate_of_heaven_1
 	}
@@ -514,6 +525,12 @@ narrative_event = {
 		}
 		text = EVTDESC_MANDATE_OF_HEAVEN_7D
 		picture = GFX_evt_china_unrest
+	}
+	
+	immediate = {
+		any_player = {
+			narrative_event = { id = mandate_of_heaven.21 }
+		}
 	}
 	
 	option = {
@@ -558,6 +575,12 @@ narrative_event = {
 		picture = GFX_evt_china_civil_war
 	}
 	
+	immediate = {
+		any_player = {
+			narrative_event = { id = mandate_of_heaven.22 }
+		}
+	}
+	
 	option = {
 		name = EVTOPTA_MANDATE_OF_HEAVEN_8 # This is bad...
 	}
@@ -568,6 +591,9 @@ character_event = {
 	id = mandate_of_heaven.9
 	hide_window = yes
 	is_triggered_only = yes
+	
+	only_playable = yes
+	only_independent = yes
 	
 	immediate = {
 		if = {
@@ -601,6 +627,9 @@ character_event = {
 	hide_window = yes
 	is_triggered_only = yes
 	
+	only_playable = yes
+	only_independent = yes
+	
 	immediate = {
 		if = {
 			limit = {
@@ -632,6 +661,9 @@ character_event = {
 	id = mandate_of_heaven.11
 	hide_window = yes
 	is_triggered_only = yes
+	
+	only_playable = yes
+	only_independent = yes
 	
 	immediate = {
 		if = {
@@ -715,6 +747,7 @@ character_event = {
 	is_triggered_only = yes
 	
 	only_playable = yes
+	only_independent = yes
 	
 	trigger = {
 		real_tier = emperor
@@ -758,7 +791,10 @@ province_event = {
 				real_tier = emperor
 				government = chinese_imperial_government
 				OR = {
-					has_character_modifier = mandate_of_heaven_2
+					AND = {
+						has_character_modifier = mandate_of_heaven_2 # China is held to a higher standard
+						has_landed_title = e_china
+					}
 					has_character_modifier = mandate_of_heaven_1
 				}
 			}
@@ -767,9 +803,11 @@ province_event = {
 		county = {
 			OR = {
 				region = world_china
-				top_liege = {
-					primary_title = {
-						de_jure_vassal_or_below = PREVPREV
+				owner = {
+					top_liege = {
+						primary_title = {
+							de_jure_vassal_or_below = PREVPREV
+						}
 					}
 				}
 			}
@@ -805,8 +843,11 @@ province_event = {
 			health = 7
 			fertility = 0.7
 			attributes = {
+				diplomacy = 6
 				martial = 8
-				diplomacy = 9
+				stewardship = 6
+				intrigue = 2
+				learning = 6
 			}
 			trait = just
 			trait = brave
@@ -814,6 +855,7 @@ province_event = {
 			trait = ambitious
 			trait = brilliant_strategist
 			trait = inspiring_leader
+			trait = peasant_leader
 		}
 		
 		new_character = {
@@ -1201,5 +1243,243 @@ character_event = {
 			modifier = mandate_of_heaven_1
 			duration = -1
 		}
+	}
+}
+
+# Change Silk Road value based on MoH
+character_event = {
+	id = mandate_of_heaven.20
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	only_rulers = yes
+	religion = catholic
+	
+	trigger = {
+		controls_religion = yes
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				e_china = {
+					has_holder = yes
+					holder_scope = {
+						is_chinese_emperor_trigger = yes
+					}
+				}
+			}
+			if = {
+				limit = {
+					e_china = {
+						has_holder = yes
+						holder_scope = {
+							has_character_modifier = mandate_of_heaven_5
+						}
+					}
+				}
+				set_trade_route_value_multiplier = {
+					which = silk_road
+					value = 2
+				}
+			}
+			else_if = {
+				limit = {
+					e_china = {
+						has_holder = yes
+						holder_scope = {
+							has_character_modifier = mandate_of_heaven_4
+						}
+					}
+				}
+				set_trade_route_value_multiplier = {
+					which = silk_road
+					value = 1.5
+				}
+			}
+			else_if = {
+				limit = {
+					e_china = {
+						has_holder = yes
+						holder_scope = {
+							has_character_modifier = mandate_of_heaven_3
+						}
+					}
+				}
+				set_trade_route_value_multiplier = {
+					which = silk_road
+					value = 1
+				}
+			}
+			else_if = {
+				limit = {
+					e_china = {
+						has_holder = yes
+						holder_scope = {
+							has_character_modifier = mandate_of_heaven_2
+						}
+					}
+				}
+				set_trade_route_value_multiplier = {
+					which = silk_road
+					value = 0.75
+				}
+			}
+			else_if = {
+				limit = {
+					e_china = {
+						has_holder = yes
+						holder_scope = {
+							has_character_modifier = mandate_of_heaven_1
+						}
+					}
+				}
+				set_trade_route_value_multiplier = {
+					which = silk_road
+					value = 0.5
+				}
+			}
+			else = { # Something weird happened...
+				set_trade_route_value_multiplier = {
+					which = silk_road
+					value = 1
+				}
+			}
+		}
+		else = {
+			set_trade_route_value_multiplier = {
+				which = silk_road
+				value = 1
+			}
+		}
+	}
+}
+
+# Inform the world that FROM's Mandate improved
+narrative_event = {
+	id = mandate_of_heaven.21
+	title = EVTTITLE_MANDATE_OF_HEAVEN_21
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	is_triggered_only = yes
+	
+	desc = {
+		trigger = {
+			FROM = {
+				has_character_modifier = mandate_of_heaven_5
+			}
+		}
+		text = EVTDESC_MANDATE_OF_HEAVEN_21A
+		picture = GFX_evt_china_expansionist
+	}
+	desc = {
+		trigger = {
+			FROM = {
+				has_character_modifier = mandate_of_heaven_4
+			}
+		}
+		text = EVTDESC_MANDATE_OF_HEAVEN_21B
+		picture = GFX_evt_china_golden_age
+	}
+	desc = {
+		trigger = {
+			FROM = {
+				has_character_modifier = mandate_of_heaven_3
+			}
+		}
+		text = EVTDESC_MANDATE_OF_HEAVEN_21C
+		picture = GFX_evt_china_stable
+	}
+	desc = {
+		trigger = {
+			FROM = {
+				has_character_modifier = mandate_of_heaven_2
+			}
+		}
+		text = EVTDESC_MANDATE_OF_HEAVEN_21D
+		picture = GFX_evt_china_unrest
+	}
+	
+	option = {
+		trigger = {
+			NAND = {
+				real_tier = emperor
+				government = chinese_imperial_government
+			}
+		}
+		name = EVTOPTA_MANDATE_OF_HEAVEN_21 # Interesting...
+	}
+	
+	option = {
+		trigger = {
+			real_tier = emperor
+			government = chinese_imperial_government
+		}
+		name = EVTOPTB_MANDATE_OF_HEAVEN_21 # Worrying...
+	}
+}
+
+# Inform the world that FROM's Mandate got worse
+narrative_event = {
+	id = mandate_of_heaven.22
+	title = EVTTITLE_MANDATE_OF_HEAVEN_22
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	is_triggered_only = yes
+	
+	desc = {
+		trigger = {
+			FROM = {
+				has_character_modifier = mandate_of_heaven_4
+			}
+		}
+		text = EVTDESC_MANDATE_OF_HEAVEN_22A
+		picture = GFX_evt_china_golden_age
+	}
+	desc = {
+		trigger = {
+			FROM = {
+				has_character_modifier = mandate_of_heaven_3
+			}
+		}
+		text = EVTDESC_MANDATE_OF_HEAVEN_22B
+		picture = GFX_evt_china_stable
+	}
+	desc = {
+		trigger = {
+			FROM = {
+				has_character_modifier = mandate_of_heaven_2
+			}
+		}
+		text = EVTDESC_MANDATE_OF_HEAVEN_22C
+		picture = GFX_evt_china_unrest
+	}
+	desc = {
+		trigger = {
+			FROM = {
+				has_character_modifier = mandate_of_heaven_1
+			}
+		}
+		text = EVTDESC_MANDATE_OF_HEAVEN_22D
+		picture = GFX_evt_china_civil_war
+	}
+	
+	option = {
+		trigger = {
+			NAND = {
+				real_tier = emperor
+				government = chinese_imperial_government
+			}
+		}
+		name = EVTOPTA_MANDATE_OF_HEAVEN_22 # Interesting...
+	}
+	
+	option = {
+		trigger = {
+			real_tier = emperor
+			government = chinese_imperial_government
+		}
+		name = EVTOPTB_MANDATE_OF_HEAVEN_22 # Good!
 	}
 }
