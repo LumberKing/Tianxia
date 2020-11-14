@@ -4375,3 +4375,219 @@ tenno_succession = {
 		}
 	}
 }
+
+bureaucratic_succession_voting = {
+	elector_selection = {
+		days = -5 
+		additive_modifier = { # Current holder
+			value = 10
+			FROMFROM = {
+				holder_scope = {
+					character = ROOT
+				}
+			}
+		}
+		additive_modifier = { # Current holder's council
+			value = 10
+			FROMFROM = {
+				holder_scope = {
+					any_voter = {
+						character = ROOT
+					}
+				}
+			}
+		}
+		additive_modifier = { # All lieges of current holder
+			value = 10
+			FROMFROM = {
+				holder_scope = {
+					any_liege = {
+						character = ROOT
+					}
+				}
+			}
+		}
+		additive_modifier = { # Concillors of current holder's direct liege
+			value = 10
+			FROMFROM = {
+				holder_scope = {
+					any_liege = {
+						any_voter = {
+							character = ROOT
+						}
+					}
+				}
+			}
+		}
+		additive_modifier = { # De jure vassals belonging to the same top realm
+			value = 10
+			higher_tier_than = baron
+			any_dejure_liege = { title = FROMFROM }
+			top_liege = {
+				ROOT = {
+					is_vassal_or_below_of = PREV
+				}
+			}
+		}
+	}
+	elector_vote_strength = { # Affects the voting strength of each elector.
+		days = 1
+		additive_modifier = {
+			value = 5
+			tier = emperor
+		}
+		additive_modifier = {
+			value = 4
+			is_landed = no
+			employer = {
+				tier = emperor
+			}
+		}
+		additive_modifier = {
+			value = 3
+			tier = king
+		}
+		additive_modifier = {
+			value = 2
+			is_landed = no
+			employer = {
+				tier = king
+			}
+		}
+		additive_modifier = {
+			value = 2
+			tier = duke
+		}
+		additive_modifier = {
+			value = 1
+			is_landed = no
+			employer = {
+				tier = duke
+			}
+		}
+		additive_modifier = {
+			value = 1
+			tier = count
+		}
+	}
+	candidate_vote_score = {
+		days = 1
+		# TODO
+	}
+	candidate_trigger = {
+		NOT = { character = FROM } #Not the current ruler.
+		FROM = { 
+			NOR = { 
+				trait = crusader_king 
+				trait = crusader_queen
+			} 
+		}
+		OR = {
+			ROOT = { # Relatives of the current holder
+				is_close_relative = FROM
+				OR = { 
+					dynasty = FROM
+					FROM = { is_landed = yes higher_real_tier_than = BARON }
+				}
+			}
+			ROOT = { # Current holder's councillors
+				any_voter = {
+					character = FROM
+				}
+			}
+			ROOT = { # Current holder's lieges
+				any_liege = {
+					character = FROM
+				}
+			}
+			ROOT = { # Current holder's lieges' councillors
+				any_liege = {
+					any_voter = {
+						character = FROM
+					}
+				}
+			}
+			ROOT = { # De jure vassals of the title
+				top_liege = {
+					any_realm_lord = {
+						character = FROM
+						higher_tier_than = baron
+						any_dejure_liege = { title = FROMFROM }
+					}
+				}
+			}
+			ROOT = { # De jure lieges of the title
+				top_liege = {
+					any_realm_lord = {
+						higher_tier_than = baron
+						character = FROM
+						FROMFROM = {
+							any_dejure_liege = {
+								character = PREV
+							}
+						}
+					}
+				}
+			}
+		}
+		FROM = {
+			is_feudal = yes
+			OR = { #Candidate should not be a landless Courtier that is about to inherit a Theocracy or Republic
+				AND = {
+					is_ruler = yes
+					is_landed = yes
+					is_republic = no
+					is_merchant_republic = no
+					is_theocracy = no
+					is_tribal = no
+					is_nomadic = no
+				}
+				NOR = {
+					any_heir_title = {
+						is_republic = yes
+					}
+					any_heir_title = {
+						is_merchant_republic = yes
+					}
+					any_heir_title = {
+						is_theocracy = yes
+					}
+				}
+			}
+			OR = { #If the title controls the religion, candidates must be of the same religion.
+				ROOT = { 
+					NOT = { 
+						controls_religion = yes
+					}
+				}
+				religion = ROOT
+			}
+			NOR = {
+				#mother = {         # Uncommenting this condition provokes that a ruler's son is not a valid candidate if the mother is married to the ruler and a candidate
+				#	is_alive = yes
+				#	is_married = ROOT
+				#	parent_for_elective_succession_trigger = yes
+				#}
+				#father = {			# Same as above, for the father
+				#	is_alive = yes
+				#	is_married = ROOT
+				#	parent_for_elective_succession_trigger = yes
+				#}
+				trait = cat
+				trait = disinherited
+				trait = horse
+				trait = eunuch
+				AND = { 
+					trait = bastard 
+					is_ruler = no
+				}
+				is_ascetic_trigger = yes
+				is_theocracy = yes
+				is_republic = yes
+				is_merchant_republic = yes
+				is_tribal = yes
+				is_nomadic = yes
+			}
+		}
+	}
+}
