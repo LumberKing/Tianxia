@@ -336,6 +336,12 @@ imperial_conquest = {
 				is_chinese_emperor_trigger = yes
 			}
 		}
+		modifier = {
+			factor = 2
+			e_china = {
+				has_holder = no
+			}
+		}
 	}
 }
 
@@ -1615,6 +1621,8 @@ unification_of_korea = { # For historical wars
 							limit = {
 								tier = king
 							}
+							reset_name = yes
+							reset_adjective = yes
 							unsafe_destroy_landed_title = THIS
 						}
 						else = {
@@ -5300,6 +5308,22 @@ war_of_honor = {
 				}
 				has_character_modifier = mark_of_dishonor
 			}
+			OR = { # Don't WoH the Tenno!
+				NOT = {
+					religion = shinto
+					controls_religion = yes
+				}
+				any_rival = {
+					character = ROOT
+				}
+				ROOT = {
+					has_quest = quest_rising_sun_war_of_honor
+					quest_target = {
+						character = FROM
+					}
+				}
+				has_character_modifier = mark_of_dishonor
+			}
 		}
 	}
 
@@ -7346,5 +7370,225 @@ fang_las_rebellion = {
 	
 	defender_ai_defeat_worth = {
 		factor = 100
+	}
+}
+
+warlord_consolidation = { # To spice things up in Chinese Imperial realms
+	name = CB_NAME_WARLORD
+	war_name = CB_NAME_WARLORD
+	sprite = 8
+	truce_days = 3650
+	is_permanent = yes
+	check_de_jure_tier = DUKE # this scans all dejure duchies for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
+	
+	allowed_to_target_tributaries = no
+	
+	can_use_gui = {
+		prestige = 250 # Shouldn't be free, but also not too expensive
+	}
+	
+	can_use = {
+		ROOT = {
+			independent = no # Only vassals
+			top_liege = { # Part of a CI realm that's got a sub-Average Mandate rating
+				government = chinese_imperial_government
+				OR = {
+					has_character_modifier = mandate_of_heaven_2
+					has_character_modifier = mandate_of_heaven_1
+				}
+			}
+			is_feudal = yes
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
+			mercenary = no
+		}
+		FROM = {
+			same_realm = ROOT
+			NOT = {
+				is_liege_or_above = ROOT
+			}
+		}
+	}
+
+	can_use_title = {
+		any_direct_de_jure_vassal_title = { # Title must be inside holy war range
+			OR = {
+				holder_scope = {
+					OR = {
+						character = ROOT
+						is_liege_or_above = ROOT
+					}
+				}
+				location = {
+					any_neighbor_province = {
+						OR = {
+							AND = {
+								has_owner = yes
+								owner = {
+									OR = {
+										character = ROOT
+										is_liege_or_above = ROOT
+									}
+								}
+							}
+							AND = {
+								is_land = no
+								any_neighbor_province = {
+									OR = {
+										AND = {
+											has_owner = yes
+											owner = {
+												OR = {
+													character = ROOT
+													is_liege_or_above = ROOT
+												}
+											}
+										}
+										AND = {
+											is_land = no
+											any_neighbor_province = {
+												owner = {
+													OR = {
+														character = ROOT
+														is_liege_or_above = ROOT
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	on_add = {
+		hidden_tooltip = { fire_haruspicy_event_effect = yes }
+		if = {
+			#limit = { defender = { is_offmap_governor = offmap_china } }
+			limit = {
+				has_dlc = "Jade Dragon"
+				defender = {
+					is_china_or_defended_chinese_tributary_trigger = yes
+				}
+			}
+			attacker = {  
+				sound_effect = china_angered_emperor
+				detract_grace_super_huge_effect = yes 
+			}
+		}
+		ROOT = {
+			prestige = -250
+		}
+	}
+	
+	is_valid = {
+		ROOT = {
+			#independent = yes
+			#is_chinese_emperor_trigger = yes
+			#government = chinese_imperial_government
+			has_acceptable_chinese_religion_trigger = yes
+			has_acceptable_chinese_culture_trigger = yes
+			NOT = { same_realm = FROM }
+		}
+	}
+	
+	on_success = {
+		any_attacker = {
+			limit = { character = ROOT }
+			participation_scaled_prestige = 100
+		}
+		any_attacker = {
+			limit = { NOT = { character = ROOT } }
+			hidden_tooltip = { 
+				participation_scaled_prestige = 100
+			}
+		}
+		
+		FROM = { prestige = -100 }
+	}
+
+	on_success_title = {
+		custom_tooltip = { 
+			text = tribal_invasion_succ_tip
+			hidden_tooltip = {
+				ROOT = {
+					vassalize_or_take_under_title = {
+						title = PREV
+						enemy = FROM
+						type = invasion
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				holder_scope = { character = FROM }
+			}
+			usurp_title_only = { target = ROOT type = invasion }
+		}
+	}
+
+	on_fail = {
+		ROOT = { prestige = -150 }
+	}
+
+	on_reverse_demand = {
+		ROOT = {
+			transfer_scaled_wealth = {
+				to = FROM
+				value = 4.0
+			}
+			ROOT = { prestige = -200 }
+		}
+		any_defender = {
+			limit = { character = FROM }
+			participation_scaled_piety = 100
+			participation_scaled_prestige = 200
+			if = {
+				limit = {
+					uses_decadence = yes
+				}
+				participation_scaled_decadence = -10
+			}
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { 
+				participation_scaled_piety = 100
+				participation_scaled_prestige = 200
+				if = {
+					limit = {
+						uses_decadence = yes
+					}
+					participation_scaled_decadence = -10
+				}
+			}
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+	
+	ai_will_do = {
+		factor = 2
 	}
 }
