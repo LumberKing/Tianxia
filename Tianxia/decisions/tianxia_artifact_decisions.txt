@@ -1,0 +1,323 @@
+decisions = {
+	forge_thuan_thien = { # Used in case you obtain the second piece outside the event chain
+		ai_check_interval = 12
+		is_high_prio = yes
+		only_playable = yes
+		
+		potential = {
+			OR = {
+				has_artifact = hilt_of_thuan_thien
+				has_artifact = blade_of_thuan_thien
+			}
+		}
+		
+		allow = {
+			prisoner = no
+			is_adult = yes
+			is_inaccessible_or_incapable_trigger = no
+			OR = {
+				religion = viet_pagan
+				religion = viet_pagan_reformed
+				AND = {
+					culture_group = mon_khmer_group
+					religion = taoist
+				}
+			}
+			has_artifact = hilt_of_thuan_thien
+			has_artifact = blade_of_thuan_thien
+		}
+		
+		effect = {
+			character_event = { id = artifacts.20 } # Gain Thuan Thien
+		}
+		
+		ai_will_do = {
+			factor = 1
+		}
+	}
+	
+	# Draught of Healing
+	use_draught_of_healing = {
+		ai_check_interval = 120
+		is_high_prio = yes
+		only_playable = yes
+		
+		potential = {
+			has_artifact = draught_of_healing
+		}
+		
+		allow = {
+			prisoner = no
+			is_inaccessible_or_incapable_trigger = no
+			# Make sure the AI doesn't waste it
+			OR = {
+				ai = no
+				has_epidemic_disease_trigger = yes
+				is_maimed_trigger = yes
+			}
+		}
+		
+		effect = {
+			unsafe_destroy_artifact = draught_of_healing
+			character_event = { id = artifacts.200 } # Healing happens
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.001
+				health = 3
+			}
+			modifier = {
+				factor = 0
+				health = 6
+			}
+		}
+	}
+	
+	# Vial of Immortality
+	use_vial_of_immortality = {
+		ai_check_interval = 12 # Important to use it before you die...
+		is_high_prio = yes
+		only_playable = yes
+		
+		potential = {
+			has_artifact = vial_of_immortality
+		}
+		
+		allow = {
+			is_adult = yes
+			prisoner = no
+			is_inaccessible_or_incapable_trigger = no
+			NOT = {
+				trait = immortal
+			}
+		}
+		
+		effect = {
+			unsafe_destroy_artifact = vial_of_immortality
+			character_event = { id = artifacts.201 } # Become immortal
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				trait = depressed # Why bother?
+			}
+			modifier = {
+				factor = 0.01
+				is_female = yes
+				age = 45 # Past childbearing age, so might not be sensible
+			}
+			modifier = {
+				factor = 0.1
+				trait = content
+			}
+		}
+	}
+	
+	# Living Flame
+	use_living_flame = {
+		ai = no
+		is_high_prio = yes
+		only_playable = yes
+		
+		potential = {
+			ai = no
+			has_artifact = living_flame
+		}
+		
+		allow = {
+			prisoner = no
+			is_inaccessible_or_incapable_trigger = no
+			conditional_tooltip = {
+				trigger = {
+					any_artifact = {
+						artifact_type = living_flame
+						has_artifact_flag = needs_to_recharge
+					}
+				}
+				custom_tooltip = {
+					text = living_flame_recharging
+				}
+				any_artifact = {
+					artifact_type = living_flame
+					NOT = {
+						has_artifact_flag = needs_to_recharge
+					}
+				}
+			}
+			location = {
+				holder_scope = {
+					OR = {
+						war_with = ROOT # The province is an enemy province
+						ROOT = { # I am crazy!
+							OR = {
+								trait = lunatic
+								trait = possessed
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			character_event = { id = artifacts.202 } # Burninate the province!
+		}
+		
+		ai_will_do = {
+			factor = 0 # The AI can't be trusted with this power...
+		}
+	}
+	
+	# Deed to the Dragon Throne
+	use_deed_to_the_dragon_throne = {
+		ai_check_interval = 12 # Quite important
+		is_high_prio = yes
+		only_playable = yes
+		only_independent = yes
+		
+		potential = {
+			NOT = {
+				has_landed_title = e_china # Already the real EoC
+			}
+			holy_order = no
+			has_artifact = deed_to_the_dragon_throne
+		}
+		
+		allow = {
+			independent = yes
+			is_adult = yes
+			prisoner = no
+			NOT = { trait = incapable }
+			is_tributary = no
+			war = no # Must be at peace
+			
+			# Cannot be the heir to e_china
+			e_china = {
+				holder_scope = {
+					NOR = {
+						current_heir = {
+							character = ROOT
+						}
+					}
+					# The AI should not do this if it shares the dynasty of the EoC
+					OR = {
+						ROOT = {
+							ai = no
+						}
+						NOT = {
+							dynasty = ROOT
+						}
+					}
+				}
+			}
+			NOT = {
+				has_character_modifier = peace_deal_with_china # If you have a Chinese Peace Deal, you need to break it or wait for it to expire
+			}
+		}
+		
+		effect = {
+			unsafe_destroy_artifact = deed_to_the_dragon_throne
+			e_china = {
+				add_pressed_claim = ROOT
+				holder_scope = {
+					character_event = { id = artifacts.206 } # Notify the EoC
+				}
+			}
+			# No pretender bloodline should be awarded; this might be used by someone that's ineligible!
+			if = {
+				limit = {
+					has_dlc = "Jade Dragon"
+					e_china = {
+						holder_scope = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				if = { # If we have positive Grace, zero it out!
+					limit = {
+						check_variable = {
+							which = grace
+							value = 1
+						}
+					}
+					set_variable = {
+						which = grace
+						value = 0
+					}
+				}
+				detract_grace_super_huge_effect = yes # China is VERY upset with you for doing this!
+				detract_grace_super_huge_effect = yes # China is VERY upset with you for doing this!
+				hidden_tooltip = {
+					e_china = {
+						holder_scope = {
+							change_variable = {
+								which = stored_mandate_change
+								value = -1000
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				e_china = {
+					has_holder = no # Not worth it
+				}
+			}
+			modifier = {
+				factor = 0
+				e_china = {
+					holder_scope = {
+						NOT = {
+							is_within_diplo_range = ROOT # Too far away
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				e_china = {
+					holder_scope = {
+						relative_power_including_allies_defender = {
+							who = ROOT
+							power = 1 # Unlikely to be able to take the Dragon Throne in a war
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	# Incomplete Deck of Cards
+	draw_a_card = {
+		ai = no
+		is_high_prio = yes
+		
+		potential = {
+			ai = no
+			is_playable = yes
+			has_artifact = incomplete_deck_of_cards
+		}
+		
+		allow = {
+			prisoner = no
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = artifacts.214 } # Draw a card!
+		}
+		
+		ai_will_do = {
+			factor = 0 # The AI wouldn't understand it
+		}
+	}
+}
