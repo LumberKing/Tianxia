@@ -6402,6 +6402,39 @@ letter_event = {
 				}
 				remove_claim = k_chrysanthemum_throne
 			}
+			# Slightly side-effecty but necessary dodging of the hardcoded stupidity resulting in k_chrysanthemum_throne being usurped when it should not be
+			hidden_tooltip = {
+				if = {
+					limit = {
+						religion = shinto
+					}
+					k_papal_state = {
+						holder_scope = {
+							create_random_soldier = {
+								dynasty = none
+								culture = FROM
+								religion = FROM
+								female = no
+								age = 16
+								random_traits = yes
+							}
+							new_character = {
+								save_event_target_as = culture_religion_reference
+							}
+						}
+					}
+					set_character_flag = i_was_shinto
+					if = {
+						limit = {
+							trait = japanese_monastic_trait
+						}
+						set_character_flag = restore_japanese_monastic_feudal
+					}
+					culture = japanese
+					religion = buddhist
+				}
+			}
+			# Usurp title
 			faction_shogun = { # The target (title) of the faction
 				holder_scope = {
 					FROM = {
@@ -6474,8 +6507,9 @@ letter_event = {
 				if = {
 					limit = {
 						FROM = {
-							NOT = {
+							NOR = {
 								trait = japanese_monastic_trait
+								has_character_flag = restore_japanese_monastic_feudal
 							}
 						}
 					}
@@ -6495,6 +6529,28 @@ letter_event = {
 						}
 						unsafe_destroy_landed_title = THIS
 						add_pressed_claim = PREV
+					}
+				}
+			}
+			# Restore culture/religion/government if necessary
+			hidden_tooltip = {
+				if = {
+					limit = {
+						has_character_flag = i_was_shinto
+					}
+					religion = event_target:culture_religion_reference
+					culture = event_target:culture_religion_reference
+					clr_character_flag = i_was_shinto
+					if = {
+						limit = {
+							has_character_flag = restore_japanese_monastic_feudal
+						}
+						add_trait = japanese_monastic_trait
+						set_government_type = japanese_monastic_feudal_government
+						clr_character_flag = restore_japanese_monastic_feudal
+					}
+					event_target:culture_religion_reference = {
+						leave_court_and_die_effect = yes
 					}
 				}
 			}

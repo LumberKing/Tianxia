@@ -4756,7 +4756,6 @@ shogunate_war = {
 			tier = emperor
 			religion = shinto
 			controls_religion = yes
-			trait = under_regency
 		}
 	}
 
@@ -4879,9 +4878,63 @@ shogunate_war = {
 				}
 				remove_claim = k_chrysanthemum_throne
 			}
+			# Slightly side-effecty but necessary dodging of the hardcoded stupidity resulting in k_chrysanthemum_throne being usurped when it should not be
+			hidden_tooltip = {
+				if = {
+					limit = {
+						religion = shinto
+					}
+					k_papal_state = {
+						holder_scope = {
+							create_random_soldier = {
+								dynasty = none
+								culture = ROOT
+								religion = ROOT
+								female = no
+								age = 16
+								random_traits = yes
+							}
+							new_character = {
+								save_event_target_as = culture_religion_reference
+							}
+						}
+					}
+					set_character_flag = i_was_shinto
+					if = {
+						limit = {
+							trait = japanese_monastic_trait
+						}
+						set_character_flag = restore_japanese_monastic_feudal
+					}
+					culture = japanese
+					religion = buddhist
+				}
+			}
 			usurp_title = {
 				target = PREV
 				type = faction_demand
+			}
+			# Restore culture/religion/government if necessary
+			hidden_tooltip = {
+				if = {
+					limit = {
+						has_character_flag = i_was_shinto
+					}
+					religion = event_target:culture_religion_reference
+					culture = event_target:culture_religion_reference
+					clr_character_flag = i_was_shinto
+					if = {
+						limit = {
+							has_character_flag = restore_japanese_monastic_feudal
+						}
+						add_trait = japanese_monastic_trait
+						set_government_type = japanese_monastic_feudal_government
+						clr_character_flag = restore_japanese_monastic_feudal
+					}
+					event_target:culture_religion_reference = {
+						leave_court_and_die_effect = yes
+					}
+				}
 			}
 		}
 		# Set the proper laws
