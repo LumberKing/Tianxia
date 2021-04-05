@@ -4758,6 +4758,25 @@ shogunate_war = {
 			controls_religion = yes
 		}
 	}
+	
+	on_invalidation = {
+		hidden_tooltip = {
+			ROOT = {
+				any_opinion_modifier_target = {
+					limit = {
+						reverse_has_opinion_modifier = {
+							who = ROOT
+							modifier = supporting_as_new_tenno
+						}
+					}
+					reverse_remove_opinion = {
+						who = ROOTROOT
+						modifier = supporting_as_new_tenno
+					}
+				}
+			}
+		}
+	}
 
 	on_add = {
 		hidden_tooltip = { fire_haruspicy_event_effect = yes }
@@ -4835,6 +4854,13 @@ shogunate_war = {
 					NOT = {
 						trait = japanese_monastic_trait
 					}
+					OR = {
+						religion = shinto
+						AND = {
+							religion = buddhist
+							culture_group = japonic
+						}
+					}
 				}
 				add_trait = japanese_feudal_trait
 				set_government_type = japanese_feudal_government
@@ -4869,74 +4895,50 @@ shogunate_war = {
 				}
 			}
 		}
+		# Handle the Tenno
+		if = {
+			limit = {
+				tier = emperor
+				FROM = {
+					has_landed_title = k_chrysanthemum_throne
+				}
+				ROOT = {
+					religion = shinto
+					NOT = {
+						dynasty = FROM
+					}
+				}
+			}
+			
+			# Set up destruction
+			FROM = {
+				avoid_chrysanthemum_throne_usurpation_effect = yes
+			}
+		}
 		
 		ROOT = {
-			# No usurping the Tenno!
-			if = {
-				limit = {
-					has_claim = k_chrysanthemum_throne
-				}
-				remove_claim = k_chrysanthemum_throne
-			}
-			# Slightly side-effecty but necessary dodging of the hardcoded stupidity resulting in k_chrysanthemum_throne being usurped when it should not be
-			hidden_tooltip = {
-				if = {
-					limit = {
-						religion = shinto
-					}
-					k_papal_state = {
-						holder_scope = {
-							create_random_soldier = {
-								dynasty = none
-								culture = ROOT
-								religion = ROOT
-								female = no
-								age = 16
-								random_traits = yes
-							}
-							new_character = {
-								save_event_target_as = culture_religion_reference
-							}
-						}
-					}
-					set_character_flag = i_was_shinto
-					if = {
-						limit = {
-							trait = japanese_monastic_trait
-						}
-						set_character_flag = restore_japanese_monastic_feudal
-					}
-					culture = japanese
-					religion = buddhist
-				}
-			}
 			usurp_title = {
 				target = PREV
 				type = faction_demand
 			}
-			# Restore culture/religion/government if necessary
-			hidden_tooltip = {
-				if = {
-					limit = {
-						has_character_flag = i_was_shinto
-					}
-					religion = event_target:culture_religion_reference
-					culture = event_target:culture_religion_reference
-					clr_character_flag = i_was_shinto
-					if = {
-						limit = {
-							has_character_flag = restore_japanese_monastic_feudal
-						}
-						add_trait = japanese_monastic_trait
-						set_government_type = japanese_monastic_feudal_government
-						clr_character_flag = restore_japanese_monastic_feudal
-					}
-					event_target:culture_religion_reference = {
-						leave_court_and_die_effect = yes
-					}
+		}
+		
+		# Restore the Tenno
+		if = {
+			limit = {
+				FROM = {
+					has_character_flag = temporarily_japanese_imperial
 				}
 			}
+			FROM = {
+				restore_chrysanthemum_throne_regent_and_vassals_effect = yes
+				set_defacto_liege = ROOT
+			}
+			ROOT = {
+				abdicate_to_opinion_target_or_most_liked_relative = yes
+			}
 		}
+		
 		# Set the proper laws
 		if = {
 			limit = {
@@ -4984,11 +4986,6 @@ shogunate_war = {
 			}
 		}
 	}
-	on_success_posttitle = {
-		FROM = {
-			paste_regency_setup_effect = yes
-		}
-	}
 	
 	on_fail = {
 		ROOT = {
@@ -5010,6 +5007,22 @@ shogunate_war = {
 		}
 		
 		FROM = { hidden_tooltip = { disband_event_forces = faction_loyalists } }
+		hidden_tooltip = {
+			ROOT = {
+				any_opinion_modifier_target = {
+					limit = {
+						reverse_has_opinion_modifier = {
+							who = ROOT
+							modifier = supporting_as_new_tenno
+						}
+					}
+					reverse_remove_opinion = {
+						who = ROOTROOT
+						modifier = supporting_as_new_tenno
+					}
+				}
+			}
+		}
 	}
 
 	on_reverse_demand = {
@@ -5043,6 +5056,22 @@ shogunate_war = {
 		}
 		
 		FROM = { hidden_tooltip = { disband_event_forces = faction_loyalists } }
+		hidden_tooltip = {
+			ROOT = {
+				any_opinion_modifier_target = {
+					limit = {
+						reverse_has_opinion_modifier = {
+							who = ROOT
+							modifier = supporting_as_new_tenno
+						}
+					}
+					reverse_remove_opinion = {
+						who = ROOTROOT
+						modifier = supporting_as_new_tenno
+					}
+				}
+			}
+		}
 	}
 	
 	on_attacker_leader_death = {
