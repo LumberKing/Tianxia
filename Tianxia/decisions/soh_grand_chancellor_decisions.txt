@@ -1,0 +1,484 @@
+# Grand Chancellor stuff
+# Also covers military dictators in Goryeo
+
+decisions = {
+	create_grand_chancellor_bloodline = {
+		ai_check_interval = 3
+		only_playable = yes
+		is_high_prio = yes
+		potential = {
+			has_ambition = obj_become_grand_chancellor
+			has_dlc = "Conclave"
+			liege = {
+				OR = {
+					government = chinese_imperial_government
+					government = chinese_vassal_government
+				}
+			}
+		}
+		allow = {
+			is_inaccessible_or_incapable_trigger = no
+			war = no
+			OR = {
+				real_tier = duke
+				real_tier = king
+			}
+			is_voter = yes
+			liege = {
+				NOR = {
+					dynasty = ROOT
+					any_voter = {
+						NOT = {
+							dynasty = PREV
+						}
+						any_owned_bloodline = {
+							has_bloodline_flag = grand_chancellor_bloodline
+							bloodline_is_active_for = PREV
+						}
+					}
+					any_voter = {
+						dynasty = ROOT
+						any_owned_bloodline = {
+							has_bloodline_flag = grand_chancellor_bloodline
+							bloodline_is_active_for = PREV
+						}
+					}
+				}
+			}
+			government = chinese_vassal_government
+			NOR = {
+				any_owned_bloodline = {
+					has_bloodline_flag = grand_chancellor_bloodline
+					bloodline_is_active_for = PREV
+				}
+				liege = {
+					trait = under_regency2 # Shoguns
+				}
+			}
+			prestige = 5000
+			liege = {
+				primary_title = {
+					has_law = law_voting_power_1
+				}
+				OR = {
+					# Majority support from the council
+					AND = {
+						any_voter = {
+							count = 4
+							is_council_eunuch_trigger = no
+							has_opinion_modifier = {
+								who = ROOT
+								modifier = supporting_as_grand_chancellor
+							}
+						}
+					}
+					AND = {
+						tier = emperor
+						any_voter = {
+							count = 7
+							is_council_eunuch_trigger = yes
+							has_opinion_modifier = {
+								who = ROOT
+								modifier = supporting_as_grand_chancellor
+							}
+						}
+					}
+				}
+			}
+		}
+		effect = {
+			custom_tooltip = {
+				text = create_grand_chancellor_bloodline_effect
+				character_event = { id = grandchancellor.14 } # Creathe the bloodline
+			}
+		}
+	}
+}
+
+targeted_decisions = {
+	request_support_as_grand_chancellor = {
+		ai_check_interval = 3
+		only_playable = yes
+		filter = realm
+		ai_target_filter = realm
+		from_potential = {
+			is_voter = yes
+			has_ambition = obj_become_grand_chancellor
+			OR = {
+				real_tier = duke
+				real_tier = king
+			}
+		}
+		potential = {
+			NOT = { trait = horse }
+			NOT = { trait = cat }
+			is_voter = yes
+			liege = {
+				any_voter = {
+					character = FROM
+				}
+				NOT = {
+					dynasty = ROOT
+				}
+			}
+			NOR = {
+				has_ambition = obj_become_grand_chancellor
+				has_any_opinion_modifier = supporting_as_grand_chancellor
+			}
+			liege = {
+				primary_title = {
+					has_law = law_voting_power_1
+				}
+			}
+		}
+		allow = {
+			is_inaccessible_or_incapable_trigger = no
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				prestige = 1000 # Shouldn't be a problem
+				NOT = {
+					has_character_modifier = requested_grand_chancellor_support_recently # No spamming
+				}
+			}
+			NOT = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = asked_for_my_support_as_grand_chancellor
+				}
+			}
+		}
+		effect = {
+			FROM = {
+				prestige = -1000
+				add_character_modifier = {
+					modifier = requested_grand_chancellor_support_recently
+					months = 3
+				}
+			}
+			opinion = {
+				who = FROM
+				modifier = asked_for_my_support_as_grand_chancellor
+				months = 12
+			}
+			character_event = { id = grandchancellor.1 }
+		}
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			modifier = {
+				factor = 0
+				any_rival = {
+					character = FROM
+				}
+				NOT = {
+					owes_favor_to = FROM
+				}
+			}
+		}
+	}
+	demand_spot_on_council_from_councillor = {
+		ai_check_interval = 3
+		only_playable = yes
+		filter = realm
+		ai_target_filter = realm
+		from_potential = {
+			liege = {
+				independent = yes
+				OR = {
+					real_tier = king
+					real_tier = emperor
+				}
+				OR = {
+					government = chinese_imperial_government
+					government = chinese_vassal_government
+				}
+			}
+			independent = no
+			is_voter = no
+			any_owned_bloodline = {
+				has_bloodline_flag = grand_chancellor_bloodline
+				bloodline_is_active_for = PREV
+			}
+		}
+		potential = {
+			NOT = { trait = horse }
+			NOT = { trait = cat }
+			is_voter = no
+			liege = {
+				NOT = {
+					dynasty = FROM
+				}
+				any_vassal = {
+					character = FROM
+				}
+			}
+			NOT = {
+				dynasty = FROM
+			}
+			liege = {
+				primary_title = {
+					has_law = law_voting_power_1
+				}
+			}
+		}
+		allow = {
+			government = chinese_imperial_government
+			is_inaccessible_or_incapable_trigger = no
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				prestige = 1000
+				NOT = {
+					has_character_modifier = requested_councillors_spot # No spamming
+				}
+			}
+			NOT = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = asked_for_my_council_spot
+				}
+			}
+			NOR = {
+				liege = {
+					current_heir = {
+						character = ROOT
+					}
+				}
+				has_job_title = job_spymaster
+				AND = {
+					liege = {
+						religion = ROOT
+						NOT = {
+							religion = FROM
+						}
+					}
+					has_job_title = job_spiritual
+				}
+				AND = {
+					controls_religion = yes
+					religion = ROOT
+				}
+				trait = japanese_regent2
+				has_minor_title = title_appointed_regent
+				is_council_eunuch_trigger = yes # There's a certain job requirement you probably don't care for...
+			}
+			OR = {
+				AND = {
+					has_job_title = job_chancellor
+					FROM = {
+						can_be_chancellor_trigger = yes
+					}
+				}
+				AND = {
+					has_job_title = job_marshal
+					FROM = {
+						can_be_marshal_trigger = yes
+					}
+				}
+				AND = {
+					has_job_title = job_treasurer
+					FROM = {
+						can_be_treasurer_trigger = yes
+					}
+				}
+				AND = {
+					has_job_title = job_spymaster
+					FROM = {
+						can_be_spymaster_trigger = yes
+					}
+				}
+				AND = {
+					has_job_title = job_spiritual
+					FROM = {
+						can_be_spiritual_trigger = yes
+					}
+				}
+				AND = {
+					has_minor_title = title_councilmember_king
+					FROM = {
+						can_be_councilmember_king_trigger = yes
+					}
+				}
+				AND = {
+					has_minor_title = title_councilmember_emperor
+					FROM = {
+						can_be_councilmember_emperor_trigger = yes
+					}
+				}
+			}
+		}
+		effect = {
+			FROM = {
+				prestige = -1000
+				add_character_modifier = {
+					modifier = requested_councillors_spot
+					months = 3
+				}
+			}
+			opinion = {
+				who = FROM
+				modifier = asked_for_my_council_spot
+				months = 60
+			}
+			character_event = { id = grandchancellor.24 }
+		}
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					any_friend = {
+						character = FROM
+					}
+					any_lover = {
+						character = FROM
+					}
+				}
+				FROM = {
+					NOT = {
+						trait = ambitious
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				any_rival = {
+					character = FROM
+				}
+				NOT = {
+					owes_favor_to = FROM
+				}
+			}
+		}
+	}
+	convince_councillor_to_back_me = {
+		ai_check_interval = 3
+		only_playable = yes
+		filter = realm
+		ai_target_filter = realm
+		from_potential = {
+			independent = no
+			is_voter = yes
+			any_owned_bloodline = {
+				has_bloodline_flag = grand_chancellor_bloodline
+				bloodline_is_active_for = PREV
+			}
+		}
+		potential = {
+			is_voter = yes
+			NOT = { trait = horse }
+			NOT = { trait = cat }
+			liege = {
+				independent = yes
+				any_voter = {
+					character = FROM
+				}
+				OR = {
+					real_tier = king
+					real_tier = emperor
+				}
+				OR = {
+					government = chinese_imperial_government
+					government = chinese_vassal_government
+				}
+			}
+			liege = {
+				primary_title = {
+					has_law = law_voting_power_1
+				}
+			}
+		}
+		allow = {
+			is_inaccessible_or_incapable_trigger = no
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				prestige = 500 # Shouldn't be a problem
+			}
+			NOR = {
+				liege = {
+					current_heir = {
+						character = ROOT
+					}
+				}
+				trait = japanese_regent2
+				has_minor_title = title_appointed_regent
+			}
+			NOT = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = grand_chancellor_asked_for_backing
+				}
+			}
+			NOR = {
+				has_character_modifier = forced_loyalist
+				has_character_modifier = forced_pragmatist
+				has_character_modifier = forced_glory_hound
+				has_character_modifier = forced_zealot
+				has_character_modifier = forced_malcontent
+			}
+			NOT = {
+				has_position = FROM
+			}
+			NOT = { # Already backing someone
+				liege = {
+					OR = {
+						held_favor_activated_on = ROOT
+						any_voter = {
+							held_favor_activated_on = ROOT
+						}
+					}
+				}
+			}
+		}
+		effect = {
+			FROM = {
+				prestige = -500
+				add_character_modifier = {
+					modifier = requested_grand_chancellor_support_recently
+					months = 1
+				}
+			}
+			opinion = {
+				who = FROM
+				modifier = grand_chancellor_asked_for_backing
+				months = 12
+			}
+			character_event = { id = grandchancellor.37 }
+		}
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					any_friend = {
+						character = FROM
+					}
+					any_lover = {
+						character = FROM
+					}
+				}
+				FROM = {
+					NOT = {
+						trait = ambitious
+					}
+				}
+			}
+		}
+	}
+}
