@@ -626,7 +626,14 @@ character_event = {
 	is_triggered_only = yes
 	
 	option = {
-		name = EVTOPTA_TREASURE_FLEET_7 # Ok 
+		name = EVTOPTA_TREASURE_FLEET_7 # Ok
+		
+		if = {
+			limit = {
+				trait = treasure_fleet_preparation
+			}
+			remove_trait = treasure_fleet_preparation
+		}
 	}
 }
 
@@ -662,6 +669,13 @@ character_event = {
 	
 	option = {
 		name = EVTOPTA_TREASURE_FLEET_9 # Ok 
+		
+		if = {
+			limit = {
+				trait = treasure_fleet_preparation
+			}
+			remove_trait = treasure_fleet_preparation
+		}
 	}
 }
 
@@ -24593,43 +24607,385 @@ province_event = {
 				}
 				abort_treasure_fleet_for_everyone_effect = yes
 			}
-		}
-		else = {
-			if = {
-				limit = {
-					has_province_flag = treasure_fleet_in_java
-					NOR = {
-						has_global_flag = treasure_fleet_at_nazca
-						has_global_flag = lost_merchant_went_east
-					}
-				}
-				random_list = {
-					25 = { # Possible Nazca
-						set_variable = {
-							which = tf_head_east_vote
-							value = 1
+			else = {
+				if = {
+					limit = {
+						has_province_flag = treasure_fleet_in_java
+						NOR = {
+							has_global_flag = treasure_fleet_at_nazca
+							has_global_flag = lost_merchant_went_east
 						}
-						any_playable_ruler = {
-							limit = {
-								trait = treasure_fleet_voyage
+					}
+					random_list = {
+						25 = { # Possible Nazca
+							set_variable = {
+								which = tf_head_east_vote
+								value = 1
 							}
-							character_event = { id = treasurefleet.410 } # Sail East?
-						}
-						province_event = { id = treasurefleet.411 days = 1 } # Check outcome
-					}
-					75 = {
-						if = {
-							limit = {
-								NOT = {
-									has_province_flag = treasure_fleet_is_going_home # Only on the outbound journey
+							any_playable_ruler = {
+								limit = {
+									trait = treasure_fleet_voyage
 								}
-								NOT = {
-									has_game_rule = {
-										name = treasure_fleet_invasion_rule
-										value = forbidden
+								character_event = { id = treasurefleet.410 } # Sail East?
+							}
+							province_event = { id = treasurefleet.411 days = 1 } # Check outcome
+						}
+						75 = {
+							if = {
+								limit = {
+									NOT = {
+										has_province_flag = treasure_fleet_is_going_home # Only on the outbound journey
+									}
+									NOT = {
+										has_game_rule = {
+											name = treasure_fleet_invasion_rule
+											value = forbidden
+										}
+									}
+									any_playable_ruler = {
+										can_interact_with_treasure_fleet_trigger = yes
+										top_liege = {
+											any_realm_province = {
+												is_in_active_treasure_fleet_region_trigger = yes
+												NOT = {
+													any_province = {
+														owner = {
+															top_liege = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+														NOT = {
+															distance = {
+																where = PREV
+																value = 500
+															}
+														}
+														NOT = {
+															can_naval_path_to = {
+																target = PREV
+																distance <= 1000
+															}
+														}
+													}
+												}
+											}
+										}
+										2753 = { # Hangzhou
+											check_variable = {
+												which = treasure_fleet_army_strength
+												value = 10
+											}
+										}
+										any_playable_ruler = {
+											trait = treasure_fleet_voyage
+											is_feudal = yes
+											has_acceptable_chinese_culture_trigger = yes
+											has_acceptable_chinese_religion_trigger = yes
+											NOT = {
+												top_liege = {
+													dynasty = PREV
+												}
+											}
+											OR = {
+												ai = no
+												AND = {
+													has_game_rule = {
+														name = treasure_fleet_invasion_rule
+														value = allowed
+													}
+												}
+											}
+										}
 									}
 								}
-								any_playable_ruler = {
+								random_list = {
+									1 = {
+										random_playable_ruler = {
+											limit = {
+												can_interact_with_treasure_fleet_trigger = yes
+												top_liege = {
+													any_realm_province = {
+														is_in_active_treasure_fleet_region_trigger = yes
+														NOT = {
+															any_province = {
+																owner = {
+																	top_liege = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+																NOT = {
+																	distance = {
+																		where = PREV
+																		value = 500
+																	}
+																}
+																NOT = {
+																	can_naval_path_to = {
+																		target = PREV
+																		distance <= 1000
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+											top_liege = {
+												save_event_target_as = potential_tf_invasion_target
+												random_realm_province = {
+													limit = {
+														is_in_active_treasure_fleet_region_trigger = yes
+														NOT = {
+															any_province = {
+																owner = {
+																	top_liege = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+																NOT = {
+																	distance = {
+																		where = PREV
+																		value = 500
+																	}
+																}
+																NOT = {
+																	can_naval_path_to = {
+																		target = PREV
+																		distance <= 1000
+																	}
+																}
+															}
+														}
+													}
+													save_event_target_as = potential_tf_invasion_target_beachhead
+												}
+											}
+											random_playable_ruler = {
+												limit = {
+													trait = treasure_fleet_voyage
+													is_feudal = yes
+													has_acceptable_chinese_culture_trigger = yes
+													has_acceptable_chinese_religion_trigger = yes
+													NOT = {
+														top_liege = {
+															dynasty = PREV
+														}
+													}
+													ai = no
+												}
+												preferred_limit = {
+													tier = king
+												}
+												preferred_limit = {
+													tier = duke
+												}
+												narrative_event = { id = treasurefleet.406 } # Create your own empire?
+											}
+										}
+									}
+									1 = {
+										modifier = {
+											factor = 0
+											has_game_rule = {
+												name = treasure_fleet_invasion_rule
+												value = no_ai
+											}
+										}
+										random_playable_ruler = {
+											limit = {
+												can_interact_with_treasure_fleet_trigger = yes
+												top_liege = {
+													any_realm_province = {
+														is_in_active_treasure_fleet_region_trigger = yes
+														NOT = {
+															any_province = {
+																owner = {
+																	top_liege = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+																NOT = {
+																	distance = {
+																		where = PREV
+																		value = 500
+																	}
+																}
+																NOT = {
+																	can_naval_path_to = {
+																		target = PREV
+																		distance <= 1000
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+											top_liege = {
+												save_event_target_as = potential_tf_invasion_target
+												random_realm_province = {
+													limit = {
+														is_in_active_treasure_fleet_region_trigger = yes
+														NOT = {
+															any_province = {
+																owner = {
+																	top_liege = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+																NOT = {
+																	distance = {
+																		where = PREV
+																		value = 500
+																	}
+																}
+																NOT = {
+																	can_naval_path_to = {
+																		target = PREV
+																		distance <= 1000
+																	}
+																}
+															}
+														}
+													}
+													save_event_target_as = potential_tf_invasion_target_beachhead
+												}
+											}
+											random_playable_ruler = {
+												limit = {
+													trait = treasure_fleet_voyage
+													is_feudal = yes
+													has_acceptable_chinese_culture_trigger = yes
+													has_acceptable_chinese_religion_trigger = yes
+													NOT = {
+														top_liege = {
+															dynasty = PREV
+														}
+													}
+												}
+												preferred_limit = {
+													ai = no
+													tier = king
+													trait = ambitious
+												}
+												preferred_limit = {
+													ai = no
+													tier = king
+												}
+												preferred_limit = {
+													ai = no
+													tier = duke
+													trait = ambitious
+												}
+												preferred_limit = {
+													ai = no
+													tier = duke
+												}
+												preferred_limit = {
+													tier = king
+													trait = ambitious
+												}
+												preferred_limit = {
+													tier = king
+												}
+												preferred_limit = {
+													ai = no
+													tier = count
+													trait = ambitious
+												}
+												preferred_limit = {
+													tier = duke
+													trait = ambitious
+												}
+												preferred_limit = {
+													tier = duke
+												}
+												narrative_event = { id = treasurefleet.406 } # Create your own empire?
+											}
+										}
+									}
+									199 = {
+										province_event = { id = treasurefleet.404 } # Normal departure
+									}
+								}
+							}
+							else = {
+								province_event = { id = treasurefleet.404 } # Normal departure
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						NOT = {
+							has_province_flag = treasure_fleet_is_going_home # Only on the outbound journey
+						}
+						NOT = {
+							has_game_rule = {
+								name = treasure_fleet_invasion_rule
+								value = forbidden
+							}
+						}
+						any_playable_ruler = {
+							can_interact_with_treasure_fleet_trigger = yes
+							top_liege = {
+								any_realm_province = {
+									is_in_active_treasure_fleet_region_trigger = yes
+									NOT = {
+										any_province = {
+											owner = {
+												top_liege = {
+													is_chinese_emperor_trigger = yes
+												}
+											}
+											NOT = {
+												distance = {
+													where = PREV
+													value = 500
+												}
+											}
+											NOT = {
+												can_naval_path_to = {
+													target = PREV
+													distance <= 1000
+												}
+											}
+										}
+									}
+								}
+							}
+							2753 = { # Hangzhou
+								check_variable = {
+									which = treasure_fleet_army_strength
+									value = 10
+								}
+							}
+							any_playable_ruler = {
+								trait = treasure_fleet_voyage
+								is_feudal = yes
+								has_acceptable_chinese_culture_trigger = yes
+								has_acceptable_chinese_religion_trigger = yes
+								NOT = {
+									top_liege = {
+										dynasty = PREV
+									}
+								}
+								OR = {
+									ai = no
+									AND = {
+										has_game_rule = {
+											name = treasure_fleet_invasion_rule
+											value = allowed
+										}
+									}
+								}
+							}
+						}
+					}
+					random_list = {
+						1 = {
+							random_playable_ruler = {
+								limit = {
 									can_interact_with_treasure_fleet_trigger = yes
 									top_liege = {
 										any_realm_province = {
@@ -24657,13 +25013,39 @@ province_event = {
 											}
 										}
 									}
-									2753 = { # Hangzhou
-										check_variable = {
-											which = treasure_fleet_army_strength
-											value = 10
+								}
+								top_liege = {
+									save_event_target_as = potential_tf_invasion_target
+									random_realm_province = {
+										limit = {
+											is_in_active_treasure_fleet_region_trigger = yes
+											NOT = {
+												any_province = {
+													owner = {
+														top_liege = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+													NOT = {
+														distance = {
+															where = PREV
+															value = 500
+														}
+													}
+													NOT = {
+														can_naval_path_to = {
+															target = PREV
+															distance <= 1000
+														}
+													}
+												}
+											}
 										}
+										save_event_target_as = potential_tf_invasion_target_beachhead
 									}
-									any_playable_ruler = {
+								}
+								random_playable_ruler = {
+									limit = {
 										trait = treasure_fleet_voyage
 										is_feudal = yes
 										has_acceptable_chinese_culture_trigger = yes
@@ -24673,515 +25055,147 @@ province_event = {
 												dynasty = PREV
 											}
 										}
-										OR = {
-											ai = no
-											AND = {
-												has_game_rule = {
-													name = treasure_fleet_invasion_rule
-													value = allowed
-												}
-											}
-										}
+										ai = no
 									}
-								}
-							}
-							random_list = {
-								1 = {
-									random_playable_ruler = {
-										limit = {
-											can_interact_with_treasure_fleet_trigger = yes
-											top_liege = {
-												any_realm_province = {
-													is_in_active_treasure_fleet_region_trigger = yes
-													NOT = {
-														any_province = {
-															owner = {
-																top_liege = {
-																	is_chinese_emperor_trigger = yes
-																}
-															}
-															NOT = {
-																distance = {
-																	where = PREV
-																	value = 500
-																}
-															}
-															NOT = {
-																can_naval_path_to = {
-																	target = PREV
-																	distance <= 1000
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-										top_liege = {
-											save_event_target_as = potential_tf_invasion_target
-											random_realm_province = {
-												limit = {
-													is_in_active_treasure_fleet_region_trigger = yes
-													NOT = {
-														any_province = {
-															owner = {
-																top_liege = {
-																	is_chinese_emperor_trigger = yes
-																}
-															}
-															NOT = {
-																distance = {
-																	where = PREV
-																	value = 500
-																}
-															}
-															NOT = {
-																can_naval_path_to = {
-																	target = PREV
-																	distance <= 1000
-																}
-															}
-														}
-													}
-												}
-												save_event_target_as = potential_tf_invasion_target_beachhead
-											}
-										}
-										random_playable_ruler = {
-											limit = {
-												trait = treasure_fleet_voyage
-												is_feudal = yes
-												has_acceptable_chinese_culture_trigger = yes
-												has_acceptable_chinese_religion_trigger = yes
-												NOT = {
-													top_liege = {
-														dynasty = PREV
-													}
-												}
-												ai = no
-											}
-											preferred_limit = {
-												tier = king
-											}
-											preferred_limit = {
-												tier = duke
-											}
-											narrative_event = { id = treasurefleet.406 } # Create your own empire?
-										}
+									preferred_limit = {
+										tier = king
 									}
-								}
-								1 = {
-									modifier = {
-										factor = 0
-										has_game_rule = {
-											name = treasure_fleet_invasion_rule
-											value = no_ai
-										}
+									preferred_limit = {
+										tier = duke
 									}
-									random_playable_ruler = {
-										limit = {
-											can_interact_with_treasure_fleet_trigger = yes
-											top_liege = {
-												any_realm_province = {
-													is_in_active_treasure_fleet_region_trigger = yes
-													NOT = {
-														any_province = {
-															owner = {
-																top_liege = {
-																	is_chinese_emperor_trigger = yes
-																}
-															}
-															NOT = {
-																distance = {
-																	where = PREV
-																	value = 500
-																}
-															}
-															NOT = {
-																can_naval_path_to = {
-																	target = PREV
-																	distance <= 1000
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-										top_liege = {
-											save_event_target_as = potential_tf_invasion_target
-											random_realm_province = {
-												limit = {
-													is_in_active_treasure_fleet_region_trigger = yes
-													NOT = {
-														any_province = {
-															owner = {
-																top_liege = {
-																	is_chinese_emperor_trigger = yes
-																}
-															}
-															NOT = {
-																distance = {
-																	where = PREV
-																	value = 500
-																}
-															}
-															NOT = {
-																can_naval_path_to = {
-																	target = PREV
-																	distance <= 1000
-																}
-															}
-														}
-													}
-												}
-												save_event_target_as = potential_tf_invasion_target_beachhead
-											}
-										}
-										random_playable_ruler = {
-											limit = {
-												trait = treasure_fleet_voyage
-												is_feudal = yes
-												has_acceptable_chinese_culture_trigger = yes
-												has_acceptable_chinese_religion_trigger = yes
-												NOT = {
-													top_liege = {
-														dynasty = PREV
-													}
-												}
-											}
-											preferred_limit = {
-												ai = no
-												tier = king
-												trait = ambitious
-											}
-											preferred_limit = {
-												ai = no
-												tier = king
-											}
-											preferred_limit = {
-												ai = no
-												tier = duke
-												trait = ambitious
-											}
-											preferred_limit = {
-												ai = no
-												tier = duke
-											}
-											preferred_limit = {
-												tier = king
-												trait = ambitious
-											}
-											preferred_limit = {
-												tier = king
-											}
-											preferred_limit = {
-												ai = no
-												tier = count
-												trait = ambitious
-											}
-											preferred_limit = {
-												tier = duke
-												trait = ambitious
-											}
-											preferred_limit = {
-												tier = duke
-											}
-											narrative_event = { id = treasurefleet.406 } # Create your own empire?
-										}
-									}
-								}
-								199 = {
-									province_event = { id = treasurefleet.404 } # Normal departure
+									narrative_event = { id = treasurefleet.406 } # Create your own empire?
 								}
 							}
 						}
-						else = {
+						1 = {
+							modifier = {
+								factor = 0
+								has_game_rule = {
+									name = treasure_fleet_invasion_rule
+									value = no_ai
+								}
+							}
+							random_playable_ruler = {
+								limit = {
+									can_interact_with_treasure_fleet_trigger = yes
+									top_liege = {
+										any_realm_province = {
+											is_in_active_treasure_fleet_region_trigger = yes
+											NOT = {
+												any_province = {
+													owner = {
+														top_liege = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+													NOT = {
+														distance = {
+															where = PREV
+															value = 500
+														}
+													}
+													NOT = {
+														can_naval_path_to = {
+															target = PREV
+															distance <= 1000
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+								top_liege = {
+									save_event_target_as = potential_tf_invasion_target
+									random_realm_province = {
+										limit = {
+											is_in_active_treasure_fleet_region_trigger = yes
+											NOT = {
+												any_province = {
+													owner = {
+														top_liege = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+													NOT = {
+														distance = {
+															where = PREV
+															value = 500
+														}
+													}
+													NOT = {
+														can_naval_path_to = {
+															target = PREV
+															distance <= 1000
+														}
+													}
+												}
+											}
+										}
+										save_event_target_as = potential_tf_invasion_target_beachhead
+									}
+								}
+								random_playable_ruler = {
+									limit = {
+										trait = treasure_fleet_voyage
+										is_feudal = yes
+										has_acceptable_chinese_culture_trigger = yes
+										has_acceptable_chinese_religion_trigger = yes
+										NOT = {
+											top_liege = {
+												dynasty = PREV
+											}
+										}
+									}
+									preferred_limit = {
+										ai = no
+										tier = king
+										trait = ambitious
+									}
+									preferred_limit = {
+										ai = no
+										tier = king
+									}
+									preferred_limit = {
+										ai = no
+										tier = duke
+										trait = ambitious
+									}
+									preferred_limit = {
+										ai = no
+										tier = duke
+									}
+									preferred_limit = {
+										tier = king
+										trait = ambitious
+									}
+									preferred_limit = {
+										tier = king
+									}
+									preferred_limit = {
+										ai = no
+										tier = count
+										trait = ambitious
+									}
+									preferred_limit = {
+										tier = duke
+										trait = ambitious
+									}
+									preferred_limit = {
+										tier = duke
+									}
+									narrative_event = { id = treasurefleet.406 } # Create your own empire?
+								}
+							}
+						}
+						199 = {
 							province_event = { id = treasurefleet.404 } # Normal departure
 						}
 					}
 				}
-			}
-			else_if = {
-				limit = {
-					NOT = {
-						has_province_flag = treasure_fleet_is_going_home # Only on the outbound journey
-					}
-					NOT = {
-						has_game_rule = {
-							name = treasure_fleet_invasion_rule
-							value = forbidden
-						}
-					}
-					any_playable_ruler = {
-						can_interact_with_treasure_fleet_trigger = yes
-						top_liege = {
-							any_realm_province = {
-								is_in_active_treasure_fleet_region_trigger = yes
-								NOT = {
-									any_province = {
-										owner = {
-											top_liege = {
-												is_chinese_emperor_trigger = yes
-											}
-										}
-										NOT = {
-											distance = {
-												where = PREV
-												value = 500
-											}
-										}
-										NOT = {
-											can_naval_path_to = {
-												target = PREV
-												distance <= 1000
-											}
-										}
-									}
-								}
-							}
-						}
-						2753 = { # Hangzhou
-							check_variable = {
-								which = treasure_fleet_army_strength
-								value = 10
-							}
-						}
-						any_playable_ruler = {
-							trait = treasure_fleet_voyage
-							is_feudal = yes
-							has_acceptable_chinese_culture_trigger = yes
-							has_acceptable_chinese_religion_trigger = yes
-							NOT = {
-								top_liege = {
-									dynasty = PREV
-								}
-							}
-							OR = {
-								ai = no
-								AND = {
-									has_game_rule = {
-										name = treasure_fleet_invasion_rule
-										value = allowed
-									}
-								}
-							}
-						}
-					}
+				else = {
+					province_event = { id = treasurefleet.404 } # Normal departure
 				}
-				random_list = {
-					1 = {
-						random_playable_ruler = {
-							limit = {
-								can_interact_with_treasure_fleet_trigger = yes
-								top_liege = {
-									any_realm_province = {
-										is_in_active_treasure_fleet_region_trigger = yes
-										NOT = {
-											any_province = {
-												owner = {
-													top_liege = {
-														is_chinese_emperor_trigger = yes
-													}
-												}
-												NOT = {
-													distance = {
-														where = PREV
-														value = 500
-													}
-												}
-												NOT = {
-													can_naval_path_to = {
-														target = PREV
-														distance <= 1000
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-							top_liege = {
-								save_event_target_as = potential_tf_invasion_target
-								random_realm_province = {
-									limit = {
-										is_in_active_treasure_fleet_region_trigger = yes
-										NOT = {
-											any_province = {
-												owner = {
-													top_liege = {
-														is_chinese_emperor_trigger = yes
-													}
-												}
-												NOT = {
-													distance = {
-														where = PREV
-														value = 500
-													}
-												}
-												NOT = {
-													can_naval_path_to = {
-														target = PREV
-														distance <= 1000
-													}
-												}
-											}
-										}
-									}
-									save_event_target_as = potential_tf_invasion_target_beachhead
-								}
-							}
-							random_playable_ruler = {
-								limit = {
-									trait = treasure_fleet_voyage
-									is_feudal = yes
-									has_acceptable_chinese_culture_trigger = yes
-									has_acceptable_chinese_religion_trigger = yes
-									NOT = {
-										top_liege = {
-											dynasty = PREV
-										}
-									}
-									ai = no
-								}
-								preferred_limit = {
-									tier = king
-								}
-								preferred_limit = {
-									tier = duke
-								}
-								narrative_event = { id = treasurefleet.406 } # Create your own empire?
-							}
-						}
-					}
-					1 = {
-						modifier = {
-							factor = 0
-							has_game_rule = {
-								name = treasure_fleet_invasion_rule
-								value = no_ai
-							}
-						}
-						random_playable_ruler = {
-							limit = {
-								can_interact_with_treasure_fleet_trigger = yes
-								top_liege = {
-									any_realm_province = {
-										is_in_active_treasure_fleet_region_trigger = yes
-										NOT = {
-											any_province = {
-												owner = {
-													top_liege = {
-														is_chinese_emperor_trigger = yes
-													}
-												}
-												NOT = {
-													distance = {
-														where = PREV
-														value = 500
-													}
-												}
-												NOT = {
-													can_naval_path_to = {
-														target = PREV
-														distance <= 1000
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-							top_liege = {
-								save_event_target_as = potential_tf_invasion_target
-								random_realm_province = {
-									limit = {
-										is_in_active_treasure_fleet_region_trigger = yes
-										NOT = {
-											any_province = {
-												owner = {
-													top_liege = {
-														is_chinese_emperor_trigger = yes
-													}
-												}
-												NOT = {
-													distance = {
-														where = PREV
-														value = 500
-													}
-												}
-												NOT = {
-													can_naval_path_to = {
-														target = PREV
-														distance <= 1000
-													}
-												}
-											}
-										}
-									}
-									save_event_target_as = potential_tf_invasion_target_beachhead
-								}
-							}
-							random_playable_ruler = {
-								limit = {
-									trait = treasure_fleet_voyage
-									is_feudal = yes
-									has_acceptable_chinese_culture_trigger = yes
-									has_acceptable_chinese_religion_trigger = yes
-									NOT = {
-										top_liege = {
-											dynasty = PREV
-										}
-									}
-								}
-								preferred_limit = {
-									ai = no
-									tier = king
-									trait = ambitious
-								}
-								preferred_limit = {
-									ai = no
-									tier = king
-								}
-								preferred_limit = {
-									ai = no
-									tier = duke
-									trait = ambitious
-								}
-								preferred_limit = {
-									ai = no
-									tier = duke
-								}
-								preferred_limit = {
-									tier = king
-									trait = ambitious
-								}
-								preferred_limit = {
-									tier = king
-								}
-								preferred_limit = {
-									ai = no
-									tier = count
-									trait = ambitious
-								}
-								preferred_limit = {
-									tier = duke
-									trait = ambitious
-								}
-								preferred_limit = {
-									tier = duke
-								}
-								narrative_event = { id = treasurefleet.406 } # Create your own empire?
-							}
-						}
-					}
-					199 = {
-						province_event = { id = treasurefleet.404 } # Normal departure
-					}
-				}
-			}
-			else = {
-				province_event = { id = treasurefleet.404 } # Normal departure
 			}
 		}
 	}
