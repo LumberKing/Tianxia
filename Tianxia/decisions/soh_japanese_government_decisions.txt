@@ -1,20 +1,10 @@
 decisions = {
-	japanese_government_0 = { # Confucian Bureaucracy
+	japanese_government_0 = { # Japanese Bureaucracy - TODO: Update desc
 		only_playable = yes
 		ai = no # The AI won't do it, so it doesn't need to see it
 		potential = {
 			is_feudal = yes
-			#OR = {
-			#	religion = shinto
-			#	AND = {
-			#		religion = buddhist
-			#		culture_group = japonic
-			#	}
-			#}
-			controls_religion = no # The Tenno has his own government
-			NOT = {
-				is_government_potential = chinese_imperial_government # If we could be Chinese Imperial, that takes precedence
-			}
+			can_have_japanese_bureaucracy_and_feudal_trigger = yes
 			OR = {
 				government = japanese_feudal_government
 				government = japanese_monastic_feudal_government
@@ -44,19 +34,12 @@ decisions = {
 		is_high_prio = yes
 		potential = {
 			is_feudal = yes
-			OR = {
-				religion = shinto
-				AND = {
-					religion = buddhist
-					culture_group = japonic
+			can_have_japanese_bureaucracy_and_feudal_trigger = yes
+			OR = { # Let's not have the AI bother with this...
+				ai = no
+				NOT = {
+					government = japanese_monastic_feudal_government
 				}
-			}
-			controls_religion = no # The Tenno has his own government
-			NOT = {
-				is_government_potential = chinese_imperial_government # If we could be Chinese Imperial, that takes precedence
-			}
-			NOT = {
-				trait = japanese_feudal_trait
 			}
 		}
 		allow = {
@@ -64,80 +47,9 @@ decisions = {
 			is_inaccessible_or_incapable_trigger = no
 			has_regent = no
 			is_adult = yes
-			OR = {
-				independent = yes
-				NOT = {
-					any_liege = {
-						OR = {
-							government = chinese_imperial_government
-							government = japanese_imperial_government
-							government = chinese_vassal_government
-						}
-					}
-					prestige = 500
-				}
-				AND = {
-					NOT = {
-						any_liege = {
-							government = chinese_imperial_government
-						}
-					}
-					any_liege = {
-						OR = {
-							government = japanese_imperial_government
-							government = chinese_vassal_government
-						}
-						ROOT = {
-							vassals_can_change_to_japanese_feudal_trigger = yes
-						}
-					}
-				}
-			}
+			can_change_to_japanese_feudal_trigger = yes
 		}
 		effect = {
-			if = {
-				limit = {
-					NOT = {
-						government = japanese_monastic_feudal_government
-					}
-				}
-				if = {
-					limit = {
-						OR = {
-							liege = {
-								OR = {
-									government = japanese_feudal_government
-									government = japanese_monastic_feudal_government
-								}
-							}
-							any_owned_bloodline = {
-								has_bloodline_flag = bloodline_japanese_feudal
-								bloodline_is_active_for = ROOT
-							}
-							independent = yes
-						}
-					}
-					prestige = -500
-				}
-				else_if = {
-					limit = {
-						NOT = {
-							any_liege = {
-								OR = {
-									government = japanese_imperial_government
-									government = chinese_vassal_government
-								}
-								NOR = {
-									has_regent = yes
-									is_inaccessible_or_incapable_trigger = yes
-								}
-							}
-						}
-					}
-					prestige = -1000
-				}
-				prestige = -2500
-			}
 			hidden_tooltip = {
 				add_trait = japanese_feudal_trait
 				remove_trait = japanese_monastic_trait
@@ -186,43 +98,21 @@ decisions = {
 			NOT = {
 				trait = japanese_monastic_trait
 			}
+			OR = { # Let's not have the AI bother with this...
+				ai = no
+				NOT = {
+					government = japanese_feudal_government
+				}
+			}
 		}
 		allow = {
 			war = no
 			is_inaccessible_or_incapable_trigger = no
 			has_regent = no
 			is_adult = yes
-			can_become_japanese_monastic_feudal_trigger = yes
+			can_change_to_japanese_monastic_feudal_trigger = yes
 		}
 		effect = {
-			if = {
-				limit = {
-					capital_scope = {
-						religion = shinto
-						county = {
-							OR = {
-								any_direct_de_jure_vassal_title = {
-									is_holy_site = shinto
-								}
-								is_holy_site = shinto
-							}
-						}
-						culture = PREV
-					}
-					OR = {
-						culture_group = japonic
-						k_chrysanthemum_throne = {
-							holder_scope = {
-								culture = PREV
-							}
-						}
-					}
-				}
-				piety = -2000
-			}
-			else = {
-				piety = -5000
-			}
 			hidden_tooltip = {
 				add_trait = japanese_monastic_trait
 				remove_trait = japanese_feudal_trait
@@ -234,12 +124,6 @@ decisions = {
 			modifier = {
 				factor = 0.01
 				always = yes # Slow it down
-			}
-			modifier = {
-				factor = 0.1
-				NOT = {
-					trait = zealous
-				}
 			}
 			modifier = {
 				factor = 10
@@ -259,6 +143,25 @@ decisions = {
 				factor = 0
 				NOT = {
 					trait = zealous # We don't want everyone to flip to it just because they have the piety
+				}
+			}
+			modifier = {
+				factor = 0.1
+				NOT = {
+					top_liege = {
+						religion = ROOT
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1
+				NOT = {
+					top_liege = {
+						OR = {
+							controls_religion = yes
+							government = japanese_monastic_feudal_government
+						}
+					}
 				}
 			}
 		}
@@ -369,19 +272,6 @@ decisions = {
 			is_playable = yes
 			trait = japanese_regent2
 			liege = {
-				OR = {
-					AND = {
-						religion = shinto
-						controls_religion = no
-					}
-					AND = {
-						religion = buddhist
-						culture_group = japonic
-					}
-				}
-				NOT = {
-					government = chinese_imperial_government
-				}
 				trait = under_regency2
 				regent = {
 					OR = {
@@ -1496,6 +1386,8 @@ decisions = {
 		
 		potential = {
 			liege = {
+				independent = yes
+				real_tier = emperor
 				OR = {
 					AND = {
 						religion = shinto
@@ -1505,9 +1397,6 @@ decisions = {
 						religion = buddhist
 						culture_group = japonic
 					}
-				}
-				NOT = {
-					government = chinese_imperial_government
 				}
 				has_regent = no
 			}
@@ -1735,6 +1624,7 @@ decisions = {
 	
 	overthrow_my_regent_decision_shogun = {
 		only_playable = yes
+		only_independent = yes
 		is_high_prio = yes
 		ai_check_interval = 3
 		
@@ -1748,9 +1638,6 @@ decisions = {
 					religion = buddhist
 					culture_group = japonic
 				}
-			}
-			NOT = {
-				government = chinese_imperial_government
 			}
 			trait = under_regency2
 			NOT = { has_character_flag = overthrow_my_regent_decision_taken }
@@ -2338,6 +2225,8 @@ decisions = {
 					culture_group = japonic
 					religion = buddhist
 				}
+				religion = ryukyuan_pagan
+				religion = ryukyuan_pagan_reformed
 			}
 		}
 
@@ -2349,6 +2238,8 @@ decisions = {
 					culture_group = japonic
 					religion = buddhist
 				}
+				religion = ryukyuan_pagan
+				religion = ryukyuan_pagan_reformed
 			}
 			
 			is_adult = yes
@@ -2383,6 +2274,8 @@ decisions = {
 									culture_group = japonic
 									religion = buddhist
 								}
+								religion = ryukyuan_pagan
+								religion = ryukyuan_pagan_reformed
 							}
 							war = no
 							liege = {
@@ -2392,12 +2285,13 @@ decisions = {
 					}
 				}
 			}
-			
-			# We have a relevant government that's not Chinese Imperial or CVG
+			# We have an appropriate government
 			OR = {
 				government = japanese_imperial_government
+				government = japanese_bureaucracy_government
 				government = japanese_feudal_government
 				government = japanese_monastic_feudal_government
+				government = divine_imperial_government
 			}
 			
 			# The de jure liege doesn't exist
@@ -2444,6 +2338,8 @@ decisions = {
 					culture_group = japonic
 					religion = buddhist
 				}
+				religion = ryukyuan_pagan
+				religion = ryukyuan_pagan_reformed
 			}
 		}
 
@@ -2455,6 +2351,8 @@ decisions = {
 					culture_group = japonic
 					religion = buddhist
 				}
+				religion = ryukyuan_pagan
+				religion = ryukyuan_pagan_reformed
 			}
 			
 			is_adult = yes
@@ -2489,6 +2387,8 @@ decisions = {
 									culture_group = japonic
 									religion = buddhist
 								}
+								religion = ryukyuan_pagan
+								religion = ryukyuan_pagan_reformed
 							}
 							war = no
 							liege = {
@@ -2498,12 +2398,13 @@ decisions = {
 					}
 				}
 			}
-			
-			# We have a relevant government that's not Chinese Imperial or CVG
+			# We have an appropriate government
 			OR = {
 				government = japanese_imperial_government
+				government = japanese_bureaucracy_government
 				government = japanese_feudal_government
 				government = japanese_monastic_feudal_government
+				government = divine_imperial_government
 			}
 			
 			# The de jure liege doesn't exist
@@ -3096,9 +2997,6 @@ targeted_decisions = {
 					culture_group = japonic
 				}
 			}
-			NOT = {
-				government = chinese_imperial_government # If the Tenno isn't the subject of a CI ruler, that ruler isn't a Shogun
-			}
 			any_vassal = {
 				religion = shinto
 				controls_religion = yes
@@ -3262,279 +3160,6 @@ targeted_decisions = {
 		}
 	}
 	
-	#shogun_marry_liege_to_my_dynasty = {
-	#	filter = vassals
-	#	ai_target_filter = vassals
-	#	third_party_filter = realm
-	#	ai_third_party_filter = realm
-	#	third_party = FROM
-	#	ai_check_interval = 60
-	#	
-	#	potential = {
-	#		always = no # Deprecated; this should remain a Regent power!
-	#		# Our liege is the Tenno, is an adult, and has a Permanent Regency
-	#		is_adult = yes
-	#		is_female = no
-	#		religion = shinto
-	#		controls_religion = yes
-	#		# The current spouse can't be the mother of the heir
-	#		current_heir = {
-	#			NAND = {
-	#				dynasty = ROOT
-	#				father = {
-	#					character = ROOT
-	#				}
-	#				mother = {
-	#					spouse = {
-	#						character = ROOT
-	#					}
-	#				}
-	#			}
-	#		}
-	#		spouse = {
-	#			NOR = {
-	#				# Spouse must not be (known to be) pregnant
-	#				trait = pregnant
-	#				trait = hard_pregnancy
-	#				trait = troubled_pregnancy
-	#				trait = pregnancy_finishing
-	#				# If the Tenno loves their spouse, they'll probably care more (particularly if a player), so let's just forbid ending that...
-	#				any_lover = {
-	#					character = ROOT
-	#				}
-	#				dynasty = FROM # If we've already done this, don't do it again!
-	#				is_playable = yes # A playable spouse probably has enough power to oppose it
-	#			}
-	#		}
-	#		NOT = {
-	#			dynasty = FROM # No need for marriage ties
-	#		}
-	#	}
-	#	
-	#	from_potential = {
-	#		is_playable = yes
-	#		real_tier = emperor
-	#		OR = {
-	#			religion = shinto
-	#			AND = {
-	#				religion = buddhist
-	#				culture_group = japonic
-	#			}
-	#		}
-	#		NOT = {
-	#			government = chinese_imperial_government # If the Tenno isn't the subject of a CI ruler, that ruler isn't a Shogun
-	#		}
-	#		any_vassal = {
-	#			religion = shinto
-	#			controls_religion = yes
-	#		}
-	#	}
-	#	
-	#	allow = {
-	#		NOT = {
-	#			has_opinion_modifier = {
-	#				who = FROM
-	#				modifier = changed_my_spouse
-	#			}
-	#		}
-	#		FROM = {
-	#			prestige = 500
-	#			has_regent = no # If you've got a regent for any reason, you can't interfere in the Tenno's marriage
-	#		}
-	#	}
-	#	
-	#	third_party_potential = {
-	#		show_only_failed_conditions = yes
-	#		FROMFROM = {
-	#			show_scope_change = no
-	#			is_female = yes
-	#			has_negative_congenital_trigger = no
-	#			OR = {
-	#				# Already a consort of the Tenno
-	#				AND = {
-	#					any_consort = {
-	#						character = ROOT
-	#					}
-	#					NOT = {
-	#						any_lover = {
-	#							NOT = {
-	#								character = ROOT
-	#							}
-	#						}
-	#					}
-	#				}
-	#				# Subset of is_virgin_trigger; blocking Lustful is a bit too harsh...
-	#				AND = {
-	#					NOR = {
-	#						any_lover = { always = yes }
-	#						any_child_even_if_dead = { always = yes }
-	#						any_spouse_even_if_dead = { always = yes }
-	#						any_consort = { always = yes } # This is missing in vanilla but should probably be here...
-	#						has_focus = focus_seduction
-	#						trait = pregnant
-	#						trait = hard_pregnancy # This is missing in vanilla but should probably be here...
-	#						trait = troubled_pregnancy # This is missing in vanilla but should probably be here...
-	#						trait = pregnancy_finishing # This is missing in vanilla but should probably be here...
-	#						#trait = lustful
-	#						trait = hedonist
-	#						trait = seducer
-	#						trait = seductress
-	#						trait = lovers_pox
-	#						trait = has_aztec_disease
-	#						trait = syphilitic
-	#					}
-	#					OR = {
-	#						NOT = { age = 25 }
-	#						trait = celibate
-	#						trait = chaste
-	#						trait = shy
-	#						is_ascetic_trigger = yes
-	#					}
-	#				}
-	#			}
-	#			# Close relative of yours
-	#			custom_tooltip = {
-	#				text = is_close_relative_or_same_dynasty_tt
-	#				OR = {
-	#					is_close_relative = ROOT_FROM
-	#					dynasty = ROOT_FROM
-	#				}
-	#			}
-	#			#custom_tooltip = {
-	#				#text = is_adult_under_35_tt
-	#				is_adult = yes
-	#				NOT = { age = 35 } # Needs to be of childbearing age, with a decent margin
-	#				ROOT = {
-	#					spouse = {
-	#						is_older_than = FROMFROM # Needs to be younger than the Tenno's spouse to be an attractive match
-	#					}
-	#				}
-	#			#}
-	#			NOT = { is_landed = yes }
-	#			NOT = { is_ruler = yes }
-	#			NOT = { is_heir = yes }
-	#			# Either in our court or a concubine of the Tenno
-	#			OR = {
-	#				employer = {
-	#					character = ROOT_FROM
-	#				}
-	#				any_consort = {
-	#					character = ROOT
-	#				}
-	#			}
-	#			custom_tooltip = {
-	#				text = is_not_incapable_inbred_or_imbecile_tt
-	#				NOT = { trait = incapable }
-	#				NOT = { trait = inbred }
-	#				NOT = { trait = imbecile }
-	#			}
-	#			custom_tooltip = {
-	#				text = is_not_maimed_or_infirm_tt
-	#				NOT = { trait = maimed }
-	#				NOT = { trait = infirm }
-	#			}
-	#			custom_tooltip = {
-	#				text = is_not_wounded_severely_injured_tt
-	#				NOT = { trait = wounded }
-	#				NOT = { trait = severely_injured }
-	#			}
-	#			custom_tooltip = {
-	#				text = is_not_one_eyed_handed_legged_disfigured_or_mangled_tt
-	#				NOT = { trait = one_eyed }
-	#				NOT = { trait = one_handed }
-	#				NOT = { trait = one_legged }
-	#				NOT = { trait = disfigured }
-	#				NOT = { trait = mangled }
-	#			}
-	#			OR = {
-	#				NOT = { prisoner = yes }
-	#				host = {
-	#					character = ROOT_FROM
-	#				}
-	#			}
-	#			# If there would be no children the marriage is useless
-	#			custom_tooltip = {
-	#				text = is_not_ascetic_or_celibate_tt
-	#				NOT = { is_ascetic_trigger = yes }
-	#				NOT = { trait = celibate }
-	#			}
-	#			# Don't marry off our lovers or someone that's pregnant
-	#			NOR = {
-	#				trait = pregnant # Known to be pregnant
-	#				trait = hard_pregnancy
-	#				trait = troubled_pregnancy
-	#				trait = pregnancy_finishing
-	#				any_lover = {
-	#					character = ROOT_FROM
-	#				}
-	#			}
-	#		}
-	#	}
-	#	
-	#	third_party_allow = {
-	#		show_only_failed_conditions = yes
-	#		FROMFROM = {
-	#			is_ill = no
-	#			is_inaccessible_or_incapable_trigger = no
-	#		}
-	#	}
-	#	
-	#	effect = {
-	#		FROM = {
-	#			prestige = -500
-	#		}
-	#		letter_event = { id = japan.68 } # Inform the Tenno and carry things out
-	#	}
-	#	
-	#	ai_will_do = {
-	#		factor = 1
-	#		modifier = {
-	#			factor = 0.5
-	#			always = yes
-	#		}
-	#		modifier = {
-	#			factor = 0.01
-	#			spouse = {
-	#				OR = {
-	#					# We like the spouse
-	#					reverse_opinion = {
-	#						who = FROM
-	#						value = 50
-	#					}
-	#					any_friend = {
-	#						character = FROM
-	#					}
-	#					any_lover = {
-	#						character = FROM
-	#					}
-	#				}
-	#			}
-	#			FROM = {
-	#				NOR = {
-	#					trait = deceitful
-	#					trait = ambitious
-	#				}
-	#			}
-	#		}
-	#		modifier = {
-	#			factor = 5
-	#			FROM = {
-	#				trait = ambitious
-	#			}
-	#		}
-	#		modifier = {
-	#			factor = 0
-	#			FROM = {
-	#				trait = content
-	#			}
-	#		}
-	#		modifier = {
-	#			factor = 0
-	#			trait = celibate # Unlikely to have an effect...
-	#		}
-	#	}
-	#}
-	
 	regent_get_vassal_from_liege2 = {
 		only_playable = yes
 		filter = realm
@@ -3570,9 +3195,6 @@ targeted_decisions = {
 						culture_group = japonic
 					}
 				}
-				NOT = {
-					government = chinese_imperial_government
-				}
 				trait = under_regency2
 			}
 		}
@@ -3591,9 +3213,6 @@ targeted_decisions = {
 						religion = buddhist
 						culture_group = japonic
 					}
-				}
-				NOT = {
-					government = chinese_imperial_government
 				}
 				trait = under_regency2
 			}
@@ -3793,9 +3412,6 @@ targeted_decisions = {
 						culture_group = japonic
 					}
 				}
-				NOT = {
-					government = chinese_imperial_government
-				}
 				trait = under_regency2
 			}
 			# The current spouse can't be the mother of the heir
@@ -3846,9 +3462,6 @@ targeted_decisions = {
 						religion = buddhist
 						culture_group = japonic
 					}
-				}
-				NOT = {
-					government = chinese_imperial_government
 				}
 				trait = under_regency2
 			}
@@ -4805,9 +4418,6 @@ title_decisions = {
 					culture_group = japonic
 				}
 			}
-			NOT = {
-				government = chinese_imperial_government # If the Tenno isn't the subject of a CI ruler, that ruler isn't a Shogun
-			}
 			any_vassal = {
 				religion = shinto
 				controls_religion = yes
@@ -5039,9 +4649,6 @@ title_decisions = {
 						culture_group = japonic
 					}
 				}
-				NOT = {
-					government = chinese_imperial_government
-				}
 				trait = under_regency2
 			}
 		}
@@ -5061,9 +4668,6 @@ title_decisions = {
 						religion = buddhist
 						culture_group = japonic
 					}
-				}
-				NOT = {
-					government = chinese_imperial_government
 				}
 				trait = under_regency2
 			}
