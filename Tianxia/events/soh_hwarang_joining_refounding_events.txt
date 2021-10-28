@@ -1,0 +1,663 @@
+# Hwarang joining and refounding events
+# by Silverswee(e)per
+
+namespace = soh
+
+# soh.801-900 reserved
+
+##### Joining and misc
+
+### Joining - player
+
+# From on_character_ask_to_join_society
+character_event = {
+    id = soh.801
+	hide_window = yes
+	
+    is_triggered_only = yes
+	
+    trigger = {
+    	FROM = { leader = { society_member_of = hwarang } }
+    }
+    immediate = {
+    	FROM = { leader = { character_event = { id = soh.802 } } }
+    }
+}
+
+# Ping event
+character_event = {
+    id = soh.802
+	hide_window = yes
+	
+    is_triggered_only = yes
+	
+    immediate = {
+    	FROM = { letter_event = { id = soh.803 } }
+    }
+}
+
+# Welcome letter
+letter_event = {
+    id = soh.803
+    desc = EVTDESC_SOH_803
+    border = GFX_event_letter_frame_war
+
+    is_triggered_only = yes
+	
+	immediate = { set_character_flag = society_join_block }
+	
+    option = { 
+        name = EVTOPTA_SOH_803
+
+        join_society = hwarang
+		
+		clr_character_flag = society_join_block
+    }
+}
+
+### Joining - AI
+
+# Make the AI join
+#(fired from on_five_year_pulse)
+# Root = Character
+# From = Society
+character_event = {
+    id = soh.804
+    #picture = GFX_evt_battle
+    #border = GFX_event_normal_frame_war
+    hide_window = yes
+    only_independent = yes
+    has_dlc = "Holy Fury"
+    
+    is_triggered_only = yes
+
+    trigger = {
+        is_alive = yes
+		NOT = {
+			has_global_flag = hwarang_disbanded
+		}
+    }
+
+    immediate = {
+        #Make others join a warrior lodge...
+        any_realm_lord = {
+            limit = {
+                ai = yes
+				OR = {
+					AND = {
+						culture_group = koreanic
+						OR = {
+							religion = buddhist
+							religion = taoist
+							religion = confucian
+						}
+					}
+					religion = korean_pagan
+					religion = korean_pagan_reformed
+				}
+                is_in_society = no
+                has_secret_religion_trait_trigger = no
+                age = 12
+                NOT = { block_general_event_trigger = yes }
+				higher_tier_than = BARON
+				NOT = { character = ROOT }
+            }
+            score_value = { #Prioritizes selecting some kind of warrior...
+                value = 10
+                warrior_recruit_score = yes # TODO: Make more appropriate?
+            }
+            count = 2
+			if = {
+				limit = {
+					OR = {
+						is_female = no
+						has_religion_feature = religion_equal
+						has_religion_feature = religion_matriarchal
+					}
+				}
+				if = {
+					limit = {
+						OR = {
+							is_adult = yes
+							is_landed = yes
+						}
+					}
+					character_event = { id = soh.805 }
+				}
+				else = {
+					save_event_target_as = hwarang_candidate
+					host = {
+						character_event = { id = soh.806 }
+					}
+				}
+			}
+			else = {
+				random = {
+					chance = 25
+					if = {
+						limit = {
+							OR = {
+								is_adult = yes
+								is_landed = yes
+							}
+						}
+						character_event = { id = soh.805 }
+					}
+					else = {
+						save_event_target_as = hwarang_candidate
+						host = {
+							character_event = { id = soh.806 }
+						}
+					}
+				}
+			}
+        }
+		any_realm_character = {
+            limit = {
+                ai = yes
+				OR = {
+					AND = {
+						culture_group = koreanic
+						OR = {
+							religion = buddhist
+							religion = taoist
+							religion = confucian
+						}
+					}
+					religion = korean_pagan
+					religion = korean_pagan_reformed
+				}
+                is_in_society = no
+                has_secret_religion_trait_trigger = no
+                age = 12
+                NOT = { block_general_event_trigger = yes }
+            }
+            score_value = { #Prioritizes selecting some kind of warrior...
+                value = 10
+                warrior_recruit_score = yes # TODO: Make more appropriate?
+            }
+            count = 1
+			if = {
+				limit = {
+					OR = {
+						is_female = no
+						has_religion_feature = religion_equal
+						has_religion_feature = religion_matriarchal
+					}
+				}
+				if = {
+					limit = {
+						OR = {
+							is_adult = yes
+							is_landed = yes
+						}
+					}
+					character_event = { id = soh.805 }
+				}
+				else = {
+					save_event_target_as = hwarang_candidate
+					host = {
+						character_event = { id = soh.806 }
+					}
+				}
+			}
+			else = {
+				random = {
+					chance = 25
+					if = {
+						limit = {
+							OR = {
+								is_adult = yes
+								is_landed = yes
+							}
+						}
+						character_event = { id = soh.805 }
+					}
+					else = {
+						save_event_target_as = hwarang_candidate
+						host = {
+							character_event = { id = soh.806 }
+						}
+					}
+				}
+			}
+        }
+
+        #And maybe join yourself?
+        if = {
+            limit = {
+                ai = yes
+				OR = {
+					AND = {
+						culture_group = koreanic
+						OR = {
+							religion = buddhist
+							religion = taoist
+							religion = confucian
+						}
+					}
+					religion = korean_pagan
+					religion = korean_pagan_reformed
+				}
+                is_in_society = no
+                has_secret_religion_trait_trigger = no
+                age = 12
+                NOT = { block_general_event_trigger = yes }
+            }
+            log = "[Root.GetTitledName] joins the Hwarang!"
+			if = {
+				limit = {
+					OR = {
+						is_female = no
+						has_religion_feature = religion_equal
+						has_religion_feature = religion_matriarchal
+					}
+				}
+				if = {
+					limit = {
+						OR = {
+							is_adult = yes
+							is_landed = yes
+						}
+					}
+					character_event = { id = soh.805 }
+				}
+				else = {
+					save_event_target_as = hwarang_candidate
+					host = {
+						character_event = { id = soh.806 }
+					}
+				}
+			}
+			else = {
+				random = {
+					chance = 25
+					if = {
+						limit = {
+							OR = {
+								is_adult = yes
+								is_landed = yes
+							}
+						}
+						character_event = { id = soh.805 }
+					}
+					else = {
+						save_event_target_as = hwarang_candidate
+						host = {
+							character_event = { id = soh.806 }
+						}
+					}
+				}
+			}
+        }
+    }
+}
+
+# Follow-up: If was eligible, AI joins Hwarang
+character_event = {
+    id = soh.805
+    hide_window = yes
+    is_triggered_only = yes
+    immediate = {
+        join_society = hwarang
+
+        if = {
+            limit = {
+                NOT = {
+                    society = {
+                        any_society_member = {
+                            is_society_grandmaster = yes
+                        }
+                    }
+                }
+            }
+            log = "[This.Society.GetName] is a society without a grandmaster and I am trying to be set as the grandmaster."
+            set_society_grandmaster = yes # Set character as Grand Master (if there was none)
+            add_society_currency_massive_effect = yes
+        }
+    }
+}
+
+# event_target:hwarang_candidate is an unlanded child and thus needs permission from their host
+character_event = {
+	id = soh.806
+	desc = EVTDESC_SOH_806
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_806 # Sure!
+		
+		event_target:hwarang_candidate = {
+			character_event = { id = soh.805 } # event_target:hwarang_candidate joins the Hwarang
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0.1
+				event_target:hwarang_candidate = {
+					is_female = yes
+				}
+				NOR = {
+					is_female = yes
+					any_friend = {
+						character = event_target:hwarang_candidate
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1
+				NOT = {
+					opinion = {
+						who = event_target:hwarang_candidate
+						value = 0
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				NOR = {
+					AND = {
+						culture_group = koreanic
+						OR = {
+							religion = buddhist
+							religion = taoist
+							religion = confucian
+						}
+					}
+					religion = korean_pagan
+					religion = korean_pagan_reformed
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_806 # Maybe when you're older?
+		
+		event_target:hwarang_candidate = {
+			opinion = {
+				who = ROOT
+				modifier = refused_hwarang_membership
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0.1
+				OR = {
+					AND = {
+						culture_group = koreanic
+						OR = {
+							religion = buddhist
+							religion = taoist
+							religion = confucian
+						}
+					}
+					religion = korean_pagan
+					religion = korean_pagan_reformed
+				}
+			}
+			modifier = {
+				factor = 0.1
+				opinion = {
+					who = event_target:hwarang_candidate
+					value = 50
+				}
+			}
+			modifier = {
+				factor = 0.1
+				FROM = {
+					is_female = no
+				}
+			}
+			modifier = {
+				factor = 0.1
+				society_member_of = hwarang
+			}
+		}
+	}
+}
+
+### Recreation if destroyed + AI rank up
+
+# Recreation if destroyed (fired from on_society_destroyed)
+character_event = {
+    id = soh.807
+    is_triggered_only = yes
+    hide_window = yes
+    hide_from = yes
+    
+    trigger = {
+        FROM = { is_society = hwarang }
+		NOT = {
+			has_global_flag = hwarang_disbanded
+		}
+    }
+
+    immediate = {
+        if = {
+            limit = {
+                is_landed = yes
+            }
+            #Pick someone under you to lead the warrior lodge...
+            any_courtier_or_vassal = {
+                limit = {
+                    ai = yes
+					OR = {
+						AND = {
+							culture_group = koreanic
+							OR = {
+								religion = buddhist
+								religion = taoist
+								religion = confucian
+							}
+						}
+						religion = korean_pagan
+						religion = korean_pagan_reformed
+					}
+                    has_secret_religion_trait_trigger = no
+                    is_in_society = no
+                    age = 16
+                    NOT = { block_general_event_trigger = yes }
+                }
+                score_value = { #Prioritizes selecting some kind of warrior...
+                    value = 10
+                    warrior_recruit_score = yes
+                    warrior_lodge_revival_selection_score = yes
+                }
+                join_society = FROM
+                if = {
+                    limit = {
+                        NOT = {
+                            society = {
+                                any_society_member = {
+                                    is_society_grandmaster = yes
+                                }
+                            }
+                        }
+                    }
+                    set_society_grandmaster = yes # Set character as Grand Master
+                    add_society_currency_massive_effect = yes
+                }
+                add_society_currency_massive_effect = yes
+            }
+        }
+        else_if = {
+			limit = {
+				liege = {
+					#Pick someone under your *liege* to lead the warrior lodge...
+					any_courtier_or_vassal = {
+						ai = yes
+						OR = {
+							AND = {
+								culture_group = koreanic
+								OR = {
+									religion = buddhist
+									religion = taoist
+									religion = confucian
+								}
+							}
+							religion = korean_pagan
+							religion = korean_pagan_reformed
+						}
+						has_secret_religion_trait_trigger = no
+						is_in_society = no
+						age = 16
+						NOT = { block_general_event_trigger = yes }
+					}
+				}
+			}
+			liege = {
+				#Pick someone under your *liege* to lead the warrior lodge...
+				any_courtier_or_vassal = {
+					limit = {
+						ai = yes
+						OR = {
+							AND = {
+								culture_group = koreanic
+								OR = {
+									religion = buddhist
+									religion = taoist
+									religion = confucian
+								}
+							}
+							religion = korean_pagan
+							religion = korean_pagan_reformed
+						}
+						has_secret_religion_trait_trigger = no
+						is_in_society = no
+						age = 16
+						NOT = { block_general_event_trigger = yes }
+					}
+					score_value = { #Prioritizes selecting some kind of warrior...
+						value = 10
+						warrior_recruit_score = yes
+						warrior_lodge_revival_selection_score = yes
+					}
+					join_society = hwarang
+					if = {
+						limit = {
+							NOT = {
+								society = {
+									any_society_member = {
+										is_society_grandmaster = yes
+									}
+								}
+							}
+						}
+						set_society_grandmaster = yes # Set character as Grand Master
+						add_society_currency_massive_effect = yes
+					}
+				}
+			}
+        }
+		else = { # Create a new member from scratch
+			create_random_soldier = {
+				age = 25
+				female = no
+				religion = buddhist
+				culture = korean
+				dynasty = random
+				health = 6
+				fertility = 0.8
+				attributes = {
+					martial = 12
+					diplomacy = 8
+					stewardship = 9
+					intrigue = 4
+					learning = 12
+				}
+				random_traits = yes
+			}
+			new_character = {
+				join_society = hwarang
+				if = {
+					limit = {
+						NOT = {
+							society = {
+								any_society_member = {
+									is_society_grandmaster = yes
+								}
+							}
+						}
+					}
+					set_society_grandmaster = yes # Set character as Grand Master
+					add_society_currency_massive_effect = yes
+				}
+			}
+		}
+        log = "The revive event fired for [From.GetName]."
+    }
+}
+
+# AI rank up
+character_event = {
+    id = soh.808
+    hide_window = yes
+    is_triggered_only = yes
+    ai = yes
+	
+	is_in_society = yes
+    
+    trigger = { 
+        society_member_of = hwarang
+		is_inaccessible_or_incapable_trigger = no
+		society_can_rank_up = yes
+		has_society_currency_minor_trigger = yes
+		is_adult = yes
+    }
+
+    immediate = {
+        random_list = {
+            50 = {}
+            50 = {
+                trigger = {
+                    society_rank == 1
+                }
+                society_rank_up = 1
+                detract_society_currency_medium_effect = yes # at a worst, they are put at 0 currency
+            }
+            50 = {
+                trigger = {
+                    society_rank == 2
+                }
+                society_rank_up = 1
+                detract_society_currency_medium_effect = yes # at a worst, they are put at 0 currency
+            }
+        }
+    }
+}
+
+##### Other
+
+# Refounding event
+narrative_event = {
+	id = soh.809
+	title = EVTTITLE_SOH_809
+	desc = EVTDESC_SOH_809
+	picture = GFX_evt_china_expansionist
+	border = GFX_event_narrative_frame_war
+
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			NOT = {
+				character = FROM
+			}
+		}
+		name = EVTOPTA_SOH_809 # Interesting...
+	}
+	
+	option = {
+		trigger = {
+			character = FROM
+		}
+		name = EVTOPTB_SOH_809 # This will be beneficial!
+	}
+}
