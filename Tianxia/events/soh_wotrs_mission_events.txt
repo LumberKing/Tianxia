@@ -1,0 +1,2381 @@
+# Warriors of the Rising Sun mission events
+# by Silverswee(e)per
+
+namespace = soh
+
+# soh.2601-2700 reserved
+
+##### Mission events
+
+### Mission assignment
+
+# Mission assignment event (hidden)
+character_event = {
+	id = soh.2601
+	hide_window = yes
+
+	has_dlc = "Holy Fury"
+	is_triggered_only = yes
+	is_in_society = yes
+	only_capable = yes
+	
+	trigger = {
+		society_member_of = warriors_of_the_rising_sun
+		has_any_quest = no
+		NOT = { is_inaccessible_trigger = yes }
+		NOT = { has_character_modifier = quest_cooldown_timer }
+		NOT = {
+			trait = treasure_fleet_preparation
+		}
+	}
+
+	immediate = {
+		random_society_member = {
+			limit = {
+				OR = {
+					AND = {
+						is_society_grandmaster = yes
+						NOT = {
+							character = ROOT
+						}
+					}
+					AND = {
+						society_rank == 3
+						ROOT = {
+							is_society_grandmaster = yes
+						}
+					}
+				}
+				same_society_as = ROOT
+			}
+			preferred_limit = {
+				NOR = {
+					any_rival = {
+						character = ROOT
+					}
+					controls_religion = yes # Try avoiding the Tenno or Ryukyuan equivalent
+				}
+			}
+			save_event_target_as = rising_sun_leader
+		}
+		if = {
+			limit = { is_landed = yes }
+			capital_scope = { save_event_target_as = home_capital } #For some distance checks...
+		}
+		
+		random_list = {
+			1000 = {
+				modifier = {
+					factor = 0.05
+					ai = yes # Better for the AI to not always have a mentor
+				}
+				modifier = {
+					factor = 0
+					NAND = {
+						society_rank == 1
+						NOR = {
+							any_opinion_modifier_target = {
+								reverse_has_opinion_modifier = {
+									who = ROOT
+									modifier = opinion_rising_sun_mentor
+								}
+							}
+							has_character_flag = proved_myself_to_mentor
+						}
+					}
+				}
+				event_target:rising_sun_leader = {
+					character_event = { id = soh.2602 } # Find a mentor
+				}
+			}
+			20 = {
+				modifier = {
+					factor = 0
+					society_rank == 1
+				}
+				modifier = {
+					factor = 0.1
+					society_rank >= 3
+				}
+				modifier = {
+					factor = 0
+					NOT = {
+						any_society_member = {
+							society_member_of = warriors_of_the_rising_sun
+							society_rank == 1
+							NOR = {
+								any_opinion_modifier_target = {
+									reverse_has_opinion_modifier = {
+										who = ROOT
+										modifier = opinion_rising_sun_mentor
+									}
+								}
+								has_character_flag = proved_myself_to_mentor
+							}
+						}
+					}
+				}
+				event_target:rising_sun_leader = {
+					character_event = { id = soh.2604 } # Take on a(nother) student
+				}
+			}
+			20 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						society = {
+							any_society_member = {
+								society_member_of = warriors_of_the_rising_sun
+								ai = yes
+								age = 16
+								NOT = { character = ROOT }
+								is_inaccessible_or_incapable_trigger = no
+								NOT = { has_character_modifier = bedridden_illness }
+								NOT = { has_character_modifier = severe_illness }
+								NOT = { has_character_flag = call_to_legend_active }
+								NOT = {
+									has_opinion_modifier = {
+										modifier = opinion_rising_sun_student
+										who = ROOT
+									}
+								}
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 0
+					society_rank == 1
+					NOR = {
+						any_opinion_modifier_target = {
+							reverse_has_opinion_modifier = {
+								who = ROOT
+								modifier = opinion_rising_sun_mentor
+							}
+						}
+						has_character_flag = proved_myself_to_mentor
+					}
+				}
+				event_target:rising_sun_leader = {
+					character_event = { id = soh.2609 } # Duel someone
+				}
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					NOT = {
+					society = {
+							any_society_member = {
+								society_member_of = warriors_of_the_rising_sun
+								ai = yes
+								age = 16
+								NOT = { character = ROOT }
+								is_inaccessible_or_incapable_trigger = no
+								NOT = { has_character_modifier = bedridden_illness }
+								NOT = { has_character_modifier = severe_illness }
+								NOT = { has_character_flag = call_to_legend_active }
+								NOT = {
+									has_opinion_modifier = {
+										modifier = opinion_rising_sun_student
+										who = ROOT
+									}
+								}
+								any_rival = {
+									character = ROOT
+								}
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 0
+					society_rank == 1
+					NOR = {
+						any_opinion_modifier_target = {
+							reverse_has_opinion_modifier = {
+								who = ROOT
+								modifier = opinion_rising_sun_mentor
+							}
+						}
+						has_character_flag = proved_myself_to_mentor
+					}
+				}
+				event_target:rising_sun_leader = {
+					character_event = { id = soh.2614 } # Duel a rival - to the death!
+				}
+			}
+			20 = {
+				trigger = {
+					is_landed = yes
+					war = no
+					OR = {
+						any_independent_ruler = { # Either an independent ruler
+							is_tributary = no
+							war = no
+							NOT = {
+								any_realm_lord = {
+									character = ROOT
+								}
+							}
+							any_realm_title = {
+								location = {
+									OR = {
+										AND = { #Either you can travel via water to them...
+											is_coastal = yes
+											can_naval_path_to = { target = event_target:home_capital distance < 1000 }
+										}
+										AND = {
+											#Or they are accessible via land...
+											event_target:home_capital = { is_coastal = no }
+											can_land_path_to = { target = event_target:home_capital distance < 1000 }
+										}
+										AND = { #Or not a coastal place...
+											is_coastal = no
+											can_land_path_to = { target = event_target:home_capital distance < 1000 }
+										}
+									}
+								}
+							}
+							NOT = {
+								has_truce = ROOT
+							}
+							# Not too uneven a fight
+							relative_power = {
+								who = ROOT
+								power = 0.9 # A slight advantage is permissible
+							}
+							NOT = {
+								relative_power = {
+									who = ROOT
+									power = 2.0 # And we don't want a far too powerful target
+								}
+							}
+							OR = {
+								NOT = {
+									society_member_of = warriors_of_the_rising_sun
+								}
+								ROOT = {
+									root_has_sufficient_honor_to_war_of_honor_vs_prev_trigger = yes
+								}
+							}
+							ROOT = { # We can actually declare war
+								OR = {
+									independent = yes
+									NOT = {
+										any_liege = {
+											primary_title = {
+												has_law = vassal_wars_law_2
+											}
+										}
+									}
+								}
+							}
+							has_game_rule = {
+								name = wars_of_honor
+								value = normal_restrictions
+							}
+						}
+						AND = {
+							independent = no
+							liege = { # Or a vassal of our liege
+								any_vassal = {
+									war = no
+									any_realm_title = {
+										location = {
+											OR = {
+												AND = { #Either you can travel via water to them...
+													is_coastal = yes
+													can_naval_path_to = { target = event_target:home_capital distance < 1000 }
+												}
+												AND = {
+													#Or they are accessible via land...
+													event_target:home_capital = { is_coastal = no }
+													can_land_path_to = { target = event_target:home_capital distance < 1000 }
+												}
+												AND = { #Or not a coastal place...
+													is_coastal = no
+													can_land_path_to = { target = event_target:home_capital distance < 1000 }
+												}
+											}
+										}
+									}
+									NOT = {
+										has_truce = ROOT
+									}
+									# Not too uneven a fight
+									relative_power = {
+										who = ROOT
+										power = 0.9 # A slight advantage is permissible
+									}
+									NOT = {
+										relative_power = {
+											who = ROOT
+											power = 2.0 # And we don't want a far too powerful target
+										}
+									}
+									OR = {
+										NOT = {
+											society_member_of = warriors_of_the_rising_sun
+										}
+										ROOT = {
+											root_has_sufficient_honor_to_war_of_honor_vs_prev_trigger = yes
+										}
+									}
+								}
+							}
+							NOT = { # We can actually declare war
+								any_liege = {
+									primary_title = {
+										OR = {
+											has_law = vassal_wars_law_1
+											has_law = vassal_wars_law_2
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 0
+					NOT = {
+						society_currency >= 100 # If you can't declare the war, don't bother
+					}
+				}
+				modifier = {
+					factor = 0
+					society_rank == 1
+					NOR = {
+						any_opinion_modifier_target = {
+							reverse_has_opinion_modifier = {
+								who = ROOT
+								modifier = opinion_rising_sun_mentor
+							}
+						}
+						has_character_flag = proved_myself_to_mentor
+					}
+				}
+				event_target:rising_sun_leader = {
+					character_event = { id = soh.2616 } # Win a War of Honor
+				}
+			}
+			5 = {
+				trigger = {
+					is_landed = yes
+					war = no
+					is_playable = yes
+					any_rival = {
+						is_playable = yes
+						OR = {
+							same_liege = ROOT
+							AND = {
+								independent = yes
+								is_tributary = no
+								NOT = {
+									any_realm_lord = {
+										character = ROOT
+									}
+								}
+							}
+						}
+						NOT = {
+							has_truce = ROOT
+						}
+						any_realm_title = {
+							location = {
+								OR = {
+									AND = { #Either you can travel via water to them...
+										is_coastal = yes
+										can_naval_path_to = { target = event_target:home_capital distance < 1000 }
+									}
+									AND = {
+										#Or they are accessible via land...
+										event_target:home_capital = { is_coastal = no }
+										can_land_path_to = { target = event_target:home_capital distance < 1000 }
+									}
+									AND = { #Or not a coastal place...
+										is_coastal = no
+										can_land_path_to = { target = event_target:home_capital distance < 1000 }
+									}
+								}
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 0
+					NOT = {
+						society_currency >= 100 # If you can't declare the war, don't bother
+					}
+				}
+				modifier = {
+					factor = 0
+					society_rank == 1
+					NOR = {
+						any_opinion_modifier_target = {
+							reverse_has_opinion_modifier = {
+								who = ROOT
+								modifier = opinion_rising_sun_mentor
+							}
+						}
+						has_character_flag = proved_myself_to_mentor
+					}
+				}
+				event_target:rising_sun_leader = {
+					character_event = { id = soh.2624 } # Win a War of Honor - against a rival
+				}
+			}
+			10 = {
+				modifier = {
+					factor = 0
+					NAND = {
+						is_playable = yes
+						any_demesne_province = {
+							num_of_empty_holdings = 1
+						}
+					}
+				}
+				modifier = {
+					factor = 0
+					society_rank == 1
+					NOR = {
+						any_opinion_modifier_target = {
+							reverse_has_opinion_modifier = {
+								who = ROOT
+								modifier = opinion_rising_sun_mentor
+							}
+						}
+						has_character_flag = proved_myself_to_mentor
+					}
+				}
+				event_target:rising_sun_leader = {
+					character_event = { id = soh.2626 } # Build a castle
+				}
+			}
+			10 = {
+				modifier = {
+					factor = 0
+					NAND = {
+						has_dlc = "Way of Life"
+						is_playable = yes
+						OR = {
+							has_focus = focus_business # Warriors don't trade!
+							has_focus = focus_seduction # Dishonest
+							has_focus = focus_intrigue # Dishonest
+							has_focus = focus_scholarship # Scholarship is not important
+							has_focus = focus_theology # Religious matters are not to be the priority
+						}
+					}
+				}
+				modifier = {
+					factor = 0
+					society_rank == 1
+					NOR = {
+						any_opinion_modifier_target = {
+							reverse_has_opinion_modifier = {
+								who = ROOT
+								modifier = opinion_rising_sun_mentor
+							}
+						}
+						has_character_flag = proved_myself_to_mentor
+					}
+				}
+				event_target:rising_sun_leader = {
+					character_event = { id = soh.2631 } # Switch to the War focus
+				}
+			}
+			10 = {
+				trigger = {
+					is_landed = yes
+					combat_rating >= 50
+				}
+				modifier = {
+					factor = 0
+					war = yes
+				}
+				modifier = {
+					factor = 0
+					has_character_flag = started_the_very_best # No quitting the chain and restarting it!
+				}
+				modifier = {
+					factor = 0
+					any_society_member = {
+						has_character_flag = i_am_the_very_best # Someone already completed it and is still around
+					}
+				}
+				modifier = {
+					factor = 0
+					NAND = {
+						is_playable = yes
+						society_rank >= 2
+						NOT = {
+							any_society_member = {
+								society_member_of = warriors_of_the_rising_sun
+								has_quest = quest_the_very_best
+							}
+						}
+						combat_rating = 20 # Anything else would be far too low
+					}
+				}
+				modifier = {
+					factor = 0.1 # Less likely if you've already got the bloodline
+					any_owned_bloodline = {
+						has_bloodline_flag = the_very_best
+					}
+				}
+				modifier = {
+					factor = 0.1
+					any_owned_bloodline = {
+						has_bloodline_flag = the_very_best
+						founder = {
+							dynasty = ROOT
+						}
+					}
+				}
+				modifier = {
+					factor = 0
+					any_owned_bloodline = {
+						has_bloodline_flag = the_very_best
+						founder = {
+							dynasty = ROOT
+						}
+					}
+					ai = yes # The AI doesn't get to do it again (as that blocks the player)
+				}
+				modifier = {
+					factor = 0.1
+					ai = yes
+				}
+				modifier = {
+					factor = 0.1
+					NOT = {
+						combat_rating = 60
+					}
+				}
+				modifier = {
+					factor = 0.5
+					NOT = {
+						combat_rating = 75
+					}
+				}
+				modifier = {
+					factor = 2
+					combat_rating = 100
+				}
+				modifier = {
+					factor = 0
+					has_character_modifier = mark_of_dishonor # You're dishonorable, and not worthy to be the society's chosen champion
+				}
+				modifier = {
+					factor = 0
+					has_character_flag = not_the_very_best # Already failed
+				}
+				event_target:rising_sun_leader = {
+					character_event = { id = soh.2634 } # Become the very best (like no one ever was!)
+				}
+			}
+			10 = {
+				trigger = {
+					OR = { # Impossible otherwise
+						government = japanese_bureaucracy_government
+						government = japanese_monastic_feudal_government
+					}
+				}
+				modifier = {
+					factor = 0 # Novices need to prove themselves
+					NOT = {
+						society_rank >= 2
+					}
+				}
+				modifier = {
+					factor = 0.1 # Would have to use the regular decision
+					NOT = {
+						society_rank >= 3
+					}
+				}
+				modifier = {
+					factor = 2
+					event_target:rising_sun_leader = {
+						government = japanese_feudal_government
+					}
+				}
+				modifier = {
+					factor = 1.5
+					real_tier = duke
+				}
+				modifier = {
+					factor = 2
+					real_tier = king
+				}
+				modifier = {
+					factor = 2.5
+					real_tier = emperor
+				}
+				event_target:rising_sun_leader = {
+					character_event = { id = soh.2636 }
+				}
+			}
+			75 = { # AI bypasses missions at times
+				trigger = {
+					ai = yes
+				}
+				random_list = {
+					70 = {
+						modifier = {
+							factor = 0.9
+							society_influence >= 30
+						}
+						modifier = {
+							factor = 0.9
+							society_influence >= 40
+						}
+						modifier = {
+							factor = 0.8
+							society_influence >= 50
+						}
+						modifier = {
+							factor = 0.7
+							society_influence >= 70
+						}
+						modifier = {
+							factor = 0.6
+							society_influence >= 80
+						}
+						modifier = {
+							factor = 0.5
+							society_influence >= 90
+						}
+						add_mission_succeed_influence_effect = yes
+					}
+					30 = {
+						add_mission_fail_influence_effect = yes
+					}
+				}
+			}
+			200 = {
+				trigger = {
+					ai = yes
+				}
+				# Do nothing
+			}
+		}
+	}
+}
+
+### Mission: Get a mentor
+
+# Ping
+character_event = {
+	id = soh.2602
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			society_quest_event = { id = soh.2603 }
+		}
+	}
+}
+
+# Inform the member
+society_quest_event = {
+	id = soh.2603
+	desc = EVTDESC_SOH_2603
+
+	is_triggered_only = yes
+	is_in_society = yes
+	only_capable = yes
+
+	trigger = {
+		society_rank == 1
+		NOR = {
+			any_opinion_modifier_target = {
+				reverse_has_opinion_modifier = {
+					who = ROOT
+					modifier = opinion_rising_sun_mentor
+				}
+			}
+			has_character_flag = proved_myself_to_mentor
+		}
+	}
+
+	option = {
+		name = ACCEPT
+		set_quest = quest_rising_sun_get_mentor
+	}
+	option  = {
+		name = DECLINE
+		custom_tooltip = { text = decline_quest_tooltip }
+
+		add_character_modifier = {
+			name = quest_cooldown_timer
+			hidden = yes
+			days = 1000
+		}
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+### Mission: Get a student
+
+# Ping
+character_event = {
+	id = soh.2604
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			society_quest_event = { id = soh.2605 }
+		}
+	}
+}
+
+# Inform the member
+society_quest_event = {
+	id = soh.2605
+	desc = EVTDESC_SOH_2605
+
+	is_triggered_only = yes
+	is_in_society = yes
+	only_capable = yes
+
+	trigger = {
+		society_rank >= 2
+	}
+
+	option = {
+		name = ACCEPT
+		set_quest = quest_rising_sun_get_student
+	}
+	option  = {
+		name = DECLINE
+		custom_tooltip = { text = decline_quest_tooltip }
+
+		add_character_modifier = {
+			name = quest_cooldown_timer
+			hidden = yes
+			days = 1000
+		}
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+# You got a student (hidden)
+character_event = {
+	id = soh.2606
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_society_member = {
+			limit = {
+				OR = {
+					AND = {
+						is_society_grandmaster = yes
+						NOT = {
+							character = ROOT
+						}
+					}
+					AND = {
+						society_rank == 3
+						ROOT = {
+							is_society_grandmaster = yes
+						}
+					}
+				}
+				same_society_as = ROOT
+			}
+			preferred_limit = {
+				NOR = {
+					any_rival = {
+						character = ROOT
+					}
+					ROOT = {
+						quest_target = {
+							character = PREV
+						}
+					}
+				}
+			}
+			save_event_target_as = rising_sun_leader
+		}
+		
+		event_target:rising_sun_leader = {
+			character_event = { id = soh.2607 }
+		}
+	}
+}
+
+# Ping congratulating person
+character_event = {
+	id = soh.2607
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			letter_event = { id = soh.2608 }
+		}
+	}
+}
+
+# You succeeded!
+letter_event = {
+	id = soh.2608
+	border = GFX_event_letter_frame_war
+	desc = EVTDESC_SOH_2608
+
+	portrait = event_target:rising_sun_leader
+	
+	is_triggered_only = yes
+
+	trigger = {
+		has_quest = quest_rising_sun_get_student
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_2608 # I will train them to the best of my ability!
+		
+		clr_quest = quest_rising_sun_get_student
+		add_society_currency_medium_effect = yes
+	}
+}
+
+### Mission: Duel someone
+
+# Ping
+character_event = {
+	id = soh.2609
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			society_quest_event = { id = soh.2610 }
+		}
+	}
+}
+
+# Inform the member
+society_quest_event = {
+	id = soh.2610
+	desc = EVTDESC_SOH_2610
+
+	is_triggered_only = yes
+	is_in_society = yes
+	only_capable = yes
+
+	trigger = {
+		any_society_member = {
+			society_member_of = warriors_of_the_rising_sun
+			ai = yes
+			age = 16
+			NOT = { character = ROOT }
+			is_inaccessible_or_incapable_trigger = no
+			NOT = { has_character_modifier = bedridden_illness }
+			NOT = { has_character_modifier = severe_illness }
+			NOT = { has_character_flag = call_to_legend_active }
+			NOT = {
+				has_opinion_modifier = {
+					modifier = opinion_rising_sun_student
+					who = ROOT
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		if = {
+			limit = { #best case (someone within diplo-range, not sick, not seriously injured already)...
+				any_society_member = {
+					same_society_as = ROOT
+					ai = yes
+					age = 16
+					NOT = { character = ROOT }
+					NOT = { age = 60 }
+					is_maimed_trigger = no
+					has_medium_disability_trigger = no #limits the character to some extent
+					has_severe_disability_trigger = no
+					character_disease_trigger = no
+					NOT = { has_character_flag = call_to_legend_active }
+					is_within_diplo_range = ROOT
+				}
+			}
+
+			any_society_member = {
+				limit = {
+					same_society_as = ROOT
+					ai = yes
+					age = 16
+					NOT = { character = ROOT }
+					NOT = { age = 60 }
+					is_maimed_trigger = no
+					has_medium_disability_trigger = no #limits the character to some extent
+					has_severe_disability_trigger = no
+					character_disease_trigger = no
+					NOT = { has_character_flag = call_to_legend_active }
+					is_within_diplo_range = ROOT
+				}
+				score_value = { #Prioritizes selecting some kind of warrior...
+	                value = 10
+	                matching_soldier_score = yes
+	            }
+	            save_event_target_as = duel_target
+			}
+			
+		}
+		else_if = { #second best choice (same, but outside of diplo-range)...
+			limit = {
+				any_society_member = {
+					same_society_as = ROOT
+					ai = yes
+					age = 16
+					NOT = { character = ROOT }
+					NOT = { age = 60 }
+					has_medium_disability_trigger = no #limits the character to some extent
+					is_maimed_trigger = no #has a maimed trait
+					has_severe_disability_trigger = no
+					character_disease_trigger = no
+					NOT = { has_character_flag = call_to_legend_active }
+				}
+			}
+			any_society_member = {
+				limit = {
+					same_society_as = ROOT
+					ai = yes
+					age = 16
+					NOT = { character = ROOT }
+					NOT = { age = 60 }
+					has_medium_disability_trigger = no #limits the character to some extent
+					is_maimed_trigger = no #has a maimed trait
+					has_severe_disability_trigger = no
+					character_disease_trigger = no
+					NOT = { has_character_flag = call_to_legend_active }
+				}
+				score_value = { #Prioritizes selecting some kind of warrior...
+	                value = 10
+	                matching_soldier_score = yes
+	            }
+	            save_event_target_as = duel_target
+			}
+		}
+		else_if = { #third best option (now also injured or old folks allowed)...
+			limit = {
+				any_society_member = {
+					same_society_as = ROOT
+	                ai = yes
+					age = 16
+	                NOT = { character = ROOT }
+		            is_inaccessible_or_incapable_trigger = no
+	                NOT = { has_character_modifier = bedridden_illness }
+		            NOT = { has_character_modifier = severe_illness }
+		            NOT = { has_character_flag = call_to_legend_active }
+	            }
+			}
+			any_society_member = {
+				limit = {
+					same_society_as = ROOT
+					ai = yes
+					age = 16
+	                NOT = { character = ROOT }
+		            is_inaccessible_or_incapable_trigger = no
+	                NOT = { has_character_modifier = bedridden_illness }
+		            NOT = { has_character_modifier = severe_illness }
+		            NOT = { has_character_flag = call_to_legend_active }
+				}
+				score_value = { #Prioritizes selecting some kind of warrior...
+	                value = 10
+	                matching_soldier_score = yes
+	            }
+	            save_event_target_as = duel_target
+			}
+		}
+	}
+	
+	quest_target = event_target:duel_target #Is this how it's done? <-- To quote vanilla!
+
+	option = {
+		name = ACCEPT
+		event_target:duel_target = {
+			show_scope_change = no
+			set_quest_target = {
+				id = quest_rising_sun_duel_honor
+				holder = ROOT
+			}
+		}
+	}
+	option  = {
+		name = DECLINE
+		custom_tooltip = { text = decline_quest_tooltip }
+
+		add_character_modifier = {
+			name = quest_cooldown_timer
+			hidden = yes
+			days = 1000
+		}
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+
+# Hidden Cleanup event for (prematurely) dead quest targets...
+character_event = {
+	id = soh.2611
+	hide_window = yes
+	has_dlc = "Holy Fury"
+
+	is_triggered_only = yes
+
+	trigger = { 
+		is_quest_target = yes
+	}
+
+	immediate = {
+		any_quester_targeting_this = {
+			limit = {
+				OR = {
+					has_quest = quest_rising_sun_duel_honor
+					has_quest = quest_rising_sun_duel_deadly
+				}
+			}
+			character_event = { id = soh.2612 days = 15 } # Clears duel mission
+		}
+		any_quester_targeting_this = {
+			limit = {
+				OR = {
+					has_quest = quest_rising_sun_war_of_honor
+					has_quest = quest_rising_sun_war_of_honor_rival
+				}
+			}
+			character_event = { id = soh.2612 days = 15 } # Clears war mission
+		}
+	}
+}
+
+# Notification "I have failed my mission duel <dead character>..."
+character_event = {
+    id = soh.2612
+    picture = GFX_evt_battle
+    border = GFX_event_normal_frame_war
+    has_dlc = "Holy Fury"
+
+    is_triggered_only = yes
+
+    desc = {
+    	text = EVTDESC_SOH_2612_DUEL
+    	trigger = {
+			OR = {
+				has_quest = quest_rising_sun_duel_honor
+				has_quest = quest_rising_sun_duel_deadly
+			}
+			NOT = { has_quest = quest_rising_sun_war_of_honor	}
+			NOT = { has_quest = quest_rising_sun_war_of_honor_rival	}
+    	}
+    }
+    desc = {
+    	text = EVTDESC_SOH_2612_WAR
+    	trigger = {
+			OR = {
+				has_quest = quest_rising_sun_war_of_honor
+				has_quest = quest_rising_sun_war_of_honor_rival
+			}
+			NOT = { has_quest = quest_rising_sun_duel_honor	}
+			NOT = { has_quest = quest_rising_sun_duel_deadly	}
+    	}
+    }
+    trigger = {
+    	OR = {
+	    	has_quest = quest_rising_sun_duel_honor
+	    	has_quest = quest_rising_sun_duel_deadly
+	    	has_quest = quest_rising_sun_war_of_honor
+	    	has_quest = quest_rising_sun_war_of_honor_rival
+    	}
+    }
+
+    notification = yes
+
+    option = { #Alas
+        name = ALAS
+        character_event = { id = soh.2613 days = 1 } # ACTUAL cleanup
+    }
+}
+
+character_event = { #*Actual* clean up, because the event above can't handle all the instant stuff
+    id = soh.2613
+    hide_window = yes
+    is_triggered_only = yes
+    immediate = {
+    	if = {
+        	limit = {
+				OR = {
+					has_quest = quest_rising_sun_duel_honor
+					has_quest = quest_rising_sun_duel_deadly
+				}
+        	}
+        	add_character_modifier = {
+				name = quest_cooldown_timer
+				hidden = yes
+				days = 1000
+			}
+        }
+
+        clr_quest = { id = quest_rising_sun_duel_honor failure = yes }
+        clr_quest = { id = quest_rising_sun_duel_deadly failure = yes }
+        clr_character_flag = deadly_duel@FROM	
+    }
+}
+
+### Mission: Duel a rival - to the death!
+
+# Ping
+character_event = {
+	id = soh.2614
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			society_quest_event = { id = soh.2615 }
+		}
+	}
+}
+
+# Inform the member
+society_quest_event = {
+	id = soh.2615
+	desc = EVTDESC_SOH_2615
+
+	is_triggered_only = yes
+	is_in_society = yes
+	only_capable = yes
+	
+	trigger = {
+		society = {
+			any_society_member = {
+				society_member_of = warriors_of_the_rising_sun
+				ai = yes
+				age = 16
+				NOT = { character = ROOT }
+				is_inaccessible_or_incapable_trigger = no
+				NOT = { has_character_modifier = bedridden_illness }
+				NOT = { has_character_modifier = severe_illness }
+				NOT = { has_character_flag = call_to_legend_active }
+				NOT = {
+					has_opinion_modifier = {
+						modifier = opinion_rising_sun_student
+						who = ROOT
+					}
+				}
+				any_rival = {
+					character = ROOT
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		any_rival = {
+			limit = {
+				is_inaccessible_or_incapable_trigger = no
+				NOT = { has_character_modifier = bedridden_illness }
+				NOT = { has_character_modifier = severe_illness }
+				is_adult = yes
+				ai = yes
+				is_within_diplo_range = ROOT
+			}
+			score_value = { #Prioritizes selecting some kind of character you wouldn't get along with...
+				value = 10
+				potential_rival_score = yes
+			}
+			score_value = { #Extra weight for characters you've encountered before...
+				value = 10
+				disliked_target_selection_score = yes
+			}
+			save_event_target_as = duel_target
+			break = yes
+		}
+	}
+	
+	quest_target = event_target:duel_target #Is this how it's done? <-- To quote vanilla!
+
+	option = {
+		name = ACCEPT
+		event_target:duel_target = {
+			show_scope_change = no
+			set_quest_target = {
+				id = quest_rising_sun_duel_deadly
+				holder = ROOT
+			}
+		}
+	}
+	option  = {
+		name = DECLINE
+		custom_tooltip = { text = decline_quest_tooltip }
+
+		add_character_modifier = {
+			name = quest_cooldown_timer
+			hidden = yes
+			days = 1000
+		}
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+### Mission: Win a War of Honor
+
+# Ping
+character_event = {
+	id = soh.2616
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			society_quest_event = { id = soh.2617 }
+		}
+	}
+}
+
+# Inform the member
+society_quest_event = {
+	id = soh.2617
+	desc = EVTDESC_SOH_2617
+
+	is_triggered_only = yes
+	is_in_society = yes
+	only_capable = yes
+	
+	trigger = {
+		war = no
+		is_playable = yes
+		OR = {
+			any_independent_ruler = { # Either an independent ruler
+				is_tributary = no
+				war = no
+				any_realm_title = {
+					location = {
+						OR = {
+							AND = { #Either you can travel via water to them...
+								is_coastal = yes
+								can_naval_path_to = { target = event_target:home_capital distance < 1000 }
+							}
+							AND = {
+								#Or they are accessible via land...
+								event_target:home_capital = { is_coastal = no }
+								can_land_path_to = { target = event_target:home_capital distance < 1000 }
+							}
+							AND = { #Or not a coastal place...
+								is_coastal = no
+								can_land_path_to = { target = event_target:home_capital distance < 1000 }
+							}
+						}
+					}
+				}
+				NOT = {
+					has_truce = ROOT
+				}
+				# Not too uneven a fight
+				relative_power = {
+					who = ROOT
+					power = 0.9 # A slight advantage is permissible
+				}
+				NOT = {
+					relative_power = {
+						who = ROOT
+						power = 2.0 # And we don't want a far too powerful target
+					}
+				}
+				OR = {
+					NOT = {
+						society_member_of = warriors_of_the_rising_sun
+					}
+					ROOT = {
+						root_has_sufficient_honor_to_war_of_honor_vs_prev_trigger = yes
+					}
+				}
+			}
+			AND = {
+				independent = no
+				liege = { # Or a vassal of our liege
+					any_vassal = {
+						war = no
+						any_realm_title = {
+							location = {
+								OR = {
+									AND = { #Either you can travel via water to them...
+										is_coastal = yes
+										can_naval_path_to = { target = event_target:home_capital distance < 1000 }
+									}
+									AND = {
+										#Or they are accessible via land...
+										event_target:home_capital = { is_coastal = no }
+										can_land_path_to = { target = event_target:home_capital distance < 1000 }
+									}
+									AND = { #Or not a coastal place...
+										is_coastal = no
+										can_land_path_to = { target = event_target:home_capital distance < 1000 }
+									}
+								}
+							}
+						}
+						NOT = {
+							has_truce = ROOT
+						}
+						# Not too uneven a fight
+						relative_power = {
+							who = ROOT
+							power = 0.9 # A slight advantage is permissible
+						}
+						NOT = {
+							relative_power = {
+								who = ROOT
+								power = 2.0 # And we don't want a far too powerful target
+							}
+						}
+						OR = {
+							NOT = {
+								society_member_of = warriors_of_the_rising_sun
+							}
+							ROOT = {
+								root_has_sufficient_honor_to_war_of_honor_vs_prev_trigger = yes
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		random_list = {
+			50 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						any_independent_ruler = { # Either an independent ruler
+							is_tributary = no
+							war = no
+							NOT = {
+								any_realm_lord = {
+									character = ROOT
+								}
+							}
+							any_realm_title = {
+								location = {
+									OR = {
+										AND = { #Either you can travel via water to them...
+											is_coastal = yes
+											can_naval_path_to = { target = event_target:home_capital distance < 1000 }
+										}
+										AND = {
+											#Or they are accessible via land...
+											event_target:home_capital = { is_coastal = no }
+											can_land_path_to = { target = event_target:home_capital distance < 1000 }
+										}
+										AND = { #Or not a coastal place...
+											is_coastal = no
+											can_land_path_to = { target = event_target:home_capital distance < 1000 }
+										}
+									}
+								}
+							}
+							NOT = {
+								has_truce = ROOT
+							}
+							# Not too uneven a fight
+							relative_power = {
+								who = ROOT
+								power = 0.9 # A slight advantage is permissible
+							}
+							NOT = {
+								relative_power = {
+									who = ROOT
+									power = 2.0 # And we don't want a far too powerful target
+								}
+							}
+							OR = {
+								NOT = {
+									society_member_of = warriors_of_the_rising_sun
+								}
+								ROOT = {
+									root_has_sufficient_honor_to_war_of_honor_vs_prev_trigger = yes
+								}
+							}
+						}
+					}
+				}
+				random_independent_ruler = { # Either an independent ruler
+					limit = {
+						is_tributary = no
+						war = no
+						NOT = {
+							any_realm_lord = {
+								character = ROOT
+							}
+						}
+						any_realm_title = {
+							location = {
+								OR = {
+									AND = { #Either you can travel via water to them...
+										is_coastal = yes
+										can_naval_path_to = { target = event_target:home_capital distance < 1000 }
+									}
+									AND = {
+										#Or they are accessible via land...
+										event_target:home_capital = { is_coastal = no }
+										can_land_path_to = { target = event_target:home_capital distance < 1000 }
+									}
+									AND = { #Or not a coastal place...
+										is_coastal = no
+										can_land_path_to = { target = event_target:home_capital distance < 1000 }
+									}
+								}
+							}
+						}
+						NOT = {
+							has_truce = ROOT
+						}
+						# Not too uneven a fight
+						relative_power = {
+							who = ROOT
+							power = 0.9 # A slight advantage is permissible
+						}
+						NOT = {
+							relative_power = {
+								who = ROOT
+								power = 2.0 # And we don't want a far too powerful target
+							}
+						}
+						OR = {
+							NOT = {
+								society_member_of = warriors_of_the_rising_sun
+							}
+							ROOT = {
+								root_has_sufficient_honor_to_war_of_honor_vs_prev_trigger = yes
+							}
+						}
+					}
+					save_event_target_as = war_target
+				}
+			}
+			50 = {
+				modifier = {
+					factor = 0
+					independent = yes
+				}
+				modifier = {
+					factor = 0
+					NOT = {
+						liege = { # Or a vassal of our liege
+							any_vassal = {
+								war = no
+								any_realm_title = {
+									location = {
+										OR = {
+											AND = { #Either you can travel via water to them...
+												is_coastal = yes
+												can_naval_path_to = { target = event_target:home_capital distance < 1000 }
+											}
+											AND = {
+												#Or they are accessible via land...
+												event_target:home_capital = { is_coastal = no }
+												can_land_path_to = { target = event_target:home_capital distance < 1000 }
+											}
+											AND = { #Or not a coastal place...
+												is_coastal = no
+												can_land_path_to = { target = event_target:home_capital distance < 1000 }
+											}
+										}
+									}
+								}
+								NOT = {
+									has_truce = ROOT
+								}
+								# Not too uneven a fight
+								relative_power = {
+									who = ROOT
+									power = 0.9 # A slight advantage is permissible
+								}
+								NOT = {
+									relative_power = {
+										who = ROOT
+										power = 2.0 # And we don't want a far too powerful target
+									}
+								}
+								OR = {
+									NOT = {
+										society_member_of = warriors_of_the_rising_sun
+									}
+									ROOT = {
+										root_has_sufficient_honor_to_war_of_honor_vs_prev_trigger = yes
+									}
+								}
+							}
+						}
+					}
+				}
+				liege = { # Or a vassal of our liege
+					random_vassal = {
+						limit = {
+							war = no
+							any_realm_title = {
+								location = {
+									OR = {
+										AND = { #Either you can travel via water to them...
+											is_coastal = yes
+											can_naval_path_to = { target = event_target:home_capital distance < 1000 }
+										}
+										AND = {
+											#Or they are accessible via land...
+											event_target:home_capital = { is_coastal = no }
+											can_land_path_to = { target = event_target:home_capital distance < 1000 }
+										}
+										AND = { #Or not a coastal place...
+											is_coastal = no
+											can_land_path_to = { target = event_target:home_capital distance < 1000 }
+										}
+									}
+								}
+							}
+							NOT = {
+								has_truce = ROOT
+							}
+							# Not too uneven a fight
+							relative_power = {
+								who = ROOT
+								power = 0.9 # A slight advantage is permissible
+							}
+							NOT = {
+								relative_power = {
+									who = ROOT
+									power = 2.0 # And we don't want a far too powerful target
+								}
+							}
+							OR = {
+								NOT = {
+									society_member_of = warriors_of_the_rising_sun
+								}
+								ROOT = {
+									root_has_sufficient_honor_to_war_of_honor_vs_prev_trigger = yes
+								}
+							}
+						}
+						save_event_target_as = war_target
+					}
+				}
+			}
+		}
+	}
+	
+	quest_target = event_target:war_target #Is this how it's done? <-- To quote vanilla!
+
+	option = {
+		name = ACCEPT
+		event_target:war_target = {
+			show_scope_change = no
+			set_quest_target = {
+				id = quest_rising_sun_war_of_honor
+				holder = ROOT
+			}
+		}
+	}
+	option  = {
+		name = DECLINE
+		custom_tooltip = { text = decline_quest_tooltip }
+
+		add_character_modifier = {
+			name = quest_cooldown_timer
+			hidden = yes
+			days = 1000
+		}
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+# You succeeded (hidden)
+character_event = {
+	id = soh.2618
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_society_member = {
+			limit = {
+				OR = {
+					AND = {
+						is_society_grandmaster = yes
+						NOT = {
+							character = ROOT
+						}
+					}
+					AND = {
+						society_rank == 3
+						ROOT = {
+							is_society_grandmaster = yes
+						}
+					}
+				}
+				same_society_as = ROOT
+			}
+			preferred_limit = {
+				NOR = {
+					any_rival = {
+						character = ROOT
+					}
+					ROOT = {
+						quest_target = {
+							character = PREV
+						}
+					}
+				}
+			}
+			save_event_target_as = rising_sun_leader
+		}
+		
+		event_target:rising_sun_leader = {
+			character_event = { id = soh.2619 }
+		}
+	}
+}
+
+# Ping congratulating person
+character_event = {
+	id = soh.2619
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			letter_event = { id = soh.2620 }
+		}
+	}
+}
+
+# You succeeded!
+letter_event = {
+	id = soh.2620
+	border = GFX_event_letter_frame_war
+
+	portrait = event_target:rising_sun_leader
+	
+	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			has_quest = quest_rising_sun_war_of_honor
+			has_quest = quest_rising_sun_war_of_honor_rival
+		}
+	}
+	
+	desc = {
+		trigger = {
+			has_quest = quest_rising_sun_war_of_honor
+		}
+		text = EVTDESC_SOH_2620A
+	}
+	
+	desc = {
+		trigger = {
+			has_quest = quest_rising_sun_war_of_honor_rival
+		}
+		text = EVTDESC_SOH_2620B
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_2620 # I proved my honor!
+		
+		if = {
+			limit = {
+				has_quest = quest_rising_sun_war_of_honor
+			}
+			clr_quest = quest_rising_sun_war_of_honor
+			add_society_currency_major_effect = yes
+		}
+		else_if = {
+			limit = {
+				has_quest = quest_rising_sun_war_of_honor_rival
+			}
+			clr_quest = quest_rising_sun_war_of_rival
+			add_society_currency_major_effect = yes
+		}
+	}
+}
+
+# You failed (hidden)
+character_event = {
+	id = soh.2621
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_society_member = {
+			limit = {
+				OR = {
+					AND = {
+						is_society_grandmaster = yes
+						NOT = {
+							character = ROOT
+						}
+					}
+					AND = {
+						society_rank == 3
+						ROOT = {
+							is_society_grandmaster = yes
+						}
+					}
+				}
+				same_society_as = ROOT
+			}
+			preferred_limit = {
+				NOR = {
+					any_rival = {
+						character = ROOT
+					}
+					ROOT = {
+						quest_target = {
+							character = PREV
+						}
+					}
+				}
+			}
+			save_event_target_as = rising_sun_leader
+		}
+		
+		event_target:rising_sun_leader = {
+			character_event = { id = soh.2622 }
+		}
+	}
+}
+
+# Ping other member
+character_event = {
+	id = soh.2622
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			letter_event = { id = soh.2623 }
+		}
+	}
+}
+
+# You failed!
+letter_event = {
+	id = soh.2623
+	border = GFX_event_letter_frame_war
+
+	portrait = event_target:rising_sun_leader
+	
+	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			has_quest = quest_rising_sun_war_of_honor
+			has_quest = quest_rising_sun_war_of_honor_rival
+		}
+	}
+	
+	desc = {
+		trigger = {
+			has_quest = quest_rising_sun_war_of_honor
+		}
+		text = EVTDESC_SOH_2623A
+	}
+	
+	desc = {
+		trigger = {
+			has_quest = quest_rising_sun_war_of_honor_rival
+		}
+		text = EVTDESC_SOH_2623B
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_2623 # Dishonor on me!
+		
+		if = {
+			limit = {
+				has_quest = quest_rising_sun_war_of_honor
+			}
+			clr_quest = quest_rising_sun_war_of_honor
+			detract_society_currency_major_effect = yes
+		}
+		else_if = {
+			limit = {
+				has_quest = quest_rising_sun_war_of_honor_rival
+			}
+			clr_quest = quest_rising_sun_war_of_rival
+			detract_society_currency_major_effect = yes
+		}
+	}
+}
+
+### Mission: Win a War of Honor - against a rival!
+
+# Ping
+character_event = {
+	id = soh.2624
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			society_quest_event = { id = soh.2625 }
+		}
+	}
+}
+
+# Inform the member
+society_quest_event = {
+	id = soh.2625
+	desc = EVTDESC_SOH_2625
+
+	is_triggered_only = yes
+	is_in_society = yes
+	only_capable = yes
+	
+	trigger = {
+		is_playable = yes
+		any_rival = {
+			is_playable = yes
+			OR = {
+				same_liege = ROOT
+				AND = {
+					is_tributary = no
+					independent = yes
+					NOT = {
+						any_realm_lord = {
+							character = ROOT
+						}
+					}
+				}
+			}
+			NOT = {
+				has_truce = ROOT
+			}
+			any_realm_title = {
+				location = {
+					OR = {
+						AND = { #Either you can travel via water to them...
+							is_coastal = yes
+							can_naval_path_to = { target = event_target:home_capital distance < 1000 }
+						}
+						AND = {
+							#Or they are accessible via land...
+							event_target:home_capital = { is_coastal = no }
+							can_land_path_to = { target = event_target:home_capital distance < 1000 }
+						}
+						AND = { #Or not a coastal place...
+							is_coastal = no
+							can_land_path_to = { target = event_target:home_capital distance < 1000 }
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		random_rival = {
+			limit = {
+				is_playable = yes
+				OR = {
+					same_liege = ROOT
+					AND = {
+						independent = yes
+						NOT = {
+							any_realm_lord = {
+								character = ROOT
+							}
+						}
+					}
+				}
+				NOT = {
+					has_truce = ROOT
+				}
+				any_realm_title = {
+					location = {
+						OR = {
+							AND = { #Either you can travel via water to them...
+								is_coastal = yes
+								can_naval_path_to = { target = event_target:home_capital distance < 1000 }
+							}
+							AND = {
+								#Or they are accessible via land...
+								event_target:home_capital = { is_coastal = no }
+								can_land_path_to = { target = event_target:home_capital distance < 1000 }
+							}
+							AND = { #Or not a coastal place...
+								is_coastal = no
+								can_land_path_to = { target = event_target:home_capital distance < 1000 }
+							}
+						}
+					}
+				}
+			}
+			save_event_target_as = war_target
+		}
+	}
+	
+	quest_target = event_target:war_target #Is this how it's done? <-- To quote vanilla!
+
+	option = {
+		name = ACCEPT
+		event_target:war_target = {
+			show_scope_change = no
+			set_quest_target = {
+				id = quest_rising_sun_war_of_honor_rival
+				holder = ROOT
+			}
+		}
+	}
+	option  = {
+		name = DECLINE
+		custom_tooltip = { text = decline_quest_tooltip }
+
+		add_character_modifier = {
+			name = quest_cooldown_timer
+			hidden = yes
+			days = 1000
+		}
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+### Mission: Build a castle
+
+# Ping
+character_event = {
+	id = soh.2626
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			society_quest_event = { id = soh.2627 }
+		}
+	}
+}
+
+# Inform the member
+society_quest_event = {
+	id = soh.2627
+	desc = EVTDESC_SOH_2627
+	border = GFX_event_letter_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = ACCEPT
+		set_quest = quest_rising_sun_castle_construction
+	}
+	option = {
+		name = DECLINE
+		custom_tooltip = { text = decline_quest_tooltip }
+
+		add_character_modifier = {
+			name = quest_cooldown_timer
+			hidden = yes
+			days = 1000
+		}
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+# You succeeded (hidden)
+character_event = {
+	id = soh.2628
+	is_triggered_only = yes
+	hide_window = yes
+	
+	trigger = {
+		has_quest = quest_rising_sun_castle_construction
+		FROM = {
+			holding_type = castle
+		}
+		NOT = { has_character_flag = rising_sun_castle_construction_ongoing } # Flag to avoid doubling of letter events when finishing two buildings at the same time
+	}
+	
+	immediate = {
+		set_character_flag = rising_sun_castle_construction_ongoing
+		random_society_member = {
+			limit = {
+				OR = {
+					AND = {
+						is_society_grandmaster = yes
+						NOT = {
+							character = ROOT
+						}
+					}
+					AND = {
+						society_rank == 3
+						ROOT = {
+							is_society_grandmaster = yes
+						}
+					}
+				}
+				same_society_as = ROOT
+			}
+			preferred_limit = {
+				NOR = {
+					any_rival = {
+						character = ROOT
+					}
+					ROOT = {
+						quest_target = {
+							character = PREV
+						}
+					}
+				}
+			}
+			save_event_target_as = rising_sun_leader
+		}
+		
+		event_target:rising_sun_leader = {
+			character_event = { id = soh.2629 }
+		}
+	}
+}
+
+
+# Ping
+character_event = {
+	id = soh.2629
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			letter_event = { id = soh.2630 }
+		}
+	}
+}
+
+letter_event = {
+	id = soh.2630
+	desc = EVTDESC_SOH_2630
+	border = GFX_event_letter_frame_war
+
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2630
+		clr_quest = quest_rising_sun_castle_construction
+		add_society_currency_major_effect = yes		
+	}
+	after = {
+		clr_character_flag = rising_sun_castle_construction_ongoing
+	}
+}
+
+### Mission: Switch to the War focus
+
+# Ping
+character_event = {
+	id = soh.2631
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			society_quest_event = { id = soh.2632 }
+		}
+	}
+}
+
+# Inform the member
+society_quest_event = {
+	id = soh.2632
+	desc = EVTDESC_SOH_2632
+	border = GFX_event_letter_frame_war
+
+	is_triggered_only = yes
+
+	#quest_target = ROOT
+
+	option = {
+		name = ACCEPT
+		ROOT = {
+			set_quest_target = {
+				id = quest_rising_sun_war_focus
+				holder = ROOT
+			}
+		}
+	}
+	option = {
+		name = DECLINE
+		custom_tooltip = { text = decline_quest_tooltip }
+
+		add_character_modifier = {
+			name = quest_cooldown_timer
+			hidden = yes
+			days = 1000
+		}
+
+		ai_chance = { factor = 0 }
+	}
+	
+	after = {
+		hidden_effect = { #For the one who instantly selected the focus, bypassing the mission-trigger
+			if = {
+				limit = { has_focus = focus_war }
+				character_event = { id = soh.2633 days = 1 }
+			}
+		}
+	}
+}
+
+#on_focus_selected: Changing to War focus.
+character_event = {
+	id = soh.2633
+	desc = EVTDESC_SOH_2633
+	picture = GFX_evt_china_expansionist
+	border = GFX_event_normal_frame_war
+
+	is_triggered_only = yes
+
+	trigger = {
+		society_member_of = warriors_of_the_rising_sun
+		has_quest = quest_rising_sun_war_focus
+		has_focus = focus_war
+	}
+
+	option = {
+		name = EVTOPTA_SOH_2633
+		clr_quest = quest_rising_sun_war_focus
+		add_society_currency_minor_effect = yes
+	}
+}
+
+### Mission: Become the Very Best (like no one ever was!)
+
+# Ping
+character_event = {
+	id = soh.2634
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			society_quest_event = { id = soh.2635 }
+		}
+	}
+}
+
+# Inform the member
+society_quest_event = {
+	id = soh.2635
+	desc = EVTDESC_SOH_2635
+	border = GFX_event_letter_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = ACCEPT
+		ROOT = {
+			set_quest_target = {
+				id = quest_rising_sun_the_very_best
+				holder = ROOT
+			}
+		}
+		log = "[Root.GetBestName] is trying to be the Very Best (like no one ever was)!"
+		
+		set_character_flag = started_the_very_best # Prevents someone from restarting by abandoning the quest
+		
+		set_character_flag = special_rising_sun_character # Ensures that we won't be kicked from the society if something weird happens, as we don't want to break the chain
+				
+		character_event = { id = soh.2901 days = 30 random = 30 } # Start the quest
+	}
+	option = {
+		name = DECLINE
+		custom_tooltip = { text = decline_quest_tooltip }
+		custom_tooltip = { text = not_the_very_best }
+		set_character_flag = not_the_very_best
+
+		add_character_modifier = {
+			name = quest_cooldown_timer
+			hidden = yes
+			days = 1000
+		}
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+### Mission: Switch to Japanese Feudal
+
+# Ping
+character_event = {
+	id = soh.2636
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			society_quest_event = { id = soh.2637 }
+		}
+	}
+}
+
+# Inform the member
+society_quest_event = {
+	id = soh.2637
+	desc = EVTDESC_SOH_2637
+	border = GFX_event_letter_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = ACCEPT
+		set_quest = quest_rising_sun_become_japanese_feudal
+	}
+	option = {
+		name = DECLINE
+		custom_tooltip = { text = decline_quest_tooltip }
+
+		add_character_modifier = {
+			name = quest_cooldown_timer
+			hidden = yes
+			days = 1000
+		}
+
+		ai_chance = { factor = 0 }
+	}
+	
+	after = {
+		hidden_effect = { #For the one who instantly selected the focus, bypassing the mission-trigger
+			if = {
+				limit = { government = japanese_feudal_government }
+				character_event = { id = soh.2638 days = 1 }
+			}
+		}
+	}
+}
+
+# You succeeded (hidden)
+character_event = {
+	id = soh.2638
+	is_triggered_only = yes
+	hide_window = yes
+	
+	trigger = {
+		has_quest = quest_rising_sun_become_japanese_feudal
+	}
+	
+	immediate = {
+		random_society_member = {
+			limit = {
+				OR = {
+					AND = {
+						is_society_grandmaster = yes
+						NOT = {
+							character = ROOT
+						}
+					}
+					AND = {
+						society_rank == 3
+						ROOT = {
+							is_society_grandmaster = yes
+						}
+					}
+				}
+				same_society_as = ROOT
+			}
+			preferred_limit = {
+				NOR = {
+					any_rival = {
+						character = ROOT
+					}
+					controls_religion = yes
+				}
+			}
+			save_event_target_as = rising_sun_leader
+		}
+		
+		event_target:rising_sun_leader = {
+			character_event = { id = soh.2639 }
+		}
+	}
+}
+
+
+# Ping
+character_event = {
+	id = soh.2639
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		FROM = {
+			letter_event = { id = soh.2640 }
+		}
+	}
+}
+
+letter_event = {
+	id = soh.2640
+	desc = EVTDESC_SOH_2640 # TODO
+	border = GFX_event_letter_frame_war
+
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2640 # TODO
+		clr_quest = quest_rising_sun_become_japanese_feudal
+		add_society_currency_major_effect = yes		
+	}
+}
+
+# If we somehow complete the mission without using either decision, handle it - on_yearly_pulse
+character_event = {
+	id = soh.2641
+	hide_window = yes
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_quest = quest_rising_sun_become_japanese_feudal
+		government = japanese_feudal_government
+	}
+	
+	immediate = {
+		character_event = { id = soh.2638 }
+	}
+}
+
+# Clean up the mission if we become ineligible - on_yearly_pulse
+character_event = {
+	id = soh.2642
+	hide_window = yes
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_quest = quest_rising_sun_become_japanese_feudal
+		NOR = {
+			government = japanese_bureaucracy_government
+			government = japanese_feudal_government
+			government = japanese_monastic_feudal_government
+		}
+	}
+	
+	immediate = {
+		clr_quest = quest_rising_sun_become_japanese_feudal
+	}
+}
