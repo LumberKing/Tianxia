@@ -21,10 +21,10 @@ decisions = {
 				remove_trait = japanese_feudal_trait
 				remove_trait = japanese_monastic_trait
 			}
-			character_event = { id = japan.8 }
+			set_government_type = japanese_bureaucracy_government
 		}
 		ai_will_do = {
-			factor = 0 # Going Bureaucratic will restrict your options
+			factor = 0 # Going Bureaucratic will restrict your options, so the AI really shouldn't bother with it...
 		}
 	}
 	
@@ -54,7 +54,7 @@ decisions = {
 				add_trait = japanese_feudal_trait
 				remove_trait = japanese_monastic_trait
 			}
-			character_event = { id = japan.8 }
+			set_government_type = japanese_feudal_government
 			if = {
 				limit = {
 					has_quest = quest_rising_sun_become_japanese_feudal
@@ -77,9 +77,9 @@ decisions = {
 			}
 			modifier = {
 				factor = 0
-				religion = shinto
 				liege = {
 					dynasty = ROOT
+					religion = ROOT
 					government = japanese_monastic_feudal_government
 				}
 			}
@@ -119,7 +119,7 @@ decisions = {
 				add_trait = japanese_monastic_trait
 				remove_trait = japanese_feudal_trait
 			}
-			character_event = { id = japan.8 }
+			set_government_type = japanese_monastic_feudal_government
 		}
 		ai_will_do = {
 			factor = 1
@@ -194,6 +194,7 @@ decisions = {
 		}
 		effect = {
 			set_character_flag = restoring_japan
+			# Recreate Japan
 			primary_title = {
 				e_japan = {
 					grant_title = ROOT
@@ -201,7 +202,145 @@ decisions = {
 					#copy_title_history = PREV # This could result in undesirable rulers showing up in e_japan's history, so don't do this!
 				}
 			}
-			# Destroy any other empire controlled by ROOT
+			
+			# De jure drift kingdoms, if relevant
+			if = {
+				limit = {
+					OR = {
+						has_landed_title = k_kinai_nankaido
+						any_vassal = {
+							has_landed_title = k_kinai_nankaido
+						}
+						any_demesne_title = {
+							tier = emperor
+							de_jure_vassal_or_below = k_kinai_nankaido
+						}
+					}
+				}
+				k_kinai_nankaido = {
+					de_jure_liege = e_japan
+				}
+			}
+			if = {
+				limit = {
+					OR = {
+						has_landed_title = k_kyushu
+						any_vassal = {
+							has_landed_title = k_kyushu
+						}
+						any_demesne_title = {
+							tier = emperor
+							de_jure_vassal_or_below = k_kyushu
+						}
+					}
+				}
+				k_kyushu = {
+					de_jure_liege = e_japan
+				}
+			}
+			if = {
+				limit = {
+					OR = {
+						has_landed_title = k_sanyodo_sanindo
+						any_vassal = {
+							has_landed_title = k_sanyodo_sanindo
+						}
+						any_demesne_title = {
+							tier = emperor
+							de_jure_vassal_or_below = k_sanyodo_sanindo
+						}
+					}
+				}
+				k_sanyodo_sanindo = {
+					de_jure_liege = e_japan
+				}
+			}
+			if = {
+				limit = {
+					OR = {
+						has_landed_title = k_chubu_owari
+						any_vassal = {
+							has_landed_title = k_chubu_owari
+						}
+						any_demesne_title = {
+							tier = emperor
+							de_jure_vassal_or_below = k_chubu_owari
+						}
+					}
+				}
+				k_chubu_owari = {
+					de_jure_liege = e_japan
+				}
+			}
+			if = {
+				limit = {
+					OR = {
+						has_landed_title = k_kanto_tohoku
+						any_vassal = {
+							has_landed_title = k_kanto_tohoku
+						}
+						any_demesne_title = {
+							tier = emperor
+							de_jure_vassal_or_below = k_kanto_tohoku
+						}
+					}
+				}
+				k_kanto_tohoku = {
+					de_jure_liege = e_japan
+				}
+			}
+			if = {
+				limit = {
+					OR = {
+						has_landed_title = k_ryukyu
+						any_vassal = {
+							has_landed_title = k_ryukyu
+						}
+						any_demesne_title = {
+							tier = emperor
+							de_jure_vassal_or_below = k_ryukyu
+						}
+					}
+				}
+				k_ryukyu = {
+					de_jure_liege = e_japan
+					if = {
+						limit = {
+							NOT = {
+								has_global_flag = ryukyu_integrated
+							}
+						}
+						set_global_flag = ryukyu_integrated
+					}
+				}
+			}
+			if = {
+				limit = {
+					OR = {
+						has_landed_title = k_yezo
+						any_vassal = {
+							has_landed_title = k_yezo
+						}
+						any_demesne_title = {
+							tier = emperor
+							de_jure_vassal_or_below = k_yezo
+						}
+					}
+				}
+				k_yezo = {
+					de_jure_liege = e_japan
+					if = {
+						limit = {
+							NOT = {
+								has_global_flag = ezo_integrated
+							}
+						}
+						set_global_flag = ezo_integrated
+					}
+				}
+			}
+			
+			# Destroy any other empire controlled by the Tenno
 			any_demesne_title = {
 				limit = {
 					tier = emperor
@@ -215,671 +354,651 @@ decisions = {
 		}
 	}
 	
-	take_over_regency = {
-		ai_check_interval = 3
-		is_high_prio = yes
-		only_playable = yes
-		potential = {
-			trait = japanese_regent
-			liege = {
-				religion = shinto
-				controls_religion = yes
-				trait = under_regency
-				regent = {
-					OR = {
-						NOT = {
-							trait = japanese_regent
-						}
-						is_ruler = no
-						has_regent = yes
-					}
-				}
-			}
-		}
-		
-		allow = {
-			is_inaccessible_or_incapable_trigger = no
-			has_actual_regency_trigger = no
-			custom_tooltip = {
-				text = is_not_busy_trigger_tooltip
-				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
-			}
-		}
-		
-		effect = {
-			liege = {
-				regent = {
-					remove_trait = japanese_regent
-					remove_title = title_regent
-				}
-			}
-			liege = {
-				ROOT = {
-					give_minor_title = title_regent
-					give_minor_title = title_appointed_regent
-				}
-			}
-		}
-		
-		ai_will_do = {
-			factor = 100
-		}
-	}
-	
-	take_over_regency2 = {
-		ai_check_interval = 3
-		is_high_prio = yes
-		only_playable = yes
-		potential = {
-			is_playable = yes
-			trait = japanese_regent2
-			liege = {
-				trait = under_regency2
-				regent = {
-					OR = {
-						NOT = {
-							trait = japanese_regent2
-						}
-						is_ruler = no
-						has_regent = yes
-					}
-				}
-			}
-		}
-		
-		allow = {
-			is_inaccessible_or_incapable_trigger = no
-			has_actual_regency_trigger = no
-			custom_tooltip = {
-				text = is_not_busy_trigger_tooltip
-				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
-			}
-		}
-		
-		effect = {
-			liege = {
-				regent = {
-					remove_trait = japanese_regent2
-					remove_title = title_regent
-				}
-			}
-			liege = {
-				ROOT = {
-					give_minor_title = title_regent
-					give_minor_title = title_appointed_regent
-				}
-			}
-		}
-		
-		ai_will_do = {
-			factor = 100
-		}
-	}
-	
-	end_regency_ask_nicely = {
-		only_playable = yes
+	make_yamashiro_the_capital = {
 		ai_check_interval = 12
-		
+		only_playable = yes
+		only_independent = yes
 		potential = {
 			religion = shinto
 			controls_religion = yes
-			trait = under_regency
-			NOT = { trait = incapable }
-			OR = {
-				NOT = {
-					has_character_flag = asked_to_end_regency
-					had_character_flag = { flag = asked_to_end_regency days = 1825 }
+			c_yamashiro = {
+				holder_scope = {
+					OR = {
+						character = ROOT
+						top_liege = {
+							character = ROOT
+						}
+					}
 				}
+			}
+			primary_title = {
+				title = e_japan
+				capital_scope = {
+					NOT = {
+						province = 2485 # Yamashiro
+					}
+				}
+			}
+		}
+		allow = {
+			war = no
+			has_actual_regency_trigger = no
+		}
+		effect = {
+			if = {
+				limit = {
+					c_yamashiro = {
+						holder_scope = {
+							NOT = {
+								character = ROOT
+							}
+						}
+					}
+				}
+				c_yamashiro = {
+					grant_title_no_opinion = ROOT
+				}
+			}
+			e_japan = {
+				set_preferred_capital = 2485 # Yamashiro
+			}
+			capital = c_yamashiro
+		}
+		ai_will_do = {
+			factor = 100
+		}
+	}
+	
+	found_heian_kyo = {
+		is_high_prio = yes
+		only_independent = yes
+		ai_check_interval = 60
+
+		potential = {
+			has_landed_title = k_chrysanthemum_throne
+			has_landed_title = e_japan
+			OR = {
+				has_landed_title = c_yamashiro
+				any_realm_character = {
+					has_landed_title = c_yamashiro
+				}
+			}
+			b_heian_kyo = { has_holder = no }
+			is_alternate_start = no
+			NOT = { has_global_flag = established_heian_kyo }
+		}
+		allow = {
+			prestige = 500
+			wealth = 500
+			has_landed_title = k_chrysanthemum_throne
+			has_landed_title = e_japan
+			OR = {
+				has_landed_title = c_yamashiro
+				any_realm_character = {
+					has_landed_title = c_yamashiro
+				}
+			}
+		}
+		effect = {
+			set_global_flag = established_heian_kyo
+			wealth = -500
+			if = {
+				limit = {
+					capital_scope = {
+						NOT = { province = 2485 }
+					}
+				}
+				custom_tooltip = { text = heian_kyo_decision_TT }
+			}
+			if = {
+				limit = {
+					NOT = { has_landed_title = c_yamashiro }
+				}
+				c_yamashiro = {
+					show_scope_change = no
+					grant_title_no_opinion = root
+				}
+			}
+			2485 = {
+				show_scope_change = no
+				build_holding = {
+					title = b_heian_kyo
+					type = castle
+					holder = ROOT
+				}
+				hidden_tooltip = {
+					b_heian_kyo = { 
+						province_capital = yes
+						root = { capital = PREV } 
+						add_building = ca_wall_q_1
+						add_building = ca_wall_1
+						add_building = ca_keep_1
+						add_building = ca_militia_barracks_1
+						add_building = ca_barracks_1
+						add_building = ca_stable_1
+						add_building = ca_town_1
+					}
+				}
+			}
+			culture = japanese
+			any_courtier = {
+				limit = {
+					OR = {
+						culture = yamato
+						culture = emishi
+					}
+					employer = { character = ROOT }
+					dynasty = ROOT
+				}
+				culture = japanese
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+		}
+	}
+	
+	integrate_ezo = {
+		is_high_prio = yes
+		only_playable = yes
+		only_independent = yes
+		ai_check_interval = 12
+
+		potential = {
+			tier = emperor
+			has_landed_title = e_japan
+			is_feudal = yes
+			is_alternate_start = no
+			NOT = {
+				has_global_flag = ezo_integrated
+			}
+			NOT = {
+				k_yezo = {
+					de_jure_liege = e_japan
+				}
+			}
+		}
+
+		allow = {
+			# We're appropriately Japanese
+			can_have_any_japanese_government_trigger = yes
+			
+			is_adult = yes
+			war = no
+			has_regent = no # The stricter version
+			prestige = 5000
+			wealth = 1000
+			is_tributary = no
+			
+			# We control the kingdom and the initial de jure
+			completely_controls = k_yezo
+			completely_controls_region = custom_yezo
+			completely_controls_region = world_japan # You need the original too!
+			
+			# The title is unheld or controlled by us or an acceptable vassal
+			custom_tooltip = {
+				text = ezo_has_no_holder_is_mine_or_belongs_to_a_good_vassal
+				OR = {
+					k_yezo = {
+						has_holder = no
+					}
+					k_yezo = {
+						holder_scope = {
+							character = ROOT
+						}
+					}
+					k_yezo = {
+						holder_scope = {
+							can_have_any_japanese_government_trigger = yes
+							war = no
+							liege = {
+								character = ROOT
+							}
+						}
+					}
+				}
+			}
+			
+			# The de jure liege doesn't exist
+			k_yezo = {
+				dejure_liege_title = {
+					has_holder = no
+				}
+			}
+		}
+
+		effect = {
+			wealth = -1000
+
+			set_global_flag = ezo_integrated
+			
+			k_yezo = {
+				show_scope_change = no
+				de_jure_liege = e_japan
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+		}
+	}
+	
+	integrate_ryukyu = {
+		is_high_prio = yes
+		only_playable = yes
+		only_independent = yes
+		ai_check_interval = 12
+
+		potential = {
+			tier = emperor
+			has_landed_title = e_japan
+			is_feudal = yes
+			is_alternate_start = no
+			NOT = {
+				has_global_flag = ryukyu_integrated
+			}
+			NOT = {
+				k_ryukyu = {
+					de_jure_liege = e_japan
+				}
+			}
+		}
+
+		allow = {
+			# We're appropriately Japanese
+			can_have_any_japanese_government_trigger = yes
+			
+			is_adult = yes
+			war = no
+			has_regent = no # The stricter version
+			prestige = 5000
+			wealth = 1000
+			is_tributary = no
+			
+			# We control the kingdom and the initial de jure
+			completely_controls = k_ryukyu
+			completely_controls_region = world_japan_islands
+			completely_controls_region = world_japan # You need the original too!
+			
+			# The title is unheld or controlled by us or an acceptable vassal
+			custom_tooltip = {
+				text = ryukyu_has_no_holder_is_mine_or_belongs_to_a_good_vassal
+				OR = {
+					k_ryukyu = {
+						has_holder = no
+					}
+					k_ryukyu = {
+						holder_scope = {
+							character = ROOT
+						}
+					}
+					k_ryukyu = {
+						holder_scope = {
+							can_have_any_japanese_government_trigger = yes
+							war = no
+							liege = {
+								character = ROOT
+							}
+						}
+					}
+				}
+			}
+			
+			# The de jure liege doesn't exist
+			k_ryukyu = {
+				dejure_liege_title = {
+					has_holder = no
+				}
+			}
+		}
+
+		effect = {
+			wealth = -1000
+
+			set_global_flag = ryukyu_integrated
+			
+			k_ryukyu = {
+				show_scope_change = no
+				de_jure_liege = e_japan
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+		}
+	}
+	
+	regent_take_money = {
+		only_playable = yes
+		ai_check_interval = 60
+		
+		potential = {
+			i_am_appropriate_regent_trigger = yes
+			regent_take_money_enabled_trigger = yes
+			OR = {
+				ai = no
+				NOT = {
+					wealth = 10000
+				}
+				trait = greedy
 			}
 		}
 		
 		allow = {
-			OR = {
-				AND = {
-					prestige = 2000
-					regent = {
-						custom_tooltip = {
-							text = has_regency_bloodline
-							any_owned_bloodline = {
-								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = PREV
-							}
-						}
-					}
-				}
-				AND = {
-					prestige = 1000
-					regent = {
-						custom_tooltip = {
-							text = has_no_regency_bloodline
-							NOT = {
-								any_owned_bloodline = {
-									has_bloodline_flag = regency_bloodline
-									bloodline_is_active_for = PREV
-								}
-							}
-						}
+			has_regent = no
+			prestige = 250
+			liege = {
+				NOT = {
+					has_opinion_modifier = {
+						who = ROOT
+						modifier = japanese_regent_took_money
 					}
 				}
 			}
-			has_actual_regency_trigger = no
-			custom_tooltip = {
-				text = is_not_busy_trigger_tooltip
-				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
+			liege = {
+				scaled_wealth = {
+					value = 1
+					min = 25
+				}
 			}
 		}
 		
 		effect = {
-			clr_character_flag = asked_to_end_regency
-			set_character_flag = asked_to_end_regency
-			if = {
-				limit = {
-					regent = {
-						custom_tooltip = {
-							text = has_regency_bloodline
-							any_owned_bloodline = {
-								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = PREV
-							}
-						}
-					}
+			prestige = -250
+			liege = {
+				transfer_scaled_wealth = {
+					to = ROOT
+					value = 1
+					min = 25
+					max = 1000
 				}
-				prestige = -2000
-			}
-			else = {
-				prestige = -1000
-			}
-			if = {
-				limit = {
-					regent = {
-						NOT = {
-							higher_tier_than = baron
-						}
-					}
-				}
-				remove_trait = under_regency
-				any_character = {
-					remove_trait = japanese_regent
-				}
-			}
-			else = {
-				regent = {
-					letter_event = { id = japan.24 }
-				}
+				character_event = { id = soh.3528 } # Inform the liege
 			}
 		}
 		
 		ai_will_do = {
 			factor = 1
 			modifier = {
-				factor = 0
-				NOR = {
-					regent = {
-						NOT = {
-							higher_tier_than = baron
-						}
-					}
-					regent = {
-						OR = {
-							trait = kind
-							trait = content
-							trait = humble
-						}
-						NOR = {
-							trait = ambitious
-							trait = proud
-							trait = envious
-						}
-					}
-					regent = {
-						NOT = {
-							relative_power_to_liege = 0.1
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 0
-				regent = {
-					higher_tier_than = baron
-				}
-				war = yes
-			}
-			modifier = {
 				factor = 0.01
-				regent = {
-					higher_tier_than = baron
-				}
+				always = yes
+			}
+			modifier = {
+				factor = 0
 				trait = content
 			}
 			modifier = {
-				factor = 0.2
-				regent = {
-					higher_tier_than = baron
-				}
-				OR = {
-					trait = dull
-					trait = slow
-				}
+				factor = 0.1
+				trait = humble
 			}
 			modifier = {
-				factor = 0.2
-				regent = {
-					higher_tier_than = baron
-				}
-				trait = kind
+				factor = 0.1
+				trait = just
 			}
 			modifier = {
-				factor = 0
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					reverse_opinion = {
-						who = ROOT
-						value = 50
-					}
-				}
-				OR = {
-					trait = envious
-					trait = deceitful
-					trait = ambitious
-				}			
-			}		
-			modifier = {
-				factor = 0
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					reverse_opinion = {
-						who = ROOT
-						value = 25
-					}
-				}
-				NOT = {
-					OR = {
-						trait = envious
-						trait = deceitful
-						trait = ambitious
-					}
-				}
+				factor = 10
+				trait = ambitious
 			}
 			modifier = {
-				factor = 0.2
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					reverse_opinion = {
-						who = ROOT
-						value = 0
-					}
-				}
-				NOT = {
-					OR = {
-						trait = envious
-						trait = deceitful
-						trait = ambitious
-					}
-				}
-			}
-			modifier = {
-				factor = 0.2
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					reverse_opinion = {
-						who = ROOT
-						value = 25
-					}
-				}
-				OR = {
-					trait = envious
-					trait = deceitful
-					trait = ambitious
-				}
-			}
-			modifier = {
-				factor = 1.5
-				regent = {
-					higher_tier_than = baron
-				}
-				NOT = {
-					regent = {
-						reverse_opinion = {
-							who = ROOT
-							value = -50
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 1.5
-				regent = {
-					higher_tier_than = baron
-				}
-				NOT = {
-					regent = {
-						reverse_opinion = {
-							who = ROOT
-							value = -75
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 1.5
-				regent = {
-					higher_tier_than = baron
-				}
-				is_smart_trigger = yes
-			}
-			modifier = {
-				factor = 2.0
-				regent = {
-					higher_tier_than = baron
-				}
+				factor = 5
 				trait = envious
 			}
 			modifier = {
-				factor = 2.0
-				regent = {
-					higher_tier_than = baron
-				}
-				trait = deceitful
+				factor = 2
+				trait = proud
 			}
 			modifier = {
-				factor = 4.0
-				regent = {
-					higher_tier_than = baron
+				factor = 10
+				trait = greedy
+			}
+			modifier = {
+				factor = 0.1
+				trait = charitable
+				wealth = 0
+			}
+		}
+	}
+	
+	regent_force_actual_regency = {
+		only_playable = yes
+		ai_check_interval = 60
+		
+		potential = {
+			i_am_appropriate_regent_trigger = yes
+			regent_force_actual_regency_enabled_trigger = yes
+			OR = {
+				ai = no
+				OR = {
+					trait = ambitious
+					trait = proud
+					trait = arbitrary
+					liege = {
+						any_rival = {
+							character = ROOT
+						}
+					}
 				}
+			}
+		}
+		
+		allow = {
+			prestige = 1000
+			has_regent = no
+			liege = {
+				NOT = {
+					has_opinion_modifier = {
+						who = ROOT
+						modifier = japanese_regent_forced_actual_regency
+					}
+				}
+			}
+			liege = {
+				war = no
+				has_actual_regency_trigger = no # Irrelevant
+			}
+		}
+		
+		effect = {
+			prestige = -1000
+			liege = {
+				character_event = { id = soh.3529 } # Inform the liege
+			}
+		}
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes
+			}
+			modifier = {
+				factor = 0
+				trait = content
+				NOT = {
+					liege = {
+						any_rival = {
+							character = ROOT
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1
+				trait = humble
+			}
+			modifier = {
+				factor = 0.1
+				trait = just
+			}
+			modifier = {
+				factor = 10
 				trait = ambitious
 			}
-			# If we're the top liege, make us more likely to try to depose the regent
 			modifier = {
-				factor = 2.0
-				regent = {
-					higher_tier_than = baron
-				}
-				tier = emperor
-			}
-			# If the regent is low tier, make us more likely to try to depose the regent
-			modifier = {
-				factor = 1.5
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					NOT = {
-						tier = king
-					}
-				}
+				factor = 5
+				trait = envious
 			}
 			modifier = {
-				factor = 1.5
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					NOR = {
-						tier = king
-						tier = duke
-					}
-				}
+				factor = 2
+				trait = proud
 			}
-			# Make the liege less eager to replace a regent that belongs to a regency bloodline
 			modifier = {
-				factor = 0.5
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					any_owned_bloodline = {
-						has_bloodline_flag = regency_bloodline
-						bloodline_is_active_for = PREV
+				factor = 10
+				liege = {
+					any_rival = {
+						character = ROOT
 					}
 				}
 			}
 		}
 	}
 	
-	become_regent_ask_nicely = {
+	increase_lieges_regent_powers = {
 		only_playable = yes
-		is_high_prio = yes
 		ai_check_interval = 60
-		
 		potential = {
+			i_am_appropriate_regent_trigger = yes
 			liege = {
-				religion = shinto
-				controls_religion = yes
-				has_regent = no
-			}
-			NOT = {
-				religion = shinto
-				controls_religion = yes
-			}
-			OR = {
-				religion = shinto
-				AND = {
-					religion = buddhist
-					culture_group = japonic
-				}
-			}
-			OR = {
-				NOT = {
-					has_character_flag = asked_for_regency
-					had_character_flag = { flag = asked_for_regency days = 1825 }
+				primary_title = {
+					NOT = {
+						has_law = regency_power_6 # Already maxed out
+					}
 				}
 			}
 		}
 		
 		allow = {
-			OR = {
-				prestige = 1000
-				AND = {
-					custom_tooltip = {
-						text = has_regency_bloodline
-						any_owned_bloodline = {
-							has_bloodline_flag = regency_bloodline
-							bloodline_is_active_for = PREV
-						}
-					}
-					prestige = 500
-				}
-			}
+			war = no
 			has_actual_regency_trigger = no
 			liege = {
-				NOR = {
-					has_actual_regency_trigger = yes
-					trait = under_regency
-					war = yes
+				NOT = {
+					has_character_modifier = recent_regent_power_change
 				}
 			}
-			OR = {
-				is_voter = yes # Safe to use here!
-				among_most_powerful_vassals = 7
-				custom_tooltip = {
-					text = has_regency_bloodline
-					any_owned_bloodline = {
-						has_bloodline_flag = regency_bloodline
-						bloodline_is_active_for = PREV
-					}
-				}
-			}
-			custom_tooltip = {
-				text = is_not_busy_trigger_tooltip
-				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
-			}
+			prestige = 1000
 		}
 		
 		effect = {
-			clr_character_flag = asked_for_regency
-			set_character_flag = asked_for_regency
-			if = {
-				limit = {
-					custom_tooltip = {
-						text = has_regency_bloodline
-						any_owned_bloodline = {
-							has_bloodline_flag = regency_bloodline
-							bloodline_is_active_for = PREV
-						}
-					}
-				}
-				prestige = -500
-			}
-			else = {
-				prestige = -1000
-			}
+			prestige = -1000
 			liege = {
-				letter_event = { id = japan.27 }
+				increase_regent_powers_effect = yes
+				character_event = { id = soh.3526 } # Inform liege
+				add_character_modifier = {
+					modifier = recent_regent_power_change
+					months = 120
+				}
 			}
 		}
 		
 		ai_will_do = {
 			factor = 1
 			modifier = {
-				factor = 0
-				OR = {
-					trait = kind
-					trait = content
-					trait = humble
-				}
-				NOR = {
-					trait = ambitious
-					trait = proud
-					trait = envious
-				}
-			}
-			modifier = {
-				factor = 0
-				war = yes
-			}
-			modifier = {
 				factor = 0.01
+				always = yes
+			}
+			modifier = {
+				factor = 0
 				trait = content
 			}
 			modifier = {
-				factor = 0.2
-				OR = {
-					trait = dull
-					trait = slow
-				}
+				factor = 0.1
+				trait = humble
 			}
 			modifier = {
-				factor = 0.2
-				trait = kind
+				factor = 0.1
+				trait = just
 			}
 			modifier = {
-				factor = 0
-				liege = {
-					reverse_opinion = {
-						who = ROOT
-						value = 50
-					}
-				}
-				OR = {
-					trait = envious
-					trait = deceitful
-					trait = ambitious
-				}			
-			}		
-			modifier = {
-				factor = 0
-				liege = {
-					reverse_opinion = {
-						who = ROOT
-						value = 25
-					}
-				}
-				NOT = {
-					OR = {
-						trait = envious
-						trait = deceitful
-						trait = ambitious
-					}
-				}
+				factor = 10
+				trait = ambitious
 			}
 			modifier = {
-				factor = 0.2
-				liege = {
-					reverse_opinion = {
-						who = ROOT
-						value = 0
-					}
-				}
-				NOT = {
-					OR = {
-						trait = envious
-						trait = deceitful
-						trait = ambitious
-					}
-				}
-			}
-			modifier = {
-				factor = 0.2
-				liege = {
-					reverse_opinion = {
-						who = ROOT
-						value = 25
-					}
-				}
-				OR = {
-					trait = envious
-					trait = deceitful
-					trait = ambitious
-				}
-			}
-			modifier = {
-				factor = 1.5
-				NOT = {
-					liege = {
-						reverse_opinion = {
-							who = ROOT
-							value = -50
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 1.5
-				NOT = {
-					liege = {
-						reverse_opinion = {
-							who = ROOT
-							value = -75
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 1.5
-				is_smart_trigger = yes
-			}
-			modifier = {
-				factor = 2.0
+				factor = 5
 				trait = envious
 			}
 			modifier = {
-				factor = 2.0
+				factor = 2
+				trait = proud
+			}
+			modifier = {
+				factor = 5
 				trait = deceitful
 			}
-			modifier = {
-				factor = 4.0
-				trait = ambitious
+		}
+	}
+	
+	decrese_my_regents_powers = {
+		only_playable = yes
+		ai_check_interval = 60
+		potential = {
+			OR = {
+				trait = under_regency
+				trait = under_regency2
+				trait = under_regency3
 			}
-			# If our liege is only king-tier, make us more likely to act
-			modifier = {
-				factor = 2.0
-				liege = {
-					tier = king
+			primary_title = {
+				NOT = {
+					has_law = regency_power_0
 				}
 			}
-			# If we're a king, make us more likely to act
+			regent = {
+				i_am_appropriate_regent_trigger = yes
+			}
+		}
+		
+		allow = {
+			war = no
+			has_actual_regency_trigger = no
+			NOT = {
+				has_character_modifier = recent_regent_power_change
+			}
+			prestige = 1000
+		}
+		
+		effect = {
+			prestige = -1000
+			decrease_regent_powers_effect = yes
+			regent = {
+				character_event = { id = soh.3527 } # Inform regent
+			}
+			add_character_modifier = {
+				modifier = recent_regent_power_change
+				months = 120
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes
+			}
+			modifier = {
+				factor = 0
+				trait = content
+			}
+			modifier = {
+				factor = 0.1
+				trait = humble
+			}
+			modifier = {
+				factor = 0.1
+				trait = just
+			}
+			modifier = {
+				factor = 10
+				trait = ambitious
+			}
+			modifier = {
+				factor = 5
+				trait = envious
+			}
 			modifier = {
 				factor = 2
-				tier = king
+				trait = proud
+			}
+			modifier = {
+				factor = 5
+				trait = deceitful
 			}
 		}
 	}
@@ -936,7 +1055,16 @@ decisions = {
 			}
 			regent = {
 				is_landed = yes
-				trait = japanese_regent
+				OR = {
+					trait = japanese_regent
+					NOT = {
+						ROOT = {
+							any_vassal = {
+								trait = japanese_regent
+							}
+						}
+					}
+				}
 				NOT = {
 					trait = treasure_fleet_preparation
 				}
@@ -977,12 +1105,12 @@ decisions = {
 					}
 				}
 				regent = {
-					letter_event = { id = japan.58 } # Non-faction version
+					letter_event = { id = soh.3556 } # Non-faction version
 				}
 			}
 			else = {
 				regent = {
-					letter_event = { id = japan.61 } # Faction version
+					letter_event = { id = soh.3565 } # Faction version
 				}
 			}
 		}
@@ -1046,601 +1174,14 @@ decisions = {
 		}
 	}
 	
-	end_regency_ask_nicely_shogun = {
+	overthrow_my_regent_decision2 = {
 		only_playable = yes
-		ai_check_interval = 12
-		
-		potential = {
-			real_tier = emperor
-			OR = {
-				religion = shinto
-				AND = {
-					religion = buddhist
-					culture_group = japonic
-				}
-			}
-			trait = under_regency2
-			NOT = { trait = incapable }
-			OR = {
-				NOT = {
-					has_character_flag = asked_to_end_regency
-					had_character_flag = { flag = asked_to_end_regency days = 1825 }
-				}
-			}
-		}
-		
-		allow = {
-			OR = {
-				AND = {
-					prestige = 2000
-					regent = {
-						custom_tooltip = {
-							text = has_regency_bloodline
-							any_owned_bloodline = {
-								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = PREV
-							}
-						}
-					}
-				}
-				AND = {
-					prestige = 1000
-					regent = {
-						custom_tooltip = {
-							text = has_no_regency_bloodline
-							NOT = {
-								any_owned_bloodline = {
-									has_bloodline_flag = regency_bloodline
-									bloodline_is_active_for = PREV
-								}
-							}
-						}
-					}
-				}
-			}
-			has_actual_regency_trigger = no
-			custom_tooltip = {
-				text = is_not_busy_trigger_tooltip
-				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
-			}
-		}
-		
-		effect = {
-			clr_character_flag = asked_to_end_regency
-			set_character_flag = asked_to_end_regency
-			if = {
-				limit = {
-					regent = {
-						custom_tooltip = {
-							text = has_regency_bloodline
-							any_owned_bloodline = {
-								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = PREV
-							}
-						}
-					}
-				}
-				prestige = -2000
-			}
-			else = {
-				prestige = -1000
-			}
-			if = {
-				limit = {
-					regent = {
-						NOT = {
-							higher_tier_than = baron
-						}
-					}
-				}
-				regent = {
-					remove_trait = japanese_regent2
-				}
-				remove_trait = under_regency2
-			}
-			else = {
-				regent = {
-					letter_event = { id = japan.77 }
-				}
-			}
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0
-				NOR = {
-					regent = {
-						NOT = {
-							higher_tier_than = baron
-						}
-					}
-					regent = {
-						OR = {
-							trait = kind
-							trait = content
-							trait = humble
-						}
-						NOR = {
-							trait = ambitious
-							trait = proud
-							trait = envious
-						}
-					}
-					regent = {
-						NOT = {
-							relative_power_to_liege = 0.1
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 0
-				regent = {
-					higher_tier_than = baron
-				}
-				war = yes
-			}
-			modifier = {
-				factor = 0.01
-				regent = {
-					higher_tier_than = baron
-				}
-				trait = content
-			}
-			modifier = {
-				factor = 0.2
-				regent = {
-					higher_tier_than = baron
-				}
-				OR = {
-					trait = dull
-					trait = slow
-				}
-			}
-			modifier = {
-				factor = 0.2
-				regent = {
-					higher_tier_than = baron
-				}
-				trait = kind
-			}
-			modifier = {
-				factor = 0
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					reverse_opinion = {
-						who = ROOT
-						value = 50
-					}
-				}
-				OR = {
-					trait = envious
-					trait = deceitful
-					trait = ambitious
-				}			
-			}		
-			modifier = {
-				factor = 0
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					reverse_opinion = {
-						who = ROOT
-						value = 25
-					}
-				}
-				NOT = {
-					OR = {
-						trait = envious
-						trait = deceitful
-						trait = ambitious
-					}
-				}
-			}
-			modifier = {
-				factor = 0.2
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					reverse_opinion = {
-						who = ROOT
-						value = 0
-					}
-				}
-				NOT = {
-					OR = {
-						trait = envious
-						trait = deceitful
-						trait = ambitious
-					}
-				}
-			}
-			modifier = {
-				factor = 0.2
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					reverse_opinion = {
-						who = ROOT
-						value = 25
-					}
-				}
-				OR = {
-					trait = envious
-					trait = deceitful
-					trait = ambitious
-				}
-			}
-			modifier = {
-				factor = 1.5
-				regent = {
-					higher_tier_than = baron
-				}
-				NOT = {
-					regent = {
-						reverse_opinion = {
-							who = ROOT
-							value = -50
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 1.5
-				regent = {
-					higher_tier_than = baron
-				}
-				NOT = {
-					regent = {
-						reverse_opinion = {
-							who = ROOT
-							value = -75
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 1.5
-				regent = {
-					higher_tier_than = baron
-				}
-				is_smart_trigger = yes
-			}
-			modifier = {
-				factor = 2.0
-				regent = {
-					higher_tier_than = baron
-				}
-				trait = envious
-			}
-			modifier = {
-				factor = 2.0
-				regent = {
-					higher_tier_than = baron
-				}
-				trait = deceitful
-			}
-			modifier = {
-				factor = 4.0
-				regent = {
-					higher_tier_than = baron
-				}
-				trait = ambitious
-			}
-			# If we're the top liege, make us more likely to try to depose the regent
-			modifier = {
-				factor = 2.0
-				regent = {
-					higher_tier_than = baron
-				}
-				tier = emperor
-			}
-			# If the regent is low tier, make us more likely to try to depose the regent
-			modifier = {
-				factor = 1.5
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					NOT = {
-						tier = king
-					}
-				}
-			}
-			modifier = {
-				factor = 1.5
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					NOR = {
-						tier = king
-						tier = duke
-					}
-				}
-			}
-			# Make the liege less eager to replace a regent that belongs to a regency bloodline
-			modifier = {
-				factor = 0.5
-				regent = {
-					higher_tier_than = baron
-				}
-				regent = {
-					any_owned_bloodline = {
-						has_bloodline_flag = regency_bloodline
-						bloodline_is_active_for = PREV
-					}
-				}
-			}
-		}
-	}
-	
-	become_regent_ask_nicely_shogun = {
-		only_playable = yes
-		is_high_prio = yes
-		ai_check_interval = 60
-		
-		potential = {
-			liege = {
-				independent = yes
-				real_tier = emperor
-				OR = {
-					AND = {
-						religion = shinto
-						controls_religion = no
-					}
-					AND = {
-						religion = buddhist
-						culture_group = japonic
-					}
-				}
-				has_regent = no
-			}
-			# The Tenno can't become the Regent
-			NOT = {
-				religion = shinto
-				controls_religion = yes
-			}
-			OR = {
-				religion = shinto
-				AND = {
-					religion = buddhist
-					culture_group = japonic
-				}
-			}
-			OR = {
-				NOT = {
-					has_character_flag = asked_for_regency
-					had_character_flag = { flag = asked_for_regency days = 1825 }
-				}
-			}
-		}
-		
-		allow = {
-			OR = {
-				prestige = 1000
-				AND = {
-					custom_tooltip = {
-						text = has_regency_bloodline
-						any_owned_bloodline = {
-							has_bloodline_flag = regency_bloodline
-							bloodline_is_active_for = PREV
-						}
-					}
-					prestige = 500
-				}
-			}
-			has_actual_regency_trigger = no
-			liege = {
-				NOR = {
-					has_actual_regency_trigger = yes
-					trait = under_regency
-					war = yes
-				}
-			}
-			OR = {
-				is_voter = yes # Safe to use here!
-				among_most_powerful_vassals = 7
-				custom_tooltip = {
-					text = has_regency_bloodline
-					any_owned_bloodline = {
-						has_bloodline_flag = regency_bloodline
-						bloodline_is_active_for = PREV
-					}
-				}
-			}
-			custom_tooltip = {
-				text = is_not_busy_trigger_tooltip
-				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
-			}
-		}
-		
-		effect = {
-			clr_character_flag = asked_for_regency
-			set_character_flag = asked_for_regency
-			if = {
-				limit = {
-					custom_tooltip = {
-						text = has_regency_bloodline
-						any_owned_bloodline = {
-							has_bloodline_flag = regency_bloodline
-							bloodline_is_active_for = PREV
-						}
-					}
-				}
-				prestige = -500
-			}
-			else = {
-				prestige = -1000
-			}
-			liege = {
-				letter_event = { id = japan.80 }
-			}
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0
-				OR = {
-					trait = kind
-					trait = content
-					trait = humble
-				}
-				NOR = {
-					trait = ambitious
-					trait = proud
-					trait = envious
-				}
-			}
-			modifier = {
-				factor = 0
-				war = yes
-			}
-			modifier = {
-				factor = 0.01
-				trait = content
-			}
-			modifier = {
-				factor = 0.2
-				OR = {
-					trait = dull
-					trait = slow
-				}
-			}
-			modifier = {
-				factor = 0.2
-				trait = kind
-			}
-			modifier = {
-				factor = 0
-				liege = {
-					reverse_opinion = {
-						who = ROOT
-						value = 50
-					}
-				}
-				OR = {
-					trait = envious
-					trait = deceitful
-					trait = ambitious
-				}			
-			}		
-			modifier = {
-				factor = 0
-				liege = {
-					reverse_opinion = {
-						who = ROOT
-						value = 25
-					}
-				}
-				NOT = {
-					OR = {
-						trait = envious
-						trait = deceitful
-						trait = ambitious
-					}
-				}
-			}
-			modifier = {
-				factor = 0.2
-				liege = {
-					reverse_opinion = {
-						who = ROOT
-						value = 0
-					}
-				}
-				NOT = {
-					OR = {
-						trait = envious
-						trait = deceitful
-						trait = ambitious
-					}
-				}
-			}
-			modifier = {
-				factor = 0.2
-				liege = {
-					reverse_opinion = {
-						who = ROOT
-						value = 25
-					}
-				}
-				OR = {
-					trait = envious
-					trait = deceitful
-					trait = ambitious
-				}
-			}
-			modifier = {
-				factor = 1.5
-				NOT = {
-					liege = {
-						reverse_opinion = {
-							who = ROOT
-							value = -50
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 1.5
-				NOT = {
-					liege = {
-						reverse_opinion = {
-							who = ROOT
-							value = -75
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 1.5
-				is_smart_trigger = yes
-			}
-			modifier = {
-				factor = 2.0
-				trait = envious
-			}
-			modifier = {
-				factor = 2.0
-				trait = deceitful
-			}
-			modifier = {
-				factor = 4.0
-				trait = ambitious
-			}
-			# If we're a king, make us more likely to act
-			modifier = {
-				factor = 2
-				tier = king
-			}
-		}
-	}
-	
-	overthrow_my_regent_decision_shogun = {
-		only_playable = yes
-		only_independent = yes
 		is_high_prio = yes
 		ai_check_interval = 3
 		
 		potential = {
-			OR = {
-				AND = {
-					religion = shinto
-					controls_religion = no
-				}
-				AND = {
-					religion = buddhist
-					culture_group = japonic
-				}
-			}
+			tier = emperor
+			can_have_japanese_bureaucracy_and_feudal_trigger = yes
 			trait = under_regency2
 			NOT = { has_character_flag = overthrow_my_regent_decision_taken }
 		}
@@ -1676,6 +1217,8 @@ decisions = {
 					}
 				}
 			}
+			will_liege_enforce_peace = no
+			has_liege_enforced_peace = no
 			NOT = {
 				regent = {
 					reverse_has_truce = ROOT
@@ -1683,7 +1226,16 @@ decisions = {
 			}
 			regent = {
 				is_landed = yes
-				trait = japanese_regent2
+				OR = {
+					trait = japanese_regent2
+					NOT = {
+						ROOT = {
+							any_vassal = {
+								trait = japanese_regent2
+							}
+						}
+					}
+				}
 				NOT = {
 					trait = treasure_fleet_preparation
 				}
@@ -1724,12 +1276,12 @@ decisions = {
 					}
 				}
 				regent = {
-					letter_event = { id = japan.97 } # Non-faction version
+					letter_event = { id = soh.3559 } # Non-faction version
 				}
 			}
 			else = {
 				regent = {
-					letter_event = { id = japan.100 } # Faction version
+					letter_event = { id = soh.3569 } # Faction version
 				}
 			}
 		}
@@ -1793,913 +1345,180 @@ decisions = {
 		}
 	}
 	
-	meddle_in_succession = {
+	overthrow_my_regent_decision3 = {
 		only_playable = yes
 		is_high_prio = yes
-		ai = no # The AI does this on_yearly_pulse
+		ai_check_interval = 3
+		
 		potential = {
-			trait = japanese_regent
-			liege = {
-				religion = shinto
-				controls_religion = yes
-				trait = under_regency
-				primary_title = {
-					has_law = regent_succession_control_1
-				}
-			}
+			religion = ryukyuan_pagan_reformed
+			controls_religion = yes
+			government = divine_imperial_government
+			trait = under_regency3
+			NOT = { has_character_flag = overthrow_my_regent_decision_taken }
 		}
 		allow = {
-			has_regent = no
-			liege = {
-				regent = {
-					character = ROOT
-				}
-				has_actual_regency_trigger = no # We already win if this is the case!
-			}
+			war = no
+			has_actual_regency_trigger = no
+			# We've got a good amount of prestige; this hopefully prevents weak historical regents from being overthrown in an instant
 			OR = {
-				prestige = 500
 				AND = {
-					has_character_modifier = meddled_in_succession
-					prestige = 100
+					prestige = 2000
+					regent = {
+						custom_tooltip = {
+							text = has_regency_bloodline
+							any_owned_bloodline = {
+								has_bloodline_flag = regency_bloodline
+								bloodline_is_active_for = PREV
+							}
+						}
+					}
 				}
+				AND = {
+					prestige = 1000
+					regent = {
+						custom_tooltip = {
+							text = has_no_regency_bloodline
+							NOT = {
+								any_owned_bloodline = {
+									has_bloodline_flag = regency_bloodline
+									bloodline_is_active_for = PREV
+								}
+							}
+						}
+					}
+				}
+			}
+			will_liege_enforce_peace = no
+			has_liege_enforced_peace = no
+			NOT = {
+				regent = {
+					reverse_has_truce = ROOT
+				}
+			}
+			regent = {
+				is_landed = yes
+				OR = {
+					trait = japanese_regent3
+					NOT = {
+						ROOT = {
+							any_vassal = {
+								trait = japanese_regent3
+							}
+						}
+					}
+				}
+				NOT = {
+					trait = treasure_fleet_preparation
+				}
+			}
+			custom_tooltip = {
+				text = is_not_busy_trigger_tooltip
+				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
+			}
+			NOT = {
+				trait = treasure_fleet_preparation
 			}
 		}
 		effect = {
+			set_character_flag = overthrow_my_regent_decision_taken
 			if = {
 				limit = {
-					NOT = {
-						has_character_modifier = meddled_in_succession
+					regent = {
+						custom_tooltip = {
+							text = has_regency_bloodline
+							any_owned_bloodline = {
+								has_bloodline_flag = regency_bloodline
+								bloodline_is_active_for = PREV
+							}
+						}
 					}
 				}
-				prestige = -500
-				liege = {
-					opinion = {
-						who = ROOT
-						modifier = opinion_opposing_my_preferred_heir
-					}
-					current_heir = {
-						opinion = {
-							who = ROOT
-							modifier = opinion_opposing_my_claim
+				prestige = -2000
+			}
+			else = {
+				prestige = -1000
+			}
+			if = {
+				limit = {
+					regent = {
+						NOT = {
+							leads_faction = faction_regent_loyalists3
 						}
 					}
-					ROOT = {
-						add_character_modifier = {
-							modifier = meddled_in_succession
-							days = 730
-						}
-					}
-					recalc_succession = yes
-					current_heir = {
-						opinion = {
-							who = ROOT
-							modifier = opinion_backing_my_claim
-						}
-					}
+				}
+				regent = {
+					letter_event = { id = soh.3562 } # Non-faction version
 				}
 			}
 			else = {
-				prestige = -100
-				remove_character_modifier = meddled_in_succession
-				ROOT = {
-					add_character_modifier = {
-						modifier = meddled_in_succession
-						days = 730
-					}
-				}
-			}
-			liege = {
-				character_event = { id = japan.412 }
-			}
-		}
-		
-		ai_will_do = {
-			factor = 0 # The AI does this on_yearly_pulse!
-		}
-	}
-	
-	nullify_succession_meddling = {
-		only_playable = yes
-		is_high_prio = yes
-		ai = no # The AI does this on_yearly_pulse and on_death
-		potential = {
-			trait = under_regency
-			religion = shinto
-			controls_religion = yes
-			regent = {
-				trait = japanese_regent
-				has_character_modifier = meddled_in_succession
-			}
-			primary_title = {
-				has_law = regent_succession_control_1
-			}
-		}
-		allow = {
-			has_actual_regency_trigger = no
-			prestige = 500
-		}
-		effect = {
-			prestige = -500
-			regent = {
-				opinion = {
-					who = ROOT
-					modifier = opinion_opposing_my_preferred_heir
-				}
-				ROOT = {
-					current_heir = {
-						opinion = {
-							who = ROOT
-							modifier = opinion_opposing_my_claim
-						}
-					}
-				}
-				remove_character_modifier = meddled_in_succession
-				ROOT = {
-					recalc_succession = yes
-					current_heir = {
-						opinion = {
-							who = ROOT
-							modifier = opinion_backing_my_claim
-						}
-					}
-				}
-			}
-			regent = {
-				character_event = { id = japan.414 }
-			}
-		}
-		
-		ai_will_do = {
-			factor = 0 # The AI does this on_yearly_pulse and on_death!
-		}
-	}
-	
-	increase_lieges_regent_powers = {
-		only_playable = yes
-		ai_check_interval = 60
-		potential = {
-			liege = {
-				OR = {
-					trait = under_regency
-					trait = under_regency2
-				}
-				primary_title = {
-					NOT = {
-						has_law = regent_succession_control_1
-					}
-				}
-			}
-			regent = {
-				character = ROOT
-			}
-			OR = {
-				trait = japanese_regent
-				trait = japanese_regent2
-			}
-		}
-		
-		allow = {
-			war = no
-			has_actual_regency_trigger = no
-			liege = {
-				NOT = {
-					has_character_modifier = recent_regent_power_change
-				}
-			}
-			prestige = 1000
-		}
-		
-		effect = {
-			prestige = -1000
-			liege = {
-				increase_regent_powers_effect = yes
-				character_event = { id = japan.419 }
-				add_character_modifier = {
-					modifier = recent_regent_power_change
-					months = 120
+				regent = {
+					letter_event = { id = soh.3573 } # Faction version
 				}
 			}
 		}
-		
 		ai_will_do = {
 			factor = 1
+			
+			# Reversed faction ultimatum logic, plus relative_power_to_liege checks if there isn't a faction
 			modifier = {
-				factor = 0.01
-				always = yes
+				factor = 0.1
+				OR = {
+					regent = { 
+						faction_power = {
+							faction = faction_regent_loyalists3
+							power = 0.75
+						}
+					}
+					regent = {
+						relative_power_to_liege = 0.75
+					}
+				}
 			}
+			
+			modifier = {
+				factor = 0.1
+				OR = {
+					regent = { 
+						faction_power = {
+							faction = faction_regent_loyalists3
+							power = 1.0
+						}
+					}
+					regent = {
+						relative_power_to_liege = 1.0
+					}
+				}
+			}	
+
 			modifier = {
 				factor = 0
-				trait = content
-			}
-			modifier = {
-				factor = 0.1
-				trait = humble
-			}
-			modifier = {
-				factor = 0.1
-				trait = just
-			}
-			modifier = {
-				factor = 10
-				trait = ambitious
-			}
-			modifier = {
-				factor = 5
-				trait = envious
-			}
-			modifier = {
-				factor = 2
-				trait = proud
-			}
-			modifier = {
-				factor = 5
-				trait = deceitful
-			}
-		}
-	}
-	
-	decrese_my_regents_powers = {
-		only_playable = yes
-		ai_check_interval = 60
-		potential = {
-			OR = {
-				trait = under_regency
-				trait = under_regency2
-			}
-			primary_title = {
-				NOT = {
-					has_law = regent_marriage_control_0
-				}
-			}
-			regent = {
 				OR = {
-					trait = japanese_regent
-					trait = japanese_regent2
-				}
-			}
-		}
-		
-		allow = {
-			war = no
-			has_actual_regency_trigger = no
-			NOT = {
-				has_character_modifier = recent_regent_power_change
-			}
-			prestige = 1000
-		}
-		
-		effect = {
-			prestige = -1000
-			decrease_regent_powers_effect = yes
-			regent = {
-				character_event = { id = japan.420 }
-			}
-			add_character_modifier = {
-				modifier = recent_regent_power_change
-				months = 120
-			}
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0.01
-				always = yes
-			}
-			modifier = {
-				factor = 0
-				trait = content
-			}
-			modifier = {
-				factor = 0.1
-				trait = humble
-			}
-			modifier = {
-				factor = 0.1
-				trait = just
-			}
-			modifier = {
-				factor = 10
-				trait = ambitious
-			}
-			modifier = {
-				factor = 5
-				trait = envious
-			}
-			modifier = {
-				factor = 2
-				trait = proud
-			}
-			modifier = {
-				factor = 5
-				trait = deceitful
-			}
-		}
-	}
-	
-	regent_transfer_money = {
-		only_playable = yes
-		ai_check_interval = 60
-		potential = {
-			liege = {
-				OR = {
-					trait = under_regency
-					trait = under_regency2
-				}
-				primary_title = {
-					has_law = regent_treasury_control_1
-				}
-			}
-			regent = {
-				character = ROOT
-			}
-			OR = {
-				trait = japanese_regent
-				trait = japanese_regent2
-			}
-			OR = {
-				ai = no
-				NOT = {
-					wealth = 10000
-				}
-				trait = greedy
-			}
-		}
-		
-		allow = {
-			has_actual_regency_trigger = no
-			prestige = 250
-			liege = {
-				NOT = {
-					has_opinion_modifier = {
-						who = ROOT
-						modifier = took_money
-					}
-				}
-			}
-			liege = {
-				scaled_wealth = {
-					value = 1
-					min = 25
-				}
-			}
-		}
-		
-		effect = {
-			prestige = -250
-			liege = {
-				transfer_scaled_wealth = {
-					to = ROOT
-					value = 1
-					min = 25
-					max = 1000
-				}
-				character_event = { id = japan.425 } # Inform the liege
-			}
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0.01
-				always = yes
-			}
-			modifier = {
-				factor = 0
-				trait = content
-			}
-			modifier = {
-				factor = 0.1
-				trait = humble
-			}
-			modifier = {
-				factor = 0.1
-				trait = just
-			}
-			modifier = {
-				factor = 10
-				trait = ambitious
-			}
-			modifier = {
-				factor = 5
-				trait = envious
-			}
-			modifier = {
-				factor = 2
-				trait = proud
-			}
-			modifier = {
-				factor = 5
-				trait = deceitful
-			}
-			modifier = {
-				factor = 10
-				trait = greedy
-			}
-			modifier = {
-				factor = 0.1
-				trait = charitable
-			}
-		}
-	}
-	
-	integrate_ezo = {
-		is_high_prio = yes
-		only_playable = yes
-		only_independent = yes
-		ai_check_interval = 12
-
-		potential = {
-			tier = emperor
-			has_landed_title = e_japan
-			is_alternate_start = no
-			NOT = {
-				has_global_flag = ezo_integrated
-			}
-			NOT = {
-				k_yezo = {
-					de_jure_liege = e_japan
-				}
-			}
-			OR = {
-				religion = shinto
-				AND = {
-					culture_group = japonic
-					religion = buddhist
-				}
-				religion = ryukyuan_pagan
-				religion = ryukyuan_pagan_reformed
-			}
-		}
-
-		allow = {
-			# We're appropriately Japanese
-			OR = {
-				religion = shinto
-				AND = {
-					culture_group = japonic
-					religion = buddhist
-				}
-				religion = ryukyuan_pagan
-				religion = ryukyuan_pagan_reformed
-			}
-			
-			is_adult = yes
-			war = no
-			has_regent = no # The stricter version
-			prestige = 5000
-			wealth = 1000
-			is_tributary = no
-			
-			# We control the kingdom and the initial de jure
-			completely_controls = k_yezo
-			completely_controls_region = custom_yezo
-			completely_controls_region = world_japan # You need the original too!
-			
-			# The title is unheld or controlled by us or an acceptable vassal
-			custom_tooltip = {
-				text = ezo_has_no_holder_is_mine_or_belongs_to_a_good_vassal
-				OR = {
-					k_yezo = {
-						has_holder = no
-					}
-					k_yezo = {
-						holder_scope = {
-							character = ROOT
+					regent = { 
+						faction_power = {
+							faction = faction_regent_loyalists3
+							power = 1.5
 						}
 					}
-					k_yezo = {
-						holder_scope = {
-							OR = {
-								religion = shinto
-								AND = {
-									culture_group = japonic
-									religion = buddhist
-								}
-								religion = ryukyuan_pagan
-								religion = ryukyuan_pagan_reformed
-							}
-							war = no
-							liege = {
-								character = ROOT
-							}
-						}
+					regent = {
+						relative_power_to_liege = 1.5
 					}
 				}
 			}
-			# We have an appropriate government
-			OR = {
-				government = japanese_imperial_government
-				government = japanese_bureaucracy_government
-				government = japanese_feudal_government
-				government = japanese_monastic_feudal_government
-				government = divine_imperial_government
-			}
 			
-			# The de jure liege doesn't exist
-			k_yezo = {
-				dejure_liege_title = {
-					has_holder = no
-				}
-			}
-		}
-
-		effect = {
-			wealth = -1000
-
-			set_global_flag = ezo_integrated
-			
-			k_yezo = {
-				show_scope_change = no
-				de_jure_liege = e_japan
-			}
-		}
-	}
-	
-	integrate_ryukyu = {
-		is_high_prio = yes
-		only_playable = yes
-		only_independent = yes
-		ai_check_interval = 12
-
-		potential = {
-			tier = emperor
-			has_landed_title = e_japan
-			is_alternate_start = no
-			NOT = {
-				has_global_flag = ryukyu_integrated
-			}
-			NOT = {
-				k_ryukyu = {
-					de_jure_liege = e_japan
-				}
-			}
-			OR = {
-				religion = shinto
-				AND = {
-					culture_group = japonic
-					religion = buddhist
-				}
-				religion = ryukyuan_pagan
-				religion = ryukyuan_pagan_reformed
-			}
-		}
-
-		allow = {
-			# We're appropriately Japanese
-			OR = {
-				religion = shinto
-				AND = {
-					culture_group = japonic
-					religion = buddhist
-				}
-				religion = ryukyuan_pagan
-				religion = ryukyuan_pagan_reformed
-			}
-			
-			is_adult = yes
-			war = no
-			has_regent = no # The stricter version
-			prestige = 5000
-			wealth = 1000
-			is_tributary = no
-			
-			# We control the kingdom and the initial de jure
-			completely_controls = k_ryukyu
-			completely_controls_region = world_japan_islands
-			completely_controls_region = world_japan # You need the original too!
-			
-			# The title is unheld or controlled by us or an acceptable vassal
-			custom_tooltip = {
-				text = ryukyu_has_no_holder_is_mine_or_belongs_to_a_good_vassal
-				OR = {
-					k_ryukyu = {
-						has_holder = no
-					}
-					k_ryukyu = {
-						holder_scope = {
-							character = ROOT
-						}
-					}
-					k_ryukyu = {
-						holder_scope = {
-							OR = {
-								religion = shinto
-								AND = {
-									culture_group = japonic
-									religion = buddhist
-								}
-								religion = ryukyuan_pagan
-								religion = ryukyuan_pagan_reformed
-							}
-							war = no
-							liege = {
-								character = ROOT
-							}
-						}
+			modifier = { # If the liege is already fighting a regency war, slow it down to avoid war spam
+				factor = 0.05
+				regent = {
+					any_war = {
+						using_cb = take_over_regency_war3
 					}
 				}
 			}
-			# We have an appropriate government
-			OR = {
-				government = japanese_imperial_government
-				government = japanese_bureaucracy_government
-				government = japanese_feudal_government
-				government = japanese_monastic_feudal_government
-				government = divine_imperial_government
-			}
-			
-			# The de jure liege doesn't exist
-			k_ryukyu = {
-				dejure_liege_title = {
-					has_holder = no
-				}
-			}
-		}
-
-		effect = {
-			wealth = -1000
-
-			set_global_flag = ryukyu_integrated
-			
-			k_ryukyu = {
-				show_scope_change = no
-				de_jure_liege = e_japan
-			}
-		}
-	}
-	
-	make_yamashiro_the_capital = {
-		ai_check_interval = 12
-		only_playable = yes
-		only_independent = yes
-		potential = {
-			religion = shinto
-			controls_religion = yes
-			c_yamashiro = {
-				holder_scope = {
-					OR = {
-						character = ROOT
-						top_liege = {
-							character = ROOT
-						}
-					}
-				}
-			}
-			primary_title = {
-				title = e_japan
-				capital_scope = {
-					NOT = {
-						province = 2485 # Yamashiro
-					}
-				}
-			}
-		}
-		allow = {
-			war = no
-			has_actual_regency_trigger = no
-		}
-		effect = {
-			if = {
-				limit = {
-					c_yamashiro = {
-						holder_scope = {
-							NOT = {
-								character = ROOT
-							}
-						}
-					}
-				}
-				c_yamashiro = {
-					grant_title_no_opinion = ROOT
-				}
-			}
-			e_japan = {
-				set_preferred_capital = 2485 # Yamashiro
-			}
-			capital = c_yamashiro
-		}
-		ai_will_do = {
-			factor = 100
 		}
 	}
 }
 
 targeted_decisions = {
-	regent_get_vassal_from_liege = {
-		filter = realm
-		ai_target_filter = realm
-		ai_check_interval = 60
-		only_playable = yes
-		
-		potential = {
-			OR = {
-				AND = {
-					tier = count
-					FROM = {
-						NOT = {
-							tier = count
-						}
-					}
-				}
-				AND = {
-					tier = duke
-					FROM = {
-						tier = king
-					}
-				}
-			}
-			liege = {
-				religion = shinto
-				controls_religion = yes
-				trait = under_regency
-				independent = yes # If there is a Shogun, don't let the Regent meddle as much
-			}
-		}
-		
-		from_potential = {
-			trait = japanese_regent
-			has_minor_title = title_regent
-			liege = {
-				religion = shinto
-				controls_religion = yes
-				trait = under_regency
-				independent = yes # If there is a Shogun, don't let the Regent meddle as much
-				primary_title = {
-					has_law = regent_vassal_control_1
-				}
-			}
-			has_regent = no # Should be impossible if you have the "Regent" minor title, but best to be certain
-		}
-		
-		allow = {
-			OR = {
-				AND = {
-					tier = count
-					FROM = {
-						prestige = 500
-					}
-				}
-				AND = {
-					tier = duke
-					FROM = {
-						prestige = 1000
-					}
-				}
-			}
-			FROM = {
-				liege = {
-					NOT = {
-						has_opinion_modifier = {
-							who = FROM
-							modifier = took_a_vassal
-						}
-					}
-					war = no
-				}
-				war = no
-			}
-			war = no
-		}
-		
-		effect = {
-			if = {
-				limit = {
-					tier = count
-				}
-				FROM = {
-					prestige = -500
-				}
-			}
-			else_if = {
-				limit = {
-					tier = duke
-				}
-				FROM = {
-					prestige = -1000
-				}
-			}
-			set_defacto_liege = FROM
-			FROM = {
-				liege = {
-					letter_event = { id = japan.40 }
-				}
-			}
-			letter_event = { id = japan.41 }
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0.01
-				always = yes # Slow it down!
-			}
-			modifier = {
-				factor = 0
-				FROM = {
-					trait = content
-				}
-			}
-			# Don't make us too likely to try this
-			modifier = {
-				factor = 0
-				FROM = {
-					NOR = {
-						trait = ambitious
-						trait = envious
-						trait = proud
-						liege = {
-							OR = {
-								NOT = {
-									reverse_opinion = {
-										who = FROM
-										value = -25
-									}
-								}
-								any_rival = {
-									character = FROM
-								}
-							}
-						}
-						ROOT = {
-							de_jure_liege = FROM
-						}
-					}
-				}
-			}
-			# If we don't have a lot of prestige, don't bother
-			modifier = {
-				factor = 0.1
-				OR = {
-					AND = {
-						tier = count
-						FROM = {
-							NOT = {
-								prestige = 1000
-							}
-						}
-					}
-					AND = {
-						tier = duke
-						FROM = {
-							NOT = {
-								prestige = 2000
-							}
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 5
-				FROM = {
-					trait = ambitious
-				}
-			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = envious
-				}
-			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = proud
-				}
-			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = greedy
-				}
-			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = deceitful
-				}
-			}
-			modifier = {
-				factor = 0.1
-				tier = duke
-				FROM = {
-					NOT = {
-						trait = ambitious
-					}
-				}
-			}
-			modifier = {
-				factor = 0.5
-				tier = count
-				FROM = {
-					NOT = {
-						trait = ambitious
-					}
-				}
-			}
-		}
-	}
-	
 	regent_marry_liege_to_my_dynasty = {
 		filter = liege
 		ai_target_filter = liege
@@ -2709,70 +1528,64 @@ targeted_decisions = {
 		ai_check_interval = 60
 		only_playable = yes
 		
+		from_potential = {
+			i_am_appropriate_regent_trigger = yes
+			regent_marry_liege_to_my_dynasty_enabled_trigger = yes
+		}
+		
 		potential = {
 			# Our liege is the Tenno, is an adult, and has a Permanent Regency
 			is_adult = yes
 			is_female = no
 			religion = shinto
-			controls_religion = yes
-			trait = under_regency
 			# The current spouse can't be the mother of the heir
-			current_heir = {
-				NAND = {
-					dynasty = ROOT
-					father = {
-						character = ROOT
-					}
-					mother = {
-						spouse = {
+			OR = {
+				is_married = no
+				current_heir = { # You could probably get around this...
+					NAND = {
+						dynasty = ROOT
+						father = {
 							character = ROOT
+						}
+						mother = {
+							spouse = {
+								character = ROOT
+							}
 						}
 					}
 				}
-			}
-			spouse = {
-				NOR = {
-					# Spouse must not be (known to be) pregnant
-					trait = pregnant
-					trait = hard_pregnancy
-					trait = troubled_pregnancy
-					trait = pregnancy_finishing
-					# If the Tenno loves their spouse, they'll probably care more (particularly if a player), so let's just forbid ending that...
-					any_lover = {
-						character = ROOT
+				spouse = {
+					NOR = {
+						# Spouse must not be (known to be) pregnant
+						trait = pregnant
+						trait = hard_pregnancy
+						trait = troubled_pregnancy
+						trait = pregnancy_finishing
+						# If the Tenno loves their spouse, they'll probably care more (particularly if a player), so let's just forbid ending that...
+						any_lover = {
+							character = ROOT
+						}
+						dynasty = FROM # If we've already done this, don't do it again!
+						dynasty = ROOT # An Imperial spouse is harder to remove
+						is_playable = yes # A playable spouse probably has enough power to oppose it
 					}
-					dynasty = FROM # If we've already done this, don't do it again!
-					is_playable = yes # A playable spouse probably has enough power to oppose it
 				}
 			}
 			NOT = {
-				dynasty = FROM # No need for marriage ties
+				dynasty = FROM # No need for marriage ties... and something is clearly wrong
 			}
-		}
-		
-		from_potential = {
-			trait = japanese_regent
-			has_minor_title = title_regent
-			liege = {
-				religion = shinto
-				controls_religion = yes
-				trait = under_regency
-				primary_title = {
-					has_law = regent_marriage_control_1
-				}
-			}
-			has_regent = no # Should be impossible if you have the "Regent" minor title, but best to be certain
 		}
 		
 		allow = {
+			has_actual_regency_trigger = no
 			NOT = {
 				has_opinion_modifier = {
 					who = FROM
-					modifier = changed_my_spouse
+					modifier = japanese_regent_changed_my_spouse
 				}
 			}
 			FROM = {
-				prestige = 500
+				prestige = 250
 			}
 		}
 		
@@ -2784,22 +1597,17 @@ targeted_decisions = {
 				has_negative_congenital_trigger = no
 				OR = {
 					# Already a consort of the Tenno
+					any_consort = {
+						character = ROOT
+					}
+					# Subset of is_virgin_trigger; blocking Lustful is a bit too harsh...
 					AND = {
-						any_consort = {
-							character = ROOT
-						}
-						NOT = {
+						NOR = {
 							any_lover = {
 								NOT = {
 									character = ROOT
 								}
 							}
-						}
-					}
-					# Subset of is_virgin_trigger; blocking Lustful is a bit too harsh...
-					AND = {
-						NOR = {
-							any_lover = { always = yes }
 							any_child_even_if_dead = { always = yes }
 							any_spouse_even_if_dead = { always = yes }
 							any_consort = { always = yes } # This is missing in vanilla but should probably be here...
@@ -2820,13 +1628,6 @@ targeted_decisions = {
 							has_character_modifier = cradle_robber
 							has_character_modifier = adulterous_priest
 						}
-						OR = {
-							NOT = { age = 25 }
-							trait = celibate
-							trait = chaste
-							trait = shy
-							is_ascetic_trigger = yes
-						}
 					}
 				}
 				# Close relative of yours
@@ -2840,7 +1641,7 @@ targeted_decisions = {
 				#custom_tooltip = {
 					#text = is_adult_under_35_tt
 					is_adult = yes
-					NOT = { age = 35 } # Needs to be of childbearing age, with a decent margin
+					NOT = { age = 35 } # Needs to be of childbearing age, with a decent margin; this is also good for the regent...
 					ROOT = {
 						spouse = {
 							is_older_than = FROMFROM # Needs to be younger than the Tenno's spouse to be an attractive match
@@ -2918,9 +1719,9 @@ targeted_decisions = {
 		
 		effect = {
 			FROM = {
-				prestige = -500
+				prestige = -250
 			}
-			letter_event = { id = japan.42 } # Inform the liege and carry things out
+			letter_event = { id = soh.3590 } # Inform the liege and set up the new marriage
 		}
 		
 		ai_will_do = {
@@ -2969,788 +1770,14 @@ targeted_decisions = {
 				factor = 0
 				trait = celibate # Unlikely to have an effect...
 			}
-		}
-	}
-	
-	shogun_get_vassal_from_tenno = {
-		only_playable = yes
-		only_independent = yes
-		filter = realm
-		ai_target_filter = realm
-		ai_check_interval = 60
-		
-		potential = {
-			OR = {
-				tier = count
-				tier = duke
-			}
-			liege = {
-				religion = shinto
-				controls_religion = yes
-			}
-		}
-		
-		from_potential = {
-			real_tier = emperor
-			OR = {
-				religion = shinto
-				AND = {
-					religion = buddhist
-					culture_group = japonic
-				}
-			}
-			any_vassal = {
-				religion = shinto
-				controls_religion = yes
-			}
-		}
-		
-		allow = {
-			OR = {
-				AND = {
-					tier = count
-					FROM = {
-						prestige = 500
-					}
-				}
-				AND = {
-					tier = duke
-					FROM = {
-						prestige = 1000
-					}
-				}
-			}
-			ROOT = {
-				liege = {
-					NOT = {
-						has_opinion_modifier = {
-							who = FROM
-							modifier = took_a_vassal
-						}
-					}
-					war = no
-				}
-				war = no
-			}
-			FROM = {
-				war = no
-				has_regent = no # If you've got a regent for any reason, you can't steal the Tenno's vassals
-			}
-		}
-		
-		effect = {
-			if = {
-				limit = {
-					tier = count
-				}
-				FROM = {
-					prestige = -500
-				}
-			}
-			else_if = {
-				limit = {
-					tier = duke
-				}
-				FROM = {
-					prestige = -1000
-				}
-			}
-			set_defacto_liege = FROM
-			FROM = {
-				any_vassal = {
-					limit = {
-						religion = shinto
-						controls_religion = yes
-					}
-					letter_event = { id = japan.66 }
-				}
-			}
-			letter_event = { id = japan.67 }
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0.01
-				always = yes # Slow it down!
-			}
 			modifier = {
 				factor = 0
-				FROM = {
-					trait = content
-				}
-			}
-			# Don't make us too likely to try this
-			modifier = {
-				factor = 0
-				FROM = {
-					NOR = {
-						trait = ambitious
-						trait = envious
-						trait = proud
-						liege = {
-							OR = {
-								NOT = {
-									reverse_opinion = {
-										who = FROM
-										value = -25
-									}
-								}
-								any_rival = {
-									character = FROM
-								}
-							}
-						}
-						ROOT = {
-							de_jure_liege = FROM
-						}
-					}
-				}
-			}
-			# If we don't have a lot of prestige, don't bother
-			modifier = {
-				factor = 0.1
-				OR = {
-					AND = {
-						tier = count
-						FROM = {
-							NOT = {
-								prestige = 1000
-							}
-						}
-					}
-					AND = {
-						tier = duke
-						FROM = {
-							NOT = {
-								prestige = 2000
-							}
-						}
-					}
-				}
+				trait = eunuch # Unlikely to have an effect...
 			}
 			modifier = {
 				factor = 5
-				FROM = {
-					trait = ambitious
-				}
+				trait = lustful # More likely to yield results...
 			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = envious
-				}
-			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = proud
-				}
-			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = greedy
-				}
-			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = deceitful
-				}
-			}
-		}
-	}
-	
-	regent_get_vassal_from_liege2 = {
-		only_playable = yes
-		filter = realm
-		ai_target_filter = realm
-		ai_check_interval = 60
-		
-		potential = {
-			OR = {
-				AND = {
-					tier = count
-					FROM = {
-						NOT = {
-							tier = count
-						}
-					}
-				}
-				AND = {
-					tier = duke
-					FROM = {
-						tier = king
-					}
-				}
-			}
-			liege = {
-				real_tier = emperor
-				OR = {
-					AND = {
-						religion = shinto
-						controls_religion = no
-					}
-					AND = {
-						religion = buddhist
-						culture_group = japonic
-					}
-				}
-				trait = under_regency2
-			}
-		}
-		
-		from_potential = {
-			trait = japanese_regent2
-			has_minor_title = title_regent
-			liege = {
-				real_tier = emperor
-				OR = {
-					AND = {
-						religion = shinto
-						controls_religion = no
-					}
-					AND = {
-						religion = buddhist
-						culture_group = japonic
-					}
-				}
-				trait = under_regency2
-			}
-			has_regent = no # Should be impossible if you have the "Regent" minor title, but best to be certain
-		}
-		
-		allow = {
-			OR = {
-				AND = {
-					tier = count
-					FROM = {
-						prestige = 500
-					}
-				}
-				AND = {
-					tier = duke
-					FROM = {
-						prestige = 1000
-					}
-				}
-			}
-			FROM = {
-				liege = {
-					NOT = {
-						has_opinion_modifier = {
-							who = FROM
-							modifier = took_a_vassal
-						}
-					}
-					war = no
-				}
-				war = no
-			}
-			war = no
-		}
-		
-		effect = {
-			if = {
-				limit = {
-					tier = count
-				}
-				FROM = {
-					prestige = -500
-				}
-			}
-			else_if = {
-				limit = {
-					tier = duke
-				}
-				FROM = {
-					prestige = -1000
-				}
-			}
-			set_defacto_liege = FROM
-			FROM = {
-				liege = {
-					letter_event = { id = japan.40 }
-				}
-			}
-			letter_event = { id = japan.41 }
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0.01
-				always = yes # Slow it down!
-			}
-			modifier = {
-				factor = 0
-				FROM = {
-					trait = content
-				}
-			}
-			# Don't make us too likely to try this
-			modifier = {
-				factor = 0
-				FROM = {
-					NOR = {
-						trait = ambitious
-						trait = envious
-						trait = proud
-						liege = {
-							OR = {
-								NOT = {
-									reverse_opinion = {
-										who = FROM
-										value = -25
-									}
-								}
-								any_rival = {
-									character = FROM
-								}
-							}
-						}
-						ROOT = {
-							de_jure_liege = FROM
-						}
-					}
-				}
-			}
-			# If we don't have a lot of prestige, don't bother
-			modifier = {
-				factor = 0.1
-				OR = {
-					AND = {
-						tier = count
-						FROM = {
-							NOT = {
-								prestige = 1000
-							}
-						}
-					}
-					AND = {
-						tier = duke
-						FROM = {
-							NOT = {
-								prestige = 2000
-							}
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 5
-				FROM = {
-					trait = ambitious
-				}
-			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = envious
-				}
-			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = proud
-				}
-			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = greedy
-				}
-			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = deceitful
-				}
-			}
-			modifier = {
-				factor = 0.1
-				tier = duke
-				FROM = {
-					NOT = {
-						trait = ambitious
-					}
-				}
-			}
-			modifier = {
-				factor = 0.5
-				tier = count
-				FROM = {
-					NOT = {
-						trait = ambitious
-					}
-				}
-			}
-		}
-	}
-	
-	regent_marry_liege_to_my_dynasty2 = {
-		filter = liege
-		ai_target_filter = liege
-		third_party_filter = dynasty
-		ai_third_party_filter = dynasty
-		third_party = FROM
-		ai_check_interval = 60
-		only_playable = yes
-		
-		potential = {
-			# Our liege is the Tenno, is an adult, and has a Permanent Regency
-			is_adult = yes
-			is_female = no
-			AND = {
-				real_tier = emperor
-				OR = {
-					AND = {
-						religion = shinto
-						controls_religion = no
-					}
-					AND = {
-						religion = buddhist
-						culture_group = japonic
-					}
-				}
-				trait = under_regency2
-			}
-			# The current spouse can't be the mother of the heir
-			current_heir = {
-				NAND = {
-					dynasty = ROOT
-					father = {
-						character = ROOT
-					}
-					mother = {
-						spouse = {
-							character = ROOT
-						}
-					}
-				}
-			}
-			spouse = {
-				NOR = {
-					# Spouse must not be (known to be) pregnant
-					trait = pregnant
-					trait = hard_pregnancy
-					trait = troubled_pregnancy
-					trait = pregnancy_finishing
-					# If the Tenno loves their spouse, they'll probably care more (particularly if a player), so let's just forbid ending that...
-					any_lover = {
-						character = ROOT
-					}
-					dynasty = FROM # If we've already done this, don't do it again!
-					is_playable = yes # A playable spouse probably has enough power to oppose it
-				}
-			}
-			NOT = {
-				dynasty = FROM # No need for marriage ties
-			}
-		}
-		
-		from_potential = {
-			trait = japanese_regent2
-			has_minor_title = title_regent
-			liege = {
-				real_tier = emperor
-				OR = {
-					AND = {
-						religion = shinto
-						controls_religion = no
-					}
-					AND = {
-						religion = buddhist
-						culture_group = japonic
-					}
-				}
-				trait = under_regency2
-			}
-			has_regent = no # Should be impossible if you have the "Regent" minor title, but best to be certain
-		}
-		
-		allow = {
-			NOT = {
-				has_opinion_modifier = {
-					who = FROM
-					modifier = changed_my_spouse
-				}
-			}
-			FROM = {
-				prestige = 500
-			}
-		}
-		
-		third_party_potential = {
-			show_only_failed_conditions = yes
-			FROMFROM = {
-				show_scope_change = no
-				is_female = yes
-				has_negative_congenital_trigger = no
-				OR = {
-					# Already a consort of the Tenno
-					AND = {
-						any_consort = {
-							character = ROOT
-						}
-						NOT = {
-							any_lover = {
-								NOT = {
-									character = ROOT
-								}
-							}
-						}
-					}
-					# Subset of is_virgin_trigger; blocking Lustful is a bit too harsh...
-					AND = {
-						NOR = {
-							any_lover = { always = yes }
-							any_child_even_if_dead = { always = yes }
-							any_spouse_even_if_dead = { always = yes }
-							any_consort = { always = yes } # This is missing in vanilla but should probably be here...
-							has_focus = focus_seduction
-							trait = pregnant
-							trait = hard_pregnancy # This is missing in vanilla but should probably be here...
-							trait = troubled_pregnancy # This is missing in vanilla but should probably be here...
-							trait = pregnancy_finishing # This is missing in vanilla but should probably be here...
-							#trait = lustful
-							trait = hedonist
-							trait = seducer
-							trait = seductress
-							trait = lovers_pox
-							trait = has_aztec_disease
-							trait = syphilitic
-						}
-						OR = {
-							NOT = { age = 25 }
-							trait = celibate
-							trait = chaste
-							trait = shy
-							is_ascetic_trigger = yes
-						}
-					}
-				}
-				# Close relative of yours
-				custom_tooltip = {
-					text = is_close_relative_or_same_dynasty_tt
-					OR = {
-						is_close_relative = ROOT_FROM
-						dynasty = ROOT_FROM
-					}
-				}
-				#custom_tooltip = {
-					#text = is_adult_under_35_tt
-					is_adult = yes
-					NOT = { age = 35 } # Needs to be of childbearing age, with a decent margin
-					ROOT = {
-						spouse = {
-							is_older_than = FROMFROM # Needs to be younger than the Tenno's spouse to be an attractive match
-						}
-					}
-				#}
-				NOT = { is_landed = yes }
-				NOT = { is_ruler = yes }
-				NOT = { is_heir = yes }
-				# Either in our court or a concubine of the Tenno
-				OR = {
-					employer = {
-						character = ROOT_FROM
-					}
-					any_consort = {
-						character = ROOT
-					}
-				}
-				custom_tooltip = {
-					text = is_not_incapable_inbred_or_imbecile_tt
-					NOT = { trait = incapable }
-					NOT = { trait = inbred }
-					NOT = { trait = imbecile }
-				}
-				custom_tooltip = {
-					text = is_not_maimed_or_infirm_tt
-					NOT = { trait = maimed }
-					NOT = { trait = infirm }
-				}
-				custom_tooltip = {
-					text = is_not_wounded_severely_injured_tt
-					NOT = { trait = wounded }
-					NOT = { trait = severely_injured }
-				}
-				custom_tooltip = {
-					text = is_not_one_eyed_handed_legged_disfigured_or_mangled_tt
-					NOT = { trait = one_eyed }
-					NOT = { trait = one_handed }
-					NOT = { trait = one_legged }
-					NOT = { trait = disfigured }
-					NOT = { trait = mangled }
-				}
-				OR = {
-					NOT = { prisoner = yes }
-					host = {
-						character = ROOT_FROM
-					}
-				}
-				# If there would be no children the marriage is useless
-				custom_tooltip = {
-					text = is_not_ascetic_or_celibate_tt
-					NOT = { is_ascetic_trigger = yes }
-					NOT = { trait = celibate }
-				}
-				# Don't marry off our lovers or someone that's pregnant
-				NOR = {
-					trait = pregnant # Known to be pregnant
-					trait = hard_pregnancy
-					trait = troubled_pregnancy
-					trait = pregnancy_finishing
-					any_lover = {
-						character = ROOT_FROM
-					}
-				}
-			}
-		}
-		
-		third_party_allow = {
-			show_only_failed_conditions = yes
-			FROMFROM = {
-				is_ill = no
-				is_inaccessible_or_incapable_trigger = no
-			}
-		}
-		
-		effect = {
-			letter_event = { id = japan.42 } # Inform the liege and carry things out
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0.5
-				always = yes
-			}
-			modifier = {
-				factor = 0.01
-				spouse = {
-					OR = {
-						# We like the spouse
-						reverse_opinion = {
-							who = FROM
-							value = 50
-						}
-						any_friend = {
-							character = FROM
-						}
-						any_lover = {
-							character = FROM
-						}
-					}
-				}
-				FROM = {
-					NOR = {
-						trait = deceitful
-						trait = ambitious
-					}
-				}
-			}
-			modifier = {
-				factor = 5
-				FROM = {
-					trait = ambitious
-				}
-			}
-			modifier = {
-				factor = 0
-				FROM = {
-					trait = content
-				}
-			}
-			modifier = {
-				factor = 0
-				trait = celibate # Unlikely to have an effect...
-			}
-		}
-	}
-	
-	grant_minamoto_surname = {
-		only_playable = yes
-		filter = dynasty
-		ai = no
-		
-		from_potential = {
-			ai = no
-			religion = shinto
-			controls_religion = yes
-			dynasty = 1000027000 # Imperial Family
-		}
-		
-		potential = {
-			ai = yes
-			dynasty = 1000027000 # Imperial Family
-			is_alive = yes
-			is_landed = no
-			FROM = {
-				NOT = {
-					is_descendant_of = ROOT
-				}
-			}
-		}
-		
-		allow = {
-			FROM = {
-				war = no # Prevents e.g. disinheriting a prospective Shogun's preferred heir
-				has_actual_regency_trigger = no
-				OR = {
-					AND = {
-						custom_tooltip = {
-							text = is_not_the_first_minamoto
-							has_global_flag = minamoto_exist
-						}
-						prestige = 250
-					}
-					prestige = 1000
-				}
-				NOT = {
-					current_heir = {
-						character = ROOT # No getting around the Regent's pick with this!
-					}
-				}
-			}
-		}
-		
-		effect = {
-			FROM = {
-				if = {
-					limit = {
-						custom_tooltip = {
-							text = is_not_the_first_minamoto
-							has_global_flag = minamoto_exist
-						}
-					}
-					prestige = -250
-				}
-				else = {
-					prestige = -1000
-				}
-			}
-			
-			# Disinherit and change the dynasty
-			dynasty = 1000027002 # Minamoto
-			add_trait = disinherited # Not that it matters with the new succession law...
-
-			# Change the dynasty of all descendants of ROOT
-			FROM = {
-				any_dynasty_member_even_if_dead = {
-					limit = {
-						dynasty = 1000027000
-						is_descendant_of = ROOT
-					}
-					dynasty = 1000027002 # Minamoto
-				}
-			}
-		}
-		
-		ai_will_do = {
-			factor = 0 # Risks the AI stupiding the Imperial Family into going extinct
 		}
 	}
 	
@@ -3758,23 +1785,11 @@ targeted_decisions = {
 		filter = realm
 		ai_target_filter = dynasty
 		ai_check_interval = 12
+		only_playable = yes
+		
 		from_potential = {
-			OR = {
-				trait = japanese_regent
-				trait = japanese_regent2
-			}
-			liege = {
-				regent = {
-					character = FROM
-				}
-				OR = {
-					trait = under_regency
-					trait = under_regency2
-				}
-				primary_title = {
-					has_law = regent_prisoner_control_1
-				}
-			}
+			i_am_appropriate_regent_trigger = yes
+			regent_release_prisoner_enabled_trigger = yes
 		}
 		
 		potential = {
@@ -3788,7 +1803,6 @@ targeted_decisions = {
 		
 		allow = {
 			FROM = {
-				has_actual_regency_trigger = no
 				prestige = 100
 			}
 		}
@@ -3800,9 +1814,9 @@ targeted_decisions = {
 			prisoner = no
 			FROM = {
 				liege = {
-					character_event = { id = japan.421 }
+					character_event = { id = soh.3530 } # Inform liege
 				}
-				character_event = { id = japan.422 } # Ping the Regent, then inform the prisoner
+				character_event = { id = soh.3531 } # Ping the Regent, then inform the prisoner
 			}
 		}
 		
@@ -3819,20 +1833,28 @@ targeted_decisions = {
 				}
 			}
 			modifier = {
-				factor = 10
+				factor = 5
 				any_friend = {
 					character = FROM
 				}
 			}
 			modifier = {
-				factor = 10
+				factor = 5
 				any_lover = {
 					character = FROM
 				}
 			}
 			modifier = {
-				factor = 10
+				factor = 5
 				is_close_relative = FROM
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					any_child = {
+						character = ROOT
+					}
+				}
 			}
 			modifier = {
 				factor = 10
@@ -3849,23 +1871,11 @@ targeted_decisions = {
 		filter = realm
 		ai_target_filter = rivals
 		ai_check_interval = 12
+		only_playable = yes
+		
 		from_potential = {
-			OR = {
-				trait = japanese_regent
-				trait = japanese_regent2
-			}
-			liege = {
-				regent = {
-					character = FROM
-				}
-				OR = {
-					trait = under_regency
-					trait = under_regency2
-				}
-				primary_title = {
-					has_law = regent_execution_control_1
-				}
-			}
+			i_am_appropriate_regent_trigger = yes
+			regent_execute_prisoner_enabled_trigger = yes
 		}
 		
 		potential = {
@@ -3878,11 +1888,20 @@ targeted_decisions = {
 					dynasty = PREV
 				}
 			}
+			NAND = {
+				FROM = {
+					trait = japanese_regent2
+				}
+				k_chrysanthemum_throne = {
+					holder_scope = {
+						dynasty = ROOT
+					}
+				}
+			}
 		}
 		
 		allow = {
 			FROM = {
-				has_actual_regency_trigger = no
 				prestige = 250
 			}
 		}
@@ -3893,9 +1912,9 @@ targeted_decisions = {
 			}
 			FROM = {
 				liege = {
-					character_event = { id = japan.423 }
+					character_event = { id = soh.3532 } # Inform liege
 				}
-				character_event = { id = japan.424 } # Ping the Regent, then inform the prisoner
+				character_event = { id = soh.3533 } # Ping the Regent, then inform the prisoner
 			}
 		}
 		
@@ -3907,10 +1926,12 @@ targeted_decisions = {
 			}
 			modifier = {
 				factor = 0
-				trait = kind
+				FROM = {
+					trait = kind
+				}
 			}
 			modifier = {
-				factor = 0
+				factor = 0 # Impossible?
 				any_friend = {
 					character = FROM
 				}
@@ -3934,12 +1955,1043 @@ targeted_decisions = {
 			}
 			modifier = {
 				factor = 10
-				trait = cruel
+				FROM = {
+					trait = cruel
+				}
+			}
+			modifier = {
+				factor = 10
+				FROM = {
+					trait = ambitious
+				}
+				current_heir = {
+					character = FROM
+				}
 			}
 		}
 	}
 	
-	supporting_as_new_tenno = {
+	regent_fire_councillor = {
+		filter = realm
+		ai_target_filter = none
+		ai_check_interval = 1200
+		
+		from_potential = {
+			ai = no # Check it on_yearly_pulse; that's much cheaper as we're only looking for up to seven people...
+			i_am_appropriate_regent_trigger = yes
+			regent_fire_councillor_enabled_trigger = yes
+		}
+		
+		potential = {
+			is_voter = yes
+			OR = {
+				AND = {
+					is_landed = no
+					employer = {
+						regent = {
+							character = FROM
+						}
+					}
+				}
+				liege = {
+					regent = {
+						character = FROM
+					}
+				}
+			}
+		}
+		
+		allow = {
+			FROM = {
+				prestige = 250
+			}
+			NOT = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = japanese_regent_fired_me
+				}
+			}
+			liege = {
+				NOT = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = japanese_regent_fired_councillor
+					}
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				prestige = -250
+			}
+			FROM = {
+				liege = {
+					character_event = { id = soh.3534 } # Inform the liege
+				}
+			}
+			character_event = { id = soh.3535 } # Inform the councillor
+		}
+		
+		ai_will_do = {
+			factor = 0 # The AI uses an on_yearly_pulse event instead
+		}
+	}
+	
+	regent_take_count_vassal = {
+		filter = realm
+		ai_target_filter = realm
+		ai_check_interval = 60
+		only_playable = yes
+		
+		from_potential = {
+			i_am_appropriate_regent_trigger = yes
+			regent_take_count_vassal_enabled_trigger = yes
+		}
+		
+		potential = {
+			is_playable = yes
+			tier = count
+			liege = {
+				regent = {
+					character = FROM
+				}
+			}
+		}
+		
+		allow = {
+			FROM = {
+				higher_tier_than = count
+				prestige = 250
+				war = no
+				liege = {
+					war = no
+					NOT = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = japanese_regent_took_vassal
+						}
+					}
+				}
+			}
+			war = no
+			in_faction = no # No disrupting factions!
+		}
+		
+		effect = {
+			FROM = {
+				prestige = -250
+			}
+			set_defacto_liege = FROM
+			FROM = {
+				liege = {
+					letter_event = { id = soh.3538 } # Inform former liege
+				}
+			}
+			letter_event = { id = soh.3539 } # Inform new vassal
+		}
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							de_jure_liege = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				FROM = {
+					NOT = {
+						prestige = 500
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = envious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
+				}
+			}
+			modifier = {
+				factor = 0.2
+				FROM = {
+					NOT = {
+						trait = ambitious
+					}
+				}
+			}
+		}
+	}
+	
+	regent_take_duke_vassal = {
+		filter = realm
+		ai_target_filter = realm
+		ai_check_interval = 120
+		only_playable = yes
+		
+		from_potential = {
+			i_am_appropriate_regent_trigger = yes
+			regent_take_duke_vassal_enabled_trigger = yes
+		}
+		
+		potential = {
+			is_playable = yes
+			tier = duke
+			liege = {
+				regent = {
+					character = FROM
+				}
+			}
+		}
+		
+		allow = {
+			FROM = {
+				higher_tier_than = duke
+				prestige = 1000
+				war = no
+				liege = {
+					war = no
+					NOT = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = japanese_regent_took_vassal
+						}
+					}
+				}
+			}
+			war = no
+			in_faction = no # No disrupting factions!
+		}
+		
+		effect = {
+			FROM = {
+				prestige = -1000
+			}
+			set_defacto_liege = FROM
+			FROM = {
+				liege = {
+					letter_event = { id = soh.3538 } # Inform former liege
+				}
+			}
+			letter_event = { id = soh.3539 } # Inform new vassal
+		}
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							de_jure_liege = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				FROM = {
+					NOT = {
+						prestige = 2000
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = envious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
+				}
+			}
+			modifier = {
+				factor = 0.2
+				FROM = {
+					NOT = {
+						trait = ambitious
+					}
+				}
+			}
+		}
+	}
+	
+	shogun_take_count_vassal_tenno_or_tenno_pr = {
+		filter = realm
+		ai_target_filter = realm
+		ai_check_interval = 60
+		only_playable = yes
+		only_independent = yes
+		
+		from_potential = {
+			tier = emperor
+			can_have_japanese_bureaucracy_and_feudal_trigger = yes
+			any_vassal = {
+				religion = shinto
+				controls_religion = yes
+			}
+		}
+		
+		potential = {
+			is_playable = yes
+			tier = count
+			liege = {
+				OR = {
+					AND = {
+						religion = shinto
+						controls_religion = yes
+						liege = {
+							character = FROM
+						}
+					}
+					liege = {
+						regent = {
+							character = PREVPREV
+							trait = japanese_regent
+							can_have_japanese_bureaucracy_and_feudal_trigger = yes
+						}
+						AND = {
+							religion = shinto
+							controls_religion = yes
+							liege = {
+								character = FROM
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		allow = {
+			FROM = {
+				prestige = 250
+				war = no
+				has_regent = no
+				NOT = {
+					trait = under_regency2
+				}
+			}
+			liege = {
+				OR = {
+					trait = under_regency
+					trait = japanese_regent
+				}
+				war = no
+				NOT = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = japanese_regent_took_vassal
+					}
+				}
+			}
+			war = no
+			NOT = {
+				trait = japanese_regent # Can't take the Regent!
+			}
+			in_faction = no # No disrupting factions!
+		}
+		
+		effect = {
+			FROM = {
+				prestige = -250
+			}
+			set_defacto_liege = FROM
+			liege = {
+				letter_event = { id = soh.3538 } # Inform former liege
+			}
+			letter_event = { id = soh.3539 } # Inform new vassal
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							de_jure_liege = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				FROM = {
+					NOT = {
+						prestige = 500
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = envious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
+				}
+			}
+			modifier = {
+				factor = 0.2
+				FROM = {
+					NOT = {
+						trait = ambitious
+					}
+				}
+			}
+		}
+	}
+	
+	shogun_take_duke_vassal_tenno_or_tenno_pr = {
+		filter = realm
+		ai_target_filter = realm
+		ai_check_interval = 120
+		only_playable = yes
+		only_independent = yes
+		
+		from_potential = {
+			tier = emperor
+			can_have_japanese_bureaucracy_and_feudal_trigger = yes
+			any_vassal = {
+				religion = shinto
+				controls_religion = yes
+			}
+		}
+		
+		potential = {
+			is_playable = yes
+			tier = duke
+			liege = {
+				OR = {
+					AND = {
+						religion = shinto
+						controls_religion = yes
+						liege = {
+							character = FROM
+						}
+					}
+					liege = {
+						regent = {
+							character = PREVPREV
+							trait = japanese_regent
+							can_have_japanese_bureaucracy_and_feudal_trigger = yes
+						}
+						AND = {
+							religion = shinto
+							controls_religion = yes
+							liege = {
+								character = FROM
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		allow = {
+			FROM = {
+				prestige = 1000
+				war = no
+				has_regent = no
+				NOT = {
+					trait = under_regency2
+				}
+			}
+			liege = {
+				OR = {
+					trait = under_regency
+					trait = japanese_regent
+				}
+				war = no
+				NOT = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = japanese_regent_took_vassal
+					}
+				}
+			}
+			war = no
+			NOT = {
+				trait = japanese_regent # Can't take the Regent!
+			}
+			in_faction = no # No disrupting factions!
+		}
+		
+		effect = {
+			FROM = {
+				prestige = -1000
+			}
+			set_defacto_liege = FROM
+			liege = {
+				letter_event = { id = soh.3538 } # Inform former liege
+			}
+			letter_event = { id = soh.3539 } # Inform new vassal
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							de_jure_liege = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				FROM = {
+					NOT = {
+						prestige = 2000
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = envious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
+				}
+			}
+			modifier = {
+				factor = 0.2
+				FROM = {
+					NOT = {
+						trait = ambitious
+					}
+				}
+			}
+		}
+	}
+	
+	shogun_pr_take_count_vassal_tenno_or_tenno_pr = {
+		filter = realm
+		ai_target_filter = realm
+		ai_check_interval = 60
+		only_playable = yes
+		
+		from_potential = {
+			i_am_appropriate_regent_trigger = yes
+			regent_take_count_vassal_enabled_trigger = yes
+			liege = {
+				any_vassal = {
+					religion = shinto
+					controls_religion = yes
+				}
+			}
+		}
+		
+		potential = {
+			is_playable = yes
+			tier = count
+			liege = {
+				OR = {
+					AND = {
+						religion = shinto
+						controls_religion = yes
+						liege = {
+							regent = {
+								character = FROM
+							}
+						}
+					}
+					liege = {
+						regent = {
+							character = PREVPREV
+							trait = japanese_regent
+							can_have_japanese_bureaucracy_and_feudal_trigger = yes
+						}
+						AND = {
+							religion = shinto
+							controls_religion = yes
+							liege = {
+								regent = {
+									character = FROM
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		allow = {
+			FROM = {
+				prestige = 250
+				war = no
+				has_regent = no
+				OR = {
+					tier = duke
+					tier = king
+				}
+			}
+			liege = {
+				OR = {
+					trait = under_regency
+					trait = japanese_regent
+				}
+				war = no
+				NOT = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = japanese_regent_took_vassal
+					}
+				}
+			}
+			war = no
+			NOT = {
+				trait = japanese_regent # Can't take the Regent!
+			}
+			in_faction = no # No disrupting factions!
+		}
+		
+		effect = {
+			FROM = {
+				prestige = -250
+			}
+			set_defacto_liege = FROM
+			liege = {
+				letter_event = { id = soh.3538 } # Inform former liege
+			}
+			letter_event = { id = soh.3539 } # Inform new vassal
+		}
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							de_jure_liege = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				FROM = {
+					NOT = {
+						prestige = 500
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = envious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
+				}
+			}
+			modifier = {
+				factor = 0.2
+				FROM = {
+					NOT = {
+						trait = ambitious
+					}
+				}
+			}
+		}
+	}
+	
+	shogun_pr_take_duke_vassal_tenno_or_tenno_pr = {
+		filter = realm
+		ai_target_filter = realm
+		ai_check_interval = 120
+		only_playable = yes
+		
+		from_potential = {
+			i_am_appropriate_regent_trigger = yes
+			regent_take_count_vassal_enabled_trigger = yes
+			liege = {
+				any_vassal = {
+					religion = shinto
+					controls_religion = yes
+				}
+			}
+		}
+		
+		potential = {
+			is_playable = yes
+			tier = duke
+			liege = {
+				OR = {
+					AND = {
+						religion = shinto
+						controls_religion = yes
+						liege = {
+							regent = {
+								character = FROM
+							}
+						}
+					}
+					liege = {
+						regent = {
+							character = PREVPREV
+							trait = japanese_regent
+							can_have_japanese_bureaucracy_and_feudal_trigger = yes
+						}
+						AND = {
+							religion = shinto
+							controls_religion = yes
+							liege = {
+								regent = {
+									character = FROM
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		allow = {
+			FROM = {
+				prestige = 1000
+				war = no
+				has_regent = no
+				tier = king
+			}
+			liege = {
+				OR = {
+					trait = under_regency
+					trait = japanese_regent
+				}
+				war = no
+				NOT = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = japanese_regent_took_vassal
+					}
+				}
+			}
+			war = no
+			NOT = {
+				trait = japanese_regent # Can't take the Regent!
+			}
+			in_faction = no # No disrupting factions!
+		}
+		
+		effect = {
+			FROM = {
+				prestige = -1000
+			}
+			set_defacto_liege = FROM
+			liege = {
+				letter_event = { id = soh.3538 } # Inform former liege
+			}
+			letter_event = { id = soh.3539 } # Inform new vassal
+		}
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							de_jure_liege = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				FROM = {
+					NOT = {
+						prestige = 2000
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = envious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
+				}
+			}
+			modifier = {
+				factor = 0.2
+				FROM = {
+					NOT = {
+						trait = ambitious
+					}
+				}
+			}
+		}
+	}
+	
+	support_as_new_tenno = {
 		only_playable = yes
 		is_high_prio = yes
 		ai = no # The AI does this on_yearly_pulse
@@ -3948,7 +3000,10 @@ targeted_decisions = {
 				attacker = {
 					character = FROM
 				}
-				using_cb = shogunate_war
+				OR = {
+					using_cb = shogunate_war
+					using_cb = imperial_claim_faction
+				}
 			}
 			NOT = {
 				has_any_opinion_modifier = supporting_as_new_tenno
@@ -3966,61 +3021,9 @@ targeted_decisions = {
 		}
 		allow = {
 			show_only_failed_conditions = yes
-			religion = shinto
-			is_ascetic_trigger = no
-			NOR = {
-				trait = bastard
-				trait = sent_to_china
-				trait = disinherited
-			}
-			OR = {
-				AND = {
-					k_chrysanthemum_throne = {
-						OR = {
-							has_law = agnatic_succession
-							has_law = cognatic_succession
-						}
-					}
-					OR = {
-						is_female = no
-						k_chrysanthemum_throne = {
-							holder_scope = {
-								NOT = {
-									any_dynasty_member = {
-										religion = shinto
-										is_ascetic_trigger = no
-										is_female = no
-									}
-								}
-							}
-						}
-					}
-				}
-				k_chrysanthemum_throne = {
-					has_law = true_cognatic_succession
-				}
-				AND = {
-					k_chrysanthemum_throne = {
-						OR = {
-							has_law = enatic_succession
-							has_law = enatic_cognatic_succession
-						}
-					}
-					OR = {
-						is_female = yes
-						k_chrysanthemum_throne = {
-							holder_scope = {
-								NOT = {
-									any_dynasty_member = {
-										religion = shinto
-										is_ascetic_trigger = no
-										is_female = yes
-									}
-								}
-							}
-						}
-					}
-				}
+			is_possible_tenno_trigger = yes
+			NOT = {
+				real_tier = emperor # Nice try!
 			}
 			NOR = {
 				any_rival = {
@@ -4111,135 +3114,366 @@ targeted_decisions = {
 			factor = 0
 		}
 	}
+	
+	grant_minamoto_surname = {
+		only_playable = yes
+		filter = dynasty
+		ai_target_filter = none
+		ai = no
+		
+		from_potential = {
+			ai = no
+			religion = shinto
+			controls_religion = yes
+			dynasty = 1000027000 # Imperial Family
+		}
+		
+		potential = {
+			ai = yes
+			dynasty = 1000027000 # Imperial Family
+			is_alive = yes
+			is_landed = no
+			FROM = {
+				NOT = {
+					is_descendant_of = ROOT
+				}
+			}
+			NOT = {
+				has_global_flag = no_more_minamotos
+			}
+		}
+		
+		allow = {
+			FROM = {
+				war = no # Prevents e.g. disinheriting a prospective Shogun's preferred heir
+				has_actual_regency_trigger = no
+				OR = {
+					AND = {
+						custom_tooltip = {
+							text = is_not_the_first_minamoto
+							has_global_flag = minamoto_exist
+						}
+						prestige = 250
+					}
+					prestige = 1000
+				}
+				NOT = {
+					current_heir = {
+						character = ROOT # Nice try circumventing assorted people!
+					}
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				if = {
+					limit = {
+						custom_tooltip = {
+							text = is_not_the_first_minamoto
+							has_global_flag = minamoto_exist
+						}
+					}
+					prestige = -250
+				}
+				else = {
+					prestige = -1000
+				}
+			}
+			
+			# Disinherit and change the dynasty
+			dynasty = 1000027002 # Minamoto
+
+			# Change the dynasty of all descendants of ROOT
+			FROM = {
+				any_dynasty_member_even_if_dead = {
+					limit = {
+						dynasty = 1000027000
+						is_descendant_of = ROOT
+					}
+					dynasty = 1000027002 # Minamoto
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0 # Risks the AI stupiding the Imperial Family into going extinct
+		}
+	}
+		
+	grant_taira_surname = {
+		only_playable = yes
+		filter = dynasty
+		ai_target_filter = none
+		ai = no
+		
+		from_potential = {
+			ai = no
+			religion = shinto
+			controls_religion = yes
+			dynasty = 1000027000 # Imperial Family
+		}
+		
+		potential = {
+			ai = yes
+			dynasty = 1000027000 # Imperial Family
+			is_alive = yes
+			is_landed = no
+			FROM = {
+				NOT = {
+					is_descendant_of = ROOT
+				}
+			}
+			NOT = {
+				has_global_flag = no_more_tairas
+			}
+		}
+		
+		allow = {
+			FROM = {
+				war = no # Prevents e.g. disinheriting a prospective Shogun's preferred heir
+				has_actual_regency_trigger = no
+				OR = {
+					AND = {
+						custom_tooltip = {
+							text = is_not_the_first_taira
+							has_global_flag = taira_exist
+						}
+						prestige = 250
+					}
+					prestige = 1000
+				}
+				NOT = {
+					current_heir = {
+						character = ROOT # Nice try circumventing assorted people!
+					}
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				if = {
+					limit = {
+						custom_tooltip = {
+							text = is_not_the_first_taira
+							has_global_flag = taira_exist
+						}
+					}
+					prestige = -250
+				}
+				else = {
+					prestige = -1000
+				}
+			}
+			
+			# Disinherit and change the dynasty
+			dynasty = 1000027003 # Taira
+
+			# Change the dynasty of all descendants of ROOT
+			FROM = {
+				any_dynasty_member_even_if_dead = {
+					limit = {
+						dynasty = 1000027000
+						is_descendant_of = ROOT
+					}
+					dynasty = 1000027003 # Taira
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0 # Risks the AI stupiding the Imperial Family into going extinct
+		}
+	}
+	
+	restore_to_imperial_family = {
+		only_playable = yes
+		ai = no # Handled on_yearly_pulse when relevant
+		ai_target_filter = none
+		
+		from_potential = {
+			religion = shinto
+			controls_religion = yes
+			dynasty = 1000027000 # Imperial Family; if the unthinkable has happened, this is counterproductive...
+		}
+		
+		potential = {
+			could_be_restored_to_imperial_family_potential_trigger = yes
+		}
+		
+		allow = {
+			religion = shinto
+			could_be_restored_to_imperial_family_allow_trigger = yes
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					FROM = {
+						NOT = {
+							any_dynasty_member = {
+								count = 10
+								NOT = {
+									character = FROM
+								}
+								is_possible_tenno_trigger = yes
+							}
+						}
+					}
+				}
+				dynasty = 1000027000 # Imperial Family
+				forefathers_join_imperial_family_effect = yes
+			}
+			else_if = {
+				limit = {
+					FROM = {
+						NOT = {
+							any_dynasty_member = {
+								count = 20
+								NOT = {
+									character = FROM
+								}
+								is_possible_tenno_trigger = yes
+							}
+						}
+					}
+				}
+				if = {
+					limit = {
+						any_close_relative = {
+							character = FROM
+						}
+					}
+					FROM = {
+						prestige = -100
+					}
+					dynasty = 1000027000 # Imperial Family
+					forefathers_join_imperial_family_effect = yes
+				}
+				else = {
+					FROM = {
+						prestige = -250
+					}
+					dynasty = 1000027000 # Imperial Family
+					forefathers_join_imperial_family_effect = yes
+				}
+			}
+			else = {
+				if = {
+					limit = {
+						any_close_relative = {
+							character = FROM
+						}
+					}
+					FROM = {
+						prestige = -250
+					}
+					dynasty = 1000027000 # Imperial Family
+					forefathers_join_imperial_family_effect = yes
+				}
+				else = {
+					FROM = {
+						prestige = -500
+					}
+					dynasty = 1000027000 # Imperial Family
+					forefathers_join_imperial_family_effect = yes
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
 }
 
 title_decisions = {
-	regent_get_title_from_liege = {
+	regent_transfer_county = {
 		filter = realm_owned
 		ai_target_filter = realm_owned
 		ai_check_interval = 60
 		only_playable = yes
 		
+		from_potential = {
+			i_am_appropriate_regent_trigger = yes
+			regent_transfer_county_enabled_trigger = yes
+		}
+		
 		potential = {
-			OR = {
+			tier = count
+			holder_scope = {
+				any_vassal = {
+					character = FROM
+				}
+			}
+			# We can't take the capital (or Yamashiro (from the Tenno), if the liege has a different capital)
+			NOR = {
 				AND = {
-					tier = count
-					# We can't take the capital (or Yamashiro, if the liege has a different capital)
-					NOR = {
-						title = c_yamashiro
-						FROM = {
-							liege = {
-								capital_scope = {
-									county = {
-										title = ROOT
-									}
-								}
+					title = c_yamashiro
+					FROM = {
+						liege = {
+							religion = shinto
+							controls_religion = yes
+						}
+					}
+				}
+				FROM = {
+					liege = {
+						capital_scope = {
+							county = {
+								title = ROOT
 							}
 						}
 					}
 				}
-				tier = duke
-				AND = {
-					FROM = {
-						liege = {
-							tier = emperor # If the Tenno isn't an emperor taking a kingdom would make us stop being his vassal...
-						}
-					}
-					tier = king
-					NOT = {
-						title = k_chrysanthemum_throne # That would be a full usurpation!
-					}
-				}
 			}
-			# Only the Tenno's demesne can be targeted!
-			holder_scope = {
-				religion = shinto
-				controls_religion = yes
-				trait = under_regency
-			}
-		}
-		
-		from_potential = {
-			trait = japanese_regent
-			has_minor_title = title_regent
-			liege = {
-				religion = shinto
-				controls_religion = yes
-				trait = under_regency
-				independent = yes # If there is a Shogun, don't let the Regent meddle as much
-				primary_title = {
-					has_law = regent_title_control_1
-				}
-			}
-			has_regent = no # Should be impossible if you have the "Regent" minor title, but best to be certain
 		}
 		
 		allow = {
-			OR = {
-				AND = {
-					tier = count
-					FROM = {
-						prestige = 500
-					}
-				}
-				AND = {
-					tier = duke
-					FROM = {
-						prestige = 1000
-					}
-				}
-				AND = {
-					tier = king
-					FROM = {
-						prestige = 2500
-					}
-				}
-			}
 			FROM = {
+				war = no
 				liege = {
+					war = no
 					NOT = {
 						has_opinion_modifier = {
 							who = FROM
-							modifier = took_a_title
+							modifier = japanese_regent_took_a_title
 						}
 					}
-					war = no
 				}
-				war = no
+			}
+			OR = {
+				ROOT = {
+					claimed_by = FROM
+					FROM = {
+						prestige = 250
+					}
+				}
+				FROM = {
+					prestige = 250
+				}
 			}
 		}
 		
 		effect = {
 			if = {
 				limit = {
-					tier = count
+					claimed_by = FROM
 				}
+				FROM = {
+					prestige = -250
+				}
+			}
+			else = {
 				FROM = {
 					prestige = -500
 				}
 			}
-			else_if = {
-				limit = {
-					tier = duke
-				}
-				FROM = {
-					prestige = -1000
-				}
-			}
-			else_if = {
-				limit = {
-					tier = king
-				}
-				FROM = {
-					prestige = -2500
-				}
+			holder_scope = {
+				letter_event = { id = soh.3540 } # Inform former holder
 			}
 			grant_title_no_opinion = FROM
-			FROM = {
-				liege = {
-					letter_event = { id = japan.43 }
-				}
-			}
 		}
 		
 		ai_will_do = {
@@ -4284,30 +3518,9 @@ title_decisions = {
 			# If we don't have a lot of prestige, don't bother
 			modifier = {
 				factor = 0.1
-				OR = {
-					AND = {
-						tier = count
-						FROM = {
-							NOT = {
-								prestige = 1000
-							}
-						}
-					}
-					AND = {
-						tier = duke
-						FROM = {
-							NOT = {
-								prestige = 2000
-							}
-						}
-					}
-					AND = {
-						tier = king
-						FROM = {
-							NOT = {
-								prestige = 5000
-							}
-						}
+				FROM = {
+					NOT = {
+						prestige = 1000
 					}
 				}
 			}
@@ -4335,169 +3548,409 @@ title_decisions = {
 					trait = greedy
 				}
 			}
+		}
+	}
+	
+	regent_transfer_duchy = {
+		filter = realm_owned
+		ai_target_filter = realm_owned
+		ai_check_interval = 90
+		only_playable = yes
+		
+		from_potential = {
+			i_am_appropriate_regent_trigger = yes
+			regent_transfer_duchy_enabled_trigger = yes
+		}
+		
+		potential = {
+			tier = duke
+			holder_scope = {
+				any_vassal = {
+					character = FROM
+				}
+			}
+			# We can't take the Ryukyuan rel head title
+			NOT = {
+				title = d_ryukyuan_pagan_reformed
+			}
+			is_vice_royalty = no
+		}
+		
+		allow = {
+			FROM = {
+				war = no
+				liege = {
+					higher_tier_than = duke
+					war = no
+					NOT = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = japanese_regent_took_a_title
+						}
+					}
+				}
+			}
+			OR = {
+				ROOT = {
+					claimed_by = FROM
+					FROM = {
+						prestige = 500
+					}
+				}
+				FROM = {
+					prestige = 1000
+				}
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					claimed_by = FROM
+				}
+				FROM = {
+					prestige = -500
+				}
+			}
+			else = {
+				FROM = {
+					prestige = -1000
+				}
+			}
+			holder_scope = {
+				letter_event = { id = soh.3540 } # Inform former holder
+			}
+			grant_title_no_opinion = FROM
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							claimed_by = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				FROM = {
+					NOT = {
+						prestige = 2000
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
 			modifier = {
 				factor = 2
 				FROM = {
-					trait = deceitful
+					trait = envious
 				}
 			}
 			modifier = {
-				factor = 0.1
-				tier = king
+				factor = 2
 				FROM = {
-					NOR = {
-						trait = ambitious
-						capital_scope = {
-							duchy = {
-								title = ROOT
-							}
-						}
-					}
+					trait = proud
 				}
 			}
 			modifier = {
-				factor = 0.5
-				tier = duke
+				factor = 2
 				FROM = {
-					NOR = {
-						trait = ambitious
-						capital_scope = {
-							kingdom = {
-								title = ROOT
-							}
-						}
-					}
+					trait = greedy
 				}
 			}
 		}
 	}
 	
-	shogun_get_title_from_tenno = {
+	regent_transfer_kingdom = {
+		filter = realm_owned
+		ai_target_filter = realm_owned
+		ai_check_interval = 120
+		only_playable = yes
+		
+		from_potential = {
+			i_am_appropriate_regent_trigger = yes
+			regent_transfer_kingdom_enabled_trigger = yes
+		}
+		
+		potential = {
+			tier = king
+			holder_scope = {
+				any_vassal = {
+					character = FROM
+				}
+			}
+			# We can't take the Chrysanthemum Throne
+			NOT = {
+				title = k_chrysanthemum_throne
+			}
+			is_vice_royalty = no
+		}
+		
+		allow = {
+			FROM = {
+				war = no
+				liege = {
+					higher_tier_than = king
+					war = no
+					NOT = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = japanese_regent_took_a_title
+						}
+					}
+				}
+			}
+			OR = {
+				ROOT = {
+					claimed_by = FROM
+					FROM = {
+						prestige = 1000
+					}
+				}
+				FROM = {
+					prestige = 2000
+				}
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					claimed_by = FROM
+				}
+				FROM = {
+					prestige = -1000
+				}
+			}
+			else = {
+				FROM = {
+					prestige = -2000
+				}
+			}
+			holder_scope = {
+				letter_event = { id = soh.3540 } # Inform former holder
+			}
+			grant_title_no_opinion = FROM
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							claimed_by = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				FROM = {
+					NOT = {
+						prestige = 5000
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = envious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
+				}
+			}
+		}
+	}
+	
+	
+	shogun_transfer_county_tenno_or_tenno_pr = {
 		filter = realm_owned
 		ai_target_filter = realm_owned
 		ai_check_interval = 60
 		only_playable = yes
 		only_independent = yes
 		
-		potential = {
-			OR = {
-				AND = {
-					tier = count
-					# We can't take the capital (or Yamashiro, if the liege has a different capital)
-					NOR = {
-						title = c_yamashiro
-						FROM = {
-							liege = {
-								capital_scope = {
-									county = {
-										title = ROOT
-									}
-								}
-							}
-						}
-					}
-				}
-				tier = duke
-				AND = {
-					tier = king
-					NOT = {
-						title = k_chrysanthemum_throne # That would be a full usurpation; the Tenno is of course the real ruler and the Shogun definitely serves him!
-					}
-				}
-			}
-			# Only the Tenno's demesne can be targeted!
-			holder_scope = {
-				religion = shinto
-				controls_religion = yes
-			}
-		}
-		
 		from_potential = {
-			real_tier = emperor
-			OR = {
-				religion = shinto
-				AND = {
-					religion = buddhist
-					culture_group = japonic
-				}
-			}
+			tier = emperor
+			can_have_japanese_bureaucracy_and_feudal_trigger = yes
 			any_vassal = {
 				religion = shinto
 				controls_religion = yes
 			}
 		}
 		
-		allow = {
-			OR = {
-				AND = {
-					tier = count
-					FROM = {
-						prestige = 500
+		potential = {
+			tier = count
+			holder_scope = {
+				OR = {
+					AND = {
+						religion = shinto
+						controls_religion = yes
 					}
-				}
-				AND = {
-					tier = duke
-					FROM = {
-						prestige = 1000
-					}
-				}
-				AND = {
-					tier = king
-					FROM = {
-						prestige = 2500
+					liege = {
+						religion = shinto
+						controls_religion = yes
+						regent = {
+							character = PREVPREV
+							trait = japanese_regent
+						}
 					}
 				}
 			}
-			holder_scope = {
-				NOT = {
-					has_opinion_modifier = {
-						who = FROM
-						modifier = took_a_title
+			# We can't take the capital or Yamashiro
+			NOR = {
+				AND = {
+					title = c_yamashiro
+					holder_scope = {
+						religion = shinto
+						controls_religion = yes
 					}
 				}
-				war = no
+				holder_scope = {
+					capital_scope = {
+						county = {
+							title = ROOT
+						}
+					}
+				}
+			}
+		}
+		
+		allow = {
+			k_chrysanthemum_throne = {
+				holder_scope = {
+					trait = under_regency
+				}
 			}
 			FROM = {
 				war = no
-				has_regent = no # If you've got a regent for any reason, you can't steal the Tenno's titles
+				has_regent = no
+				ROOT = {
+					holder_scope = {
+						war = no
+						NOT = {
+							has_opinion_modifier = {
+								who = FROM
+								modifier = japanese_regent_took_a_title
+							}
+						}
+					}
+				}
+			}
+			OR = {
+				ROOT = {
+					claimed_by = FROM
+					FROM = {
+						prestige = 250
+					}
+				}
+				FROM = {
+					prestige = 250
+				}
 			}
 		}
 		
 		effect = {
 			if = {
 				limit = {
-					tier = count
+					claimed_by = FROM
 				}
+				FROM = {
+					prestige = -250
+				}
+			}
+			else = {
 				FROM = {
 					prestige = -500
 				}
 			}
-			else_if = {
-				limit = {
-					tier = duke
-				}
-				FROM = {
-					prestige = -1000
-				}
-			}
-			else_if = {
-				limit = {
-					tier = king
-				}
-				FROM = {
-					prestige = -2500
-				}
+			holder_scope = {
+				letter_event = { id = soh.3540 } # Inform former holder
 			}
 			grant_title_no_opinion = FROM
-			FROM = {
-				any_vassal = {
-					limit = {
-						religion = shinto
-						controls_religion = yes
-					}
-					letter_event = { id = japan.69 }
-				}
-			}
 		}
 		
 		ai_will_do = {
@@ -4542,30 +3995,9 @@ title_decisions = {
 			# If we don't have a lot of prestige, don't bother
 			modifier = {
 				factor = 0.1
-				OR = {
-					AND = {
-						tier = count
-						FROM = {
-							NOT = {
-								prestige = 1000
-							}
-						}
-					}
-					AND = {
-						tier = duke
-						FROM = {
-							NOT = {
-								prestige = 2000
-							}
-						}
-					}
-					AND = {
-						tier = king
-						FROM = {
-							NOT = {
-								prestige = 5000
-							}
-						}
+				FROM = {
+					NOT = {
+						prestige = 1000
 					}
 				}
 			}
@@ -4591,158 +4023,108 @@ title_decisions = {
 				factor = 2
 				FROM = {
 					trait = greedy
-				}
-			}
-			modifier = {
-				factor = 2
-				FROM = {
-					trait = deceitful
 				}
 			}
 		}
 	}
 	
-	regent_get_title_from_liege2 = {
+	shogun_transfer_duchy_tenno_or_tenno_pr = {
 		filter = realm_owned
 		ai_target_filter = realm_owned
-		ai_check_interval = 60
+		ai_check_interval = 90
 		only_playable = yes
+		only_independent = yes
+		
+		from_potential = {
+			tier = emperor
+			can_have_japanese_bureaucracy_and_feudal_trigger = yes
+			any_vassal = {
+				religion = shinto
+				controls_religion = yes
+			}
+		}
 		
 		potential = {
-			OR = {
-				AND = {
-					tier = count
-					# We can't take the capital (or Yamashiro, if the liege has a different capital)
-					NOR = {
-						title = c_yamashiro
-						FROM = {
-							liege = {
-								capital_scope = {
-									county = {
-										title = ROOT
-									}
-								}
+			tier = duke
+			holder_scope = {
+				OR = {
+					AND = {
+						religion = shinto
+						controls_religion = yes
+					}
+					liege = {
+						religion = shinto
+						controls_religion = yes
+						regent = {
+							character = PREVPREV
+							trait = japanese_regent
+						}
+					}
+				}
+			}
+			# We can't take the regent's primary
+			NOT = {
+				holder_scope = {
+					primary_title = {
+						title = ROOT
+					}
+				}
+			}
+			is_vice_royalty = no
+		}
+		
+		allow = {
+			k_chrysanthemum_throne = {
+				holder_scope = {
+					trait = under_regency
+				}
+			}
+			FROM = {
+				war = no
+				has_regent = no
+				ROOT = {
+					holder_scope = {
+						war = no
+						NOT = {
+							has_opinion_modifier = {
+								who = FROM
+								modifier = japanese_regent_took_a_title
 							}
 						}
 					}
 				}
-				tier = duke
-				AND = {
-					FROM = {
-						liege = {
-							tier = emperor # If the Tenno isn't an emperor taking a kingdom would make us stop being his vassal...
-						}
-					}
-					tier = king
-					NOT = {
-						title = k_chrysanthemum_throne # That would be a full usurpation!
-					}
-				}
 			}
-			# Only the Tenno's demesne can be targeted!
-			holder_scope = {
-				real_tier = emperor
-				OR = {
-					AND = {
-						religion = shinto
-						controls_religion = no
-					}
-					AND = {
-						religion = buddhist
-						culture_group = japonic
-					}
-				}
-				trait = under_regency2
-			}
-		}
-		
-		from_potential = {
-			is_playable = yes
-			trait = japanese_regent2
-			has_minor_title = title_regent
-			liege = {
-				real_tier = emperor
-				OR = {
-					AND = {
-						religion = shinto
-						controls_religion = no
-					}
-					AND = {
-						religion = buddhist
-						culture_group = japonic
-					}
-				}
-				trait = under_regency2
-			}
-			has_regent = no # Should be impossible if you have the "Regent" minor title, but best to be certain
-		}
-		
-		allow = {
 			OR = {
-				AND = {
-					tier = count
+				ROOT = {
+					claimed_by = FROM
 					FROM = {
 						prestige = 500
 					}
 				}
-				AND = {
-					tier = duke
-					FROM = {
-						prestige = 1000
-					}
+				FROM = {
+					prestige = 1000
 				}
-				AND = {
-					tier = king
-					FROM = {
-						prestige = 2500
-					}
-				}
-			}
-			FROM = {
-				liege = {
-					NOT = {
-						has_opinion_modifier = {
-							who = FROM
-							modifier = took_a_title
-						}
-					}
-					war = no
-				}
-				war = no
 			}
 		}
 		
 		effect = {
 			if = {
 				limit = {
-					tier = count
+					claimed_by = FROM
 				}
 				FROM = {
 					prestige = -500
 				}
 			}
-			else_if = {
-				limit = {
-					tier = duke
-				}
+			else = {
 				FROM = {
 					prestige = -1000
 				}
 			}
-			else_if = {
-				limit = {
-					tier = king
-				}
-				FROM = {
-					prestige = -2500
-				}
+			holder_scope = {
+				letter_event = { id = soh.3540 } # Inform former holder
 			}
 			grant_title_no_opinion = FROM
-			FROM = {
-				liege = {
-					letter_event = { id = japan.43 }
-				}
-			}
 		}
 		
 		ai_will_do = {
@@ -4787,30 +4169,9 @@ title_decisions = {
 			# If we don't have a lot of prestige, don't bother
 			modifier = {
 				factor = 0.1
-				OR = {
-					AND = {
-						tier = count
-						FROM = {
-							NOT = {
-								prestige = 1000
-							}
-						}
-					}
-					AND = {
-						tier = duke
-						FROM = {
-							NOT = {
-								prestige = 2000
-							}
-						}
-					}
-					AND = {
-						tier = king
-						FROM = {
-							NOT = {
-								prestige = 5000
-							}
-						}
+				FROM = {
+					NOT = {
+						prestige = 2000
 					}
 				}
 			}
@@ -4838,38 +4199,689 @@ title_decisions = {
 					trait = greedy
 				}
 			}
+		}
+	}
+	
+	shogun_transfer_kingdom_tenno = {
+		filter = vassal_owned
+		ai_target_filter = vassal_owned
+		ai_check_interval = 120
+		only_playable = yes
+		only_independent = yes
+		
+		from_potential = {
+			tier = emperor
+			can_have_japanese_bureaucracy_and_feudal_trigger = yes
+			any_vassal = {
+				religion = shinto
+				controls_religion = yes
+			}
+		}
+		
+		potential = {
+			tier = king
+			holder_scope = {
+				any_vassal = {
+					character = FROM
+				}
+			}
+			# We can't take the Chrysanthemum Throne
+			NOT = {
+				title = k_chrysanthemum_throne
+			}
+			is_vice_royalty = no
+		}
+		
+		allow = {
+			k_chrysanthemum_throne = {
+				holder_scope = {
+					trait = under_regency
+				}
+			}
+			FROM = {
+				war = no
+				has_regent = no
+				ROOT = {
+					holder_scope = {
+						war = no
+						NOT = {
+							has_opinion_modifier = {
+								who = FROM
+								modifier = japanese_regent_took_a_title
+							}
+						}
+					}
+				}
+			}
+			OR = {
+				ROOT = {
+					claimed_by = FROM
+					FROM = {
+						prestige = 1000
+					}
+				}
+				FROM = {
+					prestige = 2000
+				}
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					claimed_by = FROM
+				}
+				FROM = {
+					prestige = -1000
+				}
+			}
+			else = {
+				FROM = {
+					prestige = -2000
+				}
+			}
+			holder_scope = {
+				letter_event = { id = soh.3540 } # Inform former holder
+			}
+			grant_title_no_opinion = FROM
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							claimed_by = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				FROM = {
+					NOT = {
+						prestige = 5000
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
 			modifier = {
 				factor = 2
 				FROM = {
-					trait = deceitful
+					trait = envious
 				}
 			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
+				}
+			}
+		}
+	}
+	
+	shogun_pr_transfer_county_tenno_or_tenno_pr = {
+		filter = realm_owned
+		ai_target_filter = realm_owned
+		ai_check_interval = 60
+		only_playable = yes
+		
+		from_potential = {
+			i_am_appropriate_regent_trigger = yes
+			liege = {
+				tier = emperor
+				trait = under_regency2
+			}
+			regent_transfer_county_enabled_trigger = yes
+			liege = {
+				any_vassal = {
+					religion = shinto
+					controls_religion = yes
+				}
+			}
+		}
+		
+		potential = {
+			tier = count
+			holder_scope = {
+				OR = {
+					AND = {
+						religion = shinto
+						controls_religion = yes
+					}
+					liege = {
+						religion = shinto
+						controls_religion = yes
+						regent = {
+							character = PREVPREV
+							trait = japanese_regent
+						}
+					}
+				}
+			}
+			# We can't take the capital or Yamashiro
+			NOR = {
+				AND = {
+					title = c_yamashiro
+					holder_scope = {
+						religion = shinto
+						controls_religion = yes
+					}
+				}
+				holder_scope = {
+					capital_scope = {
+						county = {
+							title = ROOT
+						}
+					}
+				}
+			}
+		}
+		
+		allow = {
+			k_chrysanthemum_throne = {
+				holder_scope = {
+					trait = under_regency
+				}
+			}
+			FROM = {
+				war = no
+			}
+			ROOT = {
+				holder_scope = {
+					war = no
+					NOT = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = japanese_regent_took_a_title
+						}
+					}
+				}
+			}
+			OR = {
+				ROOT = {
+					claimed_by = FROM
+					FROM = {
+						prestige = 250
+					}
+				}
+				FROM = {
+					prestige = 250
+				}
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					claimed_by = FROM
+				}
+				FROM = {
+					prestige = -250
+				}
+			}
+			else = {
+				FROM = {
+					prestige = -500
+				}
+			}
+			holder_scope = {
+				letter_event = { id = soh.3540 } # Inform former holder
+			}
+			grant_title_no_opinion = FROM
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							claimed_by = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
 			modifier = {
 				factor = 0.1
-				tier = king
 				FROM = {
-					NOR = {
-						trait = ambitious
-						capital_scope = {
-							duchy = {
-								title = ROOT
-							}
-						}
+					NOT = {
+						prestige = 1000
 					}
 				}
 			}
 			modifier = {
-				factor = 0.5
-				tier = duke
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = envious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
+				}
+			}
+		}
+	}
+	
+	shogun_pr_transfer_duchy_tenno_or_tenno_pr = {
+		filter = realm_owned
+		ai_target_filter = realm_owned
+		ai_check_interval = 90
+		only_playable = yes
+		
+		from_potential = {
+			i_am_appropriate_regent_trigger = yes
+			liege = {
+				tier = emperor
+				trait = under_regency2
+			}
+			regent_transfer_county_enabled_trigger = yes
+			liege = {
+				any_vassal = {
+					religion = shinto
+					controls_religion = yes
+				}
+			}
+		}
+		
+		potential = {
+			tier = duke
+			holder_scope = {
+				OR = {
+					AND = {
+						religion = shinto
+						controls_religion = yes
+					}
+					liege = {
+						religion = shinto
+						controls_religion = yes
+						regent = {
+							character = PREVPREV
+							trait = japanese_regent
+						}
+					}
+				}
+			}
+			# We can't take the regent's primary
+			NOT = {
+				holder_scope = {
+					primary_title = {
+						title = ROOT
+					}
+				}
+			}
+			is_vice_royalty = no
+		}
+		
+		allow = {
+			k_chrysanthemum_throne = {
+				holder_scope = {
+					trait = under_regency
+				}
+			}
+			FROM = {
+				war = no
+			}
+			ROOT = {
+				holder_scope = {
+					war = no
+					NOT = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = japanese_regent_took_a_title
+						}
+					}
+				}
+			}
+			OR = {
+				ROOT = {
+					claimed_by = FROM
+					FROM = {
+						prestige = 500
+					}
+				}
+				FROM = {
+					prestige = 1000
+				}
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					claimed_by = FROM
+				}
+				FROM = {
+					prestige = -500
+				}
+			}
+			else = {
+				FROM = {
+					prestige = -1000
+				}
+			}
+			holder_scope = {
+				letter_event = { id = soh.3540 } # Inform former holder
+			}
+			grant_title_no_opinion = FROM
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
 				FROM = {
 					NOR = {
 						trait = ambitious
-						capital_scope = {
-							kingdom = {
-								title = ROOT
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
 							}
 						}
+						ROOT = {
+							claimed_by = FROM
+						}
 					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				FROM = {
+					NOT = {
+						prestige = 2000
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = envious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
+				}
+			}
+		}
+	}
+	
+	shogun_pr_transfer_kingdom_tenno = {
+		filter = realm_owned
+		ai_target_filter = realm_owned
+		ai_check_interval = 120
+		only_playable = yes
+		
+		from_potential = {
+			i_am_appropriate_regent_trigger = yes
+			liege = {
+				tier = emperor
+				trait = under_regency2
+			}
+			regent_transfer_county_enabled_trigger = yes
+			liege = {
+				any_vassal = {
+					religion = shinto
+					controls_religion = yes
+				}
+			}
+		}
+		
+		potential = {
+			tier = king
+			holder_scope = {
+				religion = shinto
+				controls_religion = yes
+			}
+			# We can't take the Chrysanthemum Throne
+			NOT = {
+				title = k_chrysanthemum_throne
+			}
+			is_vice_royalty = no
+		}
+		
+		allow = {
+			k_chrysanthemum_throne = {
+				holder_scope = {
+					trait = under_regency
+				}
+			}
+			FROM = {
+				war = no
+			}
+			ROOT = {
+				holder_scope = {
+					war = no
+					NOT = {
+						has_opinion_modifier = {
+							who = FROM
+							modifier = japanese_regent_took_a_title
+						}
+					}
+				}
+			}
+			OR = {
+				ROOT = {
+					claimed_by = FROM
+					FROM = {
+						prestige = 1000
+					}
+				}
+				FROM = {
+					prestige = 2000
+				}
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					claimed_by = FROM
+				}
+				FROM = {
+					prestige = -1000
+				}
+			}
+			else = {
+				FROM = {
+					prestige = -2000
+				}
+			}
+			holder_scope = {
+				letter_event = { id = soh.3540 } # Inform former holder
+			}
+			grant_title_no_opinion = FROM
+		}
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0.01
+				always = yes # Slow it down!
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					trait = content
+				}
+			}
+			# Don't make us too likely to try this
+			modifier = {
+				factor = 0
+				FROM = {
+					NOR = {
+						trait = ambitious
+						trait = envious
+						trait = proud
+						liege = {
+							OR = {
+								NOT = {
+									reverse_opinion = {
+										who = FROM
+										value = -25
+									}
+								}
+								any_rival = {
+									character = FROM
+								}
+							}
+						}
+						ROOT = {
+							claimed_by = FROM
+						}
+					}
+				}
+			}
+			# If we don't have a lot of prestige, don't bother
+			modifier = {
+				factor = 0.1
+				FROM = {
+					NOT = {
+						prestige = 5000
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					trait = ambitious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = envious
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = proud
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					trait = greedy
 				}
 			}
 		}

@@ -27,88 +27,11 @@ title_regent = {
 	monthly_prestige = 1.50
 	
 	gain_effect = {
-		log = "[Root.GetBestName] is now the regent of [From.GetBestName]!"
-		if = {
-			limit = {
-				FROM = {
-					trait = under_regency
-				}
-				NOT = {
-					trait = japanese_regent
-				}
-			}
-			log = "Attempting to find the proper Regent!"
-			character_event = { id = japan.54 } # Give the title to the correct character, if possible
-		}
-		else_if = {
-			limit = {
-				FROM = {
-					trait = under_regency
-				}
-				trait = japanese_regent
-			}
-			log = "Attempting to set up Regency Loyalists!"
-			character_event = { id = japan.56 } # Set up the Regency Loyalist faction, if possible
-		}
-		if = {
-			limit = {
-				FROM = {
-					trait = under_regency2
-				}
-				NOT = {
-					trait = japanese_regent2
-				}
-			}
-			log = "Attempting to find the proper Regent!"
-			character_event = { id = japan.93 } # Give the title to the correct character, if possible
-		}
-		else_if = {
-			limit = {
-				FROM = {
-					trait = under_regency2
-				}
-				trait = japanese_regent2
-			}
-			log = "Attempting to set up Regency Loyalists!"
-			character_event = { id = japan.95 } # Set up the Regency Loyalist faction, if possible
-		}
 	}
 	lose_effect = {
 	}
 	
 	allowed_to_hold = {
-		#OR = {
-		#	FROM = {
-		#		NOT = {
-		#			trait = under_regency
-		#		}
-		#	}
-		#	trait = japanese_regent
-		#	FROM = {
-		#		NOT = {
-		#			any_vassal = {
-		#				trait = japanese_regent
-		#				has_regent = no
-		#			}
-		#		}
-		#	}
-		#}
-		#OR = {
-		#	FROM = {
-		#		NOT = {
-		#			trait = under_regency2
-		#		}
-		#	}
-		#	trait = japanese_regent2
-		#	FROM = {
-		#		NOT = {
-		#			any_vassal = {
-		#				trait = japanese_regent2
-		#				has_regent = no
-		#			}
-		#		}
-		#	}
-		#}
 	}
 
 	message = yes
@@ -172,6 +95,22 @@ title_appointed_regent = {
 				}
 			}
 		}
+		OR = {
+			FROM = {
+				NOT = {
+					trait = under_regency3
+				}
+			}
+			trait = japanese_regent3
+			FROM = {
+				NOT = {
+					any_vassal = {
+						trait = japanese_regent3
+						has_regent = no
+					}
+				}
+			}
+		}
 	}
 	
 	allowed_to_grant = {
@@ -185,12 +124,7 @@ title_appointed_regent = {
 	}
 	revoke_trigger = {
 		FROM = { has_regent = no }
-		FROM = {
-			NOR = {
-				trait = under_regency
-				trait = under_regency2
-			}
-		}
+		i_am_appropriate_regent_trigger = no
 		grand_chancellor_can_be_fired_trigger = yes
 		FROM = {
 			bureaucrat_can_fire_councillor_trigger = yes
@@ -201,16 +135,6 @@ title_appointed_regent = {
 	}
 
 	lose_effect = {
-		if = {
-			limit = {
-				FROM = {
-					NOR = {
-						trait = under_regency
-						trait = under_regency2
-					}
-				}
-			}
-		}
 	}
 	message = yes
 }
@@ -2998,7 +2922,10 @@ title_councilmember_king = {
 	is_voter = yes
 	
 	allowed_to_grant = {
-		higher_tier_than = DUKE
+		OR = {
+			higher_tier_than = DUKE
+			government = divine_imperial_government # No need to check the Tenno explicitly!
+		}
 		has_dlc = "Zeus"
 		primary_title = { has_law = law_voting_power_1 }
 	}
@@ -3020,6 +2947,7 @@ title_councilmember_king = {
 		}
 	}
 	revoke_trigger = {
+		i_am_appropriate_regent_trigger = no
 		FROM = {
 			primary_title = {
 				NOT = { 
@@ -3034,6 +2962,92 @@ title_councilmember_king = {
 		FROM = {
 			bureaucrat_can_fire_councillor_trigger = yes
 		}
+		FROM = { # TODO: scripted_trigger
+			NAND = {
+				primary_title = {
+					OR = {
+						has_law = regency_power_1
+						has_law = regency_power_2
+						has_law = regency_power_3
+						has_law = regency_power_4
+					}
+				}
+				OR = {
+					AND = {
+						trait = under_regency
+						any_vassal = {
+							trait = japanese_regent
+							dynasty = ROOT
+							ROOT = {
+								OR = {
+									is_landed = yes
+									is_close_relative = PREV
+								}
+							}
+						}
+					}
+					AND = {
+						trait = under_regency2
+						any_vassal = {
+							trait = japanese_regent2
+							dynasty = ROOT
+							ROOT = {
+								OR = {
+									is_landed = yes
+									is_close_relative = PREV
+								}
+							}
+						}
+					}
+					AND = {
+						trait = under_regency3
+						any_vassal = {
+							trait = japanese_regent3
+							dynasty = ROOT
+							ROOT = {
+								OR = {
+									is_landed = yes
+									is_close_relative = PREV
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		FROM = { # TODO: scripted_trigger
+			NAND = {
+				primary_title = {
+					OR = {
+						has_law = regency_power_5
+						has_law = regency_power_6
+					}
+				}
+				OR = {
+					AND = {
+						trait = under_regency
+						any_vassal = {
+							trait = japanese_regent
+							dynasty = ROOT
+						}
+					}
+					AND = {
+						trait = under_regency2
+						any_vassal = {
+							trait = japanese_regent2
+							dynasty = ROOT
+						}
+					}
+					AND = {
+						trait = under_regency3
+						any_vassal = {
+							trait = japanese_regent3
+							dynasty = ROOT
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	gain_effect = {
@@ -3047,10 +3061,24 @@ title_councilmember_king = {
 					}
 				}
 			}
-			opinion = { who = FROM modifier = opinion_fired_from_council }
-			opinion = { who = FROM modifier = opinion_recently_fired }
-			FROM = {
-				fired_bureaucrat_prestige_penalty_effect = yes
+			if = {
+				limit = {
+					FROM = {
+						NOT = {
+							regent = {
+								reverse_has_opinion_modifier = {
+									who = ROOT
+									modifier = japanese_regent_fired_me
+								}
+							}
+						}
+					}
+				}
+				opinion = { who = FROM modifier = opinion_fired_from_council }
+				opinion = { who = FROM modifier = opinion_recently_fired }
+				FROM = {
+					fired_bureaucrat_prestige_penalty_effect = yes
+				}
 			}
 		}
 	}
@@ -3087,7 +3115,11 @@ title_councilmember_emperor = {
 	is_voter = yes
 	
 	allowed_to_grant = {
-		higher_tier_than = KING
+		OR = {
+			higher_tier_than = KING
+			government = japanese_imperial_government
+			government = divine_imperial_government
+		}
 		has_dlc = "Zeus"
 		primary_title = { has_law = law_voting_power_1 }
 	}
@@ -3109,6 +3141,7 @@ title_councilmember_emperor = {
 	}
 
 	revoke_trigger = {
+		i_am_appropriate_regent_trigger = no
 		FROM = {
 			primary_title = {
 				NOT = { 
@@ -3123,6 +3156,92 @@ title_councilmember_emperor = {
 		FROM = {
 			bureaucrat_can_fire_councillor_trigger = yes
 		}
+		FROM = { # TODO: scripted_trigger
+			NAND = {
+				primary_title = {
+					OR = {
+						has_law = regency_power_1
+						has_law = regency_power_2
+						has_law = regency_power_3
+						has_law = regency_power_4
+					}
+				}
+				OR = {
+					AND = {
+						trait = under_regency
+						any_vassal = {
+							trait = japanese_regent
+							dynasty = ROOT
+							ROOT = {
+								OR = {
+									is_landed = yes
+									is_close_relative = PREV
+								}
+							}
+						}
+					}
+					AND = {
+						trait = under_regency2
+						any_vassal = {
+							trait = japanese_regent2
+							dynasty = ROOT
+							ROOT = {
+								OR = {
+									is_landed = yes
+									is_close_relative = PREV
+								}
+							}
+						}
+					}
+					AND = {
+						trait = under_regency3
+						any_vassal = {
+							trait = japanese_regent3
+							dynasty = ROOT
+							ROOT = {
+								OR = {
+									is_landed = yes
+									is_close_relative = PREV
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		FROM = { # TODO: scripted_trigger
+			NAND = {
+				primary_title = {
+					OR = {
+						has_law = regency_power_5
+						has_law = regency_power_6
+					}
+				}
+				OR = {
+					AND = {
+						trait = under_regency
+						any_vassal = {
+							trait = japanese_regent
+							dynasty = ROOT
+						}
+					}
+					AND = {
+						trait = under_regency2
+						any_vassal = {
+							trait = japanese_regent2
+							dynasty = ROOT
+						}
+					}
+					AND = {
+						trait = under_regency3
+						any_vassal = {
+							trait = japanese_regent3
+							dynasty = ROOT
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	gain_effect = {
@@ -3136,10 +3255,24 @@ title_councilmember_emperor = {
 					}
 				}
 			}
-			opinion = { who = FROM modifier = opinion_fired_from_council }
-			opinion = { who = FROM modifier = opinion_recently_fired }
-			FROM = {
-				fired_bureaucrat_prestige_penalty_effect = yes
+			if = {
+				limit = {
+					FROM = {
+						NOT = {
+							regent = {
+								reverse_has_opinion_modifier = {
+									who = ROOT
+									modifier = japanese_regent_fired_me
+								}
+							}
+						}
+					}
+				}
+				opinion = { who = FROM modifier = opinion_fired_from_council }
+				opinion = { who = FROM modifier = opinion_recently_fired }
+				FROM = {
+					fired_bureaucrat_prestige_penalty_effect = yes
+				}
 			}
 		}
 	}

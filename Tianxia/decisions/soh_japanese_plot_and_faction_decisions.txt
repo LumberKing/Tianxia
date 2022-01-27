@@ -1,234 +1,4 @@
 plot_decisions = {
-	plot_become_permanent_regent_decision = {
-		only_playable = yes
-		is_high_prio = yes
-		ai_check_interval = 12
-		
-		potential = {
-			has_plot = plot_become_permanent_regent
-			NOT = { has_character_flag = plot_become_permanent_regent_taken }
-		}
-		allow = {
-			plot_target_char = {
-				religion = shinto
-				controls_religion = yes
-				has_actual_regency_trigger = yes
-				NOT = {
-					trait = under_regency
-				}
-				NOT = {
-					any_vassal = {
-						trait = japanese_regent
-					}
-				}
-				war = no
-			}
-			OR = {
-				religion = shinto
-				AND = {
-					culture_group = japonic
-					religion = buddhist
-				}
-			}
-			OR = {
-				# We have at least one backer and sufficient plot power
-				AND = {
-					num_of_plot_backers = 1
-					plot_power = 1
-				}
-				# If we have the bloodline, it is easier
-				AND = {
-					num_of_plot_backers = 1
-					plot_power = 0.8
-					custom_tooltip = {
-						text = has_regency_bloodline
-						any_owned_bloodline = {
-							has_bloodline_flag = regency_bloodline
-							bloodline_is_active_for = ROOT
-						}
-					}
-				}
-			}
-			will_liege_enforce_peace = no
-			has_liege_enforced_peace = no
-			NOT = {
-				plot_target_char = {
-					reverse_has_truce = ROOT
-				}
-			}
-			has_regent = no
-		}
-		effect = {
-			hidden_tooltip = {
-				set_character_flag = plot_become_permanent_regent_taken
-				activate_plot = yes
-			}
-			if = {
-				limit = {
-					custom_tooltip = {
-						text = has_no_regency_bloodline
-						NOT = {
-							any_owned_bloodline = {
-								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = ROOT
-							}
-						}
-					}
-				}
-				if = {
-					limit = {
-						is_female = no
-					}
-					create_bloodline = {
-						type = regency_bloodline
-					}
-				}
-				else = {
-					create_bloodline = {
-						type = regency_bloodline
-						inheritance = matrilineal
-					}
-				}
-			}
-			plot_target_char = {
-				letter_event = { id = japan.30 } # Assume indirect control!
-			}
-			any_plot_backer = {
-				letter_event = { id = japan.31 } # Mission accomplished!
-			}
-			liege = {
-				any_vassal = {
-					limit = {
-						NOR = {
-							character = ROOT
-							ROOT = {
-								any_plot_backer = {
-									character = PREVPREV
-								}
-							}
-						}
-					}
-					letter_event = { id = japan.32 } # Inform vassals
-				}
-			}
-		}
-		revoke_allowed = {
-			always = no
-		}
-		ai_will_do = {
-			factor = 1
-		}
-	}
-	
-	faction_regent_ultimatum = {
-		only_playable = yes
-		is_high_prio = yes
-		ai_check_interval = 3
-		
-		potential = {
-			is_playable = yes
-			leads_faction = faction_regent
-			OR = {
-				NOT = { has_character_flag = faction_regent_ultimatum_taken }
-				had_character_flag = { flag = faction_regent_ultimatum_taken days = 7 }
-			}
-		}
-		
-		allow = {
-			war = no
-			prisoner = no
-	
-			liege = {
-				in_revolt = no
-				NOT = { war_with = ROOT }
-				NOT = { reverse_has_truce = ROOT }
-			}
-			
-			liege = {
-				has_regent = no # Should not happen, but...
-			}
-			has_regent = no
-			
-			conditional_tooltip = {
-				trigger = {
-					liege = {
-						independent = no
-					}
-				}
-				liege = {
-					liege = {
-						will_liege_enforce_peace = no
-						has_liege_enforced_peace = no
-					}
-				}
-			}
-			
-			custom_tooltip = {
-				text = UNOCCUPIED_DEMESNE_TITLE
-				hidden_tooltip = {
-					any_demesne_title = {
-						NOT = { higher_tier_than = count }
-						is_occupied = no
-					}
-				}
-			}
-		}
-		effect = {
-			liege = {
-				letter_event = { id = japan.33 } # Ultimatun given to liege
-			}
-			hidden_tooltip = {
-				set_character_flag = faction_regent_ultimatum_taken
-			}
-		}
-		revoke_allowed = {
-			always = no
-		}
-		
-		ai_will_do = {
-			factor = 1
-			
-			modifier = {
-				factor = 0
-				NOT = { 
-					faction_power = {
-						faction = faction_regent
-						power = 0.75
-					}
-				}
-			}
-			
-			modifier = {
-				factor = 0.1
-				NOT = { 
-					faction_power = {
-						faction = faction_regent
-						power = 1.0
-					}
-				}
-			}	
-
-			modifier = {
-				factor = 0.1
-				NOT = { 
-					faction_power = {
-						faction = faction_regent
-						power = 1.5
-					}
-				}
-			}
-			
-			modifier = { # If the liege is already fighting a regency war, slow it down to avoid war spam
-				factor = 0.05
-				liege = {
-					any_war = {
-						using_cb = regency_faction_war
-					}
-				}
-			}
-		}
-	}
-	
 	plot_replace_permanent_regent_decision = {
 		only_playable = yes
 		is_high_prio = yes
@@ -238,18 +8,8 @@ plot_decisions = {
 			has_plot = plot_replace_permanent_regent
 			NOT = { has_character_flag = plot_replace_permanent_regent_taken }
 		}
+		
 		allow = {
-			plot_target_char = {
-				trait = japanese_regent
-				has_regent = yes
-			}
-			OR = {
-				religion = shinto
-				AND = {
-					culture_group = japonic
-					religion = buddhist
-				}
-			}
 			OR = {
 				# We have at least one backer and sufficient plot power
 				AND = {
@@ -299,10 +59,23 @@ plot_decisions = {
 						}
 					}
 				}
-				# If we're not a regency dynasty it is harder to overthrow the regent if he has one
-				AND = {
-					num_of_plot_backers = 1
-					plot_power = 1.2
+			}
+			will_liege_enforce_peace = no
+			has_liege_enforced_peace = no
+			NOT = {
+				plot_target_char = {
+					reverse_has_truce = ROOT
+				}
+			}
+			has_regent = no
+		}
+		effect = {
+			hidden_tooltip = {
+				set_character_flag = plot_replace_permanent_regent_taken
+				activate_plot = yes
+			}
+			if = {
+				limit = {
 					custom_tooltip = {
 						text = has_no_regency_bloodline
 						NOT = {
@@ -312,12 +85,96 @@ plot_decisions = {
 							}
 						}
 					}
-					plot_target_char = {
+				}
+				if = {
+					limit = {
+						is_female = no
+					}
+					create_bloodline = {
+						type = regency_bloodline
+					}
+				}
+				else = {
+					create_bloodline = {
+						type = regency_bloodline
+						inheritance = matrilineal
+					}
+				}
+			}
+			plot_target_char = {
+				letter_event = { id = soh.3541 } # Assume indirect control!
+			}
+			any_plot_backer = {
+				letter_event = { id = soh.3542 } # Mission accomplished!
+			}
+			liege = {
+				letter_event = { id = soh.3543 } # Inform the liege
+			}
+		}
+		revoke_allowed = {
+			always = no
+		}
+		ai_will_do = {
+			factor = 1
+		}
+	}
+	
+	plot_replace_permanent_regent_decision2 = {
+		only_playable = yes
+		is_high_prio = yes
+		ai_check_interval = 12
+		
+		potential = {
+			has_plot = plot_replace_permanent_regent2
+			NOT = { has_character_flag = plot_replace_permanent_regent_taken }
+		}
+		
+		allow = {
+			OR = {
+				# We have at least one backer and sufficient plot power
+				AND = {
+					num_of_plot_backers = 1
+					plot_power = 1
+					OR = {
 						custom_tooltip = {
 							text = has_regency_bloodline
 							any_owned_bloodline = {
 								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = PREV
+								bloodline_is_active_for = ROOT
+							}
+						}
+						plot_target_char = {
+							custom_tooltip = {
+								text = has_no_regency_bloodline
+								NOT = {
+									any_owned_bloodline = {
+										has_bloodline_flag = regency_bloodline
+										bloodline_is_active_for = PREV
+									}
+								}
+							}
+						}
+					}
+				}
+				# If we're a regency dynasty we get to do it more easily against someone that doesn't
+				AND = {
+					num_of_plot_backers = 1
+					plot_power = 0.8
+					custom_tooltip = {
+						text = has_regency_bloodline
+						any_owned_bloodline = {
+							has_bloodline_flag = regency_bloodline
+							bloodline_is_active_for = ROOT
+						}
+					}
+					plot_target_char = {
+						custom_tooltip = {
+							text = has_no_regency_bloodline
+							NOT = {
+								any_owned_bloodline = {
+									has_bloodline_flag = regency_bloodline
+									bloodline_is_active_for = PREV
+								}
 							}
 						}
 					}
@@ -365,13 +222,13 @@ plot_decisions = {
 				}
 			}
 			plot_target_char = {
-				letter_event = { id = japan.37 } # Assume indirect control!
+				letter_event = { id = soh.3541 } # Assume indirect control!
 			}
 			any_plot_backer = {
-				letter_event = { id = japan.38 } # Mission accomplished!
+				letter_event = { id = soh.3542 } # Mission accomplished!
 			}
 			liege = {
-				letter_event = { id = japan.39 } # Inform the liege
+				letter_event = { id = soh.3543 } # Inform the liege
 			}
 		}
 		revoke_allowed = {
@@ -379,6 +236,438 @@ plot_decisions = {
 		}
 		ai_will_do = {
 			factor = 1
+		}
+	}
+	
+	plot_replace_permanent_regent_decision3 = {
+		only_playable = yes
+		is_high_prio = yes
+		ai_check_interval = 12
+		
+		potential = {
+			has_plot = plot_replace_permanent_regent3
+			NOT = { has_character_flag = plot_replace_permanent_regent_taken }
+		}
+		
+		allow = {
+			OR = {
+				# We have at least one backer and sufficient plot power
+				AND = {
+					num_of_plot_backers = 1
+					plot_power = 1
+					OR = {
+						custom_tooltip = {
+							text = has_regency_bloodline
+							any_owned_bloodline = {
+								has_bloodline_flag = regency_bloodline
+								bloodline_is_active_for = ROOT
+							}
+						}
+						plot_target_char = {
+							custom_tooltip = {
+								text = has_no_regency_bloodline
+								NOT = {
+									any_owned_bloodline = {
+										has_bloodline_flag = regency_bloodline
+										bloodline_is_active_for = PREV
+									}
+								}
+							}
+						}
+					}
+				}
+				# If we're a regency dynasty we get to do it more easily against someone that doesn't
+				AND = {
+					num_of_plot_backers = 1
+					plot_power = 0.8
+					custom_tooltip = {
+						text = has_regency_bloodline
+						any_owned_bloodline = {
+							has_bloodline_flag = regency_bloodline
+							bloodline_is_active_for = ROOT
+						}
+					}
+					plot_target_char = {
+						custom_tooltip = {
+							text = has_no_regency_bloodline
+							NOT = {
+								any_owned_bloodline = {
+									has_bloodline_flag = regency_bloodline
+									bloodline_is_active_for = PREV
+								}
+							}
+						}
+					}
+				}
+			}
+			will_liege_enforce_peace = no
+			has_liege_enforced_peace = no
+			NOT = {
+				plot_target_char = {
+					reverse_has_truce = ROOT
+				}
+			}
+			has_regent = no
+		}
+		effect = {
+			hidden_tooltip = {
+				set_character_flag = plot_replace_permanent_regent_taken
+				activate_plot = yes
+			}
+			if = {
+				limit = {
+					custom_tooltip = {
+						text = has_no_regency_bloodline
+						NOT = {
+							any_owned_bloodline = {
+								has_bloodline_flag = regency_bloodline
+								bloodline_is_active_for = ROOT
+							}
+						}
+					}
+				}
+				if = {
+					limit = {
+						is_female = no
+					}
+					create_bloodline = {
+						type = regency_bloodline
+					}
+				}
+				else = {
+					create_bloodline = {
+						type = regency_bloodline
+						inheritance = matrilineal
+					}
+				}
+			}
+			plot_target_char = {
+				letter_event = { id = soh.3541 } # Assume indirect control!
+			}
+			any_plot_backer = {
+				letter_event = { id = soh.3542 } # Mission accomplished!
+			}
+			liege = {
+				letter_event = { id = soh.3543 } # Inform the liege
+			}
+		}
+		revoke_allowed = {
+			always = no
+		}
+		ai_will_do = {
+			factor = 1
+		}
+	}
+	
+	faction_regent_ultimatum = {
+		only_playable = yes
+		is_high_prio = yes
+		ai_check_interval = 3
+		
+		potential = {
+			is_playable = yes
+			leads_faction = faction_regent
+			OR = {
+				NOT = { has_character_flag = faction_regent_ultimatum_taken }
+				had_character_flag = { flag = faction_regent_ultimatum_taken days = 7 }
+			}
+		}
+		
+		allow = {
+			war = no
+			prisoner = no
+	
+			liege = {
+				in_revolt = no
+				NOT = { war_with = ROOT }
+				NOT = { reverse_has_truce = ROOT }
+				NOT = {
+					any_war = {
+						using_cb = regency_faction_war
+					}
+					any_war = {
+						using_cb = end_shogunate_war
+					}
+					any_war = {
+						using_cb = shogunate_war
+					}
+				}
+			}
+			has_regent = no
+			
+			conditional_tooltip = {
+				trigger = {
+					liege = {
+						independent = no
+					}
+				}
+				liege = {
+					liege = {
+						will_liege_enforce_peace = no
+						has_liege_enforced_peace = no
+					}
+				}
+			}
+			
+			custom_tooltip = {
+				text = UNOCCUPIED_DEMESNE_TITLE
+				hidden_tooltip = {
+					any_demesne_title = {
+						NOT = { higher_tier_than = count }
+						is_occupied = no
+					}
+				}
+			}
+		}
+		effect = {
+			liege = {
+				letter_event = { id = soh.3544 } # Ultimatun given to liege
+			}
+			hidden_tooltip = {
+				set_character_flag = faction_regent_ultimatum_taken
+			}
+		}
+		revoke_allowed = {
+			always = no
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			modifier = {
+				factor = 0
+				NOT = { 
+					faction_power = {
+						faction = faction_regent
+						power = 0.75
+					}
+				}
+			}
+			
+			modifier = {
+				factor = 0.1
+				NOT = { 
+					faction_power = {
+						faction = faction_regent
+						power = 1.0
+					}
+				}
+			}	
+
+			modifier = {
+				factor = 0.1
+				NOT = { 
+					faction_power = {
+						faction = faction_regent
+						power = 1.5
+					}
+				}
+			}
+		}
+	}
+	
+	faction_regent_ultimatum2 = {
+		only_playable = yes
+		is_high_prio = yes
+		ai_check_interval = 3
+		
+		potential = {
+			is_playable = yes
+			leads_faction = faction_regent2
+			OR = {
+				NOT = { has_character_flag = faction_regent_ultimatum_taken }
+				had_character_flag = { flag = faction_regent_ultimatum_taken days = 7 }
+			}
+		}
+		
+		allow = {
+			war = no
+			prisoner = no
+	
+			liege = {
+				in_revolt = no
+				NOT = { war_with = ROOT }
+				NOT = { reverse_has_truce = ROOT }
+				NOT = {
+					any_war = {
+						using_cb = regency_faction_war2
+					}
+					any_war = {
+						using_cb = end_shogunate_war
+					}
+				}
+			}
+			has_regent = no
+			
+			conditional_tooltip = {
+				trigger = {
+					liege = {
+						independent = no
+					}
+				}
+				liege = {
+					liege = {
+						will_liege_enforce_peace = no
+						has_liege_enforced_peace = no
+					}
+				}
+			}
+			
+			custom_tooltip = {
+				text = UNOCCUPIED_DEMESNE_TITLE
+				hidden_tooltip = {
+					any_demesne_title = {
+						NOT = { higher_tier_than = count }
+						is_occupied = no
+					}
+				}
+			}
+		}
+		effect = {
+			liege = {
+				letter_event = { id = soh.3548 } # Ultimatun given to liege
+			}
+			hidden_tooltip = {
+				set_character_flag = faction_regent_ultimatum_taken
+			}
+		}
+		revoke_allowed = {
+			always = no
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			modifier = {
+				factor = 0
+				NOT = { 
+					faction_power = {
+						faction = faction_regent2
+						power = 0.75
+					}
+				}
+			}
+			
+			modifier = {
+				factor = 0.1
+				NOT = { 
+					faction_power = {
+						faction = faction_regent2
+						power = 1.0
+					}
+				}
+			}	
+
+			modifier = {
+				factor = 0.1
+				NOT = { 
+					faction_power = {
+						faction = faction_regent2
+						power = 1.5
+					}
+				}
+			}
+		}
+	}
+	
+	faction_regent_ultimatum3 = {
+		only_playable = yes
+		is_high_prio = yes
+		ai_check_interval = 3
+		
+		potential = {
+			is_playable = yes
+			leads_faction = faction_regent2
+			OR = {
+				NOT = { has_character_flag = faction_regent_ultimatum_taken }
+				had_character_flag = { flag = faction_regent_ultimatum_taken days = 7 }
+			}
+		}
+		
+		allow = {
+			war = no
+			prisoner = no
+	
+			liege = {
+				in_revolt = no
+				NOT = { war_with = ROOT }
+				NOT = { reverse_has_truce = ROOT }
+				NOT = {
+					any_war = {
+						using_cb = regency_faction_war3
+					}
+				}
+			}
+			has_regent = no
+			
+			conditional_tooltip = {
+				trigger = {
+					liege = {
+						independent = no
+					}
+				}
+				liege = {
+					liege = {
+						will_liege_enforce_peace = no
+						has_liege_enforced_peace = no
+					}
+				}
+			}
+			
+			custom_tooltip = {
+				text = UNOCCUPIED_DEMESNE_TITLE
+				hidden_tooltip = {
+					any_demesne_title = {
+						NOT = { higher_tier_than = count }
+						is_occupied = no
+					}
+				}
+			}
+		}
+		effect = {
+			liege = {
+				letter_event = { id = soh.3552 } # Ultimatun given to liege
+			}
+			hidden_tooltip = {
+				set_character_flag = faction_regent_ultimatum_taken
+			}
+		}
+		revoke_allowed = {
+			always = no
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			modifier = {
+				factor = 0
+				NOT = { 
+					faction_power = {
+						faction = faction_regent3
+						power = 0.75
+					}
+				}
+			}
+			
+			modifier = {
+				factor = 0.1
+				NOT = { 
+					faction_power = {
+						faction = faction_regent3
+						power = 1.0
+					}
+				}
+			}	
+
+			modifier = {
+				factor = 0.1
+				NOT = { 
+					faction_power = {
+						faction = faction_regent3
+						power = 1.5
+					}
+				}
+			}
 		}
 	}
 	
@@ -395,6 +684,7 @@ plot_decisions = {
 				had_character_flag = { flag = faction_shogun_ultimatum_taken days = 7 }
 			}
 		}
+		
 		allow = {
 			war = no
 			prisoner = no
@@ -418,11 +708,25 @@ plot_decisions = {
 					}
 				}
 			}
-			# If the Permanent Regency is in question (which should invalidate the faction, but...) don't start this war...
-			NOT = {
+			NOR = {
 				liege = {
 					any_war = {
 						using_cb = end_regency_war
+					}
+				}
+				liege = {
+					any_war = {
+						using_cb = shogunate_war
+					}
+				}
+				liege = {
+					any_war = {
+						using_cb = imperial_claim_faction
+					}
+				}
+				liege = {
+					any_war = {
+						using_cb = imperial_claim
 					}
 				}
 			}
@@ -430,7 +734,7 @@ plot_decisions = {
 		
 		effect = {
 			liege = {
-				letter_event = { id = japan.44 days = 3 tooltip = EVTTOOLTIP8005 }
+				letter_event = { id = soh.3577 days = 3 tooltip = EVTTOOLTIP8005 }
 			}
 			hidden_tooltip = {
 				set_character_flag = faction_shogun_ultimatum_taken
@@ -514,6 +818,7 @@ plot_decisions = {
 				had_character_flag = { flag = faction_oust_shogun_ultimatum_taken days = 7 }
 			}
 		}
+		
 		allow = {
 			war = no
 			prisoner = no
@@ -521,6 +826,13 @@ plot_decisions = {
 				in_revolt = no
 				NOT = { war_with = ROOT }
 				NOT = { reverse_has_truce = ROOT }
+			}
+			NOT = {
+				liege = {
+					any_war = {
+						using_cb = end_shogunate_war
+					}
+				}
 			}
 			NOT = {
 				any_realm_title = {
@@ -541,7 +853,7 @@ plot_decisions = {
 		
 		effect = {
 			liege = {
-				letter_event = { id = japan.49 days = 3 tooltip = EVTTOOLTIP8005 }
+				letter_event = { id = soh.3582 days = 3 tooltip = EVTTOOLTIP8005 }
 			}
 			hidden_tooltip = {
 				set_character_flag = faction_oust_shogun_ultimatum_taken
@@ -612,184 +924,73 @@ plot_decisions = {
 		}
 	}
 	
-	plot_become_permanent_regent_decision2 = {
-		only_playable = yes
-		is_high_prio = yes
-		ai_check_interval = 12
-		
-		potential = {
-			has_plot = plot_become_permanent_regent2
-			NOT = { has_character_flag = plot_become_permanent_regent_taken }
-		}
-		allow = {
-			plot_target_char = {
-				OR = {
-					AND = {
-						religion = shinto
-						controls_religion = no
-					}
-					AND = {
-						religion = buddhist
-						culture_group = japonic
-					}
-				}
-				real_tier = emperor
-				has_actual_regency_trigger = yes
-				NOT = {
-					trait = under_regency2
-				}
-				NOT = {
-					any_vassal = {
-						trait = japanese_regent2
-					}
-				}
-				war = no
-			}
-			OR = {
-				AND = {
-					religion = shinto
-					controls_religion = no
-				}
-				AND = {
-					religion = buddhist
-					culture_group = japonic
-				}
-			}
-			OR = {
-				# We have at least one backer and sufficient plot power
-				AND = {
-					num_of_plot_backers = 1
-					plot_power = 1
-				}
-				# If we have the bloodline, it is easier
-				AND = {
-					num_of_plot_backers = 1
-					plot_power = 0.8
-					custom_tooltip = {
-						text = has_regency_bloodline
-						any_owned_bloodline = {
-							has_bloodline_flag = regency_bloodline
-							bloodline_is_active_for = ROOT
-						}
-					}
-				}
-			}
-			will_liege_enforce_peace = no
-			has_liege_enforced_peace = no
-			NOT = {
-				plot_target_char = {
-					reverse_has_truce = ROOT
-				}
-			}
-			has_regent = no
-		}
-		effect = {
-			hidden_tooltip = {
-				set_character_flag = plot_become_permanent_regent_taken
-				activate_plot = yes
-			}
-			if = {
-				limit = {
-					custom_tooltip = {
-						text = has_no_regency_bloodline
-						NOT = {
-							any_owned_bloodline = {
-								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = ROOT
-							}
-						}
-					}
-				}
-				if = {
-					limit = {
-						is_female = no
-					}
-					create_bloodline = {
-						type = regency_bloodline
-					}
-				}
-				else = {
-					create_bloodline = {
-						type = regency_bloodline
-						inheritance = matrilineal
-					}
-				}
-			}
-			plot_target_char = {
-				letter_event = { id = japan.83 } # Assume indirect control!
-			}
-			any_plot_backer = {
-				letter_event = { id = japan.84 } # Mission accomplished!
-			}
-			liege = {
-				any_vassal = {
-					limit = {
-						NOR = {
-							character = ROOT
-							ROOT = {
-								any_plot_backer = {
-									character = PREVPREV
-								}
-							}
-						}
-					}
-					letter_event = { id = japan.85 } # Inform vassals
-				}
-			}
-		}
-		revoke_allowed = {
-			always = no
-		}
-		ai_will_do = {
-			factor = 1
-		}
-	}
-	
-	faction_regent_ultimatum2 = {
+	faction_imperial_claimant_ultimatum = {
 		only_playable = yes
 		is_high_prio = yes
 		ai_check_interval = 3
 		
 		potential = {
 			is_playable = yes
-			leads_faction = faction_regent2
+			leads_faction = faction_imperial_claimant
 			OR = {
-				NOT = { has_character_flag = faction_regent_ultimatum_taken }
-				had_character_flag = { flag = faction_regent_ultimatum_taken days = 7 }
+				NOT = { has_character_flag = imperial_claimant_ultimatum }
+				had_character_flag = { flag = imperial_claimant_ultimatum days = 7 }
 			}
 		}
 		
 		allow = {
 			war = no
 			prisoner = no
-	
 			liege = {
 				in_revolt = no
 				NOT = { war_with = ROOT }
 				NOT = { reverse_has_truce = ROOT }
 			}
-			
-			liege = {
-				has_regent = no # Should not happen, but...
+			NOT = {
+				any_realm_title = {
+					NOT = { higher_tier_than = count }
+					is_occupied = yes
+				}
 			}
-			has_regent = no
-			
-			custom_tooltip = {
-				text = UNOCCUPIED_DEMESNE_TITLE
-				hidden_tooltip = {
-					any_demesne_title = {
-						NOT = { higher_tier_than = count }
-						is_occupied = no
+			liege = {
+				OR = {
+					independent = yes
+					AND = {
+						will_liege_enforce_peace = no
+						has_liege_enforced_peace = no
+					}
+				}
+			}
+			NOR = {
+				liege = {
+					any_war = {
+						using_cb = end_regency_war
+					}
+				}
+				liege = {
+					any_war = {
+						using_cb = shogunate_war
+					}
+				}
+				liege = {
+					any_war = {
+						using_cb = imperial_claim_faction
+					}
+				}
+				liege = {
+					any_war = {
+						using_cb = imperial_claim
 					}
 				}
 			}
 		}
+		
 		effect = {
 			liege = {
-				letter_event = { id = japan.86 } # Ultimatun given to liege
+				letter_event = { id = soh.3591 days = 3 tooltip = EVTTOOLTIP8005 }
 			}
 			hidden_tooltip = {
-				set_character_flag = faction_regent_ultimatum_taken
+				set_character_flag = imperial_claimant_ultimatum
 			}
 		}
 		revoke_allowed = {
@@ -798,201 +999,62 @@ plot_decisions = {
 		
 		ai_will_do = {
 			factor = 1
-			
 			modifier = {
 				factor = 0
 				NOT = { 
 					faction_power = {
-						faction = faction_regent2
+						faction = faction_imperial_claimant
 						power = 0.75
 					}
 				}
-			}
-			
+			}			
 			modifier = {
 				factor = 0.1
 				NOT = { 
 					faction_power = {
-						faction = faction_regent2
+						faction = faction_imperial_claimant
 						power = 1.0
 					}
 				}
-			}	
-
+			}
 			modifier = {
 				factor = 0.1
 				NOT = { 
 					faction_power = {
-						faction = faction_regent2
+						faction = faction_imperial_claimant
 						power = 1.5
 					}
 				}
 			}
 			
-			modifier = { # If the liege is already fighting a regency war, slow it down to avoid war spam
-				factor = 0.05
+			modifier = {
+				factor = 0
 				liege = {
 					any_war = {
-						using_cb = regency_faction_war2
-					}
-				}
-			}
-		}
-	}
-	
-	plot_replace_permanent_regent_decision2 = {
-		only_playable = yes
-		is_high_prio = yes
-		ai_check_interval = 12
-		
-		potential = {
-			has_plot = plot_replace_permanent_regent2
-			NOT = { has_character_flag = plot_replace_permanent_regent_taken }
-		}
-		allow = {
-			plot_target_char = {
-				trait = japanese_regent2
-				has_regent = yes
-			}
-			OR = {
-				AND = {
-					religion = shinto
-					controls_religion = no
-				}
-				AND = {
-					religion = buddhist
-					culture_group = japonic
-				}
-			}
-			OR = {
-				# We have at least one backer and sufficient plot power
-				AND = {
-					num_of_plot_backers = 1
-					plot_power = 1
-					OR = {
-						custom_tooltip = {
-							text = has_regency_bloodline
-							any_owned_bloodline = {
-								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = ROOT
+						OR = {
+							AND = {
+								defender = { character = PREV }
+								NOT = { using_cb = depose_liege }
+								NOT = { using_cb = overthrow_ruler }
+								NOT = { using_cb = overthrow_ruler_no_calls }
 							}
-						}
-						plot_target_char = {
-							custom_tooltip = {
-								text = has_no_regency_bloodline
-								NOT = {
-									any_owned_bloodline = {
-										has_bloodline_flag = regency_bloodline
-										bloodline_is_active_for = PREV
-									}
+							AND = {
+								attacker = { character = PREV }
+								OR = {
+									using_cb = invasion
+									using_cb = religious
+									using_cb = tribal_invasion
+									using_cb = muslim_invasion
+									using_cb = viking_invasion
+									using_cb = claim_all
+									using_cb = claim
+									using_cb = other_claim
 								}
 							}
 						}
 					}
 				}
-				# If we're a regency dynasty we get to do it more easily against someone that doesn't
-				AND = {
-					num_of_plot_backers = 1
-					plot_power = 0.8
-					custom_tooltip = {
-						text = has_regency_bloodline
-						any_owned_bloodline = {
-							has_bloodline_flag = regency_bloodline
-							bloodline_is_active_for = ROOT
-						}
-					}
-					plot_target_char = {
-						custom_tooltip = {
-							text = has_no_regency_bloodline
-							NOT = {
-								any_owned_bloodline = {
-									has_bloodline_flag = regency_bloodline
-									bloodline_is_active_for = PREV
-								}
-							}
-						}
-					}
-				}
-				# If we're not a regency dynasty it is harder to overthrow the regent if he has one
-				AND = {
-					num_of_plot_backers = 1
-					plot_power = 1.2
-					custom_tooltip = {
-						text = has_no_regency_bloodline
-						NOT = {
-							any_owned_bloodline = {
-								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = ROOT
-							}
-						}
-					}
-					plot_target_char = {
-						custom_tooltip = {
-							text = has_regency_bloodline
-							any_owned_bloodline = {
-								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = PREV
-							}
-						}
-					}
-				}
 			}
-			will_liege_enforce_peace = no
-			has_liege_enforced_peace = no
-			NOT = {
-				plot_target_char = {
-					reverse_has_truce = ROOT
-				}
-			}
-			has_regent = no
-		}
-		effect = {
-			hidden_tooltip = {
-				set_character_flag = plot_replace_permanent_regent_taken
-				activate_plot = yes
-			}
-			if = {
-				limit = {
-					custom_tooltip = {
-						text = has_no_regency_bloodline
-						NOT = {
-							any_owned_bloodline = {
-								has_bloodline_flag = regency_bloodline
-								bloodline_is_active_for = ROOT
-							}
-						}
-					}
-				}
-				if = {
-					limit = {
-						is_female = no
-					}
-					create_bloodline = {
-						type = regency_bloodline
-					}
-				}
-				else = {
-					create_bloodline = {
-						type = regency_bloodline
-						inheritance = matrilineal
-					}
-				}
-			}
-			plot_target_char = {
-				letter_event = { id = japan.90 } # Assume indirect control!
-			}
-			any_plot_backer = {
-				letter_event = { id = japan.91 } # Mission accomplished!
-			}
-			liege = {
-				letter_event = { id = japan.92 } # Inform the liege
-			}
-		}
-		revoke_allowed = {
-			always = no
-		}
-		ai_will_do = {
-			factor = 1
 		}
 	}
 }
