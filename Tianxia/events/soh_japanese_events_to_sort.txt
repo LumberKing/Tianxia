@@ -662,3 +662,1628 @@ character_event = {
 		}
 	}
 }
+
+
+
+
+##### Wako (Wokou) events - add cultural buildings + game rule + localization
+
+# Low chance of a Yamato or Japanese island or coastal province swapping to Wako culture
+province_event = {
+	id = japan.406
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_JAPAN_406
+	
+	trigger = {
+		port = yes
+		OR = {
+			# In Japan or Korea
+			region = world_japan
+			region = custom_yezo
+			region = world_japan_islands
+			region = world_korea
+		}
+		OR = {
+			culture = japanese
+			culture = yamato
+		}
+		OR = {
+			religion = shinto
+			religion = buddhist
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 1000
+		
+		# Is not an island or "island"
+		modifier = {
+			factor = 5
+			any_neighbor_province = {
+				count = 2
+				is_land = yes
+			}
+		}
+		
+		# Is really not an island
+		modifier = {
+			factor = 10
+			any_neighbor_province = {
+				is_land = yes
+				port = no
+			}
+		}
+		modifier = {
+			factor = 0.9
+			any_neighbor_province = {
+				culture = wako # More common if adjacent
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				NOT = {
+					culture = wako
+				}
+			}
+		}
+		name = EVTOPTA_JAPAN_406 # Let's hope they behave...
+		culture = wako
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				culture = wako
+			}
+		}
+		name = EVTOPTB_JAPAN_406 # That's... good?
+		culture = wako
+	}
+}
+
+# Low chance of a Pirate Haven spawning in a Wako province
+province_event = {
+	id = japan.407
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_JAPAN_407
+	
+	trigger = {
+		port = yes
+		culture = wako
+		OR = {
+			religion = shinto
+			religion = buddhist
+		}
+		NOT = {
+			has_province_modifier = pirate_haven
+		}
+		owner = {
+			NOR = {
+				AND = {
+					culture = wako
+					independent = yes
+				}
+				top_liege = {
+					culture = wako
+				}
+			}
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 120
+		
+		# Is not an island or "island"
+		modifier = {
+			factor = 5
+			any_neighbor_province = {
+				count = 2
+				is_land = yes
+			}
+		}
+		
+		# Is really not an island
+		modifier = {
+			factor = 10
+			any_neighbor_province = {
+				is_land = yes
+				port = no
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_JAPAN_407 # Let's hope they know not to raid my coasts!
+		add_province_modifier = {
+			modifier = pirate_haven
+			duration = -1
+		}
+	}
+}
+
+# Pirate Haven modifier removed
+province_event = {
+	id = japan.408
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_JAPAN_408
+	
+	trigger = {
+		port = yes
+		has_province_modifier = pirate_haven
+	}
+	
+	mean_time_to_happen = {
+		months = 240
+		
+		# Isn't a Wako province
+		modifier = {
+			factor = 0.1
+			NAND = {
+				culture = wako
+				OR = {
+					religion = shinto
+					religion = buddhist
+				}
+			}
+		}
+		
+		# Owner or liege is Wako
+		modifier = {
+			factor = 0.1
+			owner = {
+				OR = {
+					culture = wako
+					any_liege = {
+						culture = wako
+					}
+				}
+			}
+		}
+		
+		# Owner has high stewardship
+		modifier = {
+			factor = 0.8
+			owner = {
+				stewardship = 12
+			}
+		}
+		modifier = {
+			factor = 0.8
+			owner = {
+				stewardship = 16
+			}
+		}
+		modifier = {
+			factor = 0.8
+			owner = {
+				stewardship = 20
+			}
+		}
+		modifier = {
+			factor = 0.8
+			owner = {
+				stewardship = 24
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				NOT = {
+					culture = wako
+				}
+			}
+		}
+		name = EVTOPTA_JAPAN_408 # Good riddance!
+		remove_province_modifier = pirate_haven
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				culture = wako
+			}
+		}
+		name = EVTOPTB_JAPAN_408 # I can organize my own raids!
+		remove_province_modifier = pirate_haven
+	}
+}
+
+# Low chance of a Wako raid spawning in a province with a Pirate Haven
+character_event = {
+	id = japan.409
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_JAPAN_409
+	
+	only_playable = yes
+	
+	has_dlc = "Horse Lords" # Raiding adventurers
+		
+	trigger = {
+		any_demesne_province = {
+			culture = wako
+			has_province_modifier = pirate_haven
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 120
+	}
+	
+	immediate = {
+		random_demesne_province = {
+			limit = {
+				culture = wako
+				has_province_modifier = pirate_haven
+			}
+			save_event_target_as = wako_province
+			random_list = {
+				95 = {
+					create_character = {
+						random_traits = yes
+						age = 25
+						female = no
+						dynasty = none
+						culture = wako
+						religion = shinto
+						attributes = {
+							diplomacy = 3
+							martial = 5
+							stewardship = 2
+							intrigue = 4
+							learning = 1
+						}
+						add_trait = tough_soldier
+					}
+				}
+				5 = {
+					create_character = {
+						random_traits = yes
+						age = 25
+						female = yes
+						dynasty = none
+						culture = wako
+						religion = shinto
+						attributes = {
+							diplomacy = 3
+							martial = 5
+							stewardship = 2
+							intrigue = 4
+							learning = 1
+						}
+						add_trait = tough_soldier
+					}
+				}
+			}
+			new_character = {
+				if = {
+					limit = {
+						has_dlc = "Holy Fury"
+					}
+					add_trait = pirate
+				}
+				add_trait = adventurer
+				# Pirate flavour
+				random_list = {
+					5 = {
+						add_trait = one_legged
+					}
+					5 = {
+						add_trait = one_eyed
+					}
+					5 = {
+						add_trait = one_handed
+					}
+					5 = {
+						add_trait = duelist
+					}
+					5 = {
+						add_trait = scurvy
+					}
+					5 = {
+						add_trait = drunkard
+					}
+					5 = {
+						add_trait = hedonist
+					}
+					5 = {
+						if = {
+							limit = {
+								is_female = yes
+							}
+							add_trait = seductress
+						}
+						else = {
+							add_trait = seducer
+						}
+					}
+					5 = {
+						add_trait = falconer
+					}
+					5 = {
+						add_trait = lustful
+					}
+					5 = {
+						add_trait = greedy
+					}
+					5 = {
+						add_trait = arbitrary
+					}
+					5 = {
+						add_trait = deceitful
+					}
+					5 = {
+						add_trait = envious
+					}
+					5 = {
+						add_trait = brave
+					}
+					5 = {
+						add_trait = cruel
+					}
+					5 = {
+						add_trait = craven
+					}
+					5 = {
+						add_trait = aggressive_leader
+					}
+					5 = {
+						add_trait = inspiring_leader
+					}
+					5 = {
+						add_trait = trickster
+					}
+				}
+				random_list = {
+					5 = {
+						add_trait = one_legged
+					}
+					5 = {
+						add_trait = one_eyed
+					}
+					5 = {
+						add_trait = one_handed
+					}
+					5 = {
+						add_trait = duelist
+					}
+					5 = {
+						add_trait = scurvy
+					}
+					5 = {
+						add_trait = drunkard
+					}
+					5 = {
+						add_trait = hedonist
+					}
+					5 = {
+						if = {
+							limit = {
+								is_female = yes
+							}
+							add_trait = seductress
+						}
+						else = {
+							add_trait = seducer
+						}
+					}
+					5 = {
+						add_trait = falconer
+					}
+					5 = {
+						add_trait = lustful
+					}
+					5 = {
+						add_trait = greedy
+					}
+					5 = {
+						add_trait = arbitrary
+					}
+					5 = {
+						add_trait = deceitful
+					}
+					5 = {
+						add_trait = envious
+					}
+					5 = {
+						add_trait = brave
+					}
+					5 = {
+						add_trait = cruel
+					}
+					5 = {
+						add_trait = craven
+					}
+					5 = {
+						add_trait = aggressive_leader
+					}
+					5 = {
+						add_trait = inspiring_leader
+					}
+					5 = {
+						add_trait = trickster
+					}
+				}
+				random_list = {
+					5 = {
+						add_trait = one_legged
+					}
+					5 = {
+						add_trait = one_eyed
+					}
+					5 = {
+						add_trait = one_handed
+					}
+					5 = {
+						add_trait = duelist
+					}
+					5 = {
+						add_trait = scurvy
+					}
+					5 = {
+						add_trait = drunkard
+					}
+					5 = {
+						add_trait = hedonist
+					}
+					5 = {
+						if = {
+							limit = {
+								is_female = yes
+							}
+							add_trait = seductress
+						}
+						else = {
+							add_trait = seducer
+						}
+					}
+					5 = {
+						add_trait = falconer
+					}
+					5 = {
+						add_trait = lustful
+					}
+					5 = {
+						add_trait = greedy
+					}
+					5 = {
+						add_trait = arbitrary
+					}
+					5 = {
+						add_trait = deceitful
+					}
+					5 = {
+						add_trait = envious
+					}
+					5 = {
+						add_trait = brave
+					}
+					5 = {
+						add_trait = cruel
+					}
+					5 = {
+						add_trait = craven
+					}
+					5 = {
+						add_trait = aggressive_leader
+					}
+					5 = {
+						add_trait = inspiring_leader
+					}
+					5 = {
+						add_trait = trickster
+					}
+				}
+				random_list = {
+					50 = {
+						remove_trait = tough_soldier
+						random_list = {
+							80 = {
+								random_list = {
+									10 = {
+										add_trait = brilliant_strategist
+									}
+									80 = {
+										add_trait = skilled_tactician
+									}
+									10 = {
+										add_trait = misguided_warrior
+									}
+								}
+							}
+							9 = {
+								random_list = {
+									10 = {
+										add_trait = grey_eminence
+									}
+									40 = {
+										add_trait = charismatic_negotiator
+									}
+									40 = {
+										add_trait = underhanded_rogue
+									}
+									10 = {
+										add_trait = naive_appeaser
+									}
+								}
+							}
+							1 = {
+								random_list = {
+									10 = {
+										add_trait = midas_touched
+									}
+									40 = {
+										add_trait = fortune_builder
+									}
+									40 = {
+										add_trait = thrifty_clerk
+									}
+									10 = {
+										add_trait = indulgent_wastrel
+									}
+								}
+							}
+							9 = {
+								random_list = {
+									10 = {
+										add_trait = elusive_shadow
+									}
+									40 = {
+										add_trait = intricate_webweaver
+									}
+									40 = {
+										add_trait = flamboyant_schemer
+									}
+									10 = {
+										add_trait = amateurish_plotter
+									}
+								}
+							}
+							1 = {
+								random_list = {
+									10 = {
+										add_trait = mastermind_theologian
+									}
+									40 = {
+										add_trait = scholarly_theologian
+									}
+									40 = {
+										add_trait = martial_cleric
+									}
+									10 = {
+										add_trait = detached_priest
+									}
+								}
+							}
+						}
+					}
+					50 = {}
+				}
+				save_event_target_as = wako_raider
+				set_defacto_liege = THIS
+				create_title = {
+					tier = DUKE
+					landless = yes
+					adventurer = yes
+					culture = wako
+					name = "PIRATE_RAIDERS"
+					holder = event_target:wako_raider
+					base_title = THIS
+				}
+				set_character_flag = raiding_adventurer
+				# Create a fleet
+				spawn_unit = {
+					province = event_target:wako_province
+					home = event_target:wako_province
+					owner = event_target:wako_raider
+					troops = {
+						light_infantry = { 250 250 }
+						archers = { 250 250 }
+						heavy_infantry = { 50 50 }
+						pikemen = { 50 50 }
+					}
+					attrition = 0
+					#disband_on_peace = yes
+					reinforces = yes
+					is_looter = yes
+					can_toggle_looting = no
+					cannot_inherit = yes
+					earmark = wako_raiders
+				}
+				spawn_fleet = {
+					province = closest # closest sea zone
+					owner = event_target:wako_raider
+					troops = {
+						galleys = { 10 10 }
+					}
+					cannot_inherit = yes
+					earmark = wako_raiders
+				}
+				random = {
+					chance = 25
+					modifier = {
+						factor = 2
+						year = 1000
+					}
+					spawn_unit = {
+						province = event_target:wako_province
+						owner = event_target:wako_raider
+						troops = {
+							light_infantry = { 250 250 }
+							archers = { 250 250 }
+							heavy_infantry = { 50 50 }
+							pikemen = { 50 50 }
+						}
+						attrition = 0
+						#disband_on_peace = yes
+						reinforces = yes
+						is_looter = yes
+						can_toggle_looting = no
+						cannot_inherit = yes
+						earmark = wako_raiders
+					}
+					spawn_fleet = {
+						province = closest # closest sea zone
+						owner = event_target:wako_raider
+						troops = {
+							galleys = { 10 10 }
+						}
+						cannot_inherit = yes
+						earmark = wako_raiders
+					}
+				}
+				random = {
+					chance = 5
+					modifier = {
+						factor = 2
+						year = 1200
+					}
+					spawn_unit = {
+						province = event_target:wako_province
+						owner = event_target:wako_raider
+						troops = {
+							light_infantry = { 250 250 }
+							archers = { 250 250 }
+							heavy_infantry = { 50 50 }
+							pikemen = { 50 50 }
+						}
+						attrition = 0
+						#disband_on_peace = yes
+						reinforces = yes
+						is_looter = yes
+						can_toggle_looting = no
+						cannot_inherit = yes
+						earmark = wako_raiders
+					}
+					spawn_fleet = {
+						province = closest # closest sea zone
+						owner = event_target:wako_raider
+						troops = {
+							galleys = { 10 10 }
+						}
+						cannot_inherit = yes
+						earmark = wako_raiders
+					}
+				}
+				random = {
+					chance = 1
+					modifier = {
+						factor = 10
+						year = 1300
+					}
+					spawn_unit = {
+						province = event_target:wako_province
+						owner = event_target:wako_raider
+						troops = {
+							light_infantry = { 250 250 }
+							archers = { 250 250 }
+							heavy_infantry = { 50 50 }
+							pikemen = { 50 50 }
+						}
+						attrition = 0
+						#disband_on_peace = yes
+						reinforces = yes
+						is_looter = yes
+						can_toggle_looting = no
+						cannot_inherit = yes
+						earmark = wako_raiders
+					}
+					spawn_fleet = {
+						province = closest # closest sea zone
+						owner = event_target:wako_raider
+						troops = {
+							galleys = { 10 10 }
+						}
+						cannot_inherit = yes
+						earmark = wako_raiders
+					}
+				}
+				ROOT = {
+					reverse_opinion = {
+						who = event_target:wako_raider
+						modifier = forbidden_raid_target
+					}
+					any_liege = {
+						reverse_opinion = {
+							who = event_target:wako_raider
+							modifier = forbidden_raid_target
+						}
+					}
+				}
+				character_event = { id = japan.410 months = 120 random = 60 } # Stand down
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				culture = wako
+			}
+		}
+		name = EVTOPTA_JAPAN_409 # Be gone!
+	}
+	
+	option = {
+		trigger = {
+			culture = wako
+		}
+		name = EVTOPTB_JAPAN_409 # I don't need them!
+	}
+}
+
+# Raiders disband
+character_event = {
+	id = japan.410
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_JAPAN_410
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_JAPAN_410 # I don't need them!
+		
+		disband_event_forces = wako_raiders
+		
+		any_demesne_title = {
+			limit = {
+				adventurer = yes
+			}
+			unsafe_destroy_landed_title = THIS
+		}
+	}
+}
+
+
+
+### Shinto-Buddhist conversion
+
+# Shinto -> Buddhist
+character_event = {
+	id = japan.426
+	hide_window = yes
+	
+	only_playable = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = {
+			religion = shinto
+			AND = {
+				culture_group = japonic
+				religion = buddhist
+			}
+		}
+		any_courtier = {
+			is_landed = no
+			is_adult = yes
+			is_inaccessible_or_incapable_trigger = no
+			religion = shinto
+			culture_group = japonic
+			NOT = {
+				any_dynasty_member = {
+					religion = shinto
+					OR = {
+						controls_religion = yes
+						has_character_flag = temporarily_japanese_imperial
+					}
+				}
+			}
+			NOR = {
+				trait = zealous
+				trait = proud
+			}
+			NOT = {
+				has_character_flag = japanese_religion_switch
+			}
+			NOT = {
+				trait = japanese_monastic_trait
+			}
+		}
+	}
+	
+	immediate = {
+		random_courtier = {
+			limit = {
+				is_landed = no
+				is_adult = yes
+				is_inaccessible_or_incapable_trigger = no
+				religion = shinto
+				culture_group = japonic
+				NOT = {
+					any_dynasty_member = {
+						religion = shinto
+						OR = {
+							controls_religion = yes
+							has_character_flag = temporarily_japanese_imperial
+						}
+					}
+				}
+				NOR = {
+					trait = zealous
+					trait = proud
+				}
+				NOT = {
+					has_character_flag = japanese_religion_switch
+				}
+				NOT = {
+					trait = japanese_monastic_trait
+				}
+			}
+			preferred_limit = {
+				OR = {
+					trait = cynical
+					trait = humble
+					true_religion = shinto
+				}
+			}
+			religion = buddhist
+			set_character_flag = japanese_religion_switch
+		}
+	}
+}
+
+# Buddhist -> Shinto
+character_event = {
+	id = japan.427
+	hide_window = yes
+	
+	only_playable = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = {
+			religion = shinto
+			AND = {
+				culture_group = japonic
+				religion = buddhist
+			}
+		}
+		any_courtier = {
+			is_landed = no
+			is_adult = yes
+			is_inaccessible_or_incapable_trigger = no
+			religion = buddhist
+			OR = {
+				culture = japanese
+				culture = yamato
+				culture = wako
+			}
+			NOR = {
+				trait = zealous
+				trait = proud
+			}
+			NOT = {
+				has_character_flag = japanese_religion_switch
+			}
+			NOT = {
+				trait = japanese_monastic_trait
+			}
+			NOR = {
+				trait = bhikkhu
+				trait = bhikkhuni
+			}
+		}
+	}
+	
+	immediate = {
+		random_courtier = {
+			limit = {
+				is_landed = no
+				is_adult = yes
+				is_inaccessible_or_incapable_trigger = no
+				religion = buddhist
+				OR = {
+					culture = japanese
+					culture = yamato
+					culture = wako
+				}
+				NOR = {
+					trait = zealous
+					trait = proud
+				}
+				NOT = {
+					has_character_flag = japanese_religion_switch
+				}
+				NOT = {
+					trait = japanese_monastic_trait
+				}
+				NOR = {
+					trait = bhikkhu
+					trait = bhikkhuni
+				}
+			}
+	
+			preferred_limit = {
+				OR = {
+					trait = cynical
+					trait = humble
+					true_religion = shinto
+				}
+			}
+			religion = shinto
+			set_character_flag = japanese_religion_switch
+		}
+	}
+}
+
+##### The Moon Princess (Kaguya-hime/Breony Freitnor)
+
+# Hidden first event
+character_event = {
+	id = japan.509
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	religion = catholic
+	only_rulers = yes
+	
+	trigger = {
+		controls_religion = yes
+		NOT = {
+			has_global_flag = get_medieval
+		}
+		year = 1337
+		NOT = {
+			has_game_rule = {
+				name = supernatural_events # Sufficiently advanced technology and all that...
+				value = off
+			}
+		}
+	}
+	
+	immediate = {
+		set_global_flag = get_medieval
+		2485 = {
+			province_event = { id = japan.510 days = 3650 random = 7300 }
+		}
+	}
+}
+
+# And hidden second event
+province_event = {
+	id = japan.510
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				has_game_rule = {
+					name = supernatural_events # Sufficiently advanced technology and all that...
+					value = unrestricted
+				}
+			}
+			any_playable_ruler = {
+				limit = {
+					any_realm_province = {
+						OR = {
+							region = world_japan
+							region = world_japan_islands
+							region = custom_yezo
+						}
+					}
+				}
+				character_event = { id = japan.511 } # Actual event
+			}
+		}
+		else = {
+			any_player = {
+				limit = {
+					any_realm_province = {
+						OR = {
+							region = world_japan
+							region = world_japan_islands
+							region = custom_yezo
+						}
+					}
+				}
+				character_event = { id = japan.511 } # Actual event
+			}
+		}
+	}
+}
+
+# Hear of a strange woman with strange hair - investigate?
+character_event = {
+	id = japan.511
+	desc = EVTDESC_JAPAN_511
+	picture = GFX_evt_emissary
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_JAPAN_511 # I'll go speak to her
+		
+		character_event = { id = japan.512 days = 15 random = 15 } # The meeting
+		
+		ai_chance = {
+			factor = 1
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_JAPAN_511 # Nah!
+		
+		ai_chance = {
+			factor = 100
+		}
+	}
+}
+
+# Meeting the pink-haired woman
+character_event = {
+	id = japan.512
+	desc = EVTDESC_JAPAN_512
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_JAPAN_512 # Let me know if you need anything!
+		
+		random_list = {
+			50 = {
+				character_event = { id = japan.513 days = 180 random = 180 } # She leaves
+			}
+			50 = {
+				modifier = {
+					factor = 0.1
+					ai = yes
+				}
+				character_event = { id = japan.514 days = 180 random = 180 } # She wants help
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_JAPAN_512 # Well, I don't care...
+	}
+}
+
+# Pink-haired woman leaves
+character_event = {
+	id = japan.513
+	desc = EVTDESC_JAPAN_513
+	picture = GFX_evt_emissary
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_JAPAN_513 # Well, that's that...
+	}
+}
+
+# Supplies requested
+character_event = {
+	id = japan.514
+	desc = EVTDESC_JAPAN_514
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_JAPAN_514 # I can spare the money
+		
+		wealth = -1000
+		
+		random_list = {
+			50 = {
+				character_event = { id = japan.515 days = 180 random = 180 } # It didn't work!
+			}
+			50 = {
+				modifier = {
+					factor = 0.1
+					ai = yes
+				}
+				character_event = { id = japan.516 days = 180 random = 180 } # It worked!
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0
+				trait = greedy
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_JAPAN_514 # I don't think so!
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0
+				trait = charitable
+				wealth = 1000
+			}
+		}
+	}
+}
+
+# It didn't work out
+character_event = {
+	id = japan.515
+	desc = EVTDESC_JAPAN_515
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_JAPAN_515 # Well, that's that...
+	}
+}
+
+# It worked out - have a reward!
+character_event = {
+	id = japan.516
+	desc = EVTDESC_JAPAN_516
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_JAPAN_516 # This will be useful!
+		
+		culture_techpoints = 1000
+		economy_techpoints = 1000
+		military_techpoints = 1000
+	}
+}
+
+
+
+
+# Buddhism appears from "nowhere"
+province_event = {
+	id = japan.2
+	desc = EVTDESC_JAPAN_2
+	picture = GFX_evt_burning_house
+	border = GFX_event_normal_frame_religion
+	
+	trigger = {
+		religion = shinto
+	}
+	
+	mean_time_to_happen = {
+		months = 1200
+		modifier = {
+			factor = 2.0
+			religion_authority = 0.6
+		}
+		modifier = {
+			factor = 2.0
+			religion_authority = 0.8
+		}
+		modifier = {
+			factor = 2
+			has_game_rule = {
+				name = religious_conversion
+				value = slower
+			}
+		}
+		modifier = {
+			factor = 0.75
+			NOT = { religion_authority = 0.2 }
+		}
+		modifier = {
+			factor = 0.75
+			NOT = { religion_authority = 0.4 }
+		}
+	}
+	
+	immediate = {
+		religion = buddhist
+		add_province_modifier = {
+			name = religious_unrest
+			duration = 730
+		}
+	}
+	
+	option = {
+		name = {
+			text = EVTOPTA_JAPAN_2
+			trigger = {
+				owner = {
+					NOR = {
+						religion = shinto
+						religion = ROOT
+					}
+				}
+			}
+		}
+		name = {
+			text = EVTOPTB_JAPAN_2
+			trigger = { owner = { religion = ROOT } }
+		}
+		name = {
+			text = EVTOPTC_JAPAN_2
+			trigger = { owner = { religion = shinto } }
+		}
+		if = {
+			limit = { 
+				ruler = { religion = shinto }
+			}
+			ruler = { piety = -10 }
+		}
+		# News spread
+		hidden_tooltip = {
+			owner = {
+				top_liege = {
+					if = {
+						limit = {
+							NOT = { character = PREV }
+						}
+						character_event = { id = japan.3 days = 2 }
+					}
+					any_vassal = {
+						limit = {
+							OR = {
+								is_parent_religion = ROOT
+								religion = ROOT
+							}
+						}
+						character_event = { id = japan.3 days = 2 }
+					}
+				}
+			}
+		}
+	}
+}
+
+# News spread in realm
+character_event = {
+	id = japan.3
+	desc = EVTDESC_JAPAN_3
+	picture = GFX_evt_heretic
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_JAPAN_3
+		trigger = {
+			NOR = {
+				religion = shinto
+				religion = FROM
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_JAPAN_3
+		trigger = {
+			religion = FROM
+		}
+	}
+	option = {
+		name = EVTOPTC_JAPAN_3
+		trigger = {
+			religion = shinto
+		}
+	}
+}
+
+# Random religion appears from "nowehere"
+province_event = {
+	id = japan.4
+	desc = EVTDESC_JAPAN_4
+	picture = GFX_evt_burning_house
+	border = GFX_event_normal_frame_religion
+		
+	trigger = {
+		religion = shinto
+		any_neighbor_province = {
+			OR = {
+				AND = {
+					has_owner = yes
+					NOR = {
+						religion = shinto
+						religion_group = pagan_group
+						religion = jain # Shouldn't spread to silly places!
+						religion = buddhist # Has its own event
+					}
+				}
+				AND = {
+					is_land = no
+					any_neighbor_province = {
+						OR = {
+							AND = {
+								has_owner = yes
+								NOR = {
+									religion = shinto
+									religion_group = pagan_group
+									religion = jain # Shouldn't spread to silly places!
+									religion = buddhist # Has its own event
+								}
+							}
+							AND = {
+								is_land = no
+								any_neighbor_province = {
+									NOR = {
+										religion = shinto
+										religion_group = pagan_group
+										religion = jain # Shouldn't spread to silly places!
+										religion = buddhist # Has its own event
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 9600
+		modifier = {
+			factor = 2.0
+			religion_authority = 0.6
+		}
+		modifier = {
+			factor = 2.0
+			religion_authority = 0.8
+		}
+		modifier = {
+			factor = 2
+			has_game_rule = {
+				name = religious_conversion
+				value = slower
+			}
+		}
+		modifier = {
+			factor = 0.75
+			NOT = { religion_authority = 0.2 }
+		}
+		modifier = {
+			factor = 0.75
+			NOT = { religion_authority = 0.4 }
+		}
+	}
+	
+	immediate = {
+		random_list = {
+			34 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						any_neighbor_province = {
+							has_owner = yes
+							NOR = {
+								religion = shinto
+								religion_group = pagan_group
+								religion = jain # Shouldn't spread to silly places!
+								religion = buddhist # Has its own event
+							}
+						}
+					}
+				}
+				random_neighbor_province = {
+					limit = {
+						has_owner = yes
+						NOR = {
+							religion = shinto
+							religion_group = pagan_group
+							religion = jain # Shouldn't spread to silly places!
+							religion = buddhist # Has its own event
+						}
+					}
+					ROOT = {
+						religion = PREV
+					}
+				}
+			}
+			33 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						any_neighbor_province = {
+							is_land = no
+							any_neighbor_province = {
+								has_owner = yes
+								NOR = {
+									religion = shinto
+									religion_group = pagan_group
+									religion = jain # Shouldn't spread to silly places!
+									religion = buddhist # Has its own event
+								}
+							}
+						}
+					}
+				}
+				random_neighbor_province = {
+					limit = {
+						is_land = no
+					}
+					random_neighbor_province = {
+						limit = {
+							has_owner = yes
+							NOR = {
+								religion = shinto
+								religion_group = pagan_group
+								religion = jain # Shouldn't spread to silly places!
+								religion = buddhist # Has its own event
+							}
+						}
+						ROOT = {
+							religion = PREV
+						}
+					}
+				}
+			}
+			33 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						any_neighbor_province = {
+							is_land = no
+							any_neighbor_province = {
+								is_land = no
+								any_neighbor_province = {
+									has_owner = yes
+									NOR = {
+										religion = shinto
+										religion_group = pagan_group
+										religion = jain # Shouldn't spread to silly places!
+										religion = buddhist # Has its own event
+									}
+								}
+							}
+						}
+					}
+				}
+				random_neighbor_province = {
+					limit = {
+						is_land = no
+					}
+					random_neighbor_province = {
+						limit = {
+							is_land = no
+						}
+						random_neighbor_province = {
+							limit = {
+								has_owner = yes
+								NOR = {
+									religion = shinto
+									religion_group = pagan_group
+									religion = jain # Shouldn't spread to silly places!
+									religion = buddhist # Has its own event
+								}
+							}
+							ROOT = {
+								religion = PREV
+							}
+						}
+					}
+				}
+			}
+		}
+		add_province_modifier = {
+			name = religious_unrest
+			duration = 730
+		}
+	}
+	
+	option = {
+		name = {
+			text = EVTOPTA_JAPAN_4
+			trigger = {
+				owner = {
+					NOR = {
+						religion = shinto
+						religion = ROOT
+					}
+				}
+			}
+		}
+		name = {
+			text = EVTOPTB_JAPAN_4
+			trigger = { owner = { religion = ROOT } }
+		}
+		name = {
+			text = EVTOPTC_JAPAN_4
+			trigger = { owner = { religion = shinto } }
+		}
+		if = {
+			limit = { 
+				ruler = { religion = shinto }
+			}
+			ruler = { piety = -10 }
+		}
+		# News spread
+		hidden_tooltip = {
+			owner = {
+				top_liege = {
+					if = {
+						limit = {
+							NOT = { character = PREV }
+						}
+						character_event = { id = japan.5 days = 2 }
+					}
+					any_vassal = {
+						limit = {
+							OR = {
+								is_parent_religion = ROOT
+								religion = ROOT
+							}
+						}
+						character_event = { id = japan.5 days = 2 }
+					}
+				}
+			}
+		}
+	}
+}
+
+# News spread in realm
+character_event = {
+	id = japan.5
+	desc = EVTDESC_JAPAN_5
+	picture = GFX_evt_heretic
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_JAPAN_5
+		trigger = {
+			NOR = {
+				religion = shinto
+				religion = FROM
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_JAPAN_5
+		trigger = {
+			religion = FROM
+		}
+	}
+	option = {
+		name = EVTOPTC_JAPAN_5
+		trigger = {
+			religion = shinto
+		}
+	}
+}

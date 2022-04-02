@@ -18,8 +18,9 @@
 # can_use_gui: If otherwise valid, the CB is listed in the Diplo View, but you can't declare war unless 'can_use_gui' is also valid (also shows a trigger tooltip.)
 #
 
-# TODO: Sort
+### Chinese CBs
 
+# Chinese Reconquest
 imperial_conquest = {
 	name = CB_NAME_IMPERIAL
 	war_name = WAR_NAME_IMPERIAL
@@ -29,6 +30,23 @@ imperial_conquest = {
 	check_de_jure_tier = DUKE # this scans all dejure duchies for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
 
 	allowed_to_target_tributaries = no
+	
+	can_use_gui = {
+		ROOT = {
+			OR = {
+				is_chinese_emperor_trigger = yes
+				AND = {
+					government = chinese_imperial_government
+					prestige = 100
+				}
+				AND = {
+					higher_tier_than = duke
+					prestige = 500
+				}
+				prestige = 1000
+			}
+		}
+	}
 
 	can_use = {
 		ROOT = {
@@ -37,41 +55,29 @@ imperial_conquest = {
 				trait = treasure_fleet_preparation
 				trait = treasure_fleet_voyage
 			}
-			#is_chinese_emperor_trigger = yes
-			#independent = yes
-			#religion_group = chinese_group
 			NOT = { same_realm = FROM }
 			mercenary = no
 			OR = {
-				government = chinese_imperial_government # This allows pretenders to use the CB, meaning pretenders in/near China will have a CB to try to conquer China
+				government = chinese_imperial_government
 				AND = {
-					has_character_flag = mandate_of_heaven_uprising # A successful Mandate revolter can try to take over more of China
-					culture_group = chinese_group
-					OR = {
-						religion = taoist
-						religion = buddhist
-						religion = chinese_pagan
-						religion = chinese_pagan_reformed
-						religion = confucian
-						# TODO: New religons
-					}
-				}
-				AND = {
-					culture_group = chinese_group # Only for Chinese characters!
 					OR = {
 						government = chinese_vassal_government
 						government = eastern_imperial_government
 					}
-					OR = { # Only for the truly Chinese religions
-						religion = taoist
-						religion = buddhist
-						religion = chinese_pagan
-						religion = chinese_pagan_reformed
-						religion = confucian
-						# TODO: New religons
-					}
-					e_china = {
-						has_holder = no
+					culture_group = chinese_group
+					OR = {
+						AND = {
+							has_character_flag = mandate_of_heaven_uprising # A successful Mandate revolter can try to take over more of China
+							independent = yes
+						}
+						e_china = {
+							OR = {
+								has_holder = no
+								holder_scope = {
+									is_chinese_emperor_trigger = no
+								}
+							}
+						}
 					}
 				}
 			}
@@ -82,7 +88,7 @@ imperial_conquest = {
 	can_use_title = {
 		OR = {
 			de_jure_liege_or_above = e_china # Currently part of de jure China
-			AND = { # Part of the starting de jure of China + Taiwan (protected while tribal) + Dali (NOT protected, since they were attacked historically)
+			AND = { # Part of the starting de jure of China + Dali (NOT protected, since they were attacked historically)
 				region = world_china
 			}
 		}
@@ -138,43 +144,6 @@ imperial_conquest = {
 				}
 			}
 		}
-		ROOT = {
-			OR = { # It should be harder for pretenders to use this CB if there's a China
-				AND = {
-					is_chinese_emperor_trigger = yes
-					prestige = 100
-				}
-				AND = {
-					is_chinese_emperor_trigger = no
-					government = chinese_imperial_government
-					OR = {
-						AND = {
-							e_china = {
-								has_holder = no
-							}
-							prestige = 100
-						}
-						prestige = 500
-					}
-				}
-				AND = {
-					OR = {
-						government = chinese_vassal_government
-						government = eastern_imperial_government
-					}
-					e_china = {
-						has_holder = no
-					}
-					OR = {
-						AND = {
-							higher_tier_than = duke
-							prestige = 500
-						}
-						prestige = 1000
-					}
-				}
-			}
-		}
 	}
 	
 	on_add = {
@@ -199,35 +168,20 @@ imperial_conquest = {
 				}
 				if = {
 					limit = {
-						e_china = {
-							has_holder = yes
-						}
+						government = chinese_imperial_government
 					}
-					prestige = -500
+					prestige = -100
 				}
 				else = {
 					if = {
 						limit = {
-							government = chinese_imperial_government
+							higher_tier_than = duke
 						}
-						prestige = -100
+						prestige = -500
 					}
 					else = {
-						if = {
-							limit = {
-								higher_tier_than = duke
-							}
-							prestige = -500
-						}
-						else = {
-							prestige = -1000
-						}
+						prestige = -1000
 					}
-				}
-			}
-			else = {
-				ROOT = {
-					prestige = -100
 				}
 			}
 		}
@@ -235,9 +189,6 @@ imperial_conquest = {
 	
 	is_valid = {
 		ROOT = {
-			#independent = yes
-			#is_chinese_emperor_trigger = yes
-			#government = chinese_imperial_government
 			can_have_confucian_bureaucracy_and_eastern_imperial_trigger = yes
 			NOT = { same_realm = FROM }
 		}
@@ -356,7 +307,7 @@ imperial_conquest = {
 	}
 }
 
-# Emperors of China and pretenders can subjugate kingdoms in China
+# Chinese-style government subjugation CB
 chinese_subjugation = {
 	name = CB_NAME_PAGAN_SUBJUGATION
 	war_name = WAR_NAME_PAGAN_SUBJUGATION
@@ -366,42 +317,19 @@ chinese_subjugation = {
 	is_permanent = yes
 	can_ask_to_join_war = yes
 	check_de_jure_tier = KING # this scans all de jure kingdoms for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
-	
 	allowed_to_target_tributaries = no
+	
+	sort_priority = 1000
 	
 	can_use_gui = {
 		ROOT = {
-			OR = {
-				AND = {
-					piety = 1000
-					prestige = 5000
-				}
-				AND = {
-					has_character_flag = founded_jurchen_jin # The founder of Jurchen Jin gets to invade China basically for free
-					piety = 100
-					prestige = 500
-				}
-			}
+			piety = 500
 		}
 	}
 	
 	on_add = {
+		ROOT = { piety = -500 }
 		hidden_tooltip = { fire_haruspicy_event_effect = yes }
-		if = {
-			limit = {
-				ROOT = {
-					NOT = {
-						has_character_flag = founded_jurchen_jin # The founder of Jurchen Jin gets to invade China basically for free
-					}
-				}
-			}
-			ROOT = { piety = -1000 }
-			ROOT = { prestige = -5000 }
-		}
-		else = {
-			ROOT = { piety = -100 }
-			ROOT = { prestige = -500 }
-		}
 		if = {
 			#limit = { defender = { is_offmap_governor = offmap_china } }
 			limit = {
@@ -416,56 +344,116 @@ chinese_subjugation = {
 			}
 		}
 	}
-		
+	
 	can_use = {
 		ROOT = {
-			is_feudal = yes
-			NOR = {
-				trait = treasure_fleet_preparation
-				trait = treasure_fleet_voyage
+			OR = {
+				independent = yes
+				tier = king
 			}
 			OR = {
-				AND = {
-					tier = emperor
-					government = chinese_imperial_government
-				}
-				AND = {
-					has_character_flag = mandate_of_heaven_uprising # A successful Mandate revolter can try to take over more of China
-					OR = {
-						government = chinese_vassal_government
-						government = eastern_imperial_government
-					}
-					independent = yes
-				}
+				government = chinese_imperial_government
+				government = eastern_imperial_government
+				government = chinese_vassal_government
 			}
-			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
-		FROM = { # From must be "Chinese enough" and can't already be in the process of being subjugated
-			can_have_confucian_bureaucracy_and_eastern_imperial_trigger = yes
+		FROM = {
+			independent = yes
+			OR = {
+				government = chinese_imperial_government
+				government = eastern_imperial_government
+				government = chinese_vassal_government
+			}
 			NOT = {
 				any_war = {
 					defender = { character = PREVPREV }
-					using_cb = chinese_subjugation
+					#using_cb = chinese_subjugation
+					using_any_subjugation_cb_trigger = yes
 				}
 			}
 		}
 	}
 	
 	can_use_title = {
-		ROOT = {
-			NOT = { has_character_modifier = launched_subjugation }
-		}
-
-		FROM = {
-			any_realm_title = {
-				de_jure_liege_or_above = PREVPREV
+		OR = {
+			ROOT = {
 				OR = {
-					region = world_china
+					has_landed_title = PREV
+					culture = FROM
+					AND = {
+						religion = FROM
+						culture_group = FROM
+					}
+					custom_tooltip = {
+						text = ci_bloodline_founder
+						any_owned_bloodline = {
+							OR = {
+								has_bloodline_flag = real_chinese_imperial_bloodline
+								has_bloodline_flag = pretender_chinese_imperial_bloodline
+							}
+							founder = {
+								character = ROOT
+							}
+						}
+					}
+					has_character_modifier = mandate_of_heaven_5
+				}
+			}
+			FROM = {
+				has_character_modifier = mandate_of_heaven_1
+			}
+			AND = { # Chinese Imperial empires can always use this against one another for Chinese land
+				ROOT = {
+					government = chinese_imperial_government
+				}
+				FROM = {
+					government = chinese_imperial_government
+				}
+				OR = {
+					any_direct_de_jure_vassal_title = {
+						region = world_china
+					}
 					de_jure_liege_or_above = e_china
 				}
 			}
 		}
-		any_direct_de_jure_vassal_title = { # Title must be inside holy war range (to keep pretenders from launching wars from a great distance)
+		
+		# Only one subjugation per lifetime normally
+		ROOT = {
+			OR = {
+				NOT = { has_character_modifier = launched_subjugation }
+				has_character_modifier = mandate_of_heaven_5
+				custom_tooltip = {
+					text = ci_bloodline_founder
+					any_owned_bloodline = {
+						OR = {
+							has_bloodline_flag = real_chinese_imperial_bloodline
+							has_bloodline_flag = pretender_chinese_imperial_bloodline
+						}
+						founder = {
+							character = ROOT
+						}
+					}
+				}
+				AND = {
+					has_ambition = obj_become_king
+					capital_scope = {
+						kingdom = {
+							title = PREVPREVPREV
+						}
+					}
+				}
+			}
+		}
+
+		FROM = {
+			any_realm_province = {
+				de_jure_liege_or_above = PREVPREV
+			}
+		}
+		
+		# The attacker needs at least one county in the target kingdom, or a border, or be only two sea zones away from one of your counties
+		any_direct_de_jure_vassal_title = {
 			any_direct_de_jure_vassal_title = {
 				OR = {
 					holder_scope = {
@@ -519,11 +507,60 @@ chinese_subjugation = {
 				}
 			}
 		}
+		ROOT = {
+			OR = {
+				NOT = { has_character_modifier = launched_subjugation }
+				AND = {
+					has_ambition = obj_become_king
+					capital_scope = {
+						kingdom = {
+							title = PREVPREVPREV
+						}
+					}
+				}
+				custom_tooltip = {
+					text = ci_bloodline_founder
+					any_owned_bloodline = {
+						OR = {
+							has_bloodline_flag = real_chinese_imperial_bloodline
+							has_bloodline_flag = pretender_chinese_imperial_bloodline
+						}
+						founder = {
+							character = ROOT
+						}
+					}
+				}
+				has_character_modifier = mandate_of_heaven_5
+			}
+		}
+
+		FROM = {
+			any_realm_province = {
+				de_jure_liege_or_above = PREVPREV
+			}
+		}
+	}
+	
+	is_valid = {
+		ROOT = {
+			OR = {
+				government = chinese_imperial_government
+				government = chinese_vassal_government
+				government = eastern_imperial_government
+			}
+		}
+		FROM = {
+			OR = {
+				government = chinese_imperial_government
+				government = chinese_vassal_government
+				government = eastern_imperial_government
+			}
+		}
 	}
 	
 	is_valid_title = {
 		FROM = {
-			any_realm_title = {
+			any_realm_province = {
 				de_jure_liege_or_above = PREVPREV
 			}
 		}
@@ -542,9 +579,9 @@ chinese_subjugation = {
 						}
 					}
 				}
-				add_character_modifier = {
+				add_character_modifier = { 
 					name = launched_subjugation
-					days = 3650 # Same as for Caliphal Subjugation
+					years = 100
 					hidden = yes
 				}
 			}
@@ -552,8 +589,7 @@ chinese_subjugation = {
 	}
 
 	on_success = {
-		any_attacker = {
-			limit = { character = ROOT }
+		ROOT = {
 			participation_scaled_prestige = 200
 		}
 		any_attacker = {
@@ -625,8 +661,7 @@ chinese_subjugation = {
 	}
 
 	on_fail = {
-		any_defender = {
-			limit = { character = FROM }
+		FROM = {
 			participation_scaled_prestige = 100
 		}
 		any_defender = {
@@ -641,6 +676,7 @@ chinese_subjugation = {
 	on_invalidation = {
 		ROOT = {
 			remove_character_modifier = launched_subjugation
+			piety = 500
 		}
 	}
 
@@ -652,8 +688,7 @@ chinese_subjugation = {
 				value = 2.0
 			}
 		}
-		any_defender = {
-			limit = { character = FROM }
+		FROM = {
 			participation_scaled_prestige = 200
 		}
 		any_defender = {
@@ -663,7 +698,7 @@ chinese_subjugation = {
 	}
 
 	attacker_ai_victory_worth = {
-		factor = 200
+		factor = -1 # always accept
 	}
 	
 	attacker_ai_defeat_worth = {
@@ -684,22 +719,85 @@ chinese_subjugation = {
 		modifier = {
 			factor = 0.9 # Prefer using CB's without on_add costs
 		}
+		#modifier = {
+		#	factor = 0
+		#	ROOT = {
+		#		has_character_flag = is_temujin
+		#		has_landed_title = e_mongol_empire
+		#		demesne_size = 1
+		#	}
+		#	FROM = {
+		#		has_landed_title = e_china_west_governor
+		#	}
+		#}
 		modifier = {
-			factor = 2
+			factor = 0
+			FROM = {
+				is_nomadic = yes
+			}
 			ROOT = {
-				government = chinese_imperial_government
+				NOT = {
+					is_tribal = yes
+				}
+			}
+			NOT = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						OR = {
+							holding_type = castle
+							holding_type = city
+						}
+					}
+				}
 			}
 		}
 		modifier = {
-			factor = 2
+			factor = 0
+			FROM = {
+				is_nomadic = yes
+			}
 			ROOT = {
-				is_chinese_emperor_trigger = yes
+				is_tribal = yes
+			}
+			NOT = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						OR = {
+							holding_type = castle
+							holding_type = city
+							holding_type = tribal
+						}
+					}
+				}
+			}
+		}
+		modifier = {
+			factor = 0
+			FROM = {
+				is_nomadic = yes
+			}
+			ROOT = {
+				is_nomadic = no
+				NOT = {
+					is_tribal = yes
+				}
+			}
+			NOT = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						OR = {
+							holding_type = castle
+							holding_type = city
+						}
+					}
+				}
 			}
 		}
 	}
 }
 
-chinese_tributary_tier_war = {
+# Tributary tier war
+chinese_tributary_tier_war = { # Check
 	name = CB_NAME_TRIBUTARY_TIER
 	war_name = WAR_NAME_TRIBUTARY_TIER
 	sprite = 25
@@ -754,6 +852,7 @@ chinese_tributary_tier_war = {
 		}
 		FROM = {
 			increase_tributary_tier_or_vassalize_end_of_war_effect = yes
+			# TODO: Force abdication?
 		}
 	}
 	
@@ -797,7 +896,8 @@ chinese_tributary_tier_war = {
 	}
 }
 
-mandate_of_heaven_uprising = {
+# MoH uprising
+mandate_of_heaven_uprising = { # Check
 	name = CB_NAME_MANDATE_OF_HEAVEN_UPRISING
 	war_name = WAR_NAME_MANDATE_OF_HEAVEN_UPRISING
 	sprite = 16
@@ -851,7 +951,6 @@ mandate_of_heaven_uprising = {
 			occupy_minors_of_occupied_settlements = FROM
 			gain_all_occupied_titles = { who = FROM type = revolt }
 			clr_character_flag = nationalist_rebel
-			give_nickname = nick_the_liberator
 		}
 		FROM = {
 			prestige = -500
@@ -971,1079 +1070,8 @@ mandate_of_heaven_uprising = {
 	}
 }
 
-unification_of_korea = { # For historical wars
-	name = CB_NAME_UNIFICATION_OF_KOREA
-	war_name = WAR_NAME_UNIFICATION_OF_KOREA
-	diplo_view_region = world_korea
-	sprite = 12
-	truce_days = 3650
-	is_permanent = no
-	#allow_whitepeace = no
-
-	allowed_to_target_tributaries = no
-	can_ask_to_join_war = no
-	can_call_allies = no
-	
-	# No need to check Chinese Peace Deals
-
-	can_use = {
-		always = no # Should only be triggered in script
-	}
-
-	is_valid = {
-		ROOT = {
-			OR = {
-				has_landed_title = k_goryeo
-				has_landed_title = k_silla
-				has_landed_title = k_baekje
-				#has_landed_title = k_balhae
-			}
-		}
-		FROM = {
-			OR = {
-				has_landed_title = k_goryeo
-				has_landed_title = k_silla
-				has_landed_title = k_baekje
-				#has_landed_title = k_balhae
-			}
-		}
-	}
-
-	on_success = {
-		ROOT = {
-			participation_scaled_prestige = 1000
-			if = {
-				limit = {
-					has_character_flag = is_taejo
-				}
-				create_bloodline = {
-					type = taejo_bloodline
-				}
-			}
-			else = {
-				create_bloodline = {
-					type = korean_bloodline
-				}
-			}
-		}
-		any_attacker = {
-			limit = { NOT = { character = ROOT } }
-			hidden_tooltip = { participation_scaled_prestige = 1000 }
-		}
-		FROM = {
-			prestige = -1000
-			# In the unlikely event that FROM or a vassal has land outside the Korean Peninsula, we need to handle it
-			any_realm_lord = {
-				limit = {
-					higher_tier_than = baron
-				}
-				if = {
-					limit = {
-						NOT = {
-							any_demesne_title = {
-								capital_scope = {
-									NOT = {
-										region = world_korea
-									}
-								}
-							}
-						}
-					}
-					opinion = {
-						modifier = opinion_subjugated 
-						who = ROOT
-					}
-					set_defacto_liege = ROOT
-				}
-				else = {
-					any_demesne_title = {
-						limit = {
-							capital_scope = {
-								region = world_korea
-							}
-						}
-						if = {
-							limit = {
-								tier = king
-							}
-							# Clean up the "Hu" in "Hubaekje"
-							set_name = ""
-							adjective = ""
-							unsafe_destroy_landed_title = THIS
-						}
-						else = {
-							usurp_title_plus_barony_if_unlanded = ROOT
-						}
-					}
-				}
-			}
-			if = {
-				limit = {
-					NOT = {
-						any_demesne_title = {
-							capital_scope = {
-								NOT = {
-									region = world_korea
-								}
-							}
-						}
-					}
-				}
-				any_demesne_title = {
-					limit = {
-						OR = {
-							tier = king
-							tier = emperor
-						}
-					}
-					unsafe_destroy_landed_title = THIS
-				}
-				opinion = {
-					modifier = opinion_subjugated 
-					who = ROOT
-				}
-				set_defacto_liege = ROOT
-			}
-			else = {
-				any_demesne_title = {
-					limit = {
-						capital_scope = {
-							region = world_korea
-						}
-					}
-					if = {
-						limit = {
-							OR = {
-								tier = king
-								tier = emperor
-							}
-						}
-						unsafe_destroy_landed_title = THIS
-					}
-					else = {
-						usurp_title_plus_barony_if_unlanded = ROOT
-					}
-				}
-			}
-		}
-	}
-	
-	on_fail = {
-		FROM = {
-			participation_scaled_prestige = 500
-		}
-		any_defender = {
-			limit = { NOT = { character = FROM } }
-			hidden_tooltip = { participation_scaled_prestige = 100 }
-		}
-		ROOT = {
-			prestige = -500
-		}
-	}
-
-	on_reverse_demand = {
-		ROOT = {
-			prestige = -1000
-			transfer_scaled_wealth = {
-				to = FROM
-				value = 2.0
-			}
-		}
-		FROM = {
-			participation_scaled_prestige = 2000
-		}
-		any_defender = {
-			limit = { NOT = { character = FROM } }
-			hidden_tooltip = { participation_scaled_prestige = 2000 }
-		}
-	}
-	attacker_ai_victory_worth = {
-		factor = -1
-	}
-
-	attacker_ai_defeat_worth = {
-		factor = 100
-	}
-
-	defender_ai_victory_worth = {
-		factor = -1
-	}
-
-	defender_ai_defeat_worth = {
-		factor = 100
-	}
-}
-
-# Jin-Tang
-jin_tang_cb = {
-	name = CB_NAME_CHINESE_DYNASTIC_WAR
-	war_name = WAR_NAME_CHINESE_DYNASTIC_WAR
-	sprite = 9
-	truce_days = 3650
-	diplo_view_region = world_china
-	is_permanent = no # Only started from script
-
-	allowed_to_target_tributaries = no
-	can_ask_to_join_war = no
-	can_call_allies = no
-	allow_whitepeace = no # You win, or you lose
-	
-	# No need to check Chinese Peace Deals
-
-	can_use = {
-		always = no # Should only be triggered in script
-	}
-	
-	is_valid = {
-		ROOT = {
-			has_landed_title = e_great_wall
-		}
-		FROM = {
-			has_landed_title = e_black_turtle
-		}
-	}
-
-	on_success = {
-		ROOT = {
-			participation_scaled_prestige = 1000
-		}
-		
-		# 1: Usurp all vassals
-		FROM = {
-			any_vassal = {
-				limit = {
-					higher_tier_than = baron
-				}
-				set_defacto_liege = ROOT
-			}
-		}
-		
-		# 2: Take over the new empire and handle the renaming (assuming it is relevant), then give ROOT FROM as a vassal
-		ROOT = {
-			set_character_flag = special_usurpation
-			e_black_turtle = {
-				usurp_title = ROOT
-				set_preferred_capital = c_bianjing
-				remove_global_pretender_china_name_flag_effect = yes
-				clr_title_flag = tang_china
-				clr_title_flag = jin_china
-				clr_title_flag = wei_china
-				clr_title_flag = qi_china
-				clr_title_flag = zhou_china
-				clr_title_flag = han_china
-				clr_title_flag = qin_china
-				clr_title_flag = yan_china
-				clr_title_flag = zhao_china
-				clr_title_flag = liao_china
-				clr_title_flag = yuan_china
-				clr_title_flag = xia_china
-				clr_title_flag = qing_china
-				clr_title_flag = dai_china
-				clr_title_flag = cheng_china
-				clr_title_flag = liang_china
-				clr_title_flag = song_china
-				clr_title_flag = ming_china
-				clr_title_flag = shu_china
-				clr_title_flag = wu_china
-				clr_title_flag = chu_china
-				clr_title_flag = yue_china
-				clr_title_flag = yin_china
-				clr_title_flag = shun_china
-				clr_title_flag = sui_china
-				clr_title_flag = min_china
-			}
-			# Renaming set to handle all possible names in case something odd happens
-			if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = tang_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = tang_china
-					set_name = "Tang"
-					adjective = "Tang"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = jin_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = jin_china
-					set_name = "Jin"
-					adjective = "Jin"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = wei_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = wei_china
-					set_name = "Wei"
-					adjective = "Wei"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = qi_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = qi_china
-					set_name = "Qi"
-					adjective = "Qi"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = zhou_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = zhou_china
-					set_name = "Zhou"
-					adjective = "Zhou"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = han_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = han_china
-					set_name = "Han"
-					adjective = "Han"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = qin_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = qin_china
-					set_name = "Qin"
-					adjective = "Qin"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = yan_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = yan_china
-					set_name = "Yan"
-					adjective = "Yan"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = zhao_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = zhao_china
-					set_name = "Zhao"
-					adjective = "Zhao"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = liao_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = liao_china
-					set_name = "Liao"
-					adjective = "Liao"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = yuan_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = yuan_china
-					set_name = "Yuan"
-					adjective = "Yuan"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = xia_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = xia_china
-					set_name = "Xia"
-					adjective = "Xia"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = qing_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = qing_china
-					set_name = "Qing"
-					adjective = "Qing"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = dai_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = dai_china
-					set_name = "Dai"
-					adjective = "Dai"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = cheng_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = cheng_china
-					set_name = "Chang"
-					adjective = "Chang"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = liang_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = liang_china
-					set_name = "Liang"
-					adjective = "Liang"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = song_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = song_china
-					set_name = "Song"
-					adjective = "Song"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = ming_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = ming_china
-					set_name = "Ming"
-					adjective = "Ming"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = shu_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = shu_china
-					set_name = "Shu"
-					adjective = "Shu"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = wu_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = wu_china
-					set_name = "Wu"
-					adjective = "Wu"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = chu_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = chu_china
-					set_name = "Chu"
-					adjective = "Chu"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = yue_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = yue_china
-					set_name = "Yue"
-					adjective = "Yue"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = yin_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = yin_china
-					set_name = "Yin"
-					adjective = "Yin"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = shun_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = shun_china
-					set_name = "Shun"
-					adjective = "Shun"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = sui_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = sui_china
-					set_name = "Sui"
-					adjective = "Sui"
-				}
-			}
-			else_if = {
-				limit = {
-					e_great_wall = {
-						has_title_flag = min_china
-					}
-				}
-				e_black_turtle = {
-					set_title_flag = min_china
-					set_name = "Min"
-					adjective = "Min"
-				}
-			}
-			e_great_wall = {
-				set_name = ""
-				adjective = ""
-				clr_title_flag = tang_china
-				clr_title_flag = jin_china
-				clr_title_flag = wei_china
-				clr_title_flag = qi_china
-				clr_title_flag = zhou_china
-				clr_title_flag = han_china
-				clr_title_flag = qin_china
-				clr_title_flag = yan_china
-				clr_title_flag = zhao_china
-				clr_title_flag = liao_china
-				clr_title_flag = yuan_china
-				clr_title_flag = xia_china
-				clr_title_flag = qing_china
-				clr_title_flag = dai_china
-				clr_title_flag = cheng_china
-				clr_title_flag = liang_china
-				clr_title_flag = song_china
-				clr_title_flag = ming_china
-				clr_title_flag = shu_china
-				clr_title_flag = wu_china
-				clr_title_flag = chu_china
-				clr_title_flag = yue_china
-				clr_title_flag = yin_china
-				clr_title_flag = shun_china
-				clr_title_flag = sui_china
-				clr_title_flag = min_china
-				clr_title_flag = pretender_chinese_empire
-			}
-			e_great_wall = {
-				show_scope_change = no
-				destroy_landed_title = THIS
-			}
-			clr_character_flag = special_usurpation
-		}
-		FROM = {
-			set_defacto_liege = ROOT
-			imprison = ROOT
-		}
-		
-		# 3: If FROM has the Heirloom Seal of the Realm, transfer it to ROOT
-		FROM = {
-			if = {
-				limit = {
-					any_artifact = {
-						has_flag = heirloom_seal_of_the_realm
-					}
-				}
-				any_artifact = {
-					limit = {
-						has_flag = heirloom_seal_of_the_realm
-					}
-					transfer_artifact = {
-						from = FROM
-						to = ROOT
-					}
-				}
-			}
-		}
-		
-		# 4: Prestige for allies + potential Sixteen Prefectures event
-		any_attacker = {
-			limit = { NOT = { character = ROOT } }
-			hidden_tooltip = { participation_scaled_prestige = 1000 }
-			if = {
-				limit = {
-					dynasty = 1045082 # Liao Dynasty
-					independent = yes
-					tier = emperor
-					any_owned_bloodline = {
-						has_bloodline_flag = liao_china
-					}
-				}
-				ROOT = {
-					character_event = { id = khitan.3 } # Sixteen Prefectures event
-				}
-			}
-		}
-		
-		# Prestige loss for the defender
-		FROM = {
-			prestige = -1000
-		}
-	}
-	
-	on_fail = {
-		FROM = {
-			participation_scaled_prestige = 500
-		}
-		any_defender = {
-			limit = { NOT = { character = FROM } }
-			hidden_tooltip = { participation_scaled_prestige = 100 }
-		}
-		ROOT = {
-			prestige = -500
-		}
-	}
-
-	on_reverse_demand = {
-		ROOT = {
-			prestige = -1000
-			transfer_scaled_wealth = {
-				to = FROM
-				value = 2.0
-			}
-		}
-		FROM = {
-			participation_scaled_prestige = 2000
-		}
-		any_defender = {
-			limit = { NOT = { character = FROM } }
-			hidden_tooltip = { participation_scaled_prestige = 2000 }
-		}
-		# 1: Take the attacker's vassals
-		ROOT = {
-			any_vassal = {
-				limit = {
-					higher_tier_than = baron
-				}
-				set_defacto_liege = FROM
-			}
-		}
-		
-		# 2: Vassalize the attacker and imprison them
-		ROOT = {
-			e_great_wall = {
-				set_name = ""
-				adjective = ""
-				clr_title_flag = tang_china
-				clr_title_flag = jin_china
-				clr_title_flag = wei_china
-				clr_title_flag = qi_china
-				clr_title_flag = zhou_china
-				clr_title_flag = han_china
-				clr_title_flag = qin_china
-				clr_title_flag = yan_china
-				clr_title_flag = zhao_china
-				clr_title_flag = liao_china
-				clr_title_flag = yuan_china
-				clr_title_flag = xia_china
-				clr_title_flag = qing_china
-				clr_title_flag = dai_china
-				clr_title_flag = cheng_china
-				clr_title_flag = liang_china
-				clr_title_flag = song_china
-				clr_title_flag = ming_china
-				clr_title_flag = shu_china
-				clr_title_flag = wu_china
-				clr_title_flag = chu_china
-				clr_title_flag = yue_china
-				clr_title_flag = yin_china
-				clr_title_flag = shun_china
-				clr_title_flag = sui_china
-				clr_title_flag = min_china
-				clr_title_flag = pretender_chinese_empire
-			}
-			e_great_wall = {
-				show_scope_change = no
-				destroy_landed_title = THIS
-			}
-			set_defacto_liege = FROM
-			imprison = FROM
-		}
-		
-		# 3: Potential Sixteen Prefectures event
-		any_attacker = {
-			limit = { NOT = { character = ROOT } }
-			if = {
-				limit = {
-					dynasty = 1045082 # Liao Dynasty
-					independent = yes
-					tier = emperor
-					any_owned_bloodline = {
-						has_bloodline_flag = liao_china
-					}
-				}
-				ROOT = {
-					character_event = { id = khitan.10 } # Sixteen Prefectures event
-				}
-			}
-		}
-	}
-	attacker_ai_victory_worth = {
-		factor = -1
-	}
-
-	attacker_ai_defeat_worth = {
-		factor = 100
-	}
-
-	defender_ai_victory_worth = {
-		factor = -1
-	}
-
-	defender_ai_defeat_worth = {
-		factor = 100
-	}
-}
-
-korean_reconquest = {
-	name = CB_NAME_KOREAN_RECONQUEST
-	war_name = WAR_NAME_KOREAN_RECONQUEST
-	sprite = 8
-	truce_days = 3650
-	is_permanent = yes
-	check_de_jure_tier = DUKE # this scans all dejure duchies for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
-
-	allowed_to_target_tributaries = no
-
-	can_use = {
-		ROOT = {
-			NOR = {
-				trait = treasure_fleet_preparation
-				trait = treasure_fleet_voyage
-			}
-			any_owned_bloodline = {
-				has_bloodline_flag = korean_bloodline
-			}
-			culture_group = koreanic
-			OR = {
-				religion = buddhist
-				religion = taoist
-				religion = confucian
-				religion = korean_pagan
-				religion = korean_pagan_reformed
-			}
-			independent = yes
-			OR = {
-				tier = king
-				tier = emperor
-			}
-			OR = {
-				capital_scope = {
-					OR = {
-						region = world_korea
-						AND = {
-							region = world_balhae # If Balhae drifts into Korea it is a valid target
-							OR = {
-								de_jure_liege_or_above = e_korea # Currently part of de jure Korea
-								de_jure_liege_or_above = k_goryeo
-								de_jure_liege_or_above = k_silla
-								de_jure_liege_or_above = k_baekje
-							}
-						}
-					}
-				}
-				has_landed_title = e_korea
-			}
-			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
-		}
-	}
-
-	can_use_title = {
-		OR = {
-			region = world_korea
-			AND = {
-				region = world_balhae # If Balhae drifts into Korea it is a valid target
-				OR = {
-					de_jure_liege_or_above = e_korea # Currently part of de jure Korea
-					de_jure_liege_or_above = k_goryeo
-					de_jure_liege_or_above = k_silla
-					de_jure_liege_or_above = k_baekje
-				}
-			}
-		}
-		OR = {
-			de_jure_liege_or_above = e_korea # Currently part of de jure Korea
-			de_jure_liege_or_above = k_goryeo
-			de_jure_liege_or_above = k_silla
-			de_jure_liege_or_above = k_baekje
-			AND = {
-				any_direct_de_jure_vassal_title = {
-					location = {
-						culture_group = koreanic
-					}
-				}
-			}
-		}
-		any_direct_de_jure_vassal_title = { # Title must be inside holy war range
-			OR = {
-				holder_scope = {
-					OR = {
-						character = ROOT
-						is_liege_or_above = ROOT
-					}
-				}
-				location = {
-					any_neighbor_province = {
-						OR = {
-							AND = {
-								has_owner = yes
-								owner = {
-									OR = {
-										character = ROOT
-										is_liege_or_above = ROOT
-									}
-								}
-							}
-							AND = {
-								is_land = no
-								any_neighbor_province = {
-									OR = {
-										AND = {
-											has_owner = yes
-											owner = {
-												OR = {
-													character = ROOT
-													is_liege_or_above = ROOT
-												}
-											}
-										}
-										AND = {
-											is_land = no
-											any_neighbor_province = {
-												owner = {
-													OR = {
-														character = ROOT
-														is_liege_or_above = ROOT
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		OR = { # It should be a bit harder to use this CB unless you hold e_korea
-			ROOT = {
-				has_landed_title = e_korea
-			}
-			prestige = 100
-		}
-	}
-	
-	on_add = {
-		hidden_tooltip = { fire_haruspicy_event_effect = yes }
-		if = {
-			#limit = { defender = { is_offmap_governor = offmap_china } }
-			limit = {
-				has_dlc = "Jade Dragon"
-				defender = {
-					is_china_or_defended_chinese_tributary_trigger = yes
-				}
-			}
-			attacker = {  
-				sound_effect = china_angered_emperor
-				detract_grace_super_huge_effect = yes 
-			}
-		}
-		if = {
-			limit = {
-				ROOT = {
-					NOT = {
-						has_landed_title = e_korea
-					}
-				}
-			}
-			ROOT = {
-				prestige = -100
-			}
-		}
-	}
-	
-	is_valid = {
-		ROOT = {
-			culture_group = koreanic
-			OR = {
-				religion = buddhist
-				religion = taoist
-				religion = confucian
-				religion = korean_pagan
-				religion = korean_pagan_reformed
-			}
-			independent = yes
-			OR = {
-				tier = king
-				tier = emperor
-			}
-		}
-	}
-	
-	on_success = {
-		any_attacker = {
-			limit = { character = ROOT }
-			participation_scaled_prestige = 100
-		}
-		any_attacker = {
-			limit = { NOT = { character = ROOT } }
-			hidden_tooltip = { 
-				participation_scaled_prestige = 100
-			}
-		}
-		
-		FROM = { prestige = -100 }
-	}
-
-	on_success_title = {
-		custom_tooltip = { 
-			text = other_invasion_succ_tip
-			hidden_tooltip = {
-				ROOT = {
-					vassalize_or_take_under_title = {
-						title = PREV
-						enemy = FROM
-						type = invasion
-					}
-				}
-			}
-		}
-		if = {
-			limit = {
-				holder_scope = { character = FROM }
-			}
-			usurp_title_only = { target = ROOT type = invasion }
-		}
-	}
-
-	on_fail = {
-		ROOT = { prestige = -150 }
-	}
-
-	on_reverse_demand = {
-		ROOT = {
-			transfer_scaled_wealth = {
-				to = FROM
-				value = 4.0
-			}
-			ROOT = { prestige = -200 }
-		}
-		any_defender = {
-			limit = { character = FROM }
-			participation_scaled_piety = 100
-			participation_scaled_prestige = 200
-			if = {
-				limit = {
-					uses_decadence = yes
-				}
-				participation_scaled_decadence = -10
-			}
-		}
-		any_defender = {
-			limit = { NOT = { character = FROM } }
-			hidden_tooltip = { 
-				participation_scaled_piety = 100
-				participation_scaled_prestige = 200
-				if = {
-					limit = {
-						uses_decadence = yes
-					}
-					participation_scaled_decadence = -10
-				}
-			}
-		}
-	}
-
-	attacker_ai_victory_worth = {
-		factor = -1 # always accept
-	}
-	
-	attacker_ai_defeat_worth = {
-		factor = 100
-	}
-
-	defender_ai_victory_worth = {
-		factor = -1 # always accept
-	}
-	
-	defender_ai_defeat_worth = {
-		factor = 100
-	}
-}
-
-punitive_expedition = {
+# Treasure Fleet CBs
+punitive_expedition = { # Check
 	name = CB_NAME_PUNITIVE_EXPEDITION
 	war_name = WAR_NAME_PUNITIVE_EXPEDITION
 	sprite = 36
@@ -2131,7 +1159,7 @@ punitive_expedition = {
 	}
 }
 
-treasure_fleet_tributary_war = {
+treasure_fleet_tributary_war = { # Check
 	name = CB_NAME_TREASURE_FLEET_TRIBUTARY
 	war_name = WAR_NAME_TREASURE_FLEET_TRIBUTARY
 	sprite = 36
@@ -2353,7 +1381,7 @@ treasure_fleet_tributary_war = {
 	}
 }
 
-tf_invasion = {
+tf_invasion = { # Check
 	name = CB_NAME_TREASURE_FLEET_INVASION
 	war_name = WAR_NAME_TREASURE_FLEET_INVASION
 	sprite = 36
@@ -2703,404 +1731,7 @@ tf_invasion = {
 	}
 }
 
-gosannen_war_1 = {
-	name = CB_NAME_NORTHERN_DISTURBANCE
-	war_name = WAR_NAME_NORTHERN_DISTURBANCE
-	sprite = 9
-	truce_days = 3650
-	is_permanent = no # Only started from script
-
-	allowed_to_target_tributaries = no
-	can_ask_to_join_war = no
-	allow_whitepeace = no # You win, or you lose
-	
-	# No need to check Chinese Peace Deals
-
-	can_use = {
-		always = no # Should only be triggered in script
-	}
-	
-	is_valid = {
-		FROM = {
-			OR = {
-				has_landed_title = d_mutsu
-				has_landed_title = d_dewa
-			}
-		}
-	}	
-	
-	on_success = {
-		ROOT = {
-			participation_scaled_prestige = 500
-		}
-		any_defender = {
-			# ROOT takes all titles in d_mutsu and d_dewa
-			participation_scaled_prestige = -500
-			ROOT = {
-				vassalize_or_take_under_title = {
-					title = d_dewa
-					enemy = PREV
-					type = invasion
-				}
-				vassalize_or_take_under_title = {
-					title = d_mutsu
-					enemy = PREV
-					type = invasion
-				}
-			}
-			if = {
-				limit = {
-					character = FROM
-					e_japan = {
-						has_holder = yes
-					}
-				}
-				if = {
-					limit = {
-						e_japan = {
-							holder_scope = {
-								has_regent = yes
-								regent = {
-									higher_tier_than = FROM
-								}
-							}
-						}
-					}
-					e_japan = {
-						holder_scope = {
-							regent = {
-								FROM = {
-									set_defacto_liege = PREV
-								}
-							}
-						}
-					}
-				}
-				else = {
-					e_japan = {
-						holder_scope = {
-							FROM = {
-								set_defacto_liege = PREV
-							}
-						}
-					}
-				}
-			}
-			if = {
-				limit = {
-					has_character_flag = is_kiyohara_masahira
-				}
-				character_event = { id = gosannen.13 } # Possible independence
-			}
-		}
-	}
-	
-	on_reverse_demand = {
-		ROOT = {
-			participation_scaled_prestige = -500
-		}
-		any_defender = {
-			participation_scaled_prestige = 500
-		}
-		FROM = {
-			# FROM takes all titles in d_mutsu and d_dewa
-			vassalize_or_take_under_title = {
-				title = d_dewa
-				enemy = ROOT
-				type = invasion
-			}
-			vassalize_or_take_under_title = {
-				title = d_mutsu
-				enemy = ROOT
-				type = invasion
-			}
-			if = {
-				limit = {
-					has_character_flag = is_hachimantaro
-				}
-				character_event = { id = gosannen.1 } # Decide what to do with the titles
-			}
-		}
-	}
-
-	attacker_ai_victory_worth = {
-		factor = -1 # always accept
-	}
-	
-	attacker_ai_defeat_worth = {
-		factor = 100
-	}
-
-	defender_ai_victory_worth = {
-		factor = -1 # always accept
-	}
-	
-	defender_ai_defeat_worth = {
-		factor = 100
-	}
-}
-
-gosannen_war_2 = {
-	name = CB_NAME_NORTHERN_DISTURBANCE
-	war_name = WAR_NAME_NORTHERN_DISTURBANCE
-	sprite = 9
-	truce_days = 3650
-	is_permanent = no # Only started from script
-
-	allowed_to_target_tributaries = no
-	can_ask_to_join_war = no
-	allow_whitepeace = no # You win, or you lose
-	
-	# No need to check Chinese Peace Deals
-
-	can_use = {
-		always = no # Should only be triggered in script
-	}
-	
-	is_valid = {
-		FROM = {
-			OR = {
-				has_landed_title = d_mutsu
-				has_landed_title = d_dewa
-			}
-		}
-	}	
-	
-	on_success = {
-		ROOT = {
-			participation_scaled_prestige = 500
-			# ROOT takes all titles in d_mutsu and d_dewa
-			FROM = {
-				participation_scaled_prestige = -500
-			}
-			ROOT = {
-				vassalize_or_take_under_title = {
-					title = d_dewa
-					enemy = FROM
-					type = invasion
-				}
-				vassalize_or_take_under_title = {
-					title = d_mutsu
-					enemy = FROM
-					type = invasion
-				}
-			}
-			FROM = {
-				if = {
-					limit = {
-						e_japan = {
-							has_holder = yes
-						}
-					}
-					if = {
-						limit = {
-							e_japan = {
-								holder_scope = {
-									has_regent = yes
-									regent = {
-										higher_tier_than = FROM
-									}
-								}
-							}
-						}
-						e_japan = {
-							holder_scope = {
-								regent = {
-									FROM = {
-										set_defacto_liege = PREV
-									}
-								}
-							}
-						}
-					}
-					else = {
-						e_japan = {
-							holder_scope = {
-								FROM = {
-									set_defacto_liege = PREV
-								}
-							}
-						}
-					}
-				}
-			}
-			if = {
-				limit = {
-					has_character_flag = is_kiyohara_iehira
-				}
-				character_event = { id = gosannen.23 } # Possible independence
-			}
-		}
-	}
-	
-	on_reverse_demand = {
-		ROOT = {
-			participation_scaled_prestige = -500
-		}
-		any_defender = {
-			participation_scaled_prestige = 500
-		}
-		FROM = {
-			# FROM takes all titles in d_mutsu and d_dewa
-			vassalize_or_take_under_title = {
-				title = d_dewa
-				enemy = ROOT
-				type = invasion
-			}
-			vassalize_or_take_under_title = {
-				title = d_mutsu
-				enemy = ROOT
-				type = invasion
-			}
-			if = {
-				limit = {
-					has_character_flag = is_hachimantaro
-				}
-				character_event = { id = gosannen.16 } # Decide what to do with the titles
-			}
-		}
-	}
-
-	attacker_ai_victory_worth = {
-		factor = -1 # always accept
-	}
-	
-	attacker_ai_defeat_worth = {
-		factor = 100
-	}
-
-	defender_ai_victory_worth = {
-		factor = -1 # always accept
-	}
-	
-	defender_ai_defeat_worth = {
-		factor = 100
-	}
-}
-
-fang_las_rebellion = {
-	name = CB_NAME_FANG_LAS_REBELLION
-	war_name = WAR_NAME_FANG_LAS_REBELLION
-	sprite = 9
-	truce_days = 3650
-	is_permanent = no # Only started from script
-
-	allowed_to_target_tributaries = no
-	can_ask_to_join_war = no
-	allow_whitepeace = no # You win, or you lose
-	
-	attacker_can_call_allies = no # Their land would be at risk...
-	
-	# No need to check Chinese Peace Deals
-
-	can_use = {
-		always = no # Should only be triggered in script
-	}
-	
-	on_success = {
-		d_liangzhe = {
-			holder_scope = {
-				save_event_target_as = fang_la
-			}
-		}
-		e_china = {
-			holder_scope = {
-				save_event_target_as = song_emperor
-			}
-		}
-		event_target:fang_la = {
-			prestige = 1000
-			vassalize_or_take_under_title = {
-				title = k_liangzhe
-				enemy = event_target:song_emperor
-				type = invasion
-			}
-			if = {
-				limit = {
-					k_liangzhe = {
-						has_holder = no
-					}
-				}
-				grant_title = k_liangzhe
-			}
-		}
-		event_target:song_emperor = {
-			prestige = -1000
-			opinion = {
-				who = event_target:fang_la
-				modifier = opinion_traitor
-			}
-		}
-	}
-	
-	on_reverse_demand = {
-		d_liangzhe = {
-			holder_scope = {
-				save_event_target_as = fang_la
-			}
-		}
-		e_china = {
-			holder_scope = {
-				save_event_target_as = song_emperor
-			}
-		}
-		event_target:song_emperor = {
-			prestige = 1000
-		}
-		event_target:fang_la = {
-			prestige = -1000
-			disband_event_forces = fang_las_forces
-			any_demesne_title = {
-				usurp_title = {
-					target = event_target:song_emperor
-					type = invasion
-				}
-			}
-			imprison = event_target:song_emperor
-			reverse_opinion = {
-				who = event_target:song_emperor
-				modifier = opinion_traitor
-			}
-		}
-		any_attacker = {
-			limit = {
-				NOT = {
-					character = event_target:fang_la
-				}
-			}
-			prestige = -1000
-			disband_event_forces = lu_shinangs_forces
-			imprison = event_target:song_emperor
-			reverse_opinion = {
-				who = event_target:song_emperor
-				modifier = opinion_traitor
-			}
-			any_demesne_title = {
-				usurp_title = {
-					target = event_target:song_emperor
-					type = invasion
-				}
-			}
-		}
-	}
-
-	attacker_ai_victory_worth = {
-		factor = -1 # always accept
-	}
-	
-	attacker_ai_defeat_worth = {
-		factor = 100
-	}
-
-	defender_ai_victory_worth = {
-		factor = -1 # always accept
-	}
-	
-	defender_ai_defeat_worth = {
-		factor = 100
-	}
-}
-
+# Warlord CB
 warlord_consolidation = { # To spice things up in Chinese Imperial realms
 	name = CB_NAME_WARLORD
 	war_name = CB_NAME_WARLORD
@@ -3136,6 +1767,12 @@ warlord_consolidation = { # To spice things up in Chinese Imperial realms
 			same_realm = ROOT
 			NOT = {
 				is_liege_or_above = ROOT
+			}
+			NOT = {
+				any_war = {
+					defender = { character = PREVPREV }
+					using_cb = warlord_consolidation
+				}
 			}
 		}
 	}
@@ -3317,97 +1954,6 @@ warlord_consolidation = { # To spice things up in Chinese Imperial realms
 	
 	ai_will_do = {
 		factor = 2
-	}
-}
-
-go_yeongchang_independence = {
-	name = CB_NAME_GO_YEONGCHANG_INDEPENDENCE
-	war_name = WAR_NAME_GO_YEONGCHANG_INDEPENDENCE
-	sprite = 9
-	truce_days = 3650
-	is_permanent = no # Only started from script
-
-	allowed_to_target_tributaries = no
-	can_ask_to_join_war = no
-	allow_whitepeace = no # You win, or you lose
-	
-	# No need to check Chinese Peace Deals
-
-	can_use = {
-		always = no # Should only be triggered in script
-	}
-	
-	is_valid = {
-		ROOT = {
-			tier = emperor
-		}
-	}
-	
-	on_success = {
-		ROOT = {
-			prestige = 1000
-			any_demesne_title = {
-				add_claim = FROM
-			}
-		}
-		FROM = {
-			prestige = -1000
-			opinion = {
-				who = ROOT
-				modifier = opinion_traitor
-			}
-		}
-	}
-	
-	on_reverse_demand = {
-		FROM = {
-			prestige = 1000
-		}
-		ROOT = {
-			prestige = -1000
-			any_vassal = {
-				set_defacto_liege = FROM
-			}
-			any_demesne_title = {
-				limit = {
-					tier = emperor
-				}
-				unsafe_destroy_landed_title = THIS
-			}
-			any_demesne_title = {
-				add_claim = FROM
-			}
-			set_defacto_liege = FROM
-			imprison = FROM
-			reverse_opinion = {
-				who = FROM
-				modifier = opinion_traitor
-			}
-			any_realm_lord = {
-				any_demesne_title = {
-					usurp_title = {
-						target = FROM
-						type = invasion
-					}
-				}
-			}
-		}
-	}
-
-	attacker_ai_victory_worth = {
-		factor = -1 # always accept
-	}
-	
-	attacker_ai_defeat_worth = {
-		factor = 100
-	}
-
-	defender_ai_victory_worth = {
-		factor = -1 # always accept
-	}
-	
-	defender_ai_defeat_worth = {
-		factor = 100
 	}
 }
 
@@ -4501,6 +3047,505 @@ rising_sun_subjugation_cb = {
 	}
 }
 
+# Japanese subjgation
+japanese_subjugation = {
+	name = CB_NAME_PAGAN_SUBJUGATION
+	war_name = WAR_NAME_PAGAN_SUBJUGATION
+	sprite = 8
+	truce_days = 365
+	hostile_against_others = yes
+	is_permanent = yes
+	can_ask_to_join_war = yes
+	check_de_jure_tier = KING # this scans all de jure kingdoms for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
+	allowed_to_target_tributaries = no
+	
+	sort_priority = 1000
+	
+	can_use_gui = {
+		ROOT = {
+			piety = 500
+			conditional_tooltip = {
+				trigger = {
+					trait = under_regency
+				}
+				NOT = {
+					trait = under_regency
+				}
+			}
+			conditional_tooltip = {
+				trigger = {
+					trait = under_regency2
+				}
+				NOT = {
+					trait = under_regency2
+				}
+			}
+			conditional_tooltip = {
+				trigger = {
+					trait = under_regency3
+				}
+				NOT = {
+					trait = under_regency3
+				}
+			}
+		}
+	}
+	
+	on_add = {
+		ROOT = { piety = -500 }
+		hidden_tooltip = { fire_haruspicy_event_effect = yes }
+		if = {
+			#limit = { defender = { is_offmap_governor = offmap_china } }
+			limit = {
+				has_dlc = "Jade Dragon"
+				defender = {
+					is_china_or_defended_chinese_tributary_trigger = yes
+				}
+			}
+			attacker = {  
+				sound_effect = china_angered_emperor
+				detract_grace_super_huge_effect = yes 
+			}
+		}
+	}
+	
+	can_use = {
+		ROOT = {
+			OR = {
+				independent = yes
+				tier = king
+				i_am_appropriate_regent_trigger = yes
+				controls_religion = yes
+			}
+			OR = {
+				government = japanese_imperial_government
+				government = divine_imperial_government
+				government = japanese_bureaucracy_government
+				government = japanese_feudal_government
+				government = japanese_monastic_feudal_government
+			}
+		}
+		FROM = {
+			independent = yes
+			OR = {
+				government = japanese_bureaucracy_government
+				government = japanese_feudal_government
+				government = japanese_monastic_feudal_government
+			}
+			NOT = {
+				any_realm_lord = {
+					OR = {
+						government = japanese_imperial_government
+						government = divine_imperial_government
+					}
+				}
+			}
+			NOT = {
+				any_war = {
+					defender = { character = PREVPREV }
+					#using_cb = japanese_subjugation
+					using_any_subjugation_cb_trigger = yes
+				}
+			}
+		}
+	}
+	
+	can_use_title = {
+		ROOT = {
+			OR = {
+				has_landed_title = PREV
+				culture = FROM
+				AND = {
+					religion = FROM
+					culture_group = FROM
+				}
+				AND = {
+					religion = shinto
+					controls_religion = yes
+					FROM = {
+						religion = shinto
+					}
+				}
+				AND = {
+					religion = ryukyuan_pagan_reformed
+					controls_religion = yes
+					government = divine_imperial_government
+					FROM = {
+						religion = ryukyuan_pagan_reformed
+					}
+				}
+			}
+		}
+		
+		# Only one subjugation per lifetime normally
+		ROOT = {
+			OR = {
+				NOT = { has_character_modifier = launched_subjugation }
+				AND = {
+					has_ambition = obj_become_king
+					capital_scope = {
+						kingdom = {
+							title = PREVPREVPREV
+						}
+					}
+				}
+				AND = {
+					controls_religion = yes
+					FROM = {
+						religion = ROOT
+					}
+				}
+			}
+		}
+
+		FROM = {
+			any_realm_province = {
+				de_jure_liege_or_above = PREVPREV
+			}
+		}
+		
+		# The attacker needs at least one county in the target kingdom, or a border, or be only two sea zones away from one of your counties
+		any_direct_de_jure_vassal_title = {
+			any_direct_de_jure_vassal_title = {
+				OR = {
+					holder_scope = {
+						OR = {
+							character = ROOT
+							is_liege_or_above = ROOT
+						}
+					}
+					location = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											character = ROOT
+											is_liege_or_above = ROOT
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														character = ROOT
+														is_liege_or_above = ROOT
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															character = ROOT
+															is_liege_or_above = ROOT
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		ROOT = {
+			OR = {
+				NOT = { has_character_modifier = launched_subjugation }
+				AND = {
+					has_ambition = obj_become_king
+					capital_scope = {
+						kingdom = {
+							title = PREVPREVPREV
+						}
+					}
+				}
+			}
+		}
+
+		FROM = {
+			any_realm_province = {
+				de_jure_liege_or_above = PREVPREV
+			}
+		}
+	}
+	
+	is_valid = {
+		ROOT = {
+			OR = {
+				government = japanese_imperial_government
+				government = divine_imperial_government
+				government = japanese_bureaucracy_government
+				government = japanese_feudal_government
+				government = japanese_monastic_feudal_government
+			}
+		}
+		FROM = {
+			OR = {
+				government = japanese_bureaucracy_government
+				government = japanese_feudal_government
+				government = japanese_monastic_feudal_government
+			}
+			NOT = {
+				any_realm_lord = {
+					OR = {
+						government = japanese_imperial_government
+						government = divine_imperial_government
+					}
+				}
+			}
+		}
+	}
+	
+	is_valid_title = {
+		FROM = {
+			any_realm_province = {
+				de_jure_liege_or_above = PREVPREV
+			}
+		}
+	}
+	
+	on_add_title = {
+		ROOT = {
+			if = {
+				limit = {
+					OR = {
+						NOT = { has_ambition = obj_become_king }
+						capital_scope = {
+							kingdom = {
+								NOT = { title = PREVPREVPREV }
+							}
+						}
+					}
+				}
+				add_character_modifier = { 
+					name = launched_subjugation
+					years = 100
+					hidden = yes
+				}
+			}
+		}
+	}
+
+	on_success = {
+		ROOT = {
+			participation_scaled_prestige = 200
+		}
+		any_attacker = {
+			limit = { NOT = { character = ROOT } }
+			hidden_tooltip = { participation_scaled_prestige = 200 }
+		}
+		FROM = {
+			prestige = -200
+		}
+	}
+	
+	on_success_title = {
+		# Usurp the target kingdom itself, if the enemy holds it
+		if = {
+			limit = {
+				holder_scope = {
+					character = FROM
+				}
+				NOT = { ROOT = { tier = EMPEROR } }
+			}
+			ROOT = { usurp_title = { target = PREV type = invasion } }
+		}
+		
+		if = {
+			# Take the enemy's duchies within the target kingdom, if we are the same or lower tier
+			limit = {
+				ROOT = {
+					NOT = { higher_tier_than = FROM }
+				}
+			}
+			FROM = {
+				any_demesne_title = {
+					limit = {
+						tier = DUKE
+						OR = {
+							title = PREVPREV
+							de_jure_liege_or_above = PREVPREV
+						}
+					}
+					ROOT = { usurp_title = { target = PREV type = invasion } }
+				}
+			}
+		}
+		
+		# Have I become the vassal of the loser due to taking a duchy or kingdom?
+		if = {
+			limit = {
+				ROOT = {
+					is_liege_or_above = FROM	
+				}
+			}
+			ROOT = {
+				set_defacto_liege = ROOT
+			}
+		}
+		
+		# Vassalize the rest
+		custom_tooltip = {
+			text = pagan_subjugation_tip
+			hidden_tooltip = {
+				ROOT = {
+					subjugate_or_take_under_title = { # If the target only has territory within the kingdom, he is simply vassalized
+						title = PREV
+						enemy = FROM
+					}
+				}
+			}
+		}
+	}
+
+	on_fail = {
+		FROM = {
+			participation_scaled_prestige = 100
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = 100 }
+		}
+		ROOT = {
+			prestige = -100
+		}
+	}
+	
+	on_invalidation = {
+		ROOT = {
+			remove_character_modifier = launched_subjugation
+			piety = 500
+		}
+	}
+
+	on_reverse_demand = {
+		ROOT = {
+			prestige = -200
+			transfer_scaled_wealth = {
+				to = FROM
+				value = 2.0
+			}
+		}
+		FROM = {
+			participation_scaled_prestige = 200
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = 200 }
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+	
+	ai_will_do = { 
+		factor = 1
+		
+		modifier = {
+			factor = 0.9 # Prefer using CB's without on_add costs
+		}
+		#modifier = {
+		#	factor = 0
+		#	ROOT = {
+		#		has_character_flag = is_temujin
+		#		has_landed_title = e_mongol_empire
+		#		demesne_size = 1
+		#	}
+		#	FROM = {
+		#		has_landed_title = e_china_west_governor
+		#	}
+		#}
+		modifier = {
+			factor = 0
+			FROM = {
+				is_nomadic = yes
+			}
+			ROOT = {
+				NOT = {
+					is_tribal = yes
+				}
+			}
+			NOT = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						OR = {
+							holding_type = castle
+							holding_type = city
+						}
+					}
+				}
+			}
+		}
+		modifier = {
+			factor = 0
+			FROM = {
+				is_nomadic = yes
+			}
+			ROOT = {
+				is_tribal = yes
+			}
+			NOT = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						OR = {
+							holding_type = castle
+							holding_type = city
+							holding_type = tribal
+						}
+					}
+				}
+			}
+		}
+		modifier = {
+			factor = 0
+			FROM = {
+				is_nomadic = yes
+			}
+			ROOT = {
+				is_nomadic = no
+				NOT = {
+					is_tribal = yes
+				}
+			}
+			NOT = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						OR = {
+							holding_type = castle
+							holding_type = city
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 # Japanese Reconquest
 japanese_reconquest = {
 	name = CB_NAME_JAPANESE_RECONQUEST
@@ -4511,6 +3556,23 @@ japanese_reconquest = {
 	check_de_jure_tier = DUKE # this scans all dejure duchies for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
 
 	allowed_to_target_tributaries = no
+	
+	can_use_gui = {
+		ROOT = {
+			OR = {
+				government = japanese_imperial_government
+				AND = {
+					tier = emperor
+					prestige = 100
+				}
+				AND = {
+					tier = king
+					prestige = 500
+				}
+				prestige = 1000
+			}
+		}
+	}
 
 	can_use = {
 		is_feudal = yes
@@ -4520,17 +3582,19 @@ japanese_reconquest = {
 				trait = treasure_fleet_voyage
 			}
 			OR = {
-				religion = shinto
 				AND = {
-					religion = buddhist
-					culture_group = japonic
+					tier = emperor
+					can_have_japanese_bureaucracy_and_feudal_trigger = yes
+					NOT = {
+						trait = under_regency2
+					}
 				}
-			}
-			OR = {
-				tier = emperor
 				AND = {
 					controls_religion = yes
 					religion = shinto
+					NOT = {
+						trait = under_regency
+					}
 				}
 				AND = {
 					i_am_appropriate_regent_trigger = yes
@@ -4542,7 +3606,7 @@ japanese_reconquest = {
 				}
 			}
 		}
-		# Can't target others in the same realm, the Tenno, or the Tenno's liege
+		# Can't target others in the same realm, the Tenno, or the Tenno's liege, or the Ryukyuan rel head/their liege
 		FROM = {
 			independent = yes
 			NOR = {
@@ -4554,34 +3618,27 @@ japanese_reconquest = {
 					religion = shinto
 					controls_religion = yes
 				}
+				government = divine_imperial_government
+				any_realm_lord = {
+					government = divine_imperial_government
+				}
 			}
 		}
 		china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 	}
 
 	can_use_title = {
-		OR = {
+		OR = { # In Japan proper, an integrated area, or Japan's de jure
 			region = world_japan # Part of the Japan region
 			AND = {
-				OR = {
-					region = world_japan_islands # Ryukyu
-					region = custom_yezo # Hokkaido
-				}
-				OR = {
-					de_jure_liege_or_above = e_japan
-					any_direct_de_jure_vassal_title = {
-						location = {
-							OR = {
-								religion = shinto
-								AND = {
-									culture_group = japonic
-									religion = buddhist
-								}
-							}
-						}
-					}
-				}
+				region = world_japan_islands
+				has_global_flag = ryukyu_integrated
 			}
+			AND = {
+				region = custom_yezo
+				has_global_flag = ezo_integrated
+			}
+			de_jure_liege_or_above = e_japan
 		}
 		any_direct_de_jure_vassal_title = { # Title must be inside holy war range
 			OR = {
@@ -4635,19 +3692,6 @@ japanese_reconquest = {
 				}
 			}
 		}
-		OR = { # It should be a bit harder to use this CB unless you hold e_japan or are the Tenno
-			ROOT = {
-				has_landed_title = e_japan
-			}
-			ROOT = {
-				religion = shinto
-				controls_religion = yes
-			}
-			ROOT = {
-				prestige = 100
-				piety = 100
-			}
-		}
 	}
 	
 	on_add = {
@@ -4665,49 +3709,37 @@ japanese_reconquest = {
 				detract_grace_super_huge_effect = yes 
 			}
 		}
-		if = {
-			limit = {
-				ROOT = {
-					NOR = {
-						has_landed_title = e_japan
-						AND = {
-							religion = shinto
-							controls_religion = yes
-						}
+		ROOT = {
+			if = {
+				limit = {
+					NOT = {
+						government = japanese_imperial_government
 					}
 				}
-			}
-			ROOT = {
-				prestige = -100
-				piety = -100
+				if = {
+					limit = {
+						tier = emperor
+					}
+					prestige = -100
+				}
+				else = {
+					if = {
+						limit = {
+							higher_tier_than = duke
+						}
+						prestige = -500
+					}
+					else = {
+						prestige = -1000
+					}
+				}
 			}
 		}
 	}
 	
 	is_valid = {
 		ROOT = {
-			OR = {
-				religion = shinto
-				AND = {
-					religion = buddhist
-					culture_group = japonic
-				}
-			}
-			OR = {
-				tier = emperor
-				AND = {
-					controls_religion = yes
-					religion = shinto
-				}
-				AND = {
-					i_am_appropriate_regent_trigger = yes
-					liege = {
-						NOT = {
-							government = divine_imperial_government
-						}
-					}
-				}
-			}
+			can_have_any_japanese_government_trigger = yes
 		}
 		FROM = {
 			independent = yes
@@ -4719,6 +3751,10 @@ japanese_reconquest = {
 				any_vassal = {
 					religion = shinto
 					controls_religion = yes
+				}
+				government = divine_imperial_government
+				any_realm_lord = {
+					government = divine_imperial_government
 				}
 			}
 		}
@@ -8439,3 +7475,776 @@ imperial_claim_faction = {
 		factor = 100
 	}
 }
+
+# The Three Mountains
+ryukyuan_subjugation = {
+	name = CB_NAME_PAGAN_SUBJUGATION
+	war_name = WAR_NAME_PAGAN_SUBJUGATION
+	sprite = 8
+	truce_days = 365
+	hostile_against_others = yes
+	is_permanent = yes
+	can_ask_to_join_war = yes
+	check_de_jure_tier = KING # this scans all de jure kingdoms for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
+	allowed_to_target_tributaries = no
+	is_holy_war = yes # Co-religionists can join
+	
+	sort_priority = 1000
+	
+	can_use_gui = {
+		ROOT = {
+			piety = 500
+		}
+	}
+	
+	on_add = {
+		ROOT = { piety = -500 }
+		hidden_tooltip = { fire_haruspicy_event_effect = yes }
+		if = {
+			#limit = { defender = { is_offmap_governor = offmap_china } }
+			limit = {
+				has_dlc = "Jade Dragon"
+				defender = {
+					is_china_or_defended_chinese_tributary_trigger = yes
+				}
+			}
+			attacker = {  
+				sound_effect = china_angered_emperor
+				detract_grace_super_huge_effect = yes 
+			}
+		}
+	}
+	
+	can_use = {
+		ROOT = {
+			religion = ryukyuan_pagan_reformed
+			has_religion_feature = religion_feature_ryukyuan_three_mountains
+			NOT = { same_realm = FROM }
+			NOT = { is_liege_or_above = FROM }
+			has_horde_culture = no # Should use tribal invasion instead
+			is_nomadic = no
+			mercenary = no
+		}
+		FROM = {
+			independent = yes
+			NOT = { is_offmap_governor = yes }
+			has_dharmic_religion_trigger = yes
+			culture_group = ROOT
+			NOT = {
+				any_war = {
+					defender = { character = PREVPREV }
+					#using_cb = ryukyuan_subjugation
+					using_any_subjugation_cb_trigger = yes
+				}
+			}
+		}
+		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
+			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
+		}
+	}
+	
+	can_use_title = {
+		ROOT = {
+			OR = {
+				NOT = { has_character_modifier = launched_subjugation }
+				AND = {
+					has_ambition = obj_become_king
+					capital_scope = {
+						kingdom = {
+							title = PREVPREVPREV
+						}
+					}
+				}
+			}
+		}
+
+		FROM = {
+			any_realm_province = {
+				de_jure_liege_or_above = PREVPREV
+			}
+		}
+		
+		# The attacker needs at least one county in the target kingdom, or a border, or be only two sea zones away from one of your counties
+		any_direct_de_jure_vassal_title = {
+			any_direct_de_jure_vassal_title = {
+				OR = {
+					holder_scope = {
+						OR = {
+							character = ROOT
+							is_liege_or_above = ROOT
+						}
+					}
+					location = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											character = ROOT
+											is_liege_or_above = ROOT
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														character = ROOT
+														is_liege_or_above = ROOT
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															character = ROOT
+															is_liege_or_above = ROOT
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		#OR = { # This ensures that the AI doesn't declare this type of war against someone who only holds a few counties within the targeted title...
+		#	ROOT = {
+		#		ai = no
+		#	}
+		#	FROM = {
+		#		num_of_realm_counties = {
+		#			value = 5
+		#			title = PREV
+		#		}
+		#	}
+		#}
+	}
+	
+	is_valid = {
+		ROOT = {
+			religion = ryukyuan_pagan_reformed
+			has_religion_feature = religion_feature_ryukyuan_three_mountains
+		}
+		FROM = {
+			independent = yes
+		}
+	}
+	
+	is_valid_title = {
+		FROM = {
+			any_realm_province = {
+				de_jure_liege_or_above = PREVPREV
+			}
+		}
+	}
+	
+	on_add_title = {
+		ROOT = {
+			if = {
+				limit = {
+					OR = {
+						NOT = { has_ambition = obj_become_king }
+						capital_scope = {
+							kingdom = {
+								NOT = { title = PREVPREVPREV }
+							}
+						}
+					}
+				}
+				add_character_modifier = { 
+					name = launched_subjugation
+					years = 100
+					hidden = yes
+				}
+			}
+		}
+	}
+
+	on_success = {
+		ROOT = {
+			participation_scaled_prestige = 200
+		}
+		any_attacker = {
+			limit = { NOT = { character = ROOT } }
+			hidden_tooltip = { participation_scaled_prestige = 200 }
+		}
+		FROM = {
+			prestige = -200
+		}
+		FROM = {
+			if = {
+				limit = {
+					religion = ryukyuan_pagan_reformed
+					controls_religion = yes
+				}
+				if = {
+					limit = {
+						any_war = {
+							attacker = {
+								character = FROm
+							}
+							using_cb = crusade
+						}
+					}
+					any_war = {
+						limit = {
+							attacker = {
+								character = FROm
+							}
+							using_cb = crusade
+						}
+						end_war = reverse_demand
+					}
+				}
+				piety = -1000
+				d_ryukyuan_pagan_reformed = {
+					unsafe_destroy_landed_title = THIS
+				}
+			}
+		}
+	}
+	
+	on_success_title = {
+		# Usurp the target kingdom itself, if the enemy holds it
+		if = {
+			limit = {
+				holder_scope = {
+					character = FROM
+				}
+				NOT = { ROOT = { tier = EMPEROR } }
+			}
+			ROOT = { usurp_title = { target = PREV type = invasion } }
+		}
+		
+		if = {
+			# Take the enemy's duchies within the target kingdom, if we are the same or lower tier
+			limit = {
+				ROOT = {
+					NOT = { higher_tier_than = FROM }
+				}
+			}
+			FROM = {
+				any_demesne_title = {
+					limit = {
+						tier = DUKE
+						OR = {
+							title = PREVPREV
+							de_jure_liege_or_above = PREVPREV
+						}
+					}
+					ROOT = { usurp_title = { target = PREV type = invasion } }
+				}
+			}
+		}
+		
+		# Have I become the vassal of the loser due to taking a duchy or kingdom?
+		if = {
+			limit = {
+				ROOT = {
+					is_liege_or_above = FROM	
+				}
+			}
+			ROOT = {
+				set_defacto_liege = ROOT
+			}
+		}
+		
+		# Vassalize the rest
+		custom_tooltip = {
+			text = pagan_subjugation_tip
+			hidden_tooltip = {
+				ROOT = {
+					subjugate_or_take_under_title = { # If the target only has territory within the kingdom, he is simply vassalized
+						title = PREV
+						enemy = FROM
+					}
+				}
+			}
+		}
+	}
+
+	on_fail = {
+		FROM = {
+			participation_scaled_prestige = 100
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = 100 }
+		}
+		ROOT = {
+			prestige = -100
+		}
+	}
+	
+	on_invalidation = {
+		ROOT = {
+			remove_character_modifier = launched_subjugation
+			piety = 500
+		}
+	}
+
+	on_reverse_demand = {
+		ROOT = {
+			prestige = -200
+			transfer_scaled_wealth = {
+				to = FROM
+				value = 2.0
+			}
+		}
+		FROM = {
+			participation_scaled_prestige = 200
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { participation_scaled_prestige = 200 }
+		}
+		ROOT = {
+			if = {
+				limit = {
+					religion = ryukyuan_pagan_reformed
+					controls_religion = yes
+				}
+				if = {
+					limit = {
+						any_war = {
+							attacker = {
+								character = ROOT
+							}
+							using_cb = crusade
+						}
+					}
+					any_war = {
+						limit = {
+							attacker = {
+								character = ROOT
+							}
+							using_cb = crusade
+						}
+						end_war = reverse_demand
+					}
+				}
+				piety = -1000
+				d_ryukyuan_pagan_reformed = {
+					unsafe_destroy_landed_title = THIS
+				}
+			}
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+	
+	ai_will_do = { 
+		factor = 1
+		
+		modifier = {
+			factor = 0.9 # Prefer using CB's without on_add costs
+		}
+		#modifier = {
+		#	factor = 0
+		#	ROOT = {
+		#		has_character_flag = is_temujin
+		#		has_landed_title = e_mongol_empire
+		#		demesne_size = 1
+		#	}
+		#	FROM = {
+		#		has_landed_title = e_china_west_governor
+		#	}
+		#}
+		modifier = {
+			factor = 0
+			FROM = {
+				is_nomadic = yes
+			}
+			ROOT = {
+				NOT = {
+					is_tribal = yes
+				}
+			}
+			NOT = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						OR = {
+							holding_type = castle
+							holding_type = city
+						}
+					}
+				}
+			}
+		}
+		modifier = {
+			factor = 0
+			FROM = {
+				is_nomadic = yes
+			}
+			ROOT = {
+				is_tribal = yes
+			}
+			NOT = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						OR = {
+							holding_type = castle
+							holding_type = city
+							holding_type = tribal
+						}
+					}
+				}
+			}
+		}
+		modifier = {
+			factor = 0
+			FROM = {
+				is_nomadic = yes
+			}
+			ROOT = {
+				is_nomadic = no
+				NOT = {
+					is_tribal = yes
+				}
+			}
+			NOT = {
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						OR = {
+							holding_type = castle
+							holding_type = city
+						}
+					}
+				}
+			}
+		}
+		#modifier = { # Duplicate
+		#	factor = 0
+		#	FROM = {
+		#		is_nomadic = yes
+		#	}
+		#	ROOT = {
+		#		is_tribal = yes
+		#	}
+		#	NOT = {
+		#		any_direct_de_jure_vassal_title = {
+		#			any_direct_de_jure_vassal_title = {
+		#				OR = {
+		#					holding_type = castle
+		#					holding_type = city
+		#					holding_type = tribal
+		#				}
+		#			}
+		#		}
+		#	}
+		#}
+	}
+}
+
+### Korean CBs
+
+# Taejo bloodline CB
+korean_reconquest = { # Check
+	name = CB_NAME_KOREAN_RECONQUEST
+	war_name = WAR_NAME_KOREAN_RECONQUEST
+	sprite = 8
+	truce_days = 3650
+	is_permanent = yes
+	check_de_jure_tier = DUKE # this scans all dejure duchies for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
+
+	allowed_to_target_tributaries = no
+
+	can_use = {
+		ROOT = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
+			any_owned_bloodline = {
+				has_bloodline_flag = korean_bloodline
+			}
+			culture_group = koreanic
+			OR = {
+				religion = buddhist
+				religion = taoist
+				religion = confucian
+				religion = korean_pagan
+				religion = korean_pagan_reformed
+			}
+			independent = yes
+			OR = {
+				tier = king
+				tier = emperor
+			}
+			OR = {
+				capital_scope = {
+					OR = {
+						region = world_korea
+						AND = {
+							region = world_balhae # If Balhae drifts into Korea it is a valid target
+							OR = {
+								de_jure_liege_or_above = e_korea # Currently part of de jure Korea
+								de_jure_liege_or_above = k_goryeo
+								de_jure_liege_or_above = k_silla
+								de_jure_liege_or_above = k_baekje
+							}
+						}
+					}
+				}
+				has_landed_title = e_korea
+			}
+			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
+		}
+	}
+
+	can_use_title = {
+		OR = {
+			region = world_korea
+			AND = {
+				region = world_balhae # If Balhae drifts into Korea it is a valid target
+				OR = {
+					de_jure_liege_or_above = e_korea # Currently part of de jure Korea
+					de_jure_liege_or_above = k_goryeo
+					de_jure_liege_or_above = k_silla
+					de_jure_liege_or_above = k_baekje
+				}
+			}
+		}
+		OR = {
+			de_jure_liege_or_above = e_korea # Currently part of de jure Korea
+			de_jure_liege_or_above = k_goryeo
+			de_jure_liege_or_above = k_silla
+			de_jure_liege_or_above = k_baekje
+			AND = {
+				any_direct_de_jure_vassal_title = {
+					location = {
+						culture_group = koreanic
+					}
+				}
+			}
+		}
+		any_direct_de_jure_vassal_title = { # Title must be inside holy war range
+			OR = {
+				holder_scope = {
+					OR = {
+						character = ROOT
+						is_liege_or_above = ROOT
+					}
+				}
+				location = {
+					any_neighbor_province = {
+						OR = {
+							AND = {
+								has_owner = yes
+								owner = {
+									OR = {
+										character = ROOT
+										is_liege_or_above = ROOT
+									}
+								}
+							}
+							AND = {
+								is_land = no
+								any_neighbor_province = {
+									OR = {
+										AND = {
+											has_owner = yes
+											owner = {
+												OR = {
+													character = ROOT
+													is_liege_or_above = ROOT
+												}
+											}
+										}
+										AND = {
+											is_land = no
+											any_neighbor_province = {
+												owner = {
+													OR = {
+														character = ROOT
+														is_liege_or_above = ROOT
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		OR = { # It should be a bit harder to use this CB unless you hold e_korea
+			ROOT = {
+				has_landed_title = e_korea
+			}
+			prestige = 100
+		}
+	}
+	
+	on_add = {
+		hidden_tooltip = { fire_haruspicy_event_effect = yes }
+		if = {
+			#limit = { defender = { is_offmap_governor = offmap_china } }
+			limit = {
+				has_dlc = "Jade Dragon"
+				defender = {
+					is_china_or_defended_chinese_tributary_trigger = yes
+				}
+			}
+			attacker = {  
+				sound_effect = china_angered_emperor
+				detract_grace_super_huge_effect = yes 
+			}
+		}
+		if = {
+			limit = {
+				ROOT = {
+					NOT = {
+						has_landed_title = e_korea
+					}
+				}
+			}
+			ROOT = {
+				prestige = -100
+			}
+		}
+	}
+	
+	is_valid = {
+		ROOT = {
+			culture_group = koreanic
+			OR = {
+				religion = buddhist
+				religion = taoist
+				religion = confucian
+				religion = korean_pagan
+				religion = korean_pagan_reformed
+			}
+			independent = yes
+			OR = {
+				tier = king
+				tier = emperor
+			}
+		}
+	}
+	
+	on_success = {
+		any_attacker = {
+			limit = { character = ROOT }
+			participation_scaled_prestige = 100
+		}
+		any_attacker = {
+			limit = { NOT = { character = ROOT } }
+			hidden_tooltip = { 
+				participation_scaled_prestige = 100
+			}
+		}
+		
+		FROM = { prestige = -100 }
+	}
+
+	on_success_title = {
+		custom_tooltip = { 
+			text = other_invasion_succ_tip
+			hidden_tooltip = {
+				ROOT = {
+					vassalize_or_take_under_title = {
+						title = PREV
+						enemy = FROM
+						type = invasion
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				holder_scope = { character = FROM }
+			}
+			usurp_title_only = { target = ROOT type = invasion }
+		}
+	}
+
+	on_fail = {
+		ROOT = { prestige = -150 }
+	}
+
+	on_reverse_demand = {
+		ROOT = {
+			transfer_scaled_wealth = {
+				to = FROM
+				value = 4.0
+			}
+			ROOT = { prestige = -200 }
+		}
+		any_defender = {
+			limit = { character = FROM }
+			participation_scaled_piety = 100
+			participation_scaled_prestige = 200
+			if = {
+				limit = {
+					uses_decadence = yes
+				}
+				participation_scaled_decadence = -10
+			}
+		}
+		any_defender = {
+			limit = { NOT = { character = FROM } }
+			hidden_tooltip = { 
+				participation_scaled_piety = 100
+				participation_scaled_prestige = 200
+				if = {
+					limit = {
+						uses_decadence = yes
+					}
+					participation_scaled_decadence = -10
+				}
+			}
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+}
+
+### TODO: SORT

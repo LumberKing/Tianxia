@@ -2089,6 +2089,7 @@ other_claim_on_liege = {
 				NOT = {
 					dynasty = ROOT
 				}
+				is_adult = yes
 				government = chinese_vassal_government
 				ROOT = {
 					OR = {
@@ -6460,6 +6461,18 @@ religious = {
 				NOT = { religion = buddhist }
 				piety = 250
 			}
+			top_liege = {
+				NOR = {
+					government = chinese_imperial_government
+					government = chinese_vassal_government
+					government = eastern_imperial_government
+					government = japanese_imperial_government
+					government = japanese_bureaucracy_government
+					government = japanese_feudal_government
+					government = japanese_monastic_feudal_government
+					government = divine_imperial_government
+				}
+			}
 		}
 	}
 	
@@ -6606,16 +6619,6 @@ religious = {
 						is_heretic = no
 						ROOT = { is_heretic = no }
 					}
-				}
-				NOR = {
-					government = chinese_imperial_government
-					government = chinese_vassal_government
-					government = eastern_imperial_government
-					government = japanese_imperial_government
-					government = japanese_bureaucracy_government
-					government = japanese_feudal_government
-					government = japanese_monastic_feudal_government
-					government = divine_imperial_government
 				}
 			}
 			mercenary = no
@@ -7491,6 +7494,12 @@ bid_for_independence = {
 			}
 		}
 	}
+	
+	on_invalidation = {
+		ROOT = {
+			clr_character_flag = is_yamankhan
+		}
+	}
 
 	on_add = {
 		hidden_tooltip = { fire_haruspicy_event_effect = yes }
@@ -7607,12 +7616,26 @@ bid_for_independence = {
 				landless_pope_effect = yes
 			}
 		}
+		
+		ROOT = {
+			if = {
+				limit = {
+					has_character_flag = is_yamankhan
+					k_pegu = {
+						has_holder = no
+					}
+				}
+				grant_title = k_pegu
+			}
+			clr_character_flag = is_yamankhan
+		}
 	}
 
 	on_fail = {
 		ROOT = {
 			prestige = -50
 			participation_scaled_prestige = -50
+			clr_character_flag = is_yamankhan
 		}
 		any_attacker = {
 			limit = { NOT = { character = ROOT } }
@@ -7625,6 +7648,7 @@ bid_for_independence = {
 			prestige = -100
 			prisoner = FROM
 			participation_scaled_prestige = -100
+			clr_character_flag = is_yamankhan
 		}
 		any_attacker = {
 			limit = { NOT = { character = ROOT } }
@@ -11430,10 +11454,11 @@ pagan_subjugation = {
 			NOT = {
 				any_war = {
 					defender = { character = PREVPREV }
-					OR = {
-						using_cb = pagan_subjugation
-						using_cb = nomad_subjugation
-					}
+					#OR = {
+					#	using_cb = pagan_subjugation
+					#	using_cb = nomad_subjugation
+					#}
+					using_any_subjugation_cb_trigger = yes
 				}
 			}
 		}
@@ -12340,6 +12365,12 @@ duchy_adventure = {
 				clr_character_flag = duchy_adventurer
 				give_nickname = nick_the_conqueror
 			}
+			if = { # Rare edge case fix
+				limit = {
+					is_landed = no
+				}
+				set_character_flag = wasnt_landed
+			}
 		}
 		FROM = {
 			prestige = -250 
@@ -12405,6 +12436,13 @@ duchy_adventure = {
 						days = 600
 						random = 300
 					}
+				}
+				if = {
+					limit = {
+						has_character_flag = wasnt_landed
+					}
+					clr_character_flag = wasnt_landed
+					set_defacto_liege = THIS
 				}
 			}
 		}
@@ -12601,6 +12639,13 @@ kingdom_adventure = { # Used mainly for Muslims adventuring into India
 							}
 						}
 					}
+				}
+				if = {
+					limit = {
+						has_character_flag = wasnt_landed
+					}
+					clr_character_flag = wasnt_landed
+					set_defacto_liege = THIS
 				}
 			}
 		}
@@ -13005,6 +13050,18 @@ pagan_holy_war = {
 	can_use_gui = {
 		ROOT = {
 			piety = 100
+			top_liege = {
+				NOR = {
+					government = chinese_imperial_government
+					government = chinese_vassal_government
+					government = eastern_imperial_government
+					government = japanese_imperial_government
+					government = japanese_bureaucracy_government
+					government = japanese_feudal_government
+					government = japanese_monastic_feudal_government
+					government = divine_imperial_government
+				}
+			}
 		}
 	}
 	
@@ -13041,18 +13098,6 @@ pagan_holy_war = {
 				government = japanese_feudal_government
 				government = japanese_monastic_feudal_government
 				government = divine_imperial_government
-			}
-			top_liege = {
-				NOR = {
-					government = chinese_imperial_government
-					government = chinese_vassal_government
-					government = eastern_imperial_government
-					government = japanese_imperial_government
-					government = japanese_bureaucracy_government
-					government = japanese_feudal_government
-					government = japanese_monastic_feudal_government
-					government = divine_imperial_government
-				}
 			}
 		}
 		ROOT = {
@@ -13418,6 +13463,18 @@ caliphal_subjugation = {
 	can_use_gui = {
 		ROOT = {
 			piety = 200
+			top_liege = {
+				NOR = {
+					government = chinese_imperial_government
+					government = chinese_vassal_government
+					government = eastern_imperial_government
+					government = japanese_imperial_government
+					government = japanese_bureaucracy_government
+					government = japanese_feudal_government
+					government = japanese_monastic_feudal_government
+					government = divine_imperial_government
+				}
+			}
 		}
 	}
 	
@@ -13948,6 +14005,10 @@ pagan_county_conquest = {
 				ROOT = {
 					religion_group = pagan_group
 					NOT = { same_realm = FROM }
+					NOR = {
+						can_have_any_japanese_government_trigger = yes
+						can_have_confucian_bureaucracy_and_eastern_imperial_only_religion_trigger = yes
+					}
 				}
 				FROM = {
 					NOT = { religion = ROOT }
@@ -16383,6 +16444,23 @@ buddhist_holy_war = {
 	
 	sort_priority = 800
 	
+	can_use_gui = {
+		ROOT = {
+			top_liege = {
+				NOR = {
+					government = chinese_imperial_government
+					government = chinese_vassal_government
+					government = eastern_imperial_government
+					government = japanese_imperial_government
+					government = japanese_bureaucracy_government
+					government = japanese_feudal_government
+					government = japanese_monastic_feudal_government
+					government = divine_imperial_government
+				}
+			}
+		}
+	}
+	
 	can_use = {
 		ROOT = {
 			NOR = {
@@ -16407,7 +16485,7 @@ buddhist_holy_war = {
 			OR = {
 				NOT = { religion_group = FROM }
 				FROM = { religion = taoist }
-				#FROM = { religion = shinto }
+				FROM = { religion = shinto }
 				FROM = { religion = confucian }
 				AND = {
 					religion_group = FROM
@@ -16440,16 +16518,6 @@ buddhist_holy_war = {
 							}
 						}
 					}
-				}
-				NOR = {
-					government = chinese_imperial_government
-					government = chinese_vassal_government
-					government = eastern_imperial_government
-					government = japanese_imperial_government
-					government = japanese_bureaucracy_government
-					government = japanese_feudal_government
-					government = japanese_monastic_feudal_government
-					government = divine_imperial_government
 				}
 			}
 			mercenary = no
@@ -16792,128 +16860,45 @@ indian_subjugation = {
 	}
 	
 	can_use = {
-		OR = {
-			AND = {
-				ROOT = {
-					NOR = { # These shouldn't operate like standard Dharmics
-						government = chinese_imperial_government
-						government = chinese_vassal_government
-						government = eastern_imperial_government
-						government = japanese_bureaucracy_government
-						government = japanese_feudal_government
-					}
-					has_dharmic_religion_trigger = yes
-					NOT = { same_realm = FROM }
-					NOT = { is_liege_or_above = FROM }
-					has_horde_culture = no # Should use tribal invasion instead
-					is_nomadic = no
-					mercenary = no
-				}
-				FROM = {
-					NOR = { # These shouldn't operate like standard Dharmics
-						government = chinese_imperial_government
-						government = chinese_vassal_government
-						government = eastern_imperial_government
-						government = japanese_bureaucracy_government
-						government = japanese_feudal_government
-					}
-					NOT = { is_offmap_governor = yes }
-					has_dharmic_religion_trigger = yes
-					culture_group = ROOT
-					NOT = {
-						any_war = {
-							defender = { character = PREVPREV }
-							using_cb = indian_subjugation
-						}
-					}
+		ROOT = {
+			has_dharmic_religion_trigger = yes
+			NOT = { same_realm = FROM }
+								 
+			NOT = { is_liege_or_above = FROM }
+			has_horde_culture = no # Should use tribal invasion instead
+			is_nomadic = no
+			mercenary = no
+			NOR = {
+				government = chinese_imperial_government
+				government = chinese_vassal_government
+				government = eastern_imperial_government
+				government = japanese_imperial_government
+				government = japanese_bureaucracy_government
+				government = japanese_feudal_government
+				government = japanese_monastic_feudal_government
+				government = divine_imperial_government
+			}
+		}
+		FROM = {
+			NOT = { is_offmap_governor = yes }
+			has_dharmic_religion_trigger = yes
+			culture_group = ROOT
+			NOT = {
+				any_war = {
+					defender = { character = PREVPREV }
+					#using_cb = indian_subjugation
+					using_any_subjugation_cb_trigger = yes
 				}
 			}
-			# Shinto-Buddhist subjugation in Japan should work, and making that work in the general case is good
-			AND = {
-				ROOT = {
-					OR = {
-						religion = shinto
-						AND = {
-							religion = buddhist
-							culture_group = japonic
-						}
-					}
-					NOT = { same_realm = FROM }
-					NOT = { is_liege_or_above = FROM }
-					has_horde_culture = no # Should use tribal invasion instead
-					is_nomadic = no
-					mercenary = no
-				}
-				FROM = {
-					NOT = { is_offmap_governor = yes }
-					OR = {
-						religion = shinto
-						AND = {
-							religion = buddhist
-							culture_group = japonic
-						}
-					}
-					controls_religion = no # Can't use this against the Tenno
-					OR = {
-						culture_group = ROOT
-						AND = {
-							religion = shinto
-							ROOT = {
-								religion = shinto
-								controls_religion = yes # The Tenno can go after all Shinto rulers
-							}
-						}
-					}
-					NOT = {
-						any_war = {
-							defender = { character = PREVPREV }
-							using_cb = indian_subjugation
-						}
-					}
-				}
-			}
-			# Ryukyuans that have reformed in a Japanese fashion can subjugate each other as if they were Japanese
-			AND = {
-				ROOT = {
-					OR = {
-						religion_has_japanese_government_reformation_trigger = yes
-						religion_has_divine_imperial_reformation_trigger = yes
-					}
-					NOT = { same_realm = FROM }
-					NOT = { is_liege_or_above = FROM }
-					has_horde_culture = no # Should use tribal invasion instead
-					is_nomadic = no
-					mercenary = no
-				}
-				FROM = {
-					NOT = { is_offmap_governor = yes }
-					OR = {
-						religion = ryukyuan_pagan
-						religion = ryukyuan_pagan_reformed
-					}
-					OR = { # A Divine Imperial rel head can't be subjugated
-						controls_religion = no
-						NOT = {
-							government = divine_imperial_government
-						}
-					}
-					OR = {
-						culture_group = ROOT
-						AND = {
-							religion = ryukyuan_pagan_reformed
-							ROOT = {
-								religion = ryukyuan_pagan_reformed
-								government = divine_imperial_government
-							}
-						}
-					}
-					NOT = {
-						any_war = {
-							defender = { character = PREVPREV }
-							using_cb = indian_subjugation
-						}
-					}
-				}
+			NOR = {
+				government = chinese_imperial_government
+				government = chinese_vassal_government
+				government = eastern_imperial_government
+				government = japanese_imperial_government
+				government = japanese_bureaucracy_government
+				government = japanese_feudal_government
+				government = japanese_monastic_feudal_government
+				government = divine_imperial_government
 			}
 		}
 		ROOT = {
@@ -16922,11 +16907,6 @@ indian_subjugation = {
 				trait = treasure_fleet_voyage
 			}
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
-		}
-		FROM = {
-			NOT = {
-				has_landed_title = k_chrysanthemum_throne
-			}
 		}
 	}
 	
@@ -16962,47 +16942,31 @@ indian_subjugation = {
 		#		}
 		#	}
 		#}
-		
-		# Can't use this against the Tenno under some circumstances
-		OR = {
-			FROM = {
-				NAND = {
-					controls_religion = yes
-					religion = shinto
-				}
-			}
-			ROOT = {
-				NOR = {
-					religion = shinto
-					AND = {
-						culture_group = japonic
-						religion = buddhist
-					}
-					top_liege = {
-						any_vassal = {
-							character = FROM
-						}
-						OR = {
-							government = japanese_bureaucracy_government
-							government = japanese_feudal_government
-							government = japanese_monastic_feudal_government
-						}
-					}
-				}
-			}
+	}
+	
+	is_valid = {
+		ROOT = {
 			NOR = {
-				any_direct_de_jure_vassal_title = {
-					any_direct_de_jure_vassal_title = {
-						title = c_yamashiro
-					}
-				}
-				FROM = {
-					capital_scope = {
-						kingdom = {
-							title = PREVPREVPREV # Contains the Tenno's current capital
-						}
-					}
-				}
+				government = chinese_imperial_government
+				government = chinese_vassal_government
+				government = eastern_imperial_government
+				government = japanese_imperial_government
+				government = japanese_bureaucracy_government
+				government = japanese_feudal_government
+				government = japanese_monastic_feudal_government
+				government = divine_imperial_government
+			}
+		}
+		FROM = {
+			NOR = {
+				government = chinese_imperial_government
+				government = chinese_vassal_government
+				government = eastern_imperial_government
+				government = japanese_imperial_government
+				government = japanese_bureaucracy_government
+				government = japanese_feudal_government
+				government = japanese_monastic_feudal_government
+				government = divine_imperial_government
 			}
 		}
 	}
@@ -19752,10 +19716,11 @@ nomad_subjugation = {
 			NOT = {
 				any_war = {
 					defender = { character = PREVPREV }
-					OR = {
-						using_cb = nomad_subjugation
-						using_cb = pagan_subjugation
-					}
+					#OR = {
+					#	using_cb = nomad_subjugation
+					#	using_cb = pagan_subjugation
+					#}
+					using_any_subjugation_cb_trigger = yes
 				}
 			}
 		}
@@ -21653,6 +21618,7 @@ powerful_vassal_takeover_war = { # Started from faction
 							dynasty = ROOT
 						}
 					}
+					is_adult = yes
 					government = chinese_vassal_government
 					liege = {
 						OR = {
