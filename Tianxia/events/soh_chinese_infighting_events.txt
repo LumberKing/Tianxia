@@ -1,0 +1,1875 @@
+# Chinese interest group infighting events
+# By Silverswee(e)per
+
+namespace = soh
+
+# soh.4701-4900 reserved
+
+##### Regular infighting
+
+# Eunuchs prefer courtiers, then GC, never vassals
+# GC prefers vassals, then courtiers, never eunuchs
+# Courtiers prefer eunuchs, then GC, never vassals
+# Vassals prefer GC, then courtiers, never eunuchs
+# Liege prefers courtiers, then GC, then eunuchs, never vassals
+# A group that's +2 (+2 per law for GC) will always be disfavored
+# Rivalries/etc. can override
+
+### Initial setup
+
+# Hidden event for liege to decide if there's infighting - on_five_year_pulse
+character_event = {
+	id = soh.4701
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	only_playable = yes
+	only_independent = yes
+	
+	trigger = {
+		real_tier = emperor
+		OR = {
+			government = chinese_imperial_government
+			government = eastern_imperial_government
+		}
+	}
+	
+	immediate = {
+		clr_character_flag = fake_eunuch_challenge
+		clr_character_flag = actual_eunuch_challenge
+		clr_character_flag = grand_chancellor_challenge
+		clr_character_flag = ci_courtier_challenge
+		clr_character_flag = ci_vassal_challenge
+		clr_character_flag = eunuchs_challenged
+		clr_character_flag = grand_chancellor_challenged
+		clr_character_flag = ci_courtiers_challenged
+		clr_character_flag = ci_vassals_challenged
+		random_list = {
+			50 = {
+				modifier = {
+					factor = 0
+					has_regent = yes # Someone will want to take advantage of this, most likely
+				}
+				modifier = {
+					factor = 5
+					has_character_modifier = mandate_of_heaven_5
+				}
+				modifier = {
+					factor = 5
+					has_character_modifier = mandate_of_heaven_4
+				}
+				# No infighting
+			}
+			50 = {
+				modifier = {
+					factor = 5
+					has_character_modifier = mandate_of_heaven_2
+				}
+				modifier = {
+					factor = 5
+					has_character_modifier = mandate_of_heaven_1
+				}
+				# Infighting
+				random_list = {
+					1 = {
+						# Fallback; should be irrelevant
+					}
+					25 = {
+						modifier = {
+							factor = 0 # Already fully empowered with no rivals
+							primary_title = {
+								has_law = eunuch_law_4
+								has_law = grand_chancellor_law_0
+								has_law = ci_courtier_law_0
+								has_law = ci_vassal_law_0
+							}
+						}
+						modifier = {
+							factor = 2
+							any_voter = {
+								is_council_eunuch_trigger = yes
+								OR = {
+									trait = ambitious
+									trait = envious
+								}
+							}
+						}
+						modifier = {
+							factor = 0.5
+							primary_title = {
+								has_law = eunuch_law_0
+							}
+						}
+						modifier = {
+							factor = 1.5
+							primary_title = {
+								has_law = eunuch_law_2
+							}
+						}
+						modifier = {
+							factor = 1.2
+							primary_title = {
+								has_law = eunuch_law_3
+							}
+						}
+						if = {
+							limit = {
+								primary_title = {
+									has_law = eunuch_law_0
+								}
+							}
+							character_event = { id = soh.4702 } # See if there's a challenge
+						}
+						else = {
+							random_voter = {
+								limit = {
+									is_council_eunuch_trigger = yes
+								}
+								preferred_limit = {
+									trait = ambitious
+									trait = envious
+								}
+								preferred_limit = {
+									trait = ambitious
+								}
+								preferred_limit = {
+									trait = envious
+								}
+								character_event = { id = soh.4703 } # See if there's a challenge
+							}
+						}
+					}
+					25 = {
+						modifier = {
+							factor = 0 # Already fully empowered with no rivals
+							primary_title = {
+								has_law = eunuch_law_0
+								has_law = grand_chancellor_law_2
+								has_law = ci_courtier_law_0
+								has_law = ci_vassal_law_0
+							}
+						}
+						modifier = {
+							factor = 2
+							any_vassal = {
+								has_minor_title = title_grand_chancellor
+								trait = ambitious
+							}
+						}
+						modifier = {
+							factor = 0.5
+							primary_title = {
+								has_law = grand_chancellor_law_0
+							}
+						}
+						modifier = {
+							factor = 1.5
+							primary_title = {
+								has_law = grand_chancellor_law_1
+							}
+						}
+						any_vassal = {
+							limit = {
+								has_minor_title = title_grand_chancellor
+							}
+							character_event = { id = soh.4704 } # See if there's a challenge
+						}
+					}
+					25 = {
+						modifier = {
+							factor = 0 # Already fully empowered with no rivals
+							primary_title = {
+								has_law = eunuch_law_0
+								has_law = grand_chancellor_law_0
+								has_law = ci_courtier_law_4
+								has_law = ci_courtier_law_0
+							}
+						}
+						modifier = {
+							factor = 2
+							any_courtier = {
+								is_adult = yes
+								prisoner = no
+								NAND = {
+									dynasty = ROOT
+									any_close_relative = {
+										character = ROOT
+									}
+								}
+								OR = {
+									is_voter = yes
+									any_spouse = {
+										character = ROOT
+									}
+									any_consort = {
+										character = ROOT
+									}
+									any_child = {
+										character = ROOT
+									}
+									any_child_even_if_dead = {
+										any_child = {
+											character = ROOT
+										}
+									}
+								}
+								OR = {
+									trait = ambitious
+									trait = envious
+								}
+							}
+						}
+						modifier = {
+							factor = 0.5
+							primary_title = {
+								has_law = ci_courtier_law_0
+							}
+						}
+						modifier = {
+							factor = 1.5
+							primary_title = {
+								has_law = ci_courtier_law_2
+							}
+						}
+						modifier = {
+							factor = 1.2
+							primary_title = {
+								has_law = ci_courtier_law_3
+							}
+						}
+						random_courtier = {
+							limit = {
+								is_adult = yes
+								prisoner = no
+								NAND = {
+									dynasty = ROOT
+									any_close_relative = {
+										character = ROOT
+									}
+								}
+								OR = {
+									is_voter = yes
+									any_spouse = {
+										character = ROOT
+									}
+									any_consort = {
+										character = ROOT
+									}
+									any_child = {
+										character = ROOT
+									}
+									any_child_even_if_dead = {
+										any_child = {
+											character = ROOT
+										}
+									}
+								}
+							}
+							preferred_limit = {
+								trait = ambitious
+								trait = envious
+							}
+							preferred_limit = {
+								trait = ambitious
+							}
+							preferred_limit = {
+								trait = envious
+							}
+							character_event = { id = soh.4705 } # See if there's a challenge
+						}
+					}
+					25 = {
+						modifier = {
+							factor = 0 # Already fully empowered with no rivals
+							primary_title = {
+								has_law = eunuch_law_0
+								has_law = grand_chancellor_law_0
+								has_law = ci_courtier_law_0
+								has_law = ci_courtier_law_4
+							}
+						}
+						modifier = {
+							factor = 2
+							any_vassal = {
+								is_adult = yes
+								prisoner = no
+								higher_tier_than = baron
+								NAND = {
+									dynasty = ROOT
+									any_close_relative = {
+										character = ROOT
+									}
+								}
+								OR = {
+									is_voter = yes
+									is_powerful_vassal = yes
+								}
+								OR = {
+									trait = ambitious
+									trait = envious
+								}
+							}
+						}
+						modifier = {
+							factor = 0.5
+							primary_title = {
+								has_law = ci_vassal_law_0
+							}
+						}
+						modifier = {
+							factor = 1.5
+							primary_title = {
+								has_law = ci_vassal_law_2
+							}
+						}
+						modifier = {
+							factor = 1.2
+							primary_title = {
+								has_law = ci_vassal_law_3
+							}
+						}
+						random_vassal = {
+							limit = {
+								is_adult = yes
+								prisoner = no
+								higher_tier_than = baron
+								NAND = {
+									dynasty = ROOT
+									any_close_relative = {
+										character = ROOT
+									}
+								}
+								OR = {
+									is_voter = yes
+									is_powerful_vassal = yes
+								}
+							}
+							preferred_limit = {
+								trait = ambitious
+								trait = envious
+							}
+							preferred_limit = {
+								trait = ambitious
+							}
+							preferred_limit = {
+								trait = envious
+							}
+							character_event = { id = soh.4706 } # See if there's a challenge
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Fake eunuch might challenge
+character_event = {
+	id = soh.4702
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_list = {
+			25 = {
+				modifier = {
+					factor = 0
+					FROM = {
+						OR = {
+							NOT = {
+								any_courtier_or_vassal = {
+									has_minor_title = title_grand_chancellor
+								}
+							}
+							primary_title = {
+								has_law = grand_chancellor_law_0
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					FROM = {
+						primary_title = {
+							has_law = grand_chancellor_law_2
+						}
+					}
+				}
+				FROM = {
+					set_character_flag = fake_eunuch_challenge
+					set_character_flag = grand_chancellor_challenged
+					# TODO: Event
+				}
+			}
+			25 = {
+				modifier = {
+					factor = 0
+					FROM = {
+						primary_title = {
+							has_law = ci_courtier_law_0
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					FROM = {
+						primary_title = {
+							OR = {
+								has_law = ci_courtier_law_2
+								has_law = ci_courtier_law_3
+								has_law = ci_courtier_law_4
+							}
+							NOR = {
+								has_law = grand_chancellor_law_1
+								has_law = grand_chancellor_law_2
+								has_law = ci_vassal_law_1
+								has_law = ci_vassal_law_2
+								has_law = ci_vassal_law_3
+								has_law = ci_vassal_law_4
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 5
+					FROM = {
+						primary_title = {
+							OR = {
+								has_law = ci_courtier_law_3
+								has_law = ci_courtier_law_4
+							}
+							NOR = {
+								has_law = grand_chancellor_law_2
+								has_law = ci_vassal_law_2
+								has_law = ci_vassal_law_3
+								has_law = ci_vassal_law_4
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 10
+					FROM = {
+						primary_title = {
+							has_law = ci_courtier_law_4
+							NOR = {
+								has_law = grand_chancellor_law_2
+								has_law = ci_vassal_law_3
+								has_law = ci_vassal_law_4
+							}
+						}
+					}
+				}
+				FROM = {
+					set_character_flag = fake_eunuch_challenge
+					set_character_flag = ci_courtiers_challenged
+					# TODO: Event
+				}
+			}
+			25 = {
+				modifier = {
+					factor = 0
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_0
+						}
+					}
+				}
+				modifier = {
+					factor = 1.5
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_1
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_2
+						}
+					}
+				}
+				modifier = {
+					factor = 5
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_3
+						}
+					}
+				}
+				modifier = {
+					factor = 10
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_4
+						}
+					}
+				}
+				FROM = {
+					set_character_flag = fake_eunuch_challenge
+					set_character_flag = ci_vassals_challenged
+					# TODO: Event
+				}
+			}
+			25 = {
+				# No challenge
+			}
+		}
+	}
+}
+
+# Eunuch might challenge
+character_event = {
+	id = soh.4703
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_list = {
+			25 = {
+				modifier = {
+					factor = 0
+					FROM = {
+						OR = {
+							NOT = {
+								any_courtier_or_vassal = {
+									has_minor_title = title_grand_chancellor
+								}
+							}
+							primary_title = {
+								has_law = grand_chancellor_law_0
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					FROM = {
+						primary_title = {
+							has_law = grand_chancellor_law_2
+						}
+					}
+				}
+				modifier = {
+					factor = 10
+					any_rival = {
+						liege = {
+							character = FROM
+						}
+						has_minor_title = title_grand_chancellor
+					}
+				}
+				modifier = {
+					factor = 0
+					OR = {
+						any_friend = {
+							liege = {
+								character = FROM
+							}
+							has_minor_title = title_grand_chancellor
+						}
+						any_lover = {
+							liege = {
+								character = FROM
+							}
+							has_minor_title = title_grand_chancellor
+						}
+					}
+				}
+				FROM = {
+					set_character_flag = actual_eunuch_challenge
+					set_character_flag = grand_chancellor_challenged
+					# TODO: Event
+				}
+			}
+			25 = {
+				modifier = {
+					factor = 0
+					FROM = {
+						primary_title = {
+							has_law = ci_courtier_law_0
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					FROM = {
+						primary_title = {
+							OR = {
+								has_law = ci_courtier_law_2
+								has_law = ci_courtier_law_3
+								has_law = ci_courtier_law_4
+							}
+							NOR = {
+								has_law = grand_chancellor_law_1
+								has_law = grand_chancellor_law_2
+								has_law = ci_vassal_law_1
+								has_law = ci_vassal_law_2
+								has_law = ci_vassal_law_3
+								has_law = ci_vassal_law_4
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 5
+					FROM = {
+						primary_title = {
+							OR = {
+								has_law = ci_courtier_law_3
+								has_law = ci_courtier_law_4
+							}
+							NOR = {
+								has_law = grand_chancellor_law_2
+								has_law = ci_vassal_law_2
+								has_law = ci_vassal_law_3
+								has_law = ci_vassal_law_4
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 10
+					FROM = {
+						primary_title = {
+							has_law = ci_courtier_law_4
+							NOR = {
+								has_law = grand_chancellor_law_2
+								has_law = ci_vassal_law_3
+								has_law = ci_vassal_law_4
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					any_rival = {
+						host = {
+							character = FROM
+						}
+						is_voter = yes
+						is_council_eunuch_trigger = no
+					}
+				}
+				modifier = {
+					factor = 0.2
+					OR = {
+						any_friend = {
+							host = {
+								character = FROM
+							}
+							is_voter = yes
+							is_council_eunuch_trigger = no
+						}
+						any_lover = {
+							host = {
+								character = FROM
+							}
+							is_voter = yes
+							is_council_eunuch_trigger = no
+						}
+					}
+				}
+				FROM = {
+					set_character_flag = actual_eunuch_challenge
+					set_character_flag = ci_courtiers_challenged
+					# TODO: Event
+				}
+			}
+			25 = {
+				modifier = {
+					factor = 0
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_0
+						}
+					}
+				}
+				modifier = {
+					factor = 1.5
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_1
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_2
+						}
+					}
+				}
+				modifier = {
+					factor = 5
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_3
+						}
+					}
+				}
+				modifier = {
+					factor = 10
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_4
+						}
+					}
+				}
+				modifier = {
+					factor = 5
+					any_rival = {
+						is_landed = yes
+						liege = {
+							character = FROM
+						}
+						OR = {
+							is_voter = yes
+							is_powerful_vassal = yes
+						}
+						NOT = {
+							has_minor_title = title_grand_chancellor
+						}
+					}
+				}
+				modifier = {
+					factor = 0.2
+					OR = {
+						any_friend = {
+							is_landed = yes
+							liege = {
+								character = FROM
+							}
+							OR = {
+								is_voter = yes
+								is_powerful_vassal = yes
+							}
+							NOT = {
+								has_minor_title = title_grand_chancellor
+							}
+						}
+						any_lover = {
+							is_landed = yes
+							liege = {
+								character = FROM
+							}
+								OR = {
+									is_voter = yes
+									is_powerful_vassal = yes
+								}
+							NOT = {
+								has_minor_title = title_grand_chancellor
+							}
+						}
+					}
+				}
+				FROM = {
+					set_character_flag = actual_eunuch_challenge
+					set_character_flag = ci_vassals_challenged
+					# TODO: Event
+				}
+			}
+			25 = {
+				modifier = {
+					factor = 0.1
+					trait = ambitious
+				}
+				modifier = {
+					factor = 0.1
+					trait = envious
+				}
+				modifier = {
+					factor = 10
+					trait = content
+				}
+				modifier = {
+					factor = 10
+					trait = humble
+				}
+				# No challenge
+			}
+		}
+	}
+}
+
+# GC might challenge
+character_event = {
+	id = soh.4704
+	desc = EVTDESC_SOH_4704
+	picture = GFX_evt_garden # TODO
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			FROM = {
+				NOT = {
+					primary_title = {
+						has_law = eunuch_law_0
+					}
+				}
+			}
+		}
+		
+		name = EVTOPTA_SOH_4704 # I will challenge the eunuchs!
+		
+		FROM = {
+			set_character_flag = grand_chancellor_challenge
+			set_character_flag = eunuchs_challenged
+			# TODO: Event
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 1.5
+				FROM = {
+					primary_title = {
+						has_law = eunuch_law_1
+					}
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					primary_title = {
+						has_law = eunuch_law_2
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					primary_title = {
+						has_law = eunuch_law_3
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				FROM = {
+					primary_title = {
+						has_law = eunuch_law_4
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				FROM = {
+					any_voter = {
+						is_council_eunuch_trigger = yes
+						any_rival = {
+							character = ROOT
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.2
+				FROM = {
+					any_voter = {
+						is_council_eunuch_trigger = yes
+						OR = {
+							any_friend = {
+								character = ROOT
+							}
+							any_lover = {
+								character = ROOT
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				NOT = {
+					primary_title = {
+						has_law = ci_courtier_law_0
+					}
+				}
+			}
+		}
+		
+		name = EVTOPTB_SOH_4704 # I will challenge the courtiers!
+		
+		FROM = {
+			set_character_flag = grand_chancellor_challenge
+			set_character_flag = ci_courtiers_challenged
+			# TODO: Event
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 2
+				FROM = {
+					primary_title = {
+						OR = {
+							has_law = ci_courtier_law_2
+							has_law = ci_courtier_law_3
+							has_law = ci_courtier_law_4
+						}
+						NOR = {
+							has_law = eunuch_law_1
+							has_law = eunuch_law_2
+							has_law = eunuch_law_3
+							has_law = eunuch_law_4
+							has_law = ci_vassal_law_3
+							has_law = ci_vassal_law_4
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					primary_title = {
+						OR = {
+							has_law = ci_courtier_law_3
+							has_law = ci_courtier_law_4
+						}
+						NOR = {
+							has_law = eunuch_law_2
+							has_law = eunuch_law_3
+							has_law = eunuch_law_4
+							has_law = ci_vassal_law_4
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				FROM = {
+					primary_title = {
+						has_law = ci_courtier_law_4
+						NOR = {
+							has_law = eunuch_law_3
+							has_law = eunuch_law_4
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 2
+				any_rival = {
+					host = {
+						character = FROM
+					}
+					is_voter = yes
+					is_council_eunuch_trigger = no
+				}
+			}
+			modifier = {
+				factor = 0.2
+				OR = {
+					any_friend = {
+						host = {
+							character = FROM
+						}
+						is_voter = yes
+						is_council_eunuch_trigger = no
+					}
+					any_lover = {
+						host = {
+							character = FROM
+						}
+						is_voter = yes
+						is_council_eunuch_trigger = no
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				NOT = {
+					primary_title = {
+						has_law = ci_vassal_law_0
+					}
+				}
+			}
+		}
+		
+		name = EVTOPTC_SOH_4704 # I will challenge the vassals!
+		
+		FROM = {
+			set_character_flag = grand_chancellor_challenge
+			set_character_flag = ci_vassals_challenged
+			# TODO: Event
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0 # Don't shoot yourself in the foot
+				NOT = {
+					dynasty = FROM
+				}
+			}
+			modifier = {
+				factor = 10
+				is_powerful_vassal = no
+			}
+			modifier = {
+				factor = 5
+				any_rival = {
+					is_landed = yes
+					liege = {
+						character = FROM
+					}
+					OR = {
+						is_voter = yes
+						is_powerful_vassal = yes
+					}
+					NOT = {
+						has_minor_title = title_grand_chancellor
+					}
+				}
+			}
+			modifier = {
+				factor = 0.2
+				OR = {
+					any_friend = {
+						is_landed = yes
+						liege = {
+							character = FROM
+						}
+						OR = {
+							is_voter = yes
+							is_powerful_vassal = yes
+						}
+						NOT = {
+							has_minor_title = title_grand_chancellor
+						}
+					}
+					any_lover = {
+						is_landed = yes
+						liege = {
+							character = FROM
+						}
+						OR = {
+							is_voter = yes
+							is_powerful_vassal = yes
+						}
+						NOT = {
+							has_minor_title = title_grand_chancellor
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTD_SOH_4704 # I don't wish to challenge anyone!
+		
+		prestige = -100
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0.1
+				trait = ambitious
+			}
+			modifier = {
+				factor = 0.1
+				trait = envious
+			}
+			modifier = {
+				factor = 10
+				trait = content
+			}
+			modifier = {
+				factor = 10
+				trait = humble
+			}
+		}
+	}
+}
+
+# Courtier might challenge
+character_event = {
+	id = soh.4705
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_list = {
+			25 = {
+				modifier = {
+					factor = 0
+					FROM = {
+						primary_title = {
+							has_law = eunuch_law_0
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					FROM = {
+						primary_title = {
+							OR = {
+								has_law = eunuch_law_2
+								has_law = eunuch_law_3
+								has_law = eunuch_law_4
+							}
+							NOR = {
+								has_law = grand_chancellor_law_1
+								has_law = grand_chancellor_law_2
+								has_law = ci_vassal_law_1
+								has_law = ci_vassal_law_2
+								has_law = ci_vassal_law_3
+								has_law = ci_vassal_law_4
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 5
+					FROM = {
+						primary_title = {
+							OR = {
+								has_law = eunuch_law_3
+								has_law = eunuch_law_4
+							}
+							NOR = {
+								has_law = grand_chancellor_law_2
+								has_law = ci_vassal_law_2
+								has_law = ci_vassal_law_3
+								has_law = ci_vassal_law_4
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 10
+					FROM = {
+						primary_title = {
+							has_law = eunuch_law_4
+							NOR = {
+								has_law = grand_chancellor_law_2
+								has_law = ci_vassal_law_3
+								has_law = ci_vassal_law_4
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					any_rival = {
+						host = {
+							character = FROM
+						}
+						is_council_eunuch_trigger = yes
+					}
+				}
+				modifier = {
+					factor = 0.2
+					OR = {
+						any_friend = {
+							host = {
+								character = FROM
+							}
+							is_council_eunuch_trigger = yes
+						}
+						any_lover = {
+							host = {
+								character = FROM
+							}
+							is_council_eunuch_trigger = yes
+						}
+					}
+				}
+				FROM = {
+					set_character_flag = ci_courtier_challenge
+					set_character_flag = eunuchs_challenged
+					# TODO: Event
+				}
+			}
+			25 = {
+				modifier = {
+					factor = 0
+					FROM = {
+						OR = {
+							NOT = {
+								any_courtier_or_vassal = {
+									has_minor_title = title_grand_chancellor
+								}
+							}
+							primary_title = {
+								has_law = grand_chancellor_law_0
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					FROM = {
+						primary_title = {
+							has_law = grand_chancellor_law_2
+						}
+					}
+				}
+				modifier = {
+					factor = 10
+					any_rival = {
+						liege = {
+							character = FROM
+						}
+						has_minor_title = title_grand_chancellor
+					}
+				}
+				modifier = {
+					factor = 0
+					OR = {
+						any_friend = {
+							liege = {
+								character = FROM
+							}
+							has_minor_title = title_grand_chancellor
+						}
+						any_lover = {
+							liege = {
+								character = FROM
+							}
+							has_minor_title = title_grand_chancellor
+						}
+					}
+				}
+				FROM = {
+					set_character_flag = ci_courtier_challenge
+					set_character_flag = grand_chancellor_challenged
+					# TODO: Event
+				}
+			}
+			25 = {
+				modifier = {
+					factor = 0
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_0
+						}
+					}
+				}
+				modifier = {
+					factor = 1.5
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_1
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_2
+						}
+					}
+				}
+				modifier = {
+					factor = 5
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_3
+						}
+					}
+				}
+				modifier = {
+					factor = 10
+					FROM = {
+						primary_title = {
+							has_law = ci_vassal_law_4
+						}
+					}
+				}
+				modifier = {
+					factor = 5
+					any_rival = {
+						is_landed = yes
+						liege = {
+							character = FROM
+						}
+						OR = {
+							is_voter = yes
+							is_powerful_vassal = yes
+						}
+						NOT = {
+							has_minor_title = title_grand_chancellor
+						}
+					}
+				}
+				modifier = {
+					factor = 0.2
+					OR = {
+						any_friend = {
+							is_landed = yes
+							liege = {
+								character = FROM
+							}
+							OR = {
+								is_voter = yes
+								is_powerful_vassal = yes
+							}
+							NOT = {
+								has_minor_title = title_grand_chancellor
+							}
+						}
+						any_lover = {
+							is_landed = yes
+							liege = {
+								character = FROM
+							}
+								OR = {
+									is_voter = yes
+									is_powerful_vassal = yes
+								}
+							NOT = {
+								has_minor_title = title_grand_chancellor
+							}
+						}
+					}
+				}
+				FROM = {
+					set_character_flag = ci_courtier_challenge
+					set_character_flag = ci_vassals_challenged
+					# TODO: Event
+				}
+			}
+			25 = {
+				modifier = {
+					factor = 0.1
+					trait = ambitious
+				}
+				modifier = {
+					factor = 0.1
+					trait = envious
+				}
+				modifier = {
+					factor = 10
+					trait = content
+				}
+				modifier = {
+					factor = 10
+					trait = humble
+				}
+				# No challenge
+			}
+		}
+	}
+}
+
+# Vassal might challenge
+character_event = {
+	id = soh.4706
+	desc = EVTDESC_SOH_4706
+	picture = GFX_evt_garden # TODO
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			FROM = {
+				NOT = {
+					primary_title = {
+						has_law = eunuch_law_0
+					}
+				}
+			}
+		}
+		
+		name = EVTOPTA_SOH_4704 # I will challenge the eunuchs!
+		
+		FROM = {
+			set_character_flag = ci_vassal_challenge
+			set_character_flag = eunuchs_challenged
+			# TODO: Event
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 1.5
+				FROM = {
+					primary_title = {
+						has_law = eunuch_law_1
+					}
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					primary_title = {
+						has_law = eunuch_law_2
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					primary_title = {
+						has_law = eunuch_law_3
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				FROM = {
+					primary_title = {
+						has_law = eunuch_law_4
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				FROM = {
+					any_voter = {
+						is_council_eunuch_trigger = yes
+						any_rival = {
+							character = ROOT
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.2
+				FROM = {
+					any_voter = {
+						is_council_eunuch_trigger = yes
+						OR = {
+							any_friend = {
+								character = ROOT
+							}
+							any_lover = {
+								character = ROOT
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				any_vassal = {
+					has_minor_title = title_grand_chancellor
+				}
+				NOT = {
+					primary_title = {
+						has_law = grand_chancellor_law_0
+					}
+				}
+			}
+		}
+		
+		name = EVTOPTB_SOH_4704 # I will challenge the GC!
+		
+		FROM = {
+			set_character_flag = ci_vassal_challenge
+			set_character_flag = grand_chancellor_challenged
+			# TODO: Event
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 10
+				any_rival = {
+					is_landed = yes
+					liege = {
+						character = FROM
+					}
+					has_minor_title = title_grand_chancellor
+				}
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					any_friend = {
+						is_landed = yes
+						liege = {
+							character = FROM
+						}
+						has_minor_title = title_grand_chancellor
+					}
+					any_lover = {
+						is_landed = yes
+						liege = {
+							character = FROM
+						}
+						has_minor_title = title_grand_chancellor
+					}
+				}
+			}
+			modifier = {
+				factor = 2
+				FROM = {
+					dynasty = ROOT
+				}
+			}
+			modifier = {
+				factor = 0.1
+				FROM = {
+					any_voter = {
+						dynasty = ROOT
+						has_minor_title = title_grand_chancellor
+					}
+				}
+			}
+			modifier = {
+				factor = 0.01 # Don't shoot yourself in the foot...
+				any_owned_bloodline = {
+					has_bloodline_flag = grand_chancellor_bloodline
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				NOT = {
+					primary_title = {
+						has_law = ci_courtier_law_0
+					}
+				}
+			}
+		}
+		
+		name = EVTOPTC_SOH_4704 # I will challenge the courtiers!
+		
+		FROM = {
+			set_character_flag = ci_vassal_challenge
+			set_character_flag = ci_courtiers_challenged
+			# TODO: Event
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 2
+				FROM = {
+					primary_title = {
+						OR = {
+							has_law = ci_courtier_law_2
+							has_law = ci_courtier_law_3
+							has_law = ci_courtier_law_4
+						}
+						NOR = {
+							has_law = eunuch_law_1
+							has_law = eunuch_law_2
+							has_law = eunuch_law_3
+							has_law = eunuch_law_4
+							has_law = ci_vassal_law_3
+							has_law = ci_vassal_law_4
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				FROM = {
+					primary_title = {
+						OR = {
+							has_law = ci_courtier_law_3
+							has_law = ci_courtier_law_4
+						}
+						NOR = {
+							has_law = eunuch_law_2
+							has_law = eunuch_law_3
+							has_law = eunuch_law_4
+							has_law = ci_vassal_law_4
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				FROM = {
+					primary_title = {
+						has_law = ci_courtier_law_4
+						NOR = {
+							has_law = eunuch_law_3
+							has_law = eunuch_law_4
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 2
+				any_rival = {
+					host = {
+						character = FROM
+					}
+					is_voter = yes
+					is_council_eunuch_trigger = no
+				}
+			}
+			modifier = {
+				factor = 0.2
+				OR = {
+					any_friend = {
+						host = {
+							character = FROM
+						}
+						is_voter = yes
+						is_council_eunuch_trigger = no
+					}
+					any_lover = {
+						host = {
+							character = FROM
+						}
+						is_voter = yes
+						is_council_eunuch_trigger = no
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTD_SOH_4704 # I don't wish to challenge anyone!
+		
+		prestige = -100
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0.1
+				trait = ambitious
+			}
+			modifier = {
+				factor = 0.1
+				trait = envious
+			}
+			modifier = {
+				factor = 10
+				trait = content
+			}
+			modifier = {
+				factor = 10
+				trait = humble
+			}
+		}
+	}
+}
+
+### Infighting
+
+# Challenge starts - inform liege
+
+# Liege sides with challenger - challenger
+
+# Liege sides with challenger - challenger's allies
+
+# Liege sides with challenger - challenged leader
+
+# Liege sides with challenger - challenged leader's allies
+
+# Liege sides with challenger - third parties
+
+# Liege sides with challenged - challenger
+
+# Liege sides with challenged - challenger's allies
+
+# Liege sides with challenged - challenged leader
+
+# Liege sides with challenged - challenged leader's allies
+
+# Liege sides with challenged - third parties
+
+# Liege is not getting involved - challenger
+
+# Liege is not getting involved - challenger's allies
+
+# Liege is not getting involved - challenged leader
+
+# Liege is not getting involved - challenged leader's allies
+
+# Liege is not getting involved - third parties
+
+# Liege does not appear to be getting involved - challenger
+
+# Liege does not appear to be getting involved - challenger's allies
+
+# Liege does not appear to be getting involved - challenged leader
+
+# Liege does not appear to be getting involved - challenged leader's allies
+
+# Liege does not appear to be getting involved - third parties
+
+# Challenger picks a skill
+
+# Challenger's allies informed of the skill
+
+# Challenged leader picks a skill
+
+# Challenged leader's allies of the skill
+
+# See if liege successfully played the sides against each other
+
+# Liege successfully played the sides against each other - liege
+
+# Liege successfully played the sides against each other - challenger
+
+# Liege successfully played the sides against each other - challenger's allies
+
+# Liege successfully played the sides against each other - challenged leader
+
+# Liege successfully played the sides against each other - challenged leader's allies
+
+# Liege successfully played the sides against each other - third parties
+
+# Liege failed to play the sides against each other - liege
+
+# Liege failed to play the sides against each other - challenger
+
+# Liege failed to play the sides against each other - challenger's allies
+
+# Liege failed to play the sides against each other - challenged leader
+
+# Liege failed to play the sides against each other - challenged leader's allies
+
+# Liege failed to play the sides against each other - third parties
+
+# Calculate the outcome
+
+# Challenger won overwhelmingly - liege
+
+# Challenger won overwhelmingly - challenger
+
+# Challenger won overwhelmingly - challenger's allies
+
+# Challenger won overwhelmingly - challenged leader
+
+# Challenger won overwhelmingly - challenged leader's allies
+
+# Challenger won overwhelmingly - third parties
+
+# Challenger won - challenger picks outcome
+
+# Challenger won - strengthened self - liege
+
+# Challenger won - strengthened self - challenger
+
+# Challenger won - strengthened self - challenger's allies
+
+# Challenger won - strengthened self - challenged leader
+
+# Challenger won - strengthened self - challenged leader's allies
+
+# Challenger won - strengthened self - third parties
+
+# Challenger won - weakened opponent - liege
+
+# Challenger won - weakened opponent - challenger
+
+# Challenger won - weakened opponent - challenger's allies
+
+# Challenger won - weakened opponent - challenged leader
+
+# Challenger won - weakened opponent - challenged leader's allies
+
+# Challenger won - weakened opponent - third parties
+
+# Challenger won overwhelmingly - liege
+
+# Challenger won overwhelmingly - challenger
+
+# Challenger won overwhelmingly - challenger's allies
+
+# Challenger won overwhelmingly - challenged leader
+
+# Challenger won overwhelmingly - challenged leader's allies
+
+# Challenger won overwhelmingly - third parties
+
+# Challenger won - challenger picks outcome
+
+# Challenger won - strengthened self - liege
+
+# Challenger won - strengthened self - challenger
+
+# Challenger won - strengthened self - challenger's allies
+
+# Challenger won - strengthened self - challenged leader
+
+# Challenger won - strengthened self - challenged leader's allies
+
+# Challenger won - strengthened self - third parties
+
+# Challenger won - weakened opponent - liege
+
+# Challenger won - weakened opponent - challenger
+
+# Challenger won - weakened opponent - challenger's allies
+
+# Challenger won - weakened opponent - challenged leader
+
+# Challenger won - weakened opponent - challenged leader's allies
+
+# Challenger won - weakened opponent - third parties
+
+# Challenged won overwhelmingly - liege
+
+# Challenged won overwhelmingly - challenger
+
+# Challenged won overwhelmingly - challenger's allies
+
+# Challenged won overwhelmingly - challenged leader
+
+# Challenged won overwhelmingly - challenged leader's allies
+
+# Challenged won overwhelmingly - third parties
+
+# Challenged won - challenged leader picks outcome
+
+# Challenged won - strengthened self - liege
+
+# Challenged won - strengthened self - challenger
+
+# Challenged won - strengthened self - challenger's allies
+
+# Challenged won - strengthened self - challenged leader
+
+# Challenged won - strengthened self - challenged leader's allies
+
+# Challenged won - strengthened self - third parties
+
+# Challenged won - weakened opponent - liege
+
+# Challenged won - weakened opponent - challenger
+
+# Challenged won - weakened opponent - challenger's allies
+
+# Challenged won - weakened opponent - challenged leader
+
+# Challenged won - weakened opponent - challenged leader's allies
+
+# Challenged won - weakened opponent - third parties
+
+
+
+##### Nuclear options
+
+### Eunuchs overwhelming - GC or powerful vassal to the "rescue"
+
+### Courtiers overwhelming - GC or powerful vassal to the "rescue"
