@@ -164,6 +164,23 @@ claim = {
 			}
 			has_global_flag = imperial_family_deposed
 		}
+		OR = {
+			ROOT = {
+				NOT = {
+					government = chinese_imperial_government
+				}
+			}
+			FROM = {
+				government = chinese_imperial_government
+			}
+			ROOT = {
+				has_character_modifier = mandate_of_heaven_5
+			}
+			title = e_china
+			NOT = {
+				tier = emperor
+			}
+		}
 	}
 
 	is_valid_title = {
@@ -433,6 +450,11 @@ other_claim = {
 			}
 			mercenary = no
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
+			NOR = {
+				government = chinese_imperial_government
+				government = japanese_imperial_government
+				government = divine_imperial_government # Copies the Tenno
+			}
 		}
 	}
 
@@ -2241,17 +2263,34 @@ claim_all = {
 			china_forbids_war_trigger = no # Chinese Peace Deal or tributary relationship blocks CB
 		}
 		
-		# Can't use this against the Tenno unless you're not Shinto
-		OR = {
-			FROM = {
-				NAND = {
-					controls_religion = yes
-					religion = shinto
-				}
+		# Can't use this against the Tenno or the Ryukyuan knockoff
+		FROM = {
+			NAND = {
+				controls_religion = yes
+				religion = shinto
 			}
+			NAND = {
+				controls_religion = yes
+				religion = ryukyuan_pagan
+				government = divine_imperial_government
+			}
+		}
+		OR = {
 			ROOT = {
 				NOT = {
-					religion = shinto
+					government = chinese_imperial_government
+				}
+				has_character_modifier = mandate_of_heaven_5
+			}
+			FROM = {
+				NOT = {
+					any_demesne_title = {
+						tier = emperor
+						NOT = {
+							title = e_china
+						}
+						claimed_by = ROOT
+					}
 				}
 			}
 		}
@@ -2268,15 +2307,15 @@ claim_all = {
 				strong = yes # Count only strong claims
 				value = 1 # must have at least one claim left
 			}
-			OR = {
-				FROM = {
-					NAND = {
-						controls_religion = yes
-						religion = shinto
-					}
-				}
-				NOT = {
+			FROM = {
+				NAND = {
+					controls_religion = yes
 					religion = shinto
+				}
+				NAND = {
+					controls_religion = yes
+					religion = ryukyuan_pagan
+					government = divine_imperial_government
 				}
 			}
 		}
@@ -21513,7 +21552,19 @@ powerful_vassal_takeover_war = { # Started from faction
 							has_law = revoke_title_voting_power_1
 							has_law = grant_title_voting_power_1
 							has_law = imprison_voting_power_1
-							has_law = war_voting_power_1						
+							has_law = war_voting_power_1	
+							holder_scope = {
+								NOR = {
+									government = chinese_imperial_government
+									government = chinese_vassal_government
+									government = eastern_imperial_government
+									government = japanese_imperial_government
+									government = japanese_bureaucracy_government
+									government = japanese_feudal_government
+									government = japanese_monastic_feudal_government
+									government = divine_imperial_government
+								}
+							}
 						}
 						add_law_w_cooldown = succ_hre_elective
 					}
@@ -21530,7 +21581,19 @@ powerful_vassal_takeover_war = { # Started from faction
 							has_law = revoke_title_voting_power_1
 							has_law = grant_title_voting_power_1
 							has_law = imprison_voting_power_1
-							has_law = war_voting_power_1						
+							has_law = war_voting_power_1	
+							holder_scope = {
+								NOR = {
+									government = chinese_imperial_government
+									government = chinese_vassal_government
+									government = eastern_imperial_government
+									government = japanese_imperial_government
+									government = japanese_bureaucracy_government
+									government = japanese_feudal_government
+									government = japanese_monastic_feudal_government
+									government = divine_imperial_government
+								}
+							}
 						}
 						add_law_w_cooldown = succ_feudal_elective
 					}
@@ -21546,12 +21609,17 @@ powerful_vassal_takeover_war = { # Started from faction
 								has_law = revoke_title_voting_power_1
 								has_law = grant_title_voting_power_1
 								has_law = imprison_voting_power_1
-								has_law = war_voting_power_1						
+								has_law = war_voting_power_1
 							}
 							holder_scope = {
 								NOR = {
 									government = chinese_imperial_government
+									government = chinese_vassal_government
+									government = eastern_imperial_government
 									government = japanese_imperial_government
+									government = japanese_bureaucracy_government
+									government = japanese_feudal_government
+									government = japanese_monastic_feudal_government
 									government = divine_imperial_government
 								}
 							}
@@ -21563,38 +21631,60 @@ powerful_vassal_takeover_war = { # Started from faction
 		}
 		holder_scope = {
 			clr_character_flag = powerful_vassal_takeover_target
-			most_popular_vassal = {
+			if = {
 				limit = {
-					higher_tier_than = BARON
-					is_feudal = yes
-					prisoner = no
 					NOR = {
-						is_inaccessible_trigger = yes
-						trait = incapable
-						trait = eunuch
+						government = chinese_imperial_government
+						government = chinese_vassal_government
+						government = eastern_imperial_government
+						government = japanese_imperial_government
+						government = japanese_bureaucracy_government
+						government = japanese_feudal_government
+						government = japanese_monastic_feudal_government
+						government = divine_imperial_government
 					}
-					age = 16
-					#can_hold_title = PREVPREV
-					OR = {
-						is_female = no
-						AND = {
-							is_female = yes
-							ROOT = { has_law = true_cognatic_succession }
+				}
+				most_popular_vassal = {
+					limit = {
+						higher_tier_than = BARON
+						is_feudal = yes
+						prisoner = no
+						NOR = {
+							is_inaccessible_trigger = yes
+							trait = incapable
+							trait = eunuch
+						}
+						age = 16
+						#can_hold_title = PREVPREV
+						OR = {
+							is_female = no
+							AND = {
+								is_female = yes
+								ROOT = { has_law = true_cognatic_succession }
+							}
 						}
 					}
+					usurp_title = {
+						target = PREVPREV
+						type = faction_demand
+					}
+					save_event_target_as = new_title_holder
+					hidden_tooltip = {
+						any_attacker = {
+							limit = { NOT = { character = PREV } }
+							set_character_flag = helped_win_war
+						}
+					}
+					character_event = { id = 8226 days = 1 }
 				}
-				usurp_title = {
-					target = PREVPREV
-					type = faction_demand
-				}
-				save_event_target_as = new_title_holder
-				hidden_tooltip = {
-					any_attacker = {
-						limit = { NOT = { character = PREV } }
-						set_character_flag = helped_win_war
+			}
+			else = {
+				ROOT = {
+					usurp_title = {
+						target = PREVPREV
+						type = faction_demand
 					}
 				}
-				character_event = { id = 8226 days = 1 }
 			}
 		}
 
@@ -21602,44 +21692,6 @@ powerful_vassal_takeover_war = { # Started from faction
 			check_if_reconquista_finished_effect = yes
 			FROM = {
 				landless_pope_effect = yes
-			}
-		}
-	}
-	
-	on_success_posttitle = {
-		ROOT = {
-			if = {
-				limit = {
-					is_adult = yes
-					government = chinese_vassal_government
-					liege = {
-						OR = {
-							government = chinese_imperial_government
-							government = chinese_vassal_government
-							government = eastern_imperial_government
-						}
-						independent = yes
-						OR = {
-							real_tier = king
-							real_tier = emperor
-						}
-						NOR = {
-							trait = under_regency
-							trait = under_regency2
-						}
-					}
-					has_dlc = "Conclave"
-					NOT = {
-						any_owned_bloodline = {
-							has_bloodline_flag = grand_chancellor_bloodline
-						}
-					}
-					is_powerful_vassal = yes
-				} # TODO: Empower as Grand Chancellor if we have the bloodline already
-				custom_tooltip = {
-					text = create_grand_chancellor_bloodline_effect
-					character_event = { id = grandchancellor.19 } # Create a Grand Chancellor bloodline
-				}
 			}
 		}
 	}
