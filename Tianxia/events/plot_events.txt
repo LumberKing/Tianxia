@@ -21003,14 +21003,35 @@ letter_event = {
 		if = {
 			limit = {
 				NOR = {
-					government = chinese_imperial_government
-					government = chinese_vassal_government
-					government = eastern_imperial_government
-					government = japanese_imperial_government
-					government = japanese_bureaucracy_government
-					government = japanese_feudal_government
-					government = japanese_monastic_feudal_government
-					government = divine_imperial_government
+					AND = {
+						OR = {
+							government = chinese_imperial_government
+							government = chinese_vassal_government
+							government = eastern_imperial_government
+						}
+						FROM = {
+							OR = {
+								can_have_confucian_bureaucracy_and_eastern_imperial_trigger = yes
+								AND = { # To cover Tanguts being weird
+									ROOT = {
+										government = chinese_imperial_government
+									}
+									can_have_chinese_imperial_trigger = yes
+								}
+							}
+						}
+					}
+					AND = {
+						OR = {
+							# Rel heads can't be targeted
+							government = japanese_bureaucracy_government
+							government = japanese_feudal_government
+							government = japanese_monastic_feudal_government
+						}
+						FROM = {
+							can_have_any_japanese_government_trigger = yes
+						}
+					}
 				}
 			}
 			most_popular_vassal = {
@@ -21410,12 +21431,23 @@ letter_event = {
 
 		if = {
 			limit = { event_target:new_title_holder = { NOT = { character = ROOT } } }
-			add_favor = event_target:new_title_holder
+			#add_favor = event_target:new_title_holder
 			opinion = {
 				who = event_target:new_title_holder
 				modifier = opinion_favorite
 				years = 5
 			}
+		}
+		if = {
+			limit = {
+				event_target:new_title_holder = {
+					NOR = {
+						character = ROOT
+						character = FROMFROM # The faction leader; Chinese-/Japanese-style takeovers don't grant Favors
+					}
+				}
+			}
+			add_favor = event_target:new_title_holder
 		}
 
 		add_character_modifier = {
@@ -21543,33 +21575,33 @@ character_event = {
 					government = divine_imperial_government
 				}
 			}
-		}
-		primary_title = {
-			if = {
-				limit = { has_law = succession_voting_power_0 }
-				add_law_w_cooldown = succession_voting_power_1
-			}
-			if = {
-				limit = { 
-					NOT =  { has_law = succ_byzantine_elective } 
-					OR =  { 
-						title = e_hre 
-						has_title_flag = alternate_hre
-					} 
-					NOT =  { has_law = succ_feudal_elective } 
+			primary_title = {
+				if = {
+					limit = { has_law = succession_voting_power_0 }
+					add_law_w_cooldown = succession_voting_power_1
 				}
-				add_law_w_cooldown = succ_hre_elective
-			}
-			if = {
-				limit = { 
-					NOR =  { 
-						title = e_hre 
-						has_title_flag = alternate_hre
-						has_law = succ_feudal_elective 
-						has_law = succ_byzantine_elective
-					} 
+				if = {
+					limit = { 
+						NOT =  { has_law = succ_byzantine_elective } 
+						OR =  { 
+							title = e_hre 
+							has_title_flag = alternate_hre
+						} 
+						NOT =  { has_law = succ_feudal_elective } 
+					}
+					add_law_w_cooldown = succ_hre_elective
 				}
-				add_law_w_cooldown = succ_feudal_elective
+				if = {
+					limit = { 
+						NOR =  { 
+							title = e_hre 
+							has_title_flag = alternate_hre
+							has_law = succ_feudal_elective 
+							has_law = succ_byzantine_elective
+						} 
+					}
+					add_law_w_cooldown = succ_feudal_elective
+				}
 			}
 		}
 
