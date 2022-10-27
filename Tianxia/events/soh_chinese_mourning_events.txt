@@ -1,0 +1,3474 @@
+namespace = soh
+
+### Chinese mourning
+
+# on_death event firing for descendants
+character_event = {
+	id = soh.5701
+	is_triggered_only = yes
+	hide_window = yes
+	immediate = {
+		any_close_relative = {
+			limit = {
+				is_descendant_of = ROOT
+				OR = { # Same family/parent
+					dynasty = ROOT
+					is_child_of = ROOT
+				}
+				OR = { # Has Confucian customs and thus eligible for mourning (to avoid weird chinese_group combinations)
+					government = chinese_imperial_government
+					government = eastern_imperial_government
+					government = chinese_vassal_government
+				}
+				OR = { # Chinese/appropriately "Chinese" religion to avoid weird situations like Mongol Buddhist Kublai Khan with Chinese mourning
+					culture_group = chinese_group
+					religion = chinese_pagan
+					religion = chinese_pagan_reformed
+					religion = confucian
+					# potentially offer it to religions with Ancestor Veneration/Focus on Family
+					# but the issue is e.g. players in vanilla regions may go for ancestor veneration and have it be ahistorically applied
+					# and i'm not sure whether any religions for whom mourning would be ahistorical might get focus on family
+					# this also makes it quite hard to implement anything that draws on reformation doctrines as flavour in this event chain
+					# since it would only apply to reformed Chinese folk, not any of the other groups in this situation
+					# and off the top of my head i don't think any mourning events should be specifically tied to (reformed) Chinese folk
+					# since mourning was fairly universally applied to all chinese_group and confucians
+				}
+				has_regent = no # Might be incapable, a prisoner, already mourning, etc
+				is_primary_war_defender = yes # Only wars that threaten the realm are more important than mourning
+			}
+			character_event = { id = soh.5702 days = 3 }
+		}
+	}
+}
+
+# Decide whether to mourn
+character_event = {
+	id = soh.5702
+	desc = {
+		trigger = { can_mourn_days_trigger = yes }
+		text = EVTDESC_SOH_5702A
+	}
+	desc = {
+		trigger = { can_mourn_year_trigger = yes }
+		text = EVTDESC_SOH_5702B
+	}
+	desc = {
+		trigger = { can_mourn_full_trigger = yes }
+		text = EVTDESC_SOH_5702C
+	}
+	desc = {
+		trigger = { must_mourn_strict_trigger = yes }
+		text = EVTDESC_SOH_5702D # should never trigger for playable characters, but will put a debugging message here just to make sure
+	}
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	immediate = {
+		FROM = { save_event_target_as = ancestor_to_mourn }
+		if = {
+			limit = { is_ruler = yes }
+			character_event = { id = soh.5704 days = 15 random = 15 }
+		}
+		else = {
+			character_event = { id = soh.5705 days = 200 }
+		}
+	}
+	option = { # I will mourn properly
+		name = EVTOPTA_SOH_5702
+		add_trait = in_mourning
+		character_event = { id = soh.5703 days = 1095 }
+		if = {
+			limit = {
+				can_mourn_days_trigger = yes
+				can_mourn_year_trigger = yes
+			}
+			piety = 100
+		}
+		ai_chance = {
+			factor = 64
+			modifier = {
+				factor = 16
+				trait = zealous
+			}
+			modifier = {
+				factor = 16
+				trait = kind
+			}
+			modifier = {
+				factor = 0.0625
+				trait = ambitious
+				NOT = { must_mourn_strict_trigger = yes }
+			}
+			modifier = {
+				factor = 16
+				must_mourn_strict_trigger = yes
+			}
+			modifier = {
+				factor = 4
+				can_mourn_full_trigger = yes
+			}
+		}
+	}
+	option = { # Three years is too much, a year is sufficient
+		name = EVTOPTB_SOH_5702
+		add_trait = in_mourning
+		character_event = { id = soh.5703 days = 365 }
+		if = {
+			limit = { can_mourn_days_trigger = yes }
+			piety = 50
+		}
+		if = {
+			limit = {
+				OR = {
+					can_mourn_full_trigger = yes
+					must_mourn_strict_trigger = yes
+				}
+			}
+			add_character_modifier = { name = unfilial_descendant duration = -1 }
+		}
+		if = {
+			limit = { must_mourn_strict_trigger = yes }
+			liege = {
+				if = {
+					limit = {
+						OR = { # Liege should care about you not mourning
+							government = chinese_imperial_government
+							government = eastern_imperial_government
+							government = chinese_vassal_government
+						}
+						ROOT = { is_ruler = yes }
+					}
+					character_event = { id = soh.5706 } # inform the liege that revocation can happen
+				}
+				else_if = {
+					limit = {
+						OR = { # Liege should care about you not mourning
+							government = chinese_imperial_government
+							government = eastern_imperial_government
+							government = chinese_vassal_government
+						}
+					}
+					opinion = { modifier = opinion_unfilial_revoke who = ROOT }
+				}
+			}
+		}
+		ai_chance = {
+			factor = 16
+			modifier = {
+				factor = 16
+				trait = zealous
+				can_mourn_days_trigger = yes
+			}
+			modifier = {
+				factor = 16
+				trait = kind
+				can_mourn_days_trigger = yes
+			}
+			modifier = {
+				factor = 16
+				OR = {
+					can_mourn_year_trigger = yes
+					can_mourn_days_trigger = yes
+				}
+			}
+			modifier = {
+				factor = 16
+				can_mourn_full_trigger = yes
+				trait = cynical
+			}
+			modifier = {
+				factor = 16
+				can_mourn_full_trigger = yes
+				trait = ambitious
+			}
+			modifier = {
+				factor = 64
+				must_mourn_strict_trigger = yes
+				trait = cynical
+				liege = {
+					relative_power = { who = ROOT power <= 1.5 }
+				}
+			}
+			modifier = {
+				factor = 64
+				must_mourn_strict_trigger = yes
+				trait = ambitious
+				liege = {
+					relative_power = { who = ROOT power <= 1.5 }
+				}
+			}
+		}
+	}
+	option = { # I will substitute months with days
+		name = EVTOPTC_SOH_5702
+		add_trait = in_mourning
+		character_event = { id = soh.5703 days = 36 }
+		if = {
+			limit = { NOT = { can_mourn_days_trigger = yes } }
+			add_character_modifier = { name = unfilial_descendant duration = -1 }
+		}
+		if = {
+			limit = { can_mourn_full_trigger = yes }
+			liege = {
+				if = {
+					limit = {
+						OR = { # Liege should care about you not mourning
+							government = chinese_imperial_government
+							government = eastern_imperial_government
+							government = chinese_vassal_government
+						}
+						ROOT = { is_ruler = yes }
+					}
+					character_event = { id = soh.5706 } # inform the liege that revocation can happen
+				}
+				else_if = {
+					limit = {
+						OR = { # Liege should care about you not mourning
+							government = chinese_imperial_government
+							government = eastern_imperial_government
+							government = chinese_vassal_government
+						}
+					}
+					opinion = { modifier = opinion_unfilial_revoke who = ROOT }
+				}
+			}
+		}
+		if = {
+			limit = { must_mourn_strict_trigger = yes }
+			liege = {
+				if = {
+					limit = {
+						OR = { # Liege should care about you not mourning
+							government = chinese_imperial_government
+							government = eastern_imperial_government
+							government = chinese_vassal_government
+						}
+					}
+					character_event = { id = soh.5707 } # inform the liege that imprisonment can happen
+				}
+			}
+		}
+		ai_chance = {
+			factor = 4
+			modifier = {
+				factor = 256
+				can_mourn_days_trigger = yes
+			}
+			modifier = {
+				factor = 64
+				can_mourn_year_trigger = yes
+				trait = cynical
+			}
+			modifier = {
+				factor = 64
+				can_mourn_year_trigger = yes
+				trait = ambitious
+			}
+			modifier = {
+				factor = 256
+				can_mourn_full_trigger = yes
+				trait = cynical
+				liege = {
+					relative_power = { who = ROOT power <= 1.5 }
+				}
+			}
+			modifier = {
+				factor = 256
+				can_mourn_full_trigger = yes
+				trait = ambitious
+				liege = {
+					relative_power = { who = ROOT power <= 1.5 }
+				}
+			}
+			modifier = {
+				factor = 64
+				must_mourn_strict_trigger = yes
+				trait = cynical
+				liege = {
+					relative_power = { who = ROOT power <= 1.5 }
+				}
+			}
+			modifier = {
+				factor = 64
+				must_mourn_strict_trigger = yes
+				trait = ambitious
+				liege = {
+					relative_power = { who = ROOT power <= 1.5 }
+				}
+			}
+		}
+	}
+	option = { # I refuse to mourn!
+		name = EVTOPTD_SOH_5702
+		add_character_modifier = { name = unfilial_descendant duration = -1 }
+		liege = {
+			if = {
+				limit = {
+					OR = { # Liege should care about you not mourning
+						government = chinese_imperial_government
+						government = eastern_imperial_government
+						government = chinese_vassal_government
+					}
+					ROOT = { is_ruler = yes }
+				}
+				character_event = { id = soh.5706 } # inform the liege that revocation can happen
+			}
+			else_if = {
+				limit = {
+					OR = { # Liege should care about you not mourning
+						government = chinese_imperial_government
+						government = eastern_imperial_government
+						government = chinese_vassal_government
+					}
+				}
+				opinion = { modifier = opinion_unfilial_revoke who = ROOT }
+			}
+		}
+		if = {
+			limit = {
+				OR = {
+					can_mourn_full_trigger = yes
+					must_mourn_strict_trigger = yes
+				}
+			}
+			liege = {
+				if = {
+					limit = {
+						OR = { # Liege should care about you not mourning
+							government = chinese_imperial_government
+							government = eastern_imperial_government
+							government = chinese_vassal_government
+						}
+					}
+					character_event = { id = soh.5707 } # inform the liege that imprisonment can happen
+				}
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 1024
+				independent = yes
+				trait = cynical
+			}
+			modifier = {
+				factor = 1024
+				independent = yes
+				trait = ambitious
+			}
+			modifier = {
+				factor = 1024
+				independent = no
+				trait = cynical
+				liege = {
+					relative_power = { who = ROOT power <= 1.5 }
+				}
+			}
+			modifier = {
+				factor = 256
+				independent = no
+				trait = ambitious
+				liege = {
+					relative_power = { who = ROOT power <= 1.5 }
+				}
+			}
+		}
+	}
+}
+
+# End the mourning and apply the appropriate effects
+character_event = {
+	id = soh.5703
+	desc = EVTDESC_SOH_5703
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	trigger = { trait = in_mourning }
+	option = { # Finally, I am free of my grief.
+		name = EVTOPTA_SOH_5703
+		remove_trait = in_mourning
+		piety = 100
+		clr_character_flag = mourning_first_event
+		clr_character_flag = mourning_shack
+		clr_character_flag = mourning_diet
+		clr_character_flag = mourning_sangfu
+		clr_character_flag = mourning_hair
+		clr_character_flag = mourning_offering
+		clr_character_flag = mourning_mystic
+		clr_character_flag = mourning_depression
+		clr_character_flag = mourning_carefree
+		clr_character_flag = mourning_sympathy
+		clr_character_flag = mourning_sacrifice
+		clr_character_flag = mourning_commiseration
+		clr_character_flag = mourning_pondering
+		clr_character_flag = mourning_emulation
+		clr_character_flag = mourning_celibacy
+		clr_character_flag = mourning_extended
+		remove_character_modifier = mourning_shack
+		remove_character_modifier = mourning_diet
+		remove_character_modifier = not_in_sangfu
+		remove_character_modifier = mourning_celibate
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 4
+				trait = cynical
+			}
+			modifier = {
+				factor = 4
+				trait = ambitious
+			}
+		}
+	}
+	option = { # I'm not ready yet... another couple of years, perhaps?
+		name = EVTOPTB_SOH_5703
+		trigger = {
+			NOT = { has_character_flag = mourning_extended }
+		}
+		prestige = 50
+		piety = 50
+		repeat_event = { id = soh.5703 days = 730 }
+		set_character_flag = mourning_extended
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 4
+				trait = zealous
+			}
+		}
+	}
+}
+
+# Select mourning event
+character_event = {
+	id = soh.5704
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = {
+		trait = in_mourning
+		is_playable = yes
+	}
+	immediate = {
+		if = {
+			limit = { NOT = { has_character_flag = mourning_first_event } }
+			set_character_flag = mourning_first_event
+		}
+		random_list = {
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_shack
+				}
+				set_character_flag = mourning_shack
+				character_event = { id = soh.5708 } # build a shack
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_diet
+				}
+				set_character_flag = mourning_diet
+				character_event = { id = soh.5709 } # diet
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_sangfu
+				}
+				set_character_flag = mourning_sangfu
+				character_event = { id = soh.5710 } # mourning clothes
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_hair
+				}
+				modifier = {
+					factor = 0
+					OR = {
+						trait = ugly
+						trait = fair
+					}
+				}
+				set_character_flag = mourning_hair
+				character_event = { id = soh.5711 } # unkempt hair
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_offering
+				}
+				set_character_flag = mourning_offering
+				character_event = { id = soh.5712 } # small offering
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_mystic
+				}
+				modifier = {
+					factor = 0
+					lifestyle_traits = 1
+				}
+				set_character_flag = mourning_mystic
+				character_event = { id = soh.5713 } # pursue mysticism, 2 outcomes, 5714 successful communication and 5715 failure to communicate
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_depression
+				}
+				modifier = {
+					factor = 0
+					trait = depressed
+				}
+				set_character_flag = mourning_depression
+				character_event = { id = soh.5716 } # become depressed
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_carefree
+				}
+				modifier = {
+					factor = 0
+					NOT = { trait = stressed }
+				}
+				set_character_flag = mourning_carefree
+				character_event = { id = soh.5717 } # lose stressed, possible followup 5718 slothful
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_sympathy
+				}
+				modifier = {
+					factor = 0
+					event_target:ancestor_to_mourn = {
+						ROOT = {
+							true_religion_group = PREV
+						}
+					}
+				}
+				set_character_flag = mourning_sympathy
+				character_event = { id = soh.5719 } # sympathy for ancestor
+			}
+			# Note: I wanted to add some culture/religion conversion event, but it's impossible to stop new players/AI from losing CI that way somehow and I'm not dealing with that mess
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_sacrifice
+				}
+				set_character_flag = mourning_sacrifice
+				character_event = { id = soh.5720 } # large offering
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_commiseration
+				}
+				random_close_relative = {
+					limit = {
+						trait = in_mourning
+					}
+					save_event_target_as = also_mourning_relative
+					ROOT = {
+						set_character_flag = mourning_commiseration
+						character_event = { id = soh.5721 } # family member, ping relative 5722, result 5723 success 5724 failure
+					}
+				}
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_pondering
+				}
+				set_character_flag = mourning_pondering
+				character_event = { id = soh.5725 } # pondering death, 5726-5732
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_emulation
+				}
+				set_character_flag = mourning_emulation
+				character_event = { id = soh.5733 } # emulating ancestor
+			}
+			5 = {
+				modifier = {
+					factor = 0
+					has_character_flag = mourning_celibacy
+				}
+				set_character_flag = mourning_celibacy
+				character_event = { id = soh.5764 }
+			}
+			140 = {
+				modifier = {
+					factor = 0
+					NOT = { has_character_flag = mourning_first_event } # Guarantees that the first mourning event fires, for 36 day mourning
+				}
+				# Nothing happens
+			}
+		}
+		repeat_event = { id = soh.5704 days = 60 random = 30 }
+	}
+	fail_trigger_effect = {
+		if = {
+			limit = { trait = in_mourning }
+			character_event = { id = soh.5705 days = 200 }
+		}
+	}
+}
+
+# Backburner mourning event
+character_event = {
+	id = soh.5705
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = {
+		trait = in_mourning
+		NOT = { is_playable = yes }
+	}
+	immediate = {
+		repeat_event = { id = soh.5705 days = 200 }
+	}
+	fail_trigger_effect = {
+		if = {
+			limit = { trait = in_mourning }
+			character_event = { id = soh.5704 }
+		}
+	}
+}
+
+#Liege is informed - revoke!
+character_event = {
+	id = soh.5706
+	desc = EVTDESC_SOH_5706
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = { # I should take action...
+		name = EVTOPTA_SOH_5706
+		opinion = { modifier = opinion_unfilial_revoke who = FROM }
+		ai_chance = {
+			factor = 3
+			modifier = {
+				factor = 27
+				trait = just
+			}
+			modifier = {
+				factor = 27
+				trait = zealous
+			}
+			modifier = {
+				factor = 3
+				trait = in_mourning
+			}
+			modifier = {
+				factor = 27
+				NOT = { opinion = { who = FROM value = -50 } }
+			}
+			modifier = {
+				factor = 9
+				is_rival = FROM
+			}
+		}
+	}
+	option = { # I literally don't care...
+		name = EVTOPTB_SOH_5706
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 3
+				trait = arbitrary
+			}
+			modifier = {
+				factor = 3
+				modifier = cynical
+			}
+			modifier = {
+				factor = 27
+				has_character_modifier = unfilial_descendant
+			}
+			modifier = {
+				factor = 9
+				opinion = { who = FROM value = 25 }
+			}
+			modifier = {
+				factor = 9
+				is_friend = FROM
+			}
+			modifier = {
+				factor = 9
+				is_lover = FROM
+			}
+		}
+	}
+}
+
+#Liege is informed - imprison!
+character_event = {
+	id = soh.5707
+	desc = EVTDESC_SOH_5707
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = { # I should take action...
+		name = EVTOPTA_SOH_5707
+		opinion = { modifier = opinion_unfilial_imprison who = FROM }
+		ai_chance = {
+			factor = 9
+			modifier = {
+				factor = 27
+				trait = just
+			}
+			modifier = {
+				factor = 27
+				trait = zealous
+			}
+			modifier = {
+				factor = 3
+				trait = in_mourning
+			}
+			modifier = {
+				factor = 27
+				NOT = { opinion = { who = FROM value = 0 } }
+			}
+			modifier = {
+				factor = 9
+				is_rival = FROM
+			}
+		}
+	}
+	option = { # I literally don't care...
+		name = EVTOPTB_SOH_5707
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 3
+				trait = arbitrary
+			}
+			modifier = {
+				factor = 3
+				modifier = cynical
+			}
+			modifier = {
+				factor = 27
+				has_character_modifier = unfilial_descendant
+			}
+			modifier = {
+				factor = 9
+				opinion = { who = FROM value = 80 }
+			}
+			modifier = {
+				factor = 9
+				is_friend = FROM
+			}
+			modifier = {
+				factor = 9
+				is_lover = FROM
+			}
+		}
+	}
+}
+
+# Maybe living in a literal palace miles from your parent's dead bodies is disrespectful?
+character_event = {
+	id = soh.5708
+	desc = EVTDESC_SOH_5708
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = { # Fine, I will build the hut
+		name = EVTOPTA_SOH_5708
+		prestige = -5
+		add_character_modifier = { name = mourning_shack duration = -1 }
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				trait = humble
+			}
+			modifier = {
+				factor = 3
+				trait = zealous
+			}
+		}
+	}
+	option = { # Live like a peasant? Is this a joke?
+		name = EVTOPTB_SOH_5708
+		piety = -20
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 20
+				trait = proud
+			}
+			modifier = {
+				factor = 3
+				trait = cynical
+			}
+		}
+	}
+}
+
+# Stop eating like five exotic foods every meal?
+character_event = {
+	id = soh.5709
+	desc = EVTDESC_SOH_5709
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = { # okay, what about four
+		name = EVTOPTA_SOH_5709
+		add_character_modifier = { name = mourning_diet duration = -1 }
+		random = {
+			chance = 10
+			if = {
+				limit = { NOT = { trait = gluttonous } }
+				add_trait = temperate
+			}
+			else = {
+				remove_trait = gluttonous
+			}
+		}
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				trait = humble
+			}
+			modifier = {
+				factor = 3
+				trait = zealous
+			}
+			modifier = {
+				factor = 10
+				trait = temperate
+			}
+		}
+	}
+	option = { # six it is, then
+		name = EVTOPTB_SOH_5709
+		piety = -20
+		random = {
+			chance = 10
+			if = {
+				limit = { NOT = { trait = temperate } }
+				add_trait = gluttonous
+			}
+			else = {
+				remove_trait = temperate
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 20
+				trait = proud
+			}
+			modifier = {
+				factor = 3
+				trait = cynical
+			}
+			modifier = {
+				factor = 20
+				trait = gluttonous
+			}
+		}
+	}
+}
+
+# These clothes are uncomfortable
+character_event = {
+	id = soh.5710
+	desc = EVTDESC_SOH_5710
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = { # Back to silks it is, then
+		name = EVTOPTA_SOH_5710
+		prestige = 10
+		piety = -20
+		add_character_modifier = { name = not_in_sangfu duration = -1 }
+		random = {
+			chance = 10
+			if = {
+				limit = { NOT = { trait = humble } }
+				add_trait = proud
+			}
+			else = {
+				remove_trait = humble
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 20
+				trait = proud
+			}
+			modifier = {
+				factor = 3
+				trait = cynical
+			}
+		}
+	}
+	option = { # It is to show respect!
+		name = EVTOPTB_SOH_5710
+		piety = 10
+		random = {
+			chance = 10
+			if = {
+				limit = { NOT = { trait = proud } }
+				add_trait = humble
+			}
+			else = {
+				remove_trait = proud
+			}
+		}
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				trait = humble
+			}
+			modifier = {
+				factor = 3
+				trait = zealous
+			}
+		}
+	}
+}
+
+# Unkempt hair
+character_event = {
+	id = soh.5711
+	desc = EVTDESC_SOH_5711
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = { # I'll fix my hair
+		name = EVTOPTA_SOH_5711
+		prestige = 10
+		piety = -20
+		random = {
+			chance = 10
+			if = {
+				limit = { NOT = { trait = uncouth } }
+				add_trait = groomed
+			}
+			else = {
+				remove_trait = uncouth
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 20
+				trait = proud
+			}
+			modifier = {
+				factor = 3
+				trait = cynical
+			}
+			modifier = {
+				factor = 5
+				trait = groomed
+			}
+		}
+	}
+	option = { # My looks do not matter
+		name = EVTOPTB_SOH_5711
+		piety = 10
+		random = {
+			chance = 10
+			if = {
+				limit = { NOT = { trait = groomed } }
+				add_trait = uncouth
+			}
+			else = {
+				remove_trait = groomed
+			}
+		}
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				trait = humble
+			}
+			modifier = {
+				factor = 3
+				trait = zealous
+			}
+			modifier = {
+				factor = 5
+				trait = uncouth
+			}
+		}
+	}
+}
+
+# Small offering
+character_event = {
+	id = soh.5712
+	desc = EVTDESC_SOH_5712
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5712
+		scaled_wealth = { value = -0.1 max = -25 }
+		piety = 10
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 3
+				trait = zealous
+			}
+			modifier = {
+				factor = 10
+				trait = generous
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5712
+		piety = -20
+		ai_chance = {
+			factor = 1
+			modifier = { # AI should never go into debt due to events
+				factor = 1000
+				NOT = { scaled_wealth = { value = 0.1 max = 25 } }
+			}
+			modifier = {
+				factor = 3
+				trait = cynical
+			}
+			modifier = {
+				factor = 10
+				trait = greedy
+			}
+		}
+	}
+}
+
+# Mystic
+character_event = {
+	id = soh.5713
+	desc = EVTDESC_SOH_5713
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = { # Embrace the mystic arts
+		name = EVTOPTA_SOH_5713
+		scaled_wealth = { value = -0.4 max = -100 }
+		piety = -10
+		add_trait = mystic
+		if = { # Only bother with success/failure if supernatural events are enabled
+			limit = {
+				OR = {
+					AND = {
+						ai = yes
+						has_game_rule = {
+							name = supernatural_events
+							value = unrestricted
+						}
+					}
+					AND = {
+						ai = no
+						NOT = {
+							has_game_rule = {
+								name = supernatural_events
+								value = off
+							}
+						}
+					}
+				}
+			}
+			random_list = {
+				1 = {
+					modifier = {
+						factor = 2
+						trait = shrewd
+					}
+					modifier = {
+						factor = 4
+						trait = quick
+					}
+					modifier = {
+						factor = 10
+						trait = genius
+					}
+					modifier = {
+						factor = 3
+						learning = 12
+					}
+					modifier = {
+						factor = 3
+						learning = 16
+					}
+					modifier = {
+						factor = 2
+						trait = zealous
+					}
+					character_event = { id = soh.5714 days = 10 random = 20 }
+				}
+				10 = {
+					modifier = {
+						factor = 2
+						trait = dull
+					}
+					modifier = {
+						factor = 4
+						trait = slow
+					}
+					modifier = {
+						factor = 10
+						trait = imbecile
+					}
+					modifier = {
+						factor = 5
+						NOT = { learning = 8 }
+					}
+					modifier = {
+						factor = 5
+						NOT = { learning = 4 }
+					}
+					modifier = {
+						factor = 2
+						trait = cynical
+					}
+					character_event = { id = soh.5715 days = 10 random = 20 }
+				}
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				trait = cynical
+			}
+		}
+	}
+	option = { # Do not attempt
+		name = EVTOPTB_SOH_5713
+		piety = 5
+		ai_chance = { # the AI really shouldn't consider necromancy too often
+			factor = 10
+			modifier = {
+				factor = 1000
+				NOT = { scaled_wealth = { value = 0.4 max = 100 } }
+			}
+			modifier = {
+				factor = 5
+				trait = zealous
+			}
+		}
+	}
+}
+
+# Mystic - successful communication!
+character_event = {
+	id = soh.5714
+	desc = EVTDESC_SOH_5714
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5714
+		prestige = 20
+		piety = 10
+		remove_trait = stressed
+		remove_trait = depressed
+	}
+}
+
+# Mystic - failed communication
+character_event = {
+	id = soh.5715
+	desc = EVTDESC_SOH_5715
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5715
+		prestige = -20
+		random = {
+			chance = 50
+			add_trait = stressed
+		}
+		random = {
+			chance = 25
+			add_trait = depressed
+		}
+	}
+}
+
+# Depression (take care when writing flavour text)
+character_event = {
+	id = soh.5716
+	desc = EVTDESC_SOH_5716
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5716
+		add_trait = depressed
+	}
+}
+
+# Carefree
+character_event = {
+	id = soh.5717
+	desc = EVTDESC_SOH_5717
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5717
+		remove_trait = stressed
+		random = {
+			chance = 30
+			modifier = {
+				factor = 0
+				trait = slothful
+			}
+			character_event = { id = soh.5718 days = 10 random = 20 }
+		}
+	}
+}
+
+# Become lazier
+character_event = {
+	id = soh.5718
+	desc = EVTDESC_SOH_5718
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = { # I guess...
+		name = EVTOPTA_SOH_5718
+		if = {
+			limit = { NOT = { trait = diligent } }
+			add_trait = slothful
+		}
+		else = {
+			remove_trait = diligent
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 20
+				trait = content
+			}
+			modifier = {
+				factor = 5
+				trait = humble
+			}
+		}
+	}
+	option = { # No! I must work harder!
+		name = EVTOPTB_SOH_5718
+		add_trait = stressed
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 20
+				trait = ambitious
+			}
+			modifier = {
+				factor = 5
+				trait = proud
+			}
+		}
+	}
+}
+
+# Sympathy for religion (possibly drop? sympathy doesn't do anything for Chinese governments)
+character_event = {
+	id = soh.5719
+	desc = EVTDESC_SOH_5719
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = { # It is worth considering
+		name = EVTOPTA_SOH_5719
+		prestige = 10
+		event_target:ancestor_to_mourn = {
+			ROOT = { add_sympathy_for_prevs_open_religion_effect = yes }
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 6
+				trait = cynical
+			}
+			modifier = {
+				factor = 3
+				trait = humble
+			}
+		}
+	}
+	option = { # No! I must remain steadfast!
+		name = EVTOPTB_SOH_5719
+		piety = 10
+		if = {
+			limit = { NOT = { trait = cynical } }
+			add_trait = zealous
+		}
+		else = {
+			remove_trait = cynical
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 6
+				trait = zealous
+			}
+			modifier = {
+				factor = 3
+				trait = proud
+			}
+		}
+	}
+}
+
+# Large offering
+character_event = {
+	id = soh.5720
+	desc = EVTDESC_SOH_5720
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5720
+		scaled_wealth = { value = -2 max = -500 }
+		prestige = 50
+		piety = 20
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 3
+				trait = zealous
+			}
+			modifier = {
+				factor = 5
+				trait = generous
+			}
+			modifier = {
+				factor = 50
+				trait = proud
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5720
+		ai_chance = {
+			factor = 5
+			modifier = { # AI should never go into debt due to events
+				factor = 1000
+				NOT = { scaled_wealth = { value = 2 max = 500 } }
+			}
+			modifier = {
+				factor = 3
+				trait = cynical
+			}
+			modifier = {
+				factor = 5
+				trait = greedy
+			}
+			modifier = {
+				factor = 50
+				trait = humble
+			}
+		}
+	}
+}
+
+# Commiseration
+character_event = {
+	id = soh.5721
+	desc = EVTDESC_SOH_5721
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5721
+		event_target:also_mourning_relative = { character_event = { id = soh.5722 days = 1 } }
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 3
+				trait = kind
+			}
+			modifier = {
+				factor = 10
+				trait = gregarious
+			}
+			modifier = {
+				factor = 5
+				trait = trusting
+			}
+			modifier = {
+				factor = 5
+				opinion = { who = event_target:also_mourning_relative value = 0 }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5721
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 3
+				trait = cruel
+			}
+			modifier = {
+				factor = 10
+				trait = shy
+			}
+			modifier = {
+				factor = 5
+				trait = paranoid
+			}
+			modifier = {
+				factor = 5
+				NOT = { opinion = { who = event_target:also_mourning_relative value = -50 } }
+			}
+		}
+	}
+}
+
+# Commiseration - relative pinged
+character_event = {
+	id = soh.5722
+	desc = EVTDESC_SOH_5722
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5722
+		piety = 10
+		opinion = { modifier = opinion_friendly_relative who = FROM }
+		FROM = {
+			opinion = { modifier = opinion_friendly_relative who = ROOT }
+			character_event = { id = soh.5723 days = 1 }
+		}
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 3
+				trait = kind
+			}
+			modifier = {
+				factor = 10
+				trait = gregarious
+			}
+			modifier = {
+				factor = 5
+				trait = trusting
+			}
+			modifier = {
+				factor = 5
+				opinion = { who = event_target:also_mourning_relative value = 0 }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5722
+		piety = -10
+		opinion = { modifier = opinion_unfriendly_relative who = FROM }
+		FROM = {
+			opinion = { modifier = opinion_unfriendly_relative who = ROOT }
+			character_event = { id = soh.5724 days = 1 }
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 3
+				trait = cruel
+			}
+			modifier = {
+				factor = 10
+				trait = shy
+			}
+			modifier = {
+				factor = 5
+				trait = paranoid
+			}
+			modifier = {
+				factor = 5
+				NOT = { opinion = { who = event_target:also_mourning_relative value = -50 } }
+			}
+		}
+	}
+}
+
+# Commiseration - success
+character_event = {
+	id = soh.5723
+	desc = EVTDESC_SOH_5723
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5723
+		prestige = 10
+		piety = 10
+	}
+}
+
+# Commiseration - failure
+character_event = {
+	id = soh.5724
+	desc = EVTDESC_SOH_5724
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5724
+		prestige = -10
+		piety = -10
+	}
+}
+
+# The Reality of Life and Death
+character_event = {
+	id = soh.5725
+	is_triggered_only = yes
+	hide_window = yes
+	immediate = {
+		random_list = {
+			1 = {
+				character_event = { id = soh.5726 } # Fear of death
+				modifier = {
+					factor = 0
+					trait = brave
+				}
+				modifier = {
+					factor = 5
+					trait = craven
+				}
+				modifier = {
+					factor = 0
+					trait = paranoid
+					trait = content
+					trait = stressed
+				}
+			}
+			1 = {
+				character_event = { id = soh.5727 } # Motivation
+				modifier = {
+					factor = 0
+					trait = content
+				}
+				modifier = {
+					factor = 5
+					trait = ambitious
+				}
+				modifier = {
+					factor = 0
+					trait = diligent
+					trait = lustful
+					trait = stressed
+				}
+			}
+			1 = {
+				character_event = { id = soh.5728 } # Doing good
+				modifier = {
+					factor = 0
+					trait = cruel
+				}
+				modifier = {
+					factor = 5
+					trait = kind
+				}
+				modifier = {
+					factor = 0
+					trait = charitable
+					trait = patient
+					trait = stressed
+				}
+			}
+			1 = {
+				character_event = { id = soh.5729 } # Accepting one's place
+				modifier = {
+					factor = 0
+					trait = proud
+				}
+				modifier = {
+					factor = 5
+					trait = humble
+				}
+				modifier = {
+					factor = 0
+					trait = zealous
+					trait = just
+					trait = stressed
+				}
+			}
+			1 = {
+				character_event = { id = soh.5730 } # Doubts about my faith
+				modifier = {
+					factor = 0
+					trait = zealous
+				}
+				modifier = {
+					factor = 5
+					trait = cynical
+				}
+				modifier = {
+					factor = 0
+					trait = arbitrary
+					trait = stubborn
+					trait = stressed
+				}
+			}
+			1 = {
+				character_event = { id = soh.5731 } # Distancing myself
+				modifier = {
+					factor = 0
+					trait = gregarious
+				}
+				modifier = {
+					factor = 5
+					trait = shy
+				}
+				modifier = {
+					factor = 0
+					trait = chaste
+					trait = cruel
+					trait = stressed
+				}
+			}
+			1 = {
+				character_event = { id = soh.5732 } # Mental breakdown
+				modifier = {
+					factor = 0
+					NOT = { trait = stressed }
+				}
+				modifier = {
+					factor = 0
+					trait = lunatic
+				}
+			}
+			15 = {
+				# Do nothing
+			}
+		}
+	}
+}
+
+# Fear of death
+character_event = {
+	id = soh.5726
+	desc = EVTDESC_SOH_5726
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5726
+		trigger = { NOT = { trait = paranoid } }
+		if = {
+			limit = { NOT = { trait = trusting } }
+			add_trait = paranoid
+		}
+		else = {
+			remove_trait = trusting
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = trusting }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5726
+		trigger = { NOT = { trait = content } }
+		if = {
+			limit = { NOT = { trait = ambitious } }
+			add_trait = content
+		}
+		else = {
+			remove_trait = ambitious
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = ambitious }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTC_SOH_5726
+		trigger = { NOT = { trait = stressed } }
+		random_list = {
+			80 = { add_trait = stressed }
+			20 = {
+				if = {
+					limit = { NOT = { trait = craven } }
+					add_trait = brave
+				}
+				else = {
+					remove_trait = craven
+				}
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = craven }
+			}
+		}
+	}
+}
+
+# Motivated by death
+character_event = {
+	id = soh.5727
+	desc = EVTDESC_SOH_5727
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5727
+		trigger = { NOT = { trait = diligent } }
+		if = {
+			limit = { NOT = { trait = slothful } }
+			add_trait = diligent
+		}
+		else = {
+			remove_trait = slothful
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = slothful }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5727
+		trigger = { NOT = { trait = lustful } }
+		if = {
+			limit = { NOT = { trait = chaste } }
+			add_trait = lustful
+		}
+		else = {
+			remove_trait = chaste
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = chaste }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTC_SOH_5727
+		trigger = { NOT = { trait = stressed } }
+		random_list = {
+			80 = { add_trait = stressed }
+			20 = {
+				if = {
+					limit = { NOT = { trait = ambitious } }
+					add_trait = content
+				}
+				else = {
+					remove_trait = ambitious
+				}
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = ambitious }
+			}
+		}
+	}
+}
+
+# Doing good
+character_event = {
+	id = soh.5728
+	desc = EVTDESC_SOH_5728
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5728
+		trigger = { NOT = { trait = charitable } }
+		if = {
+			limit = { NOT = { trait = greedy } }
+			add_trait = charitable
+		}
+		else = {
+			remove_trait = greedy
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = greedy }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5728
+		trigger = { NOT = { trait = patient } }
+		if = {
+			limit = { NOT = { trait = wroth } }
+			add_trait = patient
+		}
+		else = {
+			remove_trait = wroth
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = wroth }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTC_SOH_5728
+		trigger = { NOT = { trait = stressed } }
+		random_list = {
+			80 = { add_trait = stressed }
+			20 = {
+				if = {
+					limit = { NOT = { trait = kind } }
+					add_trait = cruel
+				}
+				else = {
+					remove_trait = kind
+				}
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = kind }
+			}
+		}
+	}
+}
+
+# Accepting one's place
+character_event = {
+	id = soh.5729
+	desc = EVTDESC_SOH_5729
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5729
+		trigger = { NOT = { trait = zealous } }
+		if = {
+			limit = { NOT = { trait = cynical } }
+			add_trait = zealous
+		}
+		else = {
+			remove_trait = cynical
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = cynical }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5729
+		trigger = { NOT = { trait = just } }
+		if = {
+			limit = { NOT = { trait = arbitrary } }
+			add_trait = just
+		}
+		else = {
+			remove_trait = arbitrary
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = arbitrary }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTC_SOH_5729
+		trigger = { NOT = { trait = stressed } }
+		random_list = {
+			80 = { add_trait = stressed }
+			20 = {
+				if = {
+					limit = { NOT = { trait = humble } }
+					add_trait = proud
+				}
+				else = {
+					remove_trait = humble
+				}
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = humble }
+			}
+		}
+	}
+}
+
+# Doubts
+character_event = {
+	id = soh.5730
+	desc = EVTDESC_SOH_5730
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5730
+		trigger = { NOT = { trait = arbitrary } }
+		if = {
+			limit = { NOT = { trait = just } }
+			add_trait = arbitrary
+		}
+		else = {
+			remove_trait = just
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = just }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5730
+		trigger = { NOT = { trait = stubborn } }
+		add_trait = stubborn
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTC_SOH_5730
+		trigger = { NOT = { trait = stressed } }
+		random_list = {
+			80 = { add_trait = stressed }
+			20 = {
+				if = {
+					limit = { NOT = { trait = cynical } }
+					add_trait = zealous
+				}
+				else = {
+					remove_trait = cynical
+				}
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = cynical }
+			}
+		}
+	}
+}
+
+# Distancing myself
+character_event = {
+	id = soh.5731
+	desc = EVTDESC_SOH_5731
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5731
+		trigger = { NOT = { trait = chaste } }
+		if = {
+			limit = { NOT = { trait = lustful } }
+			add_trait = chaste
+		}
+		else = {
+			remove_trait = lustful
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = lustful }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTA_SOH_5731
+		trigger = { NOT = { trait = cruel } }
+		if = {
+			limit = { NOT = { trait = kind } }
+			add_trait = cruel
+		}
+		else = {
+			remove_trait = kind
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = kind }
+			}
+		}
+	}
+	option = {
+		name = EVTOPTC_SOH_5731
+		trigger = { NOT = { trait = stressed } }
+		random_list = {
+			80 = { add_trait = stressed }
+			20 = {
+				if = {
+					limit = { NOT = { trait = shy } }
+					add_trait = gregarious
+				}
+				else = {
+					remove_trait = shy
+				}
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { trait = shy }
+			}
+		}
+	}
+}
+
+# Mental breakdown
+character_event = {
+	id = soh.5732
+	desc = EVTDESC_SOH_5732
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5732
+		add_trait = lunatic
+	}
+}
+
+# Emulating ancestor
+character_event = {
+	id = soh.5733
+	is_triggered_only = yes
+	hide_window = yes
+	immediate = {
+		random_list = {
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = lustful } }
+						trait = lustful
+					}
+				}
+				character_trait = { id = soh.5734 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = gluttonous } }
+						trait = gluttonous
+					}
+				}
+				character_trait = { id = soh.5735 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = greedy } }
+						trait = greedy
+					}
+				}
+				character_trait = { id = soh.5736 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = slothful } }
+						trait = slothful
+					}
+				}
+				character_trait = { id = soh.5737 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = wroth } }
+						trait = wroth
+					}
+				}
+				character_trait = { id = soh.5738 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = envious } }
+						trait = envious
+					}
+				}
+				character_trait = { id = soh.5739 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = proud } }
+						trait = proud
+					}
+				}
+				character_trait = { id = soh.5740 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = chaste } }
+						trait = chaste
+					}
+				}
+				character_trait = { id = soh.5741 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = temperate } }
+						trait = temperate
+					}
+				}
+				character_trait = { id = soh.5742 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = charitable } }
+						trait = charitable
+					}
+				}
+				character_trait = { id = soh.5743 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = diligent } }
+						trait = diligent
+					}
+				}
+				character_trait = { id = soh.5744 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = patient } }
+						trait = patient
+					}
+				}
+				character_trait = { id = soh.5745 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = kind } }
+						trait = kind
+					}
+				}
+				character_trait = { id = soh.5746 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = humble } }
+						trait = humble
+					}
+				}
+				character_trait = { id = soh.5747 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = ambitious } }
+						trait = ambitious
+					}
+				}
+				character_trait = { id = soh.5748 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = arbitrary } }
+						trait = arbitrary
+					}
+				}
+				character_trait = { id = soh.5749 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = brave } }
+						trait = brave
+					}
+				}
+				character_trait = { id = soh.5750 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = content } }
+						trait = content
+					}
+				}
+				character_trait = { id = soh.5751 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = craven } }
+						trait = craven
+					}
+				}
+				character_trait = { id = soh.5752 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = cruel } }
+						trait = cruel
+					}
+				}
+				character_trait = { id = soh.5753 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = cynical } }
+						trait = cynical
+					}
+				}
+				character_trait = { id = soh.5754 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = deceitful } }
+						trait = deceitful
+					}
+				}
+				character_trait = { id = soh.5755 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = gregarious } }
+						trait = gregarious
+					}
+				}
+				character_trait = { id = soh.5756 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = honest } }
+						trait = honest
+					}
+				}
+				character_trait = { id = soh.5757 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = just } }
+						trait = just
+					}
+				}
+				character_trait = { id = soh.5758 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = paranoid } }
+						trait = paranoid
+					}
+				}
+				character_trait = { id = soh.5759 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = shy } }
+						trait = shy
+					}
+				}
+				character_trait = { id = soh.5760 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = stubborn } }
+						trait = stubborn
+					}
+				}
+				character_trait = { id = soh.5761 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = trusting } }
+						trait = trusting
+					}
+				}
+				character_trait = { id = soh.5762 }
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					OR = {
+						event_target:ancestor_to_mourn = { NOT = { trait = zealous } }
+						trait = zealous
+					}
+				}
+				character_trait = { id = soh.5763 }
+			}
+		}
+	}
+}
+
+# Emulating lustful
+character_event = {
+	id = soh.5734
+	desc = EVTDESC_SOH_5734
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5734
+		piety = 10
+		if = {
+			limit = { NOT = { trait = chaste } }
+			add_trait = lustful
+		}
+		else = {
+			remove_trait = chaste
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5734
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = chaste
+			}
+		}
+	}
+}
+
+# Emulating gluttonous
+character_event = {
+	id = soh.5735
+	desc = EVTDESC_SOH_5735
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5735
+		piety = 10
+		if = {
+			limit = { NOT = { trait = temperate } }
+			add_trait = gluttonous
+		}
+		else = {
+			remove_trait = temperate
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5735
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = temperate
+			}
+		}
+	}
+}
+
+# Emulating greedy
+character_event = {
+	id = soh.5736
+	desc = EVTDESC_SOH_5736
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5736
+		piety = 10
+		if = {
+			limit = { NOT = { trait = charitable } }
+			add_trait = greedy
+		}
+		else = {
+			remove_trait = charitable
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5736
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = charitable
+			}
+		}
+	}
+}
+
+# Emulating slothful
+character_event = {
+	id = soh.5737
+	desc = EVTDESC_SOH_5737
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5737
+		piety = 10
+		if = {
+			limit = { NOT = { trait = diligent } }
+			add_trait = slothful
+		}
+		else = {
+			remove_trait = diligent
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5737
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = diligent
+			}
+		}
+	}
+}
+
+# Emulating wroth
+character_event = {
+	id = soh.5738
+	desc = EVTDESC_SOH_5738
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5738
+		piety = 10
+		if = {
+			limit = { NOT = { trait = patient } }
+			add_trait = wroth
+		}
+		else = {
+			remove_trait = patient
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5738
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = patient
+			}
+		}
+	}
+}
+
+# Emulating envious
+character_event = {
+	id = soh.5739
+	desc = EVTDESC_SOH_5739
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5739
+		piety = 10
+		if = {
+			limit = { NOT = { trait = kind } }
+			add_trait = envious
+		}
+		else = {
+			remove_trait = kind
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5739
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = kind
+			}
+		}
+	}
+}
+
+# Emulating proud
+character_event = {
+	id = soh.5740
+	desc = EVTDESC_SOH_5740
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5740
+		piety = 10
+		if = {
+			limit = { NOT = { trait = humble } }
+			add_trait = proud
+		}
+		else = {
+			remove_trait = humble
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5740
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = humble
+			}
+		}
+	}
+}
+
+# Emulating chaste
+character_event = {
+	id = soh.5741
+	desc = EVTDESC_SOH_5741
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5741
+		piety = 10
+		if = {
+			limit = { NOT = { trait = lustful } }
+			add_trait = chaste
+		}
+		else = {
+			remove_trait = lustful
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5741
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = lustful
+			}
+		}
+	}
+}
+
+# Emulating temperate
+character_event = {
+	id = soh.5742
+	desc = EVTDESC_SOH_5742
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5742
+		piety = 10
+		if = {
+			limit = { NOT = { trait = gluttonous } }
+			add_trait = temperate
+		}
+		else = {
+			remove_trait = gluttonous
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5742
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = gluttonous
+			}
+		}
+	}
+}
+
+# Emulating charity
+character_event = {
+	id = soh.5743
+	desc = EVTDESC_SOH_5743
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5743
+		piety = 10
+		if = {
+			limit = { NOT = { trait = greedy } }
+			add_trait = charitable
+		}
+		else = {
+			remove_trait = greedy
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5743
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = greedy
+			}
+		}
+	}
+}
+
+# Emulating diligent
+character_event = {
+	id = soh.5744
+	desc = EVTDESC_SOH_5744
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5744
+		piety = 10
+		if = {
+			limit = { NOT = { trait = slothful } }
+			add_trait = diligent
+		}
+		else = {
+			remove_trait = slothful
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5744
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = slothful
+			}
+		}
+	}
+}
+
+# Emulating patient
+character_event = {
+	id = soh.5745
+	desc = EVTDESC_SOH_5745
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5745
+		piety = 10
+		if = {
+			limit = { NOT = { trait = wroth } }
+			add_trait = patient
+		}
+		else = {
+			remove_trait = wroth
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5745
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = wroth
+			}
+		}
+	}
+}
+
+# Emulating kind
+character_event = {
+	id = soh.5746
+	desc = EVTDESC_SOH_5746
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5746
+		piety = 10
+		if = {
+			limit = {
+				NOR = {
+					trait = envious
+					trait = cruel
+				}
+			}
+			add_trait = kind
+		}
+		else = {
+			remove_trait = envious
+			remove_trait = cruel
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5746
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = envious
+			}
+			modifier = {
+				factor = 10
+				trait = cruel
+			}
+		}
+	}
+}
+
+# Emulating humble
+character_event = {
+	id = soh.5747
+	desc = EVTDESC_SOH_5747
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5747
+		piety = 10
+		if = {
+			limit = { NOT = { trait = proud } }
+			add_trait = humble
+		}
+		else = {
+			remove_trait = proud
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5747
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = proud
+			}
+		}
+	}
+}
+
+# Emulating ambitious
+character_event = {
+	id = soh.5748
+	desc = EVTDESC_SOH_5748
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5748
+		piety = 10
+		if = {
+			limit = { NOT = { trait = content } }
+			add_trait = ambitious
+		}
+		else = {
+			remove_trait = content
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5748
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = content
+			}
+		}
+	}
+}
+
+# Emulating arbitrary
+character_event = {
+	id = soh.5749
+	desc = EVTDESC_SOH_5749
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5749
+		piety = 10
+		if = {
+			limit = { NOT = { trait = just } }
+			add_trait = arbitrary
+		}
+		else = {
+			remove_trait = just
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5749
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = just
+			}
+		}
+	}
+}
+
+# Emulating brave
+character_event = {
+	id = soh.5750
+	desc = EVTDESC_SOH_5750
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5750
+		piety = 10
+		if = {
+			limit = { NOT = { trait = craven } }
+			add_trait = brave
+		}
+		else = {
+			remove_trait = craven
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5750
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = craven
+			}
+		}
+	}
+}
+
+# Emulating content
+character_event = {
+	id = soh.5751
+	desc = EVTDESC_SOH_5751
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5751
+		piety = 10
+		if = {
+			limit = { NOT = { trait = ambitious } }
+			add_trait = content
+		}
+		else = {
+			remove_trait = ambitious
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5751
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = ambitious
+			}
+		}
+	}
+}
+
+# Emulating craven
+character_event = {
+	id = soh.5752
+	desc = EVTDESC_SOH_5752
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5752
+		piety = 10
+		if = {
+			limit = { NOT = { trait = brave } }
+			add_trait = craven
+		}
+		else = {
+			remove_trait = brave
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5752
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = brave
+			}
+		}
+	}
+}
+
+# Emulating cruel
+character_event = {
+	id = soh.5753
+	desc = EVTDESC_SOH_5753
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5753
+		piety = 10
+		if = {
+			limit = { NOT = { trait = kind } }
+			add_trait = cruel
+		}
+		else = {
+			remove_trait = kind
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5753
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = kind
+			}
+		}
+	}
+}
+
+# Emulating cynical
+character_event = {
+	id = soh.5754
+	desc = EVTDESC_SOH_5754
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5754
+		piety = 10
+		if = {
+			limit = { NOT = { trait = zealous } }
+			add_trait = cynical
+		}
+		else = {
+			remove_trait = zealous
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5754
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = zealous
+			}
+		}
+	}
+}
+
+# Emulating deceitful
+character_event = {
+	id = soh.5755
+	desc = EVTDESC_SOH_5755
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5755
+		piety = 10
+		if = {
+			limit = { NOT = { trait = honest } }
+			add_trait = deceitful
+		}
+		else = {
+			remove_trait = honest
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5755
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = honest
+			}
+		}
+	}
+}
+
+# Emulating gregarious
+character_event = {
+	id = soh.5756
+	desc = EVTDESC_SOH_5756
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5756
+		piety = 10
+		if = {
+			limit = { NOT = { trait = shy } }
+			add_trait = gregarious
+		}
+		else = {
+			remove_trait = shy
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5756
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = shy
+			}
+		}
+	}
+}
+
+# Emulating honest
+character_event = {
+	id = soh.5757
+	desc = EVTDESC_SOH_5757
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5757
+		piety = 10
+		if = {
+			limit = { NOT = { trait = deceitful } }
+			add_trait = honest
+		}
+		else = {
+			remove_trait = deceitful
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5757
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = deceitful
+			}
+		}
+	}
+}
+
+# Emulating just
+character_event = {
+	id = soh.5758
+	desc = EVTDESC_SOH_5758
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5758
+		piety = 10
+		if = {
+			limit = { NOT = { trait = arbitrary } }
+			add_trait = just
+		}
+		else = {
+			remove_trait = arbitrary
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5758
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = arbitrary
+			}
+		}
+	}
+}
+
+# Emulating paranoid
+character_event = {
+	id = soh.5759
+	desc = EVTDESC_SOH_5759
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5759
+		piety = 10
+		if = {
+			limit = { NOT = { trait = trusting } }
+			add_trait = paranoid
+		}
+		else = {
+			remove_trait = trusting
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5759
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = trusting
+			}
+		}
+	}
+}
+
+# Emulating shy
+character_event = {
+	id = soh.5760
+	desc = EVTDESC_SOH_5760
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5760
+		piety = 10
+		if = {
+			limit = { NOT = { trait = gregarious } }
+			add_trait = shy
+		}
+		else = {
+			remove_trait = gregarious
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5760
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = gregarious
+			}
+		}
+	}
+}
+
+# Emulating stubborn
+character_event = {
+	id = soh.5761
+	desc = EVTDESC_SOH_5761
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5761
+		piety = 10
+		add_trait = stubborn
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5761
+		piety = -10
+		ai_chance = {
+			factor = 5
+		}
+	}
+}
+
+# Emulating trusting
+character_event = {
+	id = soh.5762
+	desc = EVTDESC_SOH_5762
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5762
+		piety = 10
+		if = {
+			limit = { NOT = { trait = paranoid } }
+			add_trait = trusting
+		}
+		else = {
+			remove_trait = paranoid
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5762
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = paranoid
+			}
+		}
+	}
+}
+
+# Emulating zealous
+character_event = {
+	id = soh.5763
+	desc = EVTDESC_SOH_5763
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_5763
+		piety = 10
+		if = {
+			limit = { NOT = { trait = cynical } }
+			add_trait = zealous
+		}
+		else = {
+			remove_trait = cynical
+		}
+		ai_chance = {
+			factor = 5
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5763
+		piety = -10
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				trait = cynical
+			}
+		}
+	}
+}
+
+# Become (temporarily) celibate while mourning?
+character_event = {
+	id = soh.5764
+	desc = EVTDESC_SOH_5764
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	option = { # Celibacy it is
+		name = EVTOPTA_SOH_5764
+		add_character_modifier = { name = mourning_celibate duration = -1 }
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				trait = chaste
+			}
+			modifier = {
+				factor = 3
+				trait = zealous
+			}
+		}
+	}
+	option = { # Never!
+		name = EVTOPTB_SOH_5764
+		piety = -20
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 20
+				trait = lustful
+			}
+			modifier = {
+				factor = 3
+				trait = cynical
+			}
+		}
+	}
+}
+
+# on_war_started, stop mourning
+character_event = {
+	id = soh.5765
+	desc = EVTDESC_SOH_5765
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	is_triggered_only = yes
+	trigger = { trait = in_mourning }
+	option = {
+		name = EVTOPTA_SOH_5765
+		remove_trait = in_mourning
+		clr_character_flag = mourning_first_event
+		clr_character_flag = mourning_shack
+		clr_character_flag = mourning_diet
+		clr_character_flag = mourning_sangfu
+		clr_character_flag = mourning_hair
+		clr_character_flag = mourning_offering
+		clr_character_flag = mourning_mystic
+		clr_character_flag = mourning_depression
+		clr_character_flag = mourning_carefree
+		clr_character_flag = mourning_sympathy
+		clr_character_flag = mourning_sacrifice
+		clr_character_flag = mourning_commiseration
+		clr_character_flag = mourning_pondering
+		clr_character_flag = mourning_emulation
+		clr_character_flag = mourning_celibacy
+		clr_character_flag = mourning_extended
+		remove_character_modifier = mourning_shack
+		remove_character_modifier = mourning_diet
+		remove_character_modifier = not_in_sangfu
+		remove_character_modifier = mourning_celibate
+	}
+}
