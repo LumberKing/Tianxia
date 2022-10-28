@@ -19,6 +19,7 @@ character_event = {
 					government = chinese_imperial_government
 					government = eastern_imperial_government
 					government = chinese_vassal_government
+					is_ruler = no
 				}
 				OR = { # Chinese/appropriately "Chinese" religion to avoid weird situations like Mongol Buddhist Kublai Khan with Chinese mourning
 					culture_group = chinese_group
@@ -34,7 +35,7 @@ character_event = {
 					# since mourning was fairly universally applied to all chinese_group and confucians
 				}
 				has_regent = no # Might be incapable, a prisoner, already mourning, etc
-				is_primary_war_defender = yes # Only wars that threaten the realm are more important than mourning
+				is_primary_war_defender = no # Only wars that threaten the realm are more important than mourning
 			}
 			character_event = { id = soh.5702 days = 3 }
 		}
@@ -79,33 +80,33 @@ character_event = {
 		character_event = { id = soh.5703 days = 1095 }
 		if = {
 			limit = {
-				can_mourn_days_trigger = yes
-				can_mourn_year_trigger = yes
+				OR = {
+					can_mourn_days_trigger = yes
+					can_mourn_year_trigger = yes
+				}
 			}
 			piety = 100
 		}
 		ai_chance = {
-			factor = 64
-			modifier = {
-				factor = 16
-				trait = zealous
+			factor = 10
+			modifier = { # AI should not mourn extra without a good reason
+				factor = 0
+				OR = {
+					can_mourn_days_trigger = yes
+					can_mourn_year_trigger = yes
+				}
+				NOR = {
+					trait = zealous
+					trait = kind
+				}
 			}
-			modifier = {
-				factor = 16
-				trait = kind
-			}
-			modifier = {
-				factor = 0.0625
+			modifier = { # Ambitious AI should never mourn extra and handicap itself
+				factor = 0
+				OR = {
+					can_mourn_days_trigger = yes
+					can_mourn_year_trigger = yes
+				}
 				trait = ambitious
-				NOT = { must_mourn_strict_trigger = yes }
-			}
-			modifier = {
-				factor = 16
-				must_mourn_strict_trigger = yes
-			}
-			modifier = {
-				factor = 4
-				can_mourn_full_trigger = yes
 			}
 		}
 	}
@@ -124,7 +125,10 @@ character_event = {
 					must_mourn_strict_trigger = yes
 				}
 			}
-			add_character_modifier = { name = unfilial_descendant duration = -1 }
+			custom_tooltip = {
+				text = MOURNING_REPUTATION_HIT_TOOLTIP
+				add_character_modifier = { name = unfilial_descendant duration = -1 }
+			}
 		}
 		if = {
 			limit = { must_mourn_strict_trigger = yes }
@@ -138,7 +142,10 @@ character_event = {
 						}
 						ROOT = { is_ruler = yes }
 					}
-					character_event = { id = soh.5706 } # inform the liege that revocation can happen
+					custom_tooltip = {
+						text = MOURNING_GAINS_REVOKE_TOOLTIP
+						character_event = { id = soh.5706 } # inform the liege that revocation can happen
+					}
 				}
 				else_if = {
 					limit = {
@@ -153,49 +160,47 @@ character_event = {
 			}
 		}
 		ai_chance = {
-			factor = 16
-			modifier = {
-				factor = 16
-				trait = zealous
-				can_mourn_days_trigger = yes
+			factor = 10
+			modifier = { # Characters should never give a revocation/imprisonment reason unless their personality is against mourning
+				factor = 0
+				must_mourn_strict_trigger = yes
+				NAND = {
+					OR = {
+						trait = cynical
+						trait = ambitious
+					}
+					trait = arbitrary
+				}
 			}
-			modifier = {
-				factor = 16
-				trait = kind
-				can_mourn_days_trigger = yes
-			}
-			modifier = {
-				factor = 16
+			modifier = { # Characters should never give a revocation/imprisonment reason unless their rationality is very low or they are very strong
+				factor = 0
+				must_mourn_strict_trigger = yes
 				OR = {
-					can_mourn_year_trigger = yes
-					can_mourn_days_trigger = yes
+					ai_rationality = -50
+					liege = { relative_power = { who = ROOT power >= 1.5 } }
 				}
 			}
-			modifier = {
-				factor = 16
+			modifier = { # Characters should be hesitant to take the reputation hit unless their personality is against mourning
+				factor = 0.1
 				can_mourn_full_trigger = yes
-				trait = cynical
-			}
-			modifier = {
-				factor = 16
-				can_mourn_full_trigger = yes
-				trait = ambitious
-			}
-			modifier = {
-				factor = 64
-				must_mourn_strict_trigger = yes
-				trait = cynical
-				liege = {
-					relative_power = { who = ROOT power <= 1.5 }
+				NOR = {
+					trait = cynical
+					trait = ambitious
+					trait = arbitrary
 				}
 			}
-			modifier = {
-				factor = 64
-				must_mourn_strict_trigger = yes
-				trait = ambitious
-				liege = {
-					relative_power = { who = ROOT power <= 1.5 }
+			modifier = { # AI should not mourn extra without a good reason
+				factor = 0
+				can_mourn_days_trigger = yes
+				NOR = {
+					trait = zealous
+					trait = kind
 				}
+			}
+			modifier = { # Ambitious AI should never mourn extra and handicap itself
+				factor = 0
+				can_mourn_days_trigger = yes
+				trait = ambitious
 			}
 		}
 	}
@@ -205,7 +210,10 @@ character_event = {
 		character_event = { id = soh.5703 days = 36 }
 		if = {
 			limit = { NOT = { can_mourn_days_trigger = yes } }
-			add_character_modifier = { name = unfilial_descendant duration = -1 }
+			custom_tooltip = {
+				text = MOURNING_REPUTATION_HIT_TOOLTIP
+				add_character_modifier = { name = unfilial_descendant duration = -1 }
+			}
 		}
 		if = {
 			limit = { can_mourn_full_trigger = yes }
@@ -219,7 +227,10 @@ character_event = {
 						}
 						ROOT = { is_ruler = yes }
 					}
-					character_event = { id = soh.5706 } # inform the liege that revocation can happen
+					custom_tooltip = {
+						text = MOURNING_GAINS_REVOKE_TOOLTIP
+						character_event = { id = soh.5706 } # inform the liege that revocation can happen
+					}
 				}
 				else_if = {
 					limit = {
@@ -244,89 +255,89 @@ character_event = {
 							government = chinese_vassal_government
 						}
 					}
-					character_event = { id = soh.5707 } # inform the liege that imprisonment can happen
+					custom_tooltip = {
+						text = MOURNING_GAINS_IMPRISON_TOOLTIP
+						character_event = { id = soh.5707 } # inform the liege that imprisonment can happen
+					}
 				}
 			}
 		}
 		ai_chance = {
-			factor = 4
-			modifier = {
-				factor = 256
-				can_mourn_days_trigger = yes
+			factor = 10
+			modifier = { # Characters should never give a revocation/imprisonment reason unless their personality is against mourning
+				factor = 0
+				OR = {
+					can_mourn_full_trigger = yes
+					must_mourn_strict_trigger = yes
+				}
+				NAND = {
+					OR = {
+						trait = cynical
+						trait = ambitious
+					}
+					trait = arbitrary
+				}
 			}
-			modifier = {
-				factor = 64
+			modifier = { # Characters should never give a revocation/imprisonment reason unless their rationality is very low or they are very strong
+				factor = 0
+				OR = {
+					can_mourn_full_trigger = yes
+					must_mourn_strict_trigger = yes
+				}
+				OR = {
+					ai_rationality = -50
+					liege = { relative_power = { who = ROOT power >= 1.5 } }
+				}
+			}
+			modifier = { # Characters should be hesitant to take the reputation hit unless their personality is against mourning
+				factor = 0.1
 				can_mourn_year_trigger = yes
-				trait = cynical
-			}
-			modifier = {
-				factor = 64
-				can_mourn_year_trigger = yes
-				trait = ambitious
-			}
-			modifier = {
-				factor = 256
-				can_mourn_full_trigger = yes
-				trait = cynical
-				liege = {
-					relative_power = { who = ROOT power <= 1.5 }
-				}
-			}
-			modifier = {
-				factor = 256
-				can_mourn_full_trigger = yes
-				trait = ambitious
-				liege = {
-					relative_power = { who = ROOT power <= 1.5 }
-				}
-			}
-			modifier = {
-				factor = 64
-				must_mourn_strict_trigger = yes
-				trait = cynical
-				liege = {
-					relative_power = { who = ROOT power <= 1.5 }
-				}
-			}
-			modifier = {
-				factor = 64
-				must_mourn_strict_trigger = yes
-				trait = ambitious
-				liege = {
-					relative_power = { who = ROOT power <= 1.5 }
+				NOR = {
+					trait = cynical
+					trait = ambitious
+					trait = arbitrary
 				}
 			}
 		}
 	}
 	option = { # I refuse to mourn!
 		name = EVTOPTD_SOH_5702
-		add_character_modifier = { name = unfilial_descendant duration = -1 }
-		liege = {
-			if = {
-				limit = {
-					OR = { # Liege should care about you not mourning
-						government = chinese_imperial_government
-						government = eastern_imperial_government
-						government = chinese_vassal_government
+		custom_tooltip = {
+			text = MOURNING_REPUTATION_HIT_TOOLTIP
+			add_character_modifier = { name = unfilial_descendant duration = -1 }
+		}
+		if = {
+			limit = { can_mourn_year_trigger = yes }
+			liege = {
+				if = {
+					limit = {
+						OR = { # Liege should care about you not mourning
+							government = chinese_imperial_government
+							government = eastern_imperial_government
+							government = chinese_vassal_government
+						}
+						ROOT = { is_ruler = yes }
 					}
-					ROOT = { is_ruler = yes }
-				}
-				character_event = { id = soh.5706 } # inform the liege that revocation can happen
-			}
-			else_if = {
-				limit = {
-					OR = { # Liege should care about you not mourning
-						government = chinese_imperial_government
-						government = eastern_imperial_government
-						government = chinese_vassal_government
+					custom_tooltip = {
+						text = MOURNING_GAINS_REVOKE_TOOLTIP
+						character_event = { id = soh.5706 } # inform the liege that revocation can happen
 					}
 				}
-				opinion = { modifier = opinion_unfilial_revoke who = ROOT }
+				else_if = {
+					limit = {
+						OR = { # Liege should care about you not mourning
+							government = chinese_imperial_government
+							government = eastern_imperial_government
+							government = chinese_vassal_government
+						}
+					}
+					opinion = { modifier = opinion_unfilial_revoke who = ROOT }
+				}
 			}
 		}
 		if = {
-			limit = {
-				OR = {
+			limit = { 
+				OR = { 
 					can_mourn_full_trigger = yes
 					must_mourn_strict_trigger = yes
 				}
@@ -340,36 +351,41 @@ character_event = {
 							government = chinese_vassal_government
 						}
 					}
-					character_event = { id = soh.5707 } # inform the liege that imprisonment can happen
+					custom_tooltip = {
+						text = MOURNING_GAINS_IMPRISON_TOOLTIP
+						character_event = { id = soh.5707 } # inform the liege that imprisonment can happen
+					}
 				}
 			}
 		}
 		ai_chance = {
-			factor = 1
-			modifier = {
-				factor = 1024
-				independent = yes
-				trait = cynical
-			}
-			modifier = {
-				factor = 1024
-				independent = yes
-				trait = ambitious
-			}
-			modifier = {
-				factor = 1024
-				independent = no
-				trait = cynical
-				liege = {
-					relative_power = { who = ROOT power <= 1.5 }
+			factor = 10
+			modifier = { # Characters should never give a revocation/imprisonment reason unless their personality is against mourning
+				factor = 0
+				NOT = { can_mourn_days_trigger = yes }
+				NAND = {
+					OR = {
+						trait = cynical
+						trait = ambitious
+					}
+					trait = arbitrary
 				}
 			}
-			modifier = {
-				factor = 256
-				independent = no
-				trait = ambitious
-				liege = {
-					relative_power = { who = ROOT power <= 1.5 }
+			modifier = { # Characters should never give a revocation/imprisonment reason unless their rationality is very low or they are very strong
+				factor = 0
+				NOT = { can_mourn_days_trigger = yes }
+				OR = {
+					ai_rationality = -50
+					liege = { relative_power = { who = ROOT power >= 1.5 } }
+				}
+			}
+			modifier = { # Characters should be hesitant to take the reputation hit unless their personality is against mourning
+				factor = 0.1
+				independent = yes
+				NOR = {
+					trait = cynical
+					trait = ambitious
+					trait = arbitrary
 				}
 			}
 		}
@@ -449,10 +465,6 @@ character_event = {
 		is_playable = yes
 	}
 	immediate = {
-		if = {
-			limit = { NOT = { has_character_flag = mourning_first_event } }
-			set_character_flag = mourning_first_event
-		}
 		random_list = {
 			5 = {
 				modifier = {
@@ -602,13 +614,17 @@ character_event = {
 				set_character_flag = mourning_celibacy
 				character_event = { id = soh.5764 }
 			}
-			140 = {
+			50 = {
 				modifier = {
 					factor = 0
 					NOT = { has_character_flag = mourning_first_event } # Guarantees that the first mourning event fires, for 36 day mourning
 				}
 				# Nothing happens
 			}
+		}
+		if = {
+			limit = { NOT = { has_character_flag = mourning_first_event } }
+			set_character_flag = mourning_first_event
 		}
 		repeat_event = { id = soh.5704 days = 60 random = 30 }
 	}
@@ -2084,7 +2100,7 @@ character_event = {
 						trait = lustful
 					}
 				}
-				character_trait = { id = soh.5734 }
+				character_event = { id = soh.5734 }
 			}
 			1 = {
 				modifier = {
@@ -2094,7 +2110,7 @@ character_event = {
 						trait = gluttonous
 					}
 				}
-				character_trait = { id = soh.5735 }
+				character_event = { id = soh.5735 }
 			}
 			1 = {
 				modifier = {
@@ -2104,7 +2120,7 @@ character_event = {
 						trait = greedy
 					}
 				}
-				character_trait = { id = soh.5736 }
+				character_event = { id = soh.5736 }
 			}
 			1 = {
 				modifier = {
@@ -2114,7 +2130,7 @@ character_event = {
 						trait = slothful
 					}
 				}
-				character_trait = { id = soh.5737 }
+				character_event = { id = soh.5737 }
 			}
 			1 = {
 				modifier = {
@@ -2124,7 +2140,7 @@ character_event = {
 						trait = wroth
 					}
 				}
-				character_trait = { id = soh.5738 }
+				character_event = { id = soh.5738 }
 			}
 			1 = {
 				modifier = {
@@ -2134,7 +2150,7 @@ character_event = {
 						trait = envious
 					}
 				}
-				character_trait = { id = soh.5739 }
+				character_event = { id = soh.5739 }
 			}
 			1 = {
 				modifier = {
@@ -2144,7 +2160,7 @@ character_event = {
 						trait = proud
 					}
 				}
-				character_trait = { id = soh.5740 }
+				character_event = { id = soh.5740 }
 			}
 			1 = {
 				modifier = {
@@ -2154,7 +2170,7 @@ character_event = {
 						trait = chaste
 					}
 				}
-				character_trait = { id = soh.5741 }
+				character_event = { id = soh.5741 }
 			}
 			1 = {
 				modifier = {
@@ -2164,7 +2180,7 @@ character_event = {
 						trait = temperate
 					}
 				}
-				character_trait = { id = soh.5742 }
+				character_event = { id = soh.5742 }
 			}
 			1 = {
 				modifier = {
@@ -2174,7 +2190,7 @@ character_event = {
 						trait = charitable
 					}
 				}
-				character_trait = { id = soh.5743 }
+				character_event = { id = soh.5743 }
 			}
 			1 = {
 				modifier = {
@@ -2184,7 +2200,7 @@ character_event = {
 						trait = diligent
 					}
 				}
-				character_trait = { id = soh.5744 }
+				character_event = { id = soh.5744 }
 			}
 			1 = {
 				modifier = {
@@ -2194,7 +2210,7 @@ character_event = {
 						trait = patient
 					}
 				}
-				character_trait = { id = soh.5745 }
+				character_event = { id = soh.5745 }
 			}
 			1 = {
 				modifier = {
@@ -2204,7 +2220,7 @@ character_event = {
 						trait = kind
 					}
 				}
-				character_trait = { id = soh.5746 }
+				character_event = { id = soh.5746 }
 			}
 			1 = {
 				modifier = {
@@ -2214,7 +2230,7 @@ character_event = {
 						trait = humble
 					}
 				}
-				character_trait = { id = soh.5747 }
+				character_event = { id = soh.5747 }
 			}
 			1 = {
 				modifier = {
@@ -2224,7 +2240,7 @@ character_event = {
 						trait = ambitious
 					}
 				}
-				character_trait = { id = soh.5748 }
+				character_event = { id = soh.5748 }
 			}
 			1 = {
 				modifier = {
@@ -2234,7 +2250,7 @@ character_event = {
 						trait = arbitrary
 					}
 				}
-				character_trait = { id = soh.5749 }
+				character_event = { id = soh.5749 }
 			}
 			1 = {
 				modifier = {
@@ -2244,7 +2260,7 @@ character_event = {
 						trait = brave
 					}
 				}
-				character_trait = { id = soh.5750 }
+				character_event = { id = soh.5750 }
 			}
 			1 = {
 				modifier = {
@@ -2254,7 +2270,7 @@ character_event = {
 						trait = content
 					}
 				}
-				character_trait = { id = soh.5751 }
+				character_event = { id = soh.5751 }
 			}
 			1 = {
 				modifier = {
@@ -2264,7 +2280,7 @@ character_event = {
 						trait = craven
 					}
 				}
-				character_trait = { id = soh.5752 }
+				character_event = { id = soh.5752 }
 			}
 			1 = {
 				modifier = {
@@ -2274,7 +2290,7 @@ character_event = {
 						trait = cruel
 					}
 				}
-				character_trait = { id = soh.5753 }
+				character_event = { id = soh.5753 }
 			}
 			1 = {
 				modifier = {
@@ -2284,7 +2300,7 @@ character_event = {
 						trait = cynical
 					}
 				}
-				character_trait = { id = soh.5754 }
+				character_event = { id = soh.5754 }
 			}
 			1 = {
 				modifier = {
@@ -2294,7 +2310,7 @@ character_event = {
 						trait = deceitful
 					}
 				}
-				character_trait = { id = soh.5755 }
+				character_event = { id = soh.5755 }
 			}
 			1 = {
 				modifier = {
@@ -2304,7 +2320,7 @@ character_event = {
 						trait = gregarious
 					}
 				}
-				character_trait = { id = soh.5756 }
+				character_event = { id = soh.5756 }
 			}
 			1 = {
 				modifier = {
@@ -2314,7 +2330,7 @@ character_event = {
 						trait = honest
 					}
 				}
-				character_trait = { id = soh.5757 }
+				character_event = { id = soh.5757 }
 			}
 			1 = {
 				modifier = {
@@ -2324,7 +2340,7 @@ character_event = {
 						trait = just
 					}
 				}
-				character_trait = { id = soh.5758 }
+				character_event = { id = soh.5758 }
 			}
 			1 = {
 				modifier = {
@@ -2334,7 +2350,7 @@ character_event = {
 						trait = paranoid
 					}
 				}
-				character_trait = { id = soh.5759 }
+				character_event = { id = soh.5759 }
 			}
 			1 = {
 				modifier = {
@@ -2344,7 +2360,7 @@ character_event = {
 						trait = shy
 					}
 				}
-				character_trait = { id = soh.5760 }
+				character_event = { id = soh.5760 }
 			}
 			1 = {
 				modifier = {
@@ -2354,7 +2370,7 @@ character_event = {
 						trait = stubborn
 					}
 				}
-				character_trait = { id = soh.5761 }
+				character_event = { id = soh.5761 }
 			}
 			1 = {
 				modifier = {
@@ -2364,7 +2380,7 @@ character_event = {
 						trait = trusting
 					}
 				}
-				character_trait = { id = soh.5762 }
+				character_event = { id = soh.5762 }
 			}
 			1 = {
 				modifier = {
@@ -2374,7 +2390,7 @@ character_event = {
 						trait = zealous
 					}
 				}
-				character_trait = { id = soh.5763 }
+				character_event = { id = soh.5763 }
 			}
 		}
 	}
