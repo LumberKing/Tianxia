@@ -2854,6 +2854,7 @@ character_event = {
     only_playable = yes
     
     trigger = {
+		always = no # Works weirdly; to investigate - TODO
 		is_chinese_emperor_trigger = yes
 		prisoner = no
 		NOT = {
@@ -2861,10 +2862,6 @@ character_event = {
 		}
 		is_inaccessible_trigger = no
 		is_adult = yes
-		has_game_rule = {
-			name = grace_interactions
-			value = enabled
-		}
 		#always = no # Messy
         NOT = { has_character_modifier = trade_competition_in_progress } # No new trade competition should fire while one is in progress
         #offmap_china = {
@@ -4540,7 +4537,17 @@ character_event = {
         #        has_status = china_plague
         #    }
         #}
-		can_use_grace_decisions_root_trigger = yes
+		is_close_to_china_or_along_the_silk_road_trigger = yes
+		NOT = {
+			top_liege = {
+				government = chinese_imperial_government
+			}
+		}
+		e_china = {
+			holder_scope = {
+				government = chinese_imperial_government
+			}
+		}
     }
 
 	immediate = {
@@ -4556,6 +4563,19 @@ character_event = {
 		e_china = {
 			holder_scope = {
 				save_event_target_as = chinese_emperor
+				random_realm_province = {
+					preferred_limit = {
+						can_have_chinese_imperial_only_religion_trigger = yes
+						has_chinese_or_historical_culture_for_chinese_imperial_trigger = yes
+					}
+					preferred_limit = {
+						has_chinese_or_historical_culture_for_chinese_imperial_trigger = yes
+					}
+					preferred_limit = {
+						can_have_chinese_imperial_only_religion_trigger = yes
+					}
+					save_event_target_as = home_province
+				}
 			}
     	}
 	
@@ -4567,9 +4587,19 @@ character_event = {
 					create_character = {
 						random_traits = yes
 						dynasty = actually_culture
-						religion = PREVPREV
-						culture = PREVPREV
+						religion = event_target:home_province
+						culture = event_target:home_province
 						historical = yes
+					}
+					new_character = {
+						random = {
+							chance = 50
+							culture = event_target:chinese_emperor
+						}
+						random = {
+							chance = 50
+							religion = event_target:chinese_emperor
+						}
 					}
 				}
 			}
@@ -5050,12 +5080,23 @@ character_event = {
     only_playable = yes
     
     trigger = {
+		always = no # Has some issues - TODO
         #NOT = { offmap_china = { governor = { character = ROOT } } } #makes sure it doesn't fire for the governor themselves
         NOT = { has_character_flag = received_chinese_refugee }
         #is_inaccessible_trigger = no
         #china_diplo_interaction_trigger = yes
+		is_close_to_china_or_along_the_silk_road_trigger = yes
+		NOT = {
+			top_liege = {
+				government = chinese_imperial_government
+			}
+		}
 		OR = {
-			can_use_grace_decisions_root_trigger = yes
+			e_china = {
+				holder_scope = {
+					government = chinese_imperial_government
+				}
+			}
 			AND = { # FDaTK
 				e_china = {
 					has_holder = no
@@ -6610,7 +6651,10 @@ character_event = {
     trigger = {
         any_tributary = {
             ai = no
-            is_tributary = { type = default }
+			OR = {
+				is_tributary = { type = default }
+				is_tributary = { type = chinese_peripheral_tributary }
+			}
         }
     }
 
@@ -6618,7 +6662,10 @@ character_event = {
         any_tributary = {
             limit = {
                 ai = no
-                is_tributary = { type = default }
+				OR = {
+					is_tributary = { type = default }
+					is_tributary = { type = chinese_peripheral_tributary }
+				}
             }
             character_event = { id = JD.60016 }
         }
@@ -6652,7 +6699,11 @@ character_event = { # Traveling Teacher
 	is_triggered_only = yes
 	
 	trigger = {
-		is_chinese_emperor_trigger = no
+		NOT = {
+			top_liege = {
+				government = chinese_imperial_government
+			}
+		}
 		any_realm_province = {
 			trade_route = silk_road
 		}
