@@ -7,10 +7,6 @@ namespace = soh
 
 # Partially inspired by JD logic; MUST be JD-locked
 
-# TODO: AI logic for event options
-# TODO: Opinion modifiers
-# TODO: Scripted triggers and effects
-# TODO: Localization
 # TODO: Testing
 
 
@@ -427,7 +423,7 @@ character_event = {
 			}
 		}
 		FROM = {
-			tier = county
+			tier = count
 		}
 	}
 	
@@ -804,7 +800,7 @@ character_event= {
 			else = {
 				divide_variable = {
 					which = grace
-					value = 2
+					value = 5
 				}
 				player_heir = {
 					set_character_flag = grace_character
@@ -1150,6 +1146,8 @@ letter_event = {
 	option = {
 		name = EVTOPTA_SOH_6419 # This might be useful...
 		
+		log = "[From.GetBestName] bestowed Grace on [Root.GetBestName]!"
+		
 		set_character_flag = grace_character
 		
 		if = {
@@ -1226,6 +1224,16 @@ character_event = {
 	trigger = {
 		is_chinese_emperor_trigger = yes
 		any_tributary = {
+			NOR = {
+				reverse_has_opinion_modifier = {
+					who = ROOT
+					modifier = opinion_grace_china_refused_border_adjustment_tribute
+				}
+				has_opinion_modifier = {
+					who = ROOT
+					modifier = opinion_grace_china_refused_border_adjustment_request
+				}
+			}
 			is_tributary = {
 				type = chinese_client_state
 			}
@@ -1417,12 +1425,19 @@ narrative_event = {
 	option = {
 		name = EVTOPTA_SOH_6422 # Accept the offer
 		
+		change_variable = {
+			which = grace
+			which = grace_gain
+		}
+		
+		log = "[Root.GetBestName] agreed to [FromFrom.GetBestName]'s border adjustment request!"
+		
 		event_target:border_adjustment_duchy = {
 			any_direct_de_jure_vassal_title = {
 				limit = {
 					holder_scope = {
 						top_liege = {
-							character = event_target:grace_decision_taker
+							character = ROOT
 						}
 					}
 				}
@@ -1486,15 +1501,70 @@ narrative_event = {
 		FROMFROM = {
 			letter_event = { id = soh.6423 } # Inform EoC
 		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0
+				root_hates_china_trigger = yes
+			}
+			modifier = {
+				factor = 5
+				FROMFROM = {
+					has_character_modifier = mandate_of_heaven_5
+				}
+			}
+			modifier = {
+				factor = 2
+				FROMFROM = {
+					has_character_modifier = mandate_of_heaven_4
+				}
+			}
+			modifier = {
+				factor = 0.25
+				FROMFROM = {
+					has_character_modifier = mandate_of_heaven_2
+				}
+			}
+			modifier = {
+				factor = 0.1
+				FROMFROM = {
+					has_character_modifier = mandate_of_heaven_1
+				}
+			}
+			modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			modifier = {
+				factor = 0.1
+				trait = brave
+			}
+		}
 	}
 	
 	option = {
 		name = EVTOPTB_SOH_6422 # Refuse
 		
+		log = "[Root.GetBestName] refused [FromFrom.GetBestName]'s border adjustment request!"
+		
 		prestige = 100
+		detract_grace_massive_effect = yes
 		
 		event_target:grace_decision_taker = {
 			letter_event = { id = soh.6424 } # Inform EoC
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0.1
+				trait = humble
+			}
+			modifier = {
+				factor = 0.1
+				trait = craven
+			}
 		}
 	}
 }
@@ -1523,12 +1593,17 @@ letter_event = {
 	option = {
 		name = EVTOPTA_SOH_6424 # How rude!
 		
+		opinion = {
+			who = FROM
+			modifier = opinion_grace_china_refused_border_adjustment_request
+		}
+		
 		FROM = {
 			any_realm_title = {
 				limit = {
 					OR = {
 						title = event_target:border_adjustment_duchy
-						de_jure_liege = border_adjustment_duchy
+						de_jure_liege = event_target:border_adjustment_duchy
 					}
 				}
 				add_claim = ROOT
@@ -1581,6 +1656,13 @@ character_event = {
 				AND = {
 					is_tributary = {
 						type = chinese_client_state
+					}
+					ROOT = {
+						NOR = {
+							has_character_modifier = mandate_of_heaven_3
+							has_character_modifier = mandate_of_heaven_2
+							has_character_modifier = mandate_of_heaven_1
+						}
 					}
 					any_realm_province = {
 						any_neighbor_province = {
@@ -1640,6 +1722,12 @@ character_event = {
 				AND = {
 					is_tributary = {
 						type = chinese_protectorate
+					}
+					ROOT = {
+						NOR = {
+							has_character_modifier = mandate_of_heaven_2
+							has_character_modifier = mandate_of_heaven_1
+						}
 					}
 					any_realm_province = {
 						any_neighbor_province = {
@@ -1711,6 +1799,11 @@ character_event = {
 				AND = {
 					is_tributary = {
 						type = chinese_imperial_tributary
+					}
+					ROOT = {
+						NOT = {
+							has_character_modifier = mandate_of_heaven_1
+						}
 					}
 					any_realm_province = {
 						any_neighbor_province = {
@@ -1824,6 +1917,11 @@ character_event = {
 						}
 						is_tributary = {
 							type = chinese_imperial_tributary
+						}
+					}
+					ROOT = {
+						NOT = {
+							has_character_modifier = mandate_of_heaven_1
 						}
 					}
 					any_realm_province = {
@@ -2133,6 +2231,24 @@ character_event = {
 							}
 						}
 					}
+				}
+			}
+			NOR = {
+				has_opinion_modifier = {
+					who = ROOT
+					modifier = opinion_grace_increased_tributary_tier
+				}
+				has_opinion_modifier = {
+					who = ROOT
+					modifier = opinion_grace_decreased_tributary_tier
+				}
+				reverse_has_opinion_modifier = {
+					who = ROOT
+					modifier = opinion_grace_china_refused_increase_tributary_tier
+				}
+				reverse_has_opinion_modifier = {
+					who = ROOT
+					modifier = opinion_grace_china_refused_increase_tributary_tier_offer
 				}
 			}
 		}
@@ -2709,6 +2825,24 @@ character_event = {
 						}
 					}
 				}
+				NOR = {
+					has_opinion_modifier = {
+						who = ROOT
+						modifier = opinion_grace_increased_tributary_tier
+					}
+					has_opinion_modifier = {
+						who = ROOT
+						modifier = opinion_grace_decreased_tributary_tier
+					}
+					reverse_has_opinion_modifier = {
+						who = ROOT
+						modifier = opinion_grace_china_refused_increase_tributary_tier
+					}
+					reverse_has_opinion_modifier = {
+						who = ROOT
+						modifier = opinion_grace_china_refused_increase_tributary_tier_offer
+					}
+				}
 			}
 			preferred_limit = {
 				is_tributary = {
@@ -2981,7 +3115,7 @@ narrative_event = {
 	id = soh.6427
 	is_triggered_only = yes
 	title = EVTTITLE_SOH_6427
-	desc = EVTDESC__SOH_6427
+	desc = EVTDESC_SOH_6427
 	picture = GFX_evt_chinese_bureaucrat
 	window = EventWindowOffmap
 	background = GFX_event_window_news_from_china
@@ -2999,7 +3133,9 @@ narrative_event = {
 				}
 			}
 		}
-		name = ETOPTA_SOH_6427 # Very well...
+		name = EVTOPTA_SOH_6427 # Very well...
+		
+		log = "[Root.GetBestName] agreed to [FromFrom.GetBestName]'s suggestion to increase tributary tier!"
 		
 		# If we accept, we get half of the wealth the EoC paid
 		if = {
@@ -3117,6 +3253,394 @@ narrative_event = {
 		
 		FROMFROM = {
 			letter_event = { id = soh.6428 } # Inform EoC
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0
+				root_hates_china_trigger = yes
+			}
+			modifier = {
+				factor = 5
+				FROMFROM = {
+					has_character_modifier = mandate_of_heaven_5
+				}
+			}
+			modifier = {
+				factor = 2
+				FROMFROM = {
+					has_character_modifier = mandate_of_heaven_4
+				}
+			}
+			modifier = {
+				factor = 0.25
+				FROMFROM = {
+					has_character_modifier = mandate_of_heaven_2
+				}
+			}
+			modifier = {
+				factor = 0.1
+				FROMFROM = {
+					has_character_modifier = mandate_of_heaven_1
+				}
+			}
+			modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			modifier = {
+				factor = 0.1
+				trait = brave
+			}
+			modifier = {
+				factor = 0.01
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = ROOT # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.01 # Make random distant realms unlikely to try to become higher tier tributaries
+				NOT = {
+					any_realm_province = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											is_chinese_emperor_trigger = yes
+											top_liege = {
+												OR = {
+													is_chinese_emperor_trigger = yes
+													suzerain = {
+														is_chinese_emperor_trigger = yes
+													}
+												}
+											}
+											suzerain = {
+												is_chinese_emperor_trigger = yes
+											}
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																suzerain = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+														suzerain = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	suzerain = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+															suzerain = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			# Kings and nomads are less willing to upgrade their tier
+			modifier = {
+				factor = 0.1
+				OR = {
+					tier = king
+					is_nomadic = yes
+				}
+			}
+			# Emperors will refuse to have their tier upgraded
+			modifier = {
+				factor = 0
+				tier = emperor
+				is_nomadic = no
+			}
+			# Small realms are more likely to be willing to become tributaries
+			modifier = {
+				factor = 5
+				NOT = {
+					realm_size = 10
+				}
+			}
+			# Large realms are less likely to be willing to upgrade their tier
+			modifier = {
+				factor = 0.1
+				realm_size = 50
+			}
+			# At this size, the realm is too powerful to willingly upgrade their tier
+			modifier = {
+				factor = 0
+				realm_size = 100
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 0.1
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				NOR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 0.25
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Is likely to be scared of China
+			modifier = {
+				factor = 10
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# China is less than twice as powerful
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+			}
+			# China is less than four times as powerful
+			modifier = {
+				factor = 0.25
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+			}
+			# China is more than ten times as powerful
+			modifier = {
+				factor = 5
+				NOT = {
+					e_china = {
+						holder_scope = {
+							ROOT = {
+								relative_power = {
+									who = PREV
+									power = 0.1
+								}
+							}
+						}
+					}
+				}
+			}
+			# Same culture
+			modifier = {
+				factor = 5
+				e_china = {
+					holder_scope = {
+						culture = ROOT
+					}
+				}
+			}
+			# Same culture group
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						culture_group = ROOT
+						NOT = {
+							culture = ROOT
+						}
+					}
+				}
+			}
+			# Chinese
+			modifier = {
+				factor = 2
+				culture_group = chinese_group
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 2
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = yes
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 5
+				government = chinese_vassal_government
+			}
+			# We are uncivilized
+			modifier = {
+				factor = 0.1
+				OR = {
+					is_tribal = yes
+					is_nomadic = yes
+				}
+			}
+			# We won't willingly join China if we aren't someone that thinks their bureaucracy is neat
+			modifier = {
+				factor = 0
+				is_tributary = {
+					type = chinese_client_state
+				}
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = no
+			}
+			# Would become a vassal
+			modifier = {
+				factor = 0.1
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			# Would become a Client State
+			modifier = {
+				factor = 0.25
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Would become a Protectorate
+			modifier = {
+				factor = 0.5
+				is_tributary = {
+					type = chinese_imperial_tributary
+				}
+			}
+			# I have strong neighbours and protection would be nice
+			modifier = {
+				factor = 2
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+				NOR = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+				NOR = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.1
+							}
+						}
+					}
+				}
+				NOR = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			# If someone is just too different, they should want to be free a bit more often
+			modifier = {
+				factor = 0.1
+				OR = {
+					is_nomadic = yes
+					is_tribal = yes
+				}
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = no
+			}
 		}
 	}
 	
@@ -3355,6 +3879,8 @@ narrative_event = {
 		}
 		name = EVTOPTB_SOH_6427 # I think you'll reconsider...
 		
+		log = "[Root.GetBestName] refused [FromFrom.GetBestName]'s suggestion to increase tributary tier (Grace)!"
+		
 		if = {
 			limit = {
 				is_tributary = {
@@ -3585,6 +4111,372 @@ narrative_event = {
 		
 		FROMFROM = {
 			letter_event = { id = soh.6429 } # Inform EoC
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 10
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = ROOT # If you're far from China, you should want to break free
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 10 # Make random distant realms more likely to try to break free
+				NOT = {
+					any_realm_province = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											is_chinese_emperor_trigger = yes
+											top_liege = {
+												OR = {
+													is_chinese_emperor_trigger = yes
+													suzerain = {
+														is_chinese_emperor_trigger = yes
+													}
+												}
+											}
+											suzerain = {
+												is_chinese_emperor_trigger = yes
+											}
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																suzerain = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+														suzerain = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	suzerain = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+															suzerain = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			# Kings and nomads are more likely to want to break free
+			modifier = {
+				factor = 2
+				OR = {
+					tier = king
+					is_nomadic = yes
+				}
+			}
+			# Non-nomadic emperors want to break free very frequently
+			modifier = {
+				factor = 10
+				tier = emperor
+				is_nomadic = no
+			}
+			# Small realms are more likely to be willing to become tributaries
+			modifier = {
+				factor = 0.25
+				NOT = {
+					realm_size = 10
+				}
+			}
+			# Large realms are less likely to be willing to become tributaries
+			modifier = {
+				factor = 5
+				realm_size = 50
+			}
+			# At this size, the realm is too powerful to willingly become a tributary
+			modifier = {
+				factor = 10
+				realm_size = 100
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 10
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				NOR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 5
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Is likely to be scared of China
+			modifier = {
+				factor = 0.1
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# China is less than twice as powerful
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+			}
+			# China is less than four times as powerful
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+			}
+			# China is more than ten times as powerful
+			modifier = {
+				factor = 0.1
+				NOT = {
+					e_china = {
+						holder_scope = {
+							ROOT = {
+								relative_power = {
+									who = PREV
+									power = 0.1
+								}
+							}
+						}
+					}
+				}
+			}
+			# Same culture
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						culture = ROOT
+					}
+				}
+			}
+			# Same culture group
+			modifier = {
+				factor = 0.5
+				e_china = {
+					holder_scope = {
+						culture_group = ROOT
+						NOT = {
+							culture = ROOT
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 100
+				root_hates_china_trigger = yes # Dislikes the EoC
+			}
+			# Chinese
+			modifier = {
+				factor = 0.25
+				culture_group = chinese_group
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 0.25
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = yes
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 0.25
+				government = chinese_vassal_government
+			}
+			# We are uncivilized
+			modifier = {
+				factor = 10
+				OR = {
+					is_tribal = yes
+					is_nomadic = yes
+				}
+			}
+			# We won't willingly join China if we don't have a "Chinese enough" religion
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = no
+			}
+			# Is a Client State
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			# Is a Protectorate
+			modifier = {
+				factor = 5
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Wants to break free on succession
+			modifier = {
+				factor = 2
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Controls a religion, is a holy order, or is a mercenary and thus doesn't want to be a tributary
+			modifier = {
+				factor = 100
+				OR = {
+					controls_religion = yes
+					mercenary = yes
+					holy_order = yes
+				}
+			}
+			# I have strong neighbours and protection would be nice
+			modifier = {
+				factor = 0.5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.1
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			# If someone is just too different, they should want to be free a bit more often
+			modifier = {
+				factor = 10
+				OR = {
+					is_nomadic = yes
+					is_tribal = yes
+				}
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = no
+			}
+			# If you have rather little Grace, perhaps you should stay a bit longer...
+			modifier = {
+				factor = 0.01
+				NOT = {
+					check_variable = {
+						which = grace
+						value = 1000
+					}
+				}
+			}
 		}
 	}
 	
@@ -3823,8 +4715,612 @@ narrative_event = {
 		}
 		name = EVTOPTC_SOH_6427 # You're bluffing!
 		
+		log = "[Root.GetBestName] refused [FromFrom.GetBestName]'s suggestion to increase tributary tier (no Grace)!"
+		
 		FROMFROM = {
 			letter_event = { id = soh.6430 } # Inform EoC
+		}
+		
+		if = {
+			limit = {
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			if = {
+				limit = {
+					NOT = { # If a Client State is too distant, China will be more willing to let them go
+						any_realm_province = {
+							any_neighbor_province = {
+								OR = {
+									AND = {
+										has_owner = yes
+										owner = {
+											OR = {
+												is_chinese_emperor_trigger = yes
+												top_liege = {
+													is_chinese_emperor_trigger = yes
+												}
+												is_tributary = {
+													type = chinese_client_state
+												}
+												is_tributary = {
+													type = chinese_protectorate
+												}
+												top_liege = {
+													OR = {
+														is_tributary = {
+															type = chinese_client_state
+														}
+														is_tributary = {
+															type = chinese_protectorate
+														}
+													}
+												}
+											}
+											NOR = {
+												character = ROOT
+												top_liege = {
+													character = ROOT
+												}
+											}
+										}
+									}
+									AND = {
+										is_land = no
+										any_neighbor_province = {
+											OR = {
+												AND = {
+													has_owner = yes
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																is_chinese_emperor_trigger = yes
+															}
+															is_tributary = {
+																type = chinese_client_state
+															}
+															is_tributary = {
+																type = chinese_protectorate
+															}
+															top_liege = {
+																OR = {
+																	is_tributary = {
+																		type = chinese_client_state
+																	}
+																	is_tributary = {
+																		type = chinese_protectorate
+																	}
+																}
+															}
+														}
+														NOR = {
+															character = ROOT
+															top_liege = {
+																character = ROOT
+															}
+														}
+													}
+												}
+												AND = {
+													is_land = no
+													any_neighbor_province = {
+														has_owner = yes
+														owner = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																top_liege = {
+																	is_chinese_emperor_trigger = yes
+																}
+																is_tributary = {
+																	type = chinese_client_state
+																}
+																is_tributary = {
+																	type = chinese_protectorate
+																}
+																top_liege = {
+																	OR = {
+																		is_tributary = {
+																			type = chinese_client_state
+																		}
+																		is_tributary = {
+																			type = chinese_protectorate
+																		}
+																	}
+																}
+															}
+															NOR = {
+																character = ROOT
+																top_liege = {
+																	character = ROOT
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				change_variable = {
+					which = grace
+					value = -2500
+				}
+			}
+			else = {
+				change_variable = {
+					which = grace
+					value = -5000
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			if = {
+				limit = {
+					NOT = { # If a Protectorate is too distant, China will be more willing to let them go
+						any_realm_province = {
+							any_neighbor_province = {
+								OR = {
+									AND = {
+										has_owner = yes
+										owner = {
+											OR = {
+												is_chinese_emperor_trigger = yes
+												top_liege = {
+													is_chinese_emperor_trigger = yes
+												}
+											}
+										}
+									}
+									AND = {
+										is_land = no
+										any_neighbor_province = {
+											OR = {
+												AND = {
+													has_owner = yes
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+												AND = {
+													is_land = no
+													any_neighbor_province = {
+														has_owner = yes
+														owner = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																top_liege = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				change_variable = {
+					which = grace
+					value = -1000
+				}
+			}
+			else = {
+				change_variable = {
+					which = grace
+					value = -2000
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				is_tributary = {
+					type = chinese_imperial_tributary
+				}
+			}
+			change_variable = {
+				which = grace
+				value = -500
+			}
+		}
+		else = {
+			change_variable = {
+				which = grace
+				value = -2500
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0.1
+				trait = humble
+			}
+			modifier = {
+				factor = 0.1
+				trait = craven
+			}
+			modifier = {
+				factor = 10
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = ROOT # If you're far from China, you should want to break free
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 10 # Make random distant realms more likely to try to break free
+				NOT = {
+					any_realm_province = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											is_chinese_emperor_trigger = yes
+											top_liege = {
+												OR = {
+													is_chinese_emperor_trigger = yes
+													suzerain = {
+														is_chinese_emperor_trigger = yes
+													}
+												}
+											}
+											suzerain = {
+												is_chinese_emperor_trigger = yes
+											}
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																suzerain = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+														suzerain = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	suzerain = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+															suzerain = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			# Kings and nomads are more likely to want to break free
+			modifier = {
+				factor = 2
+				OR = {
+					tier = king
+					is_nomadic = yes
+				}
+			}
+			# Non-nomadic emperors want to break free very frequently
+			modifier = {
+				factor = 10
+				tier = emperor
+				is_nomadic = no
+			}
+			# Small realms are more likely to be willing to become tributaries
+			modifier = {
+				factor = 0.25
+				NOT = {
+					realm_size = 10
+				}
+			}
+			# Large realms are less likely to be willing to become tributaries
+			modifier = {
+				factor = 5
+				realm_size = 50
+			}
+			# At this size, the realm is too powerful to willingly become a tributary
+			modifier = {
+				factor = 10
+				realm_size = 100
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 10
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				NOR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 5
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Is likely to be scared of China
+			modifier = {
+				factor = 0.1
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# China is less than twice as powerful
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+			}
+			# China is less than four times as powerful
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+			}
+			# China is more than ten times as powerful
+			modifier = {
+				factor = 0.1
+				NOT = {
+					e_china = {
+						holder_scope = {
+							ROOT = {
+								relative_power = {
+									who = PREV
+									power = 0.1
+								}
+							}
+						}
+					}
+				}
+			}
+			# Same culture
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						culture = ROOT
+					}
+				}
+			}
+			# Same culture group
+			modifier = {
+				factor = 0.5
+				e_china = {
+					holder_scope = {
+						culture_group = ROOT
+						NOT = {
+							culture = ROOT
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 100
+				root_hates_china_trigger = yes # Dislikes the EoC
+			}
+			# Chinese
+			modifier = {
+				factor = 0.25
+				culture_group = chinese_group
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 0.25
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = yes
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 0.25
+				government = chinese_vassal_government
+			}
+			# We are uncivilized
+			modifier = {
+				factor = 10
+				OR = {
+					is_tribal = yes
+					is_nomadic = yes
+				}
+			}
+			# We won't willingly join China if we don't have a "Chinese enough" religion
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = no
+			}
+			# Is a Client State
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			# Is a Protectorate
+			modifier = {
+				factor = 5
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Wants to break free on succession
+			modifier = {
+				factor = 2
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Controls a religion, is a holy order, or is a mercenary and thus doesn't want to be a tributary
+			modifier = {
+				factor = 100
+				OR = {
+					controls_religion = yes
+					mercenary = yes
+					holy_order = yes
+				}
+			}
+			# I have strong neighbours and protection would be nice
+			modifier = {
+				factor = 0.5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.1
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			# If someone is just too different, they should want to be free a bit more often
+			modifier = {
+				factor = 10
+				OR = {
+					is_nomadic = yes
+					is_tribal = yes
+				}
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = no
+			}
+			# If you have rather little Grace, perhaps you should stay a bit longer...
+			modifier = {
+				factor = 0.01
+				NOT = {
+					check_variable = {
+						which = grace
+						value = 1000
+					}
+				}
+			}
 		}
 	}
 }
@@ -3852,6 +5348,11 @@ letter_event = {
 	
 	option = {
 		name = EVTOPTA_SOH_6429 # I see...
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_grace_china_refused_increase_tributary_tier_offer
+		}
 	}
 }
 
@@ -3866,6 +5367,8 @@ letter_event = {
 	option = {
 		name = EVTOPTA_SOH_6430 # Then war it is!
 		
+		log = "China is forcing [From.GetBestName] to increase tributary tier!"
+		
 		unsafe_war = {
 			target = FROM
 			casus_belli = chinese_tributary_tier_war
@@ -3873,12 +5376,14 @@ letter_event = {
 		
 		opinion = {
 			who = FROM
-			modifier = opinion_tributary_refused_increase_tributary_tier
+			modifier = opinion_grace_china_refused_increase_tributary_tier_offer
 		}
 	}
 	
 	option = {
 		name = EVTOPTB_SOH_6430 # I see...
+		
+		log = "China dares not force [From.GetBestName] to increase tributary tier!"
 		
 		hidden_tooltip = {
 			if = {
@@ -3930,7 +5435,7 @@ letter_event = {
 		
 		opinion = {
 			who = FROM
-			modifier = opinion_tributary_refused_increase_tributary_tier
+			modifier = opinion_grace_china_refused_increase_tributary_tier_offer
 		}
 		
 		FROM = {
@@ -3968,9 +5473,399 @@ narrative_event = {
 	option = {
 		name = EVTOPTA_SOH_6432 # My current relationship with China is fine
 		
+		log = "[Root.GetBestName] did not lower tributary tier for free!"
+		
 		e_china = {
 			holder_scope = {
 				letter_event = { id = soh.6433 } # Inform China that the tributary lowered its tier
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0
+				root_hates_china_trigger = yes
+			}
+			modifier = {
+				factor = 5
+				FROMFROM = {
+					has_character_modifier = mandate_of_heaven_5
+				}
+			}
+			modifier = {
+				factor = 2
+				FROMFROM = {
+					has_character_modifier = mandate_of_heaven_4
+				}
+			}
+			modifier = {
+				factor = 0.25
+				FROMFROM = {
+					has_character_modifier = mandate_of_heaven_2
+				}
+			}
+			modifier = {
+				factor = 0.1
+				FROMFROM = {
+					has_character_modifier = mandate_of_heaven_1
+				}
+			}
+			modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			modifier = {
+				factor = 0.1
+				trait = brave
+			}
+			modifier = {
+				factor = 0.01
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = ROOT # If you're far from China, don't bother
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.01 # Make random distant realms unlikely to try to become higher tier tributaries
+				NOT = {
+					any_realm_province = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											is_chinese_emperor_trigger = yes
+											top_liege = {
+												OR = {
+													is_chinese_emperor_trigger = yes
+													suzerain = {
+														is_chinese_emperor_trigger = yes
+													}
+												}
+											}
+											suzerain = {
+												is_chinese_emperor_trigger = yes
+											}
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																suzerain = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+														suzerain = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	suzerain = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+															suzerain = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			# Kings and nomads are less willing to upgrade their tier
+			modifier = {
+				factor = 0.1
+				OR = {
+					tier = king
+					is_nomadic = yes
+				}
+			}
+			# Emperors will refuse to have their tier upgraded
+			modifier = {
+				factor = 0
+				tier = emperor
+				is_nomadic = no
+			}
+			# Small realms are more likely to be willing to become tributaries
+			modifier = {
+				factor = 5
+				NOT = {
+					realm_size = 10
+				}
+			}
+			# Large realms are less likely to be willing to upgrade their tier
+			modifier = {
+				factor = 0.1
+				realm_size = 50
+			}
+			# At this size, the realm is too powerful to willingly upgrade their tier
+			modifier = {
+				factor = 0
+				realm_size = 100
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 0.1
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				NOR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 0.25
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Is likely to be scared of China
+			modifier = {
+				factor = 10
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# China is less than twice as powerful
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+			}
+			# China is less than four times as powerful
+			modifier = {
+				factor = 0.25
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+			}
+			# China is more than ten times as powerful
+			modifier = {
+				factor = 5
+				NOT = {
+					e_china = {
+						holder_scope = {
+							ROOT = {
+								relative_power = {
+									who = PREV
+									power = 0.1
+								}
+							}
+						}
+					}
+				}
+			}
+			# Same culture
+			modifier = {
+				factor = 5
+				e_china = {
+					holder_scope = {
+						culture = ROOT
+					}
+				}
+			}
+			# Same culture group
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						culture_group = ROOT
+						NOT = {
+							culture = ROOT
+						}
+					}
+				}
+			}
+			# Chinese
+			modifier = {
+				factor = 2
+				culture_group = chinese_group
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 2
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = yes
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 5
+				government = chinese_vassal_government
+			}
+			# We are uncivilized
+			modifier = {
+				factor = 0.1
+				OR = {
+					is_tribal = yes
+					is_nomadic = yes
+				}
+			}
+			# We won't willingly join China if we aren't someone that thinks their bureaucracy is neat
+			modifier = {
+				factor = 0
+				is_tributary = {
+					type = chinese_client_state
+				}
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = no
+			}
+			# Would become a vassal
+			modifier = {
+				factor = 0.1
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			# Would become a Client State
+			modifier = {
+				factor = 0.25
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Would become a Protectorate
+			modifier = {
+				factor = 0.5
+				is_tributary = {
+					type = chinese_imperial_tributary
+				}
+			}
+			# I have strong neighbours and protection would be nice
+			modifier = {
+				factor = 2
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+				NOR = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+				NOR = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.1
+							}
+						}
+					}
+				}
+				NOR = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+					is_tributary = {
+						type = chinese_protectorate
+					}
+				}
+			}
+			# If someone is just too different, they should want to be free a bit more often
+			modifier = {
+				factor = 0.1
+				OR = {
+					is_nomadic = yes
+					is_tribal = yes
+				}
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = no
 			}
 		}
 	}
@@ -3978,13 +5873,388 @@ narrative_event = {
 	option = {
 		name = EVTOPTB_SOH_6432 # It is time to re-define our relationship!
 		
-		log = "GRACE SYSTEM: [Root.GetTitledName] opted to reduce their tributary tier!"
+		log = "[Root.GetBestName] lowered tributary tier for free!"
 		
 		decrease_tributary_tier_or_release_effect = yes
 		
 		e_china = {
 			holder_scope = {
 				letter_event = { id = soh.6434 } # Inform China that the tributary lowered its tier
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0.1
+				trait = humble
+			}
+			modifier = {
+				factor = 0.1
+				trait = craven
+			}
+			
+			modifier = {
+				factor = 10
+				NOT = {
+					e_china = {
+						holder_scope = {
+							is_within_diplo_range = ROOT # If you're far from China, you should want to break free
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 10 # Make random distant realms more likely to try to break free
+				NOT = {
+					any_realm_province = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											is_chinese_emperor_trigger = yes
+											top_liege = {
+												OR = {
+													is_chinese_emperor_trigger = yes
+													suzerain = {
+														is_chinese_emperor_trigger = yes
+													}
+												}
+											}
+											suzerain = {
+												is_chinese_emperor_trigger = yes
+											}
+										}
+									}
+								}
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														is_chinese_emperor_trigger = yes
+														top_liege = {
+															OR = {
+																is_chinese_emperor_trigger = yes
+																suzerain = {
+																	is_chinese_emperor_trigger = yes
+																}
+															}
+														}
+														suzerain = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															is_chinese_emperor_trigger = yes
+															top_liege = {
+																OR = {
+																	is_chinese_emperor_trigger = yes
+																	suzerain = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+															suzerain = {
+																is_chinese_emperor_trigger = yes
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			# Kings and nomads are more likely to want to break free
+			modifier = {
+				factor = 2
+				OR = {
+					tier = king
+					is_nomadic = yes
+				}
+			}
+			# Non-nomadic emperors want to break free very frequently
+			modifier = {
+				factor = 10
+				tier = emperor
+				is_nomadic = no
+			}
+			# Small realms are more likely to be willing to become tributaries
+			modifier = {
+				factor = 0.25
+				NOT = {
+					realm_size = 10
+				}
+			}
+			# Large realms are less likely to be willing to become tributaries
+			modifier = {
+				factor = 5
+				realm_size = 50
+			}
+			# At this size, the realm is too powerful to willingly become a tributary
+			modifier = {
+				factor = 10
+				realm_size = 100
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 10
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				NOR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Wants to be independent due to traits
+			modifier = {
+				factor = 5
+				OR = {
+					trait = proud
+					trait = ambitious
+					trait = brave
+				}
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# Is likely to be scared of China
+			modifier = {
+				factor = 0.1
+				OR = {
+					trait = humble
+					trait = content
+					trait = craven
+				}
+			}
+			# China is less than twice as powerful
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+			}
+			# China is less than four times as powerful
+			modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+			}
+			# China is more than ten times as powerful
+			modifier = {
+				factor = 0.1
+				NOT = {
+					e_china = {
+						holder_scope = {
+							ROOT = {
+								relative_power = {
+									who = PREV
+									power = 0.1
+								}
+							}
+						}
+					}
+				}
+			}
+			# Same culture
+			modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						culture = ROOT
+					}
+				}
+			}
+			# Same culture group
+			modifier = {
+				factor = 0.5
+				e_china = {
+					holder_scope = {
+						culture_group = ROOT
+						NOT = {
+							culture = ROOT
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 100
+				root_hates_china_trigger = yes # Dislikes the EoC
+			}
+			# Chinese
+			modifier = {
+				factor = 0.25
+				culture_group = chinese_group
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 0.25
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = yes
+			}
+			# Is "Chinese enough"
+			modifier = {
+				factor = 0.25
+				government = chinese_vassal_government
+			}
+			# We are uncivilized
+			modifier = {
+				factor = 10
+				OR = {
+					is_tribal = yes
+					is_nomadic = yes
+				}
+			}
+			# We won't willingly join China if we don't have a "Chinese enough" religion
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = no
+			}
+			# Is a Client State
+			modifier = {
+				factor = 10
+				is_tributary = {
+					type = chinese_client_state
+				}
+			}
+			# Is a Protectorate
+			modifier = {
+				factor = 5
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Wants to break free on succession
+			modifier = {
+				factor = 2
+				is_tributary = {
+					type = chinese_protectorate
+				}
+			}
+			# Controls a religion, is a holy order, or is a mercenary and thus doesn't want to be a tributary
+			modifier = {
+				factor = 100
+				OR = {
+					controls_religion = yes
+					mercenary = yes
+					holy_order = yes
+				}
+			}
+			# I have strong neighbours and protection would be nice
+			modifier = {
+				factor = 0.5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.5
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.25
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			modifier = {
+				factor = 0.1
+				any_neighbor_independent_ruler = {
+					is_china_or_defended_chinese_tributary_trigger = no
+					NOT = {
+						ROOT = {
+							relative_power = {
+								who = PREV
+								power = 0.1
+							}
+						}
+					}
+				}
+				NOT = {
+					is_tributary = {
+						type = chinese_client_state
+					}
+				}
+			}
+			# If someone is just too different, they should want to be free a bit more often
+			modifier = {
+				factor = 10
+				OR = {
+					is_nomadic = yes
+					is_tribal = yes
+				}
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = no
+			}
+			# If you have rather little Grace, perhaps you should stay a bit longer...
+			modifier = {
+				factor = 0.01
+				NOT = {
+					check_variable = {
+						which = grace
+						value = 1000
+					}
+				}
 			}
 		}
 	}
@@ -4013,5 +6283,10 @@ letter_event = {
 	
 	option = {
 		name = EVTOPTA_SOH_6434 # How ungrateful!
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_grace_decreased_tributary_tier
+		}
 	}
 }
