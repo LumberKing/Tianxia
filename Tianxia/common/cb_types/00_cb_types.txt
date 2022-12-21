@@ -14395,15 +14395,15 @@ peasant_revolt = {
 							holding_type = castle
 						}
 					}
-				}
-				any_demesne_title = {
-					limit = {
-						tier = baron
-						is_titular = yes
+					any_demesne_title = {
+						limit = {
+							tier = baron
+							is_titular = yes
+						}
+						unsafe_destroy_landed_title = THIS
 					}
-					unsafe_destroy_landed_title = THIS
+					make_me_feudal_effect = yes # Fix stupid MRs!
 				}
-				make_me_feudal_effect = yes # Fix stupid MRs!
 			}
 		}
 		ROOT = { set_defacto_liege = ROOT }
@@ -14621,15 +14621,15 @@ heretic_revolt = {
 							holding_type = castle
 						}
 					}
-				}
-				any_demesne_title = {
-					limit = {
-						tier = baron
-						is_titular = yes
+					any_demesne_title = {
+						limit = {
+							tier = baron
+							is_titular = yes
+						}
+						unsafe_destroy_landed_title = THIS
 					}
-					unsafe_destroy_landed_title = THIS
+					make_me_feudal_effect = yes # Fix stupid MRs!
 				}
-				make_me_feudal_effect = yes # Fix stupid MRs!
 			}
 		}
 
@@ -14843,15 +14843,15 @@ religious_revolt = {
 							holding_type = castle
 						}
 					}
-				}
-				any_demesne_title = {
-					limit = {
-						tier = baron
-						is_titular = yes
+					any_demesne_title = {
+						limit = {
+							tier = baron
+							is_titular = yes
+						}
+						unsafe_destroy_landed_title = THIS
 					}
-					unsafe_destroy_landed_title = THIS
+					make_me_feudal_effect = yes # Fix stupid MRs!
 				}
-				make_me_feudal_effect = yes # Fix stupid MRs!
 			}
 		}
 
@@ -15069,15 +15069,15 @@ liberation_revolt = {
 							holding_type = castle
 						}
 					}
-				}
-				any_demesne_title = {
-					limit = {
-						tier = baron
-						is_titular = yes
+					any_demesne_title = {
+						limit = {
+							tier = baron
+							is_titular = yes
+						}
+						unsafe_destroy_landed_title = THIS
 					}
-					unsafe_destroy_landed_title = THIS
+					make_me_feudal_effect = yes # Fix stupid MRs!
 				}
-				make_me_feudal_effect = yes # Fix stupid MRs!
 			}
 		}
 
@@ -15931,6 +15931,160 @@ kingdom_adventure = { # Used mainly for Muslims adventuring into India
 			check_if_reconquista_finished_effect = yes
 			FROM = {
 				landless_pope_effect = yes
+			}
+		}
+		ROOT = {
+			if = {
+				limit = {
+					has_character_flag = is_child_of_destiny
+					NOT = {
+						has_character_flag = child_of_destiny_first_invasion
+					}
+				}
+				set_character_flag = child_of_destiny_first_invasion
+				if = {
+					limit = {
+						independent = yes
+						can_have_chinese_imperial_trigger = yes
+						is_adult = yes
+						prisoner = no
+						NOT = { trait = incapable }
+						has_regent = no # Can't do this while having a regent
+						is_tributary = no
+						# Cannot be the heir to China
+						e_china = {
+							holder_scope = {
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+						}
+						# Cannot do this if our dynasty rules China
+						e_china = {
+							holder_scope = {
+								NOT = {
+									dynasty = ROOT
+								}
+							}
+						}
+						NOT = {
+							has_character_modifier = peace_deal_with_china # If you have a Chinese Peace Deal, you need to break it or wait for it to expire
+						}
+					}
+					custom_tooltip = {
+						text = child_of_destiny_becomes_ci
+						give_random_pretender_empire_effect = yes
+						primary_title = { # DO NOT ADD BACK THE CUSTOM TITLE STUFF VANILLA USES!
+							set_title_flag = pretender_chinese_empire
+							if = {
+								limit = {
+									NOT = {
+										primary_title = {
+											has_law = chinese_succession
+										}
+									}
+								}
+								add_law = {
+									law = succ_primogeniture
+									cooldown = no
+									opinion_effect = no
+								}
+							}
+							if = {
+								limit = {
+									has_dlc = "Conclave"
+								}
+								add_law = {
+									law = ze_administration_laws_2
+									cooldown = no
+									opinion_effect = no
+								}
+							}
+							else = {
+								add_law = {
+									law = imperial_administration
+									cooldown = no
+									opinion_effect = no
+								}
+							}
+							if = {
+								limit = {
+									has_dlc = "Charlemagne"
+								}
+								add_law = {
+									law = vice_royalty_2
+									cooldown = no
+									opinion_effect = no
+								}
+							}
+						}
+						any_demesne_title = {
+							limit = { 
+								tier = EMPEROR
+								NOT = { has_title_flag = pretender_chinese_empire }
+							}
+							unsafe_destroy_landed_title = THIS
+						}
+						set_government_type = chinese_imperial_government
+						custom_tooltip = { text = adopt_chinese_imperialism_gov_tt }
+						# DO NOT ADD BACK TEMPLE NAMES; THEY'RE GRANTED ON DEATH!
+						if = {
+							limit = {
+								e_china = {
+									holder_scope = {
+										is_chinese_emperor_trigger = yes
+									}
+								}
+							}
+							if = { # If we have positive Grace, zero it out!
+								limit = {
+									check_variable = {
+										which = grace
+										value = 1
+									}
+								}
+								set_variable = {
+									which = grace
+									value = 0
+								}
+							}
+							detract_grace_super_huge_effect = yes # China is VERY upset with you for doing this!
+							detract_grace_super_huge_effect = yes # China is VERY upset with you for doing this!
+							hidden_tooltip = {
+								e_china = {
+									holder_scope = {
+										mandate_penalty_large_effect = yes
+									}
+								}
+							}
+						}
+					
+						# Claim China
+						if = {
+							limit = {
+								has_artifact = heirloom_seal_of_the_realm
+							}
+							e_china = {
+								add_pressed_claim = PREV
+							}
+						}
+						else = {
+							e_china = {
+								add_weak_pressed_claim = PREV
+							}
+						}
+						if = {
+							limit = {
+								has_character_modifier = chinese_imperial_trade_contract
+							}
+							remove_character_modifier = chinese_imperial_trade_contract
+						}
+						narrative_event = { id = soh.5505 } # Naming the pretender empire
+					}
+					}
+				}
 			}
 		}
 	}
@@ -17234,6 +17388,7 @@ pagan_county_conquest = {
 					NOR = {
 						can_have_any_japanese_government_trigger = yes
 						can_have_confucian_bureaucracy_and_eastern_imperial_only_religion_trigger = yes
+						can_have_chinese_imperial_only_religion_trigger = yes
 					}
 				}
 				FROM = {
