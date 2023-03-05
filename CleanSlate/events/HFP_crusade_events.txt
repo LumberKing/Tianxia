@@ -1,0 +1,6317 @@
+namespace = HFP
+
+# Written by Joachim
+# HFP.41000-HFP.41999
+
+## Official Crusade Recipient
+# Set Official Recipient
+character_event = {
+	id = HFP.41000
+
+	is_triggered_only = yes # on_crusade_preparation_starts, on_crusade_target_changes
+	hide_window = yes
+
+	religion_group = christian
+
+	trigger = {
+		uses_new_crusade = yes
+
+		OR = {
+			is_preparing_crusade = yes
+
+			any_war = {
+				using_cb = new_crusade
+			}
+		}
+
+		trigger_if = {
+			limit = {
+				has_global_flag = 4th_crusade_official
+
+				official_crusade_recipient = {
+					has_character_flag = fourth_crusade_recipient
+					is_dying = no
+				}
+
+				crusade_target_title = {
+					title = k_thrace
+				}
+			}
+
+			official_crusade_recipient = {
+				OR = {
+					has_landed_title = e_byzantium
+					has_landed_title = k_thrace
+				}
+			}
+		}
+	}
+
+	immediate = {
+		crusade_target_title = {
+			save_event_target_as = current_crusade_target_title
+		}
+
+		official_crusade_recipient = {
+			save_event_target_as = old_crusade_recipient
+		}
+
+		# There is a King fitting of the title
+		if = {
+			limit = {
+				crusade_target_title = {
+					holder_scope = {
+						religion = ROOT
+						NOT = { trait = excommunicated }
+						is_incapable = no
+						is_dying = no
+					}
+				}
+			}
+
+			crusade_target_title = {
+				holder_scope = {
+					save_event_target_as = new_crusade_recipient
+					set_official_crusade_recipient = THIS
+				}
+			}
+		}
+
+		# There is an heir to the King fitting the title
+		else_if = {
+			limit = {
+				crusade_target_title = {
+					holder_scope = {
+						is_dying = yes
+						religion = ROOT
+						is_incapable = no
+						NOT = { trait = excommunicated }
+
+						current_heir = {
+							any_heir_title = {
+								title = PREVPREVPREV
+							}
+						}
+					}
+				}
+			}
+
+			crusade_target_title = {
+				holder_scope = {
+					current_heir = {
+						save_event_target_as = new_crusade_recipient
+						set_official_crusade_recipient = THIS
+					}
+				}
+			}
+		}
+
+		# There is a Catholic/Fraticelli Claimant the Pope approves of
+		else_if = {
+			limit = {
+				crusade_target_title = {
+					any_claimant = {
+						religion = ROOT
+						is_incapable = no
+						is_dying = no
+						NOT = { trait = excommunicated }
+
+						reverse_opinion = {
+							who = PREV
+							value >= 0
+						}
+					}
+				}
+			}
+
+			random_character = {
+				limit = {
+					has_claim = crusade_target_title
+					religion = ROOT
+					is_alive = yes
+					is_dying = no
+					NOT = { trait = excommunicated }
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 0
+					}
+				}
+
+				preferred_limit = {
+					is_female = no
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 90
+					}
+				}
+
+				preferred_limit = {
+					is_female = no
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 75
+					}
+				}
+
+				preferred_limit = {
+					is_female = no
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 50
+					}
+				}
+
+				preferred_limit = {
+					is_female = no
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 25
+					}
+				}
+
+				preferred_limit = {
+					is_female = no
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 90
+					}
+				}
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 75
+					}
+				}
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 50
+					}
+				}
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 25
+					}
+				}
+
+				save_event_target_as = new_crusade_recipient
+				set_official_crusade_recipient = THIS
+			}
+		}
+
+		else = {
+			set_official_crusade_recipient = none
+
+			any_crusade_participant = {
+				limit = {
+					NOT = { has_character_flag = crusade_selfish_stance }
+					holy_order = no
+				}
+
+				clr_character_flag = crusade_papal_stance
+				set_character_flag = crusade_beneficiary_stance
+
+				if = {
+					limit = {
+						any_owned_bloodline = {
+							has_bloodline_flag = grand_crusader_bloodline
+							bloodline_is_active_for = PREV
+						}
+					}
+
+					set_crusade_pot_multiplier = 1.2
+				}
+				else = {
+					set_crusade_pot_multiplier = 1
+				}
+			}
+		}
+
+		# Sending out letters to the Crusaders
+		if = {
+			limit = {
+				event_target:old_crusade_recipient = { always = yes }
+			}
+
+			if = {
+				limit = {
+					event_target:new_crusade_recipient = {
+						NOT = { character = event_target:old_crusade_recipient }
+					}
+				}
+
+				any_crusade_participant = {
+					letter_event = { id = HFP.41120 }
+				}
+			}
+			else_if = {
+				limit = {
+					NOT = {
+						event_target:new_crusade_recipient = { always = yes }
+					}
+				}
+
+				any_crusade_participant = {
+					letter_event = { id = HFP.41121 }
+				}
+			}
+		}
+	}
+}
+
+# Checks if Crusade Recipient is viable religion
+character_event = {
+	id = HFP.41001
+
+	is_triggered_only = yes # on_character_convert_religion
+	hide_window = yes
+
+	trigger = {
+		OR = {
+			catholic = {
+				official_crusade_recipient = {
+					character = ROOT
+					NOT = { religion = catholic }
+				}
+			}
+
+			fraticelli = {
+				official_crusade_recipient = {
+					character = ROOT
+					NOT = { religion = fraticelli }
+				}
+			}
+		}
+
+		NOT = { has_character_flag = fourth_crusade_recipient }
+	}
+
+	immediate = {
+		trigger_switch = {
+			on_trigger = religion
+
+			catholic = { k_papacy = { holder_scope = { character_event = { id = HFP.41000 days = 1 } } } }
+			fraticelli = { d_fraticelli = { holder_scope = { character_event = { id = HFP.41000 days = 1 } } } }
+		}
+	}
+}
+
+# Change Official Crusade Recipient if the current recipient dies
+character_event = {
+	id = HFP.41002
+
+	is_triggered_only = yes # on_death
+	hide_window = yes
+
+	trigger = {
+		OR = {
+			catholic = {
+				official_crusade_recipient = {
+					character = ROOT
+				}
+			}
+
+			fraticelli = {
+				official_crusade_recipient = {
+					character = ROOT
+				}
+			}
+
+			has_character_flag = fourth_crusade_recipient
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { has_character_flag = fourth_crusade_recipient }
+
+			catholic = {
+				set_official_crusade_recipient = none
+			}
+
+			fraticelli = {
+				set_official_crusade_recipient = none
+			}
+		}
+
+		trigger_switch = {
+			on_trigger = religion
+			catholic = { k_papacy = { holder_scope = { character_event = { id = HFP.41000 } } } }
+			fraticelli = { d_fraticelli = { holder_scope = { character_event = { id = HFP.41000 } } } }
+		}
+	}
+}
+
+## Crusade Prep Announcement Events
+# Crusade preparation pre-Announcement event
+character_event = {
+	id = HFP.41003
+
+	is_triggered_only = yes # on_crusade_preparation_starts
+	hide_window = yes
+
+	trigger = {
+		uses_new_crusade = yes
+
+		OR = {
+			religion = catholic
+			religion = fraticelli
+		}
+	}
+
+	immediate = {
+		crusade_target_title = {
+			save_event_target_as = crusade_title
+		}
+
+		crusade_target_char = {
+			save_event_target_as = crusade_character
+		}
+
+		any_player = {
+			limit = { religion = ROOT }
+			narrative_event = { id = HFP.41004 }
+		}
+
+		narrative_event = { id = 200 } # Announce for everyone else
+	}
+}
+
+# Crusade preparation Announcement event for players
+narrative_event = {
+	id = HFP.41004
+	title = EVTTITLE_HFP_41004
+	desc = EVTDESC_HFP_41004
+	picture = GFX_evt_knight_kneeling
+	border = GFX_event_narrative_frame_religion
+
+	is_triggered_only = yes
+
+	immediate = {
+		sound_effect = crusade_view_ambience
+	}
+
+	option = {
+		name = EVTOPTB_HFP_41004
+
+		trigger = {
+			rightful_religious_head_scope = {
+				character = FROM
+				NOT = { war_with = ROOT }
+			}
+
+			is_incapable = no
+			check_if_alternate_crusades_trigger = yes
+		}
+
+		pledge_crusade_participation = yes
+
+		if = {
+			limit = { trait = excommunicated }
+
+			letter_event = {
+				id = HFP.41057
+				days = 3
+			}
+		}
+
+		piety = 100
+
+		hidden_effect = {
+			add_character_modifier = {
+				name = recently_pledged_to_crusade_cooldown
+				days = 45
+				hidden = yes
+			}
+
+			trigger_switch = {
+				on_trigger = real_tier
+
+				EMPEROR = { add_to_crusade_prestige_pot = 4000 add_to_crusade_piety_pot = 1000 }
+				KING    = { add_to_crusade_prestige_pot = 2000 add_to_crusade_piety_pot =  600 }
+				DUKE    = { add_to_crusade_prestige_pot = 1000 add_to_crusade_piety_pot =  400 }
+				COUNT   = { add_to_crusade_prestige_pot =  500 add_to_crusade_piety_pot =  200 }
+				BARON   = { add_to_crusade_prestige_pot =  250 add_to_crusade_piety_pot =  200 }
+			}
+
+			random = {
+				chance = 50
+				add_to_crusade_artifact_pot = 1
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HFP_41004
+
+		trigger = { check_if_alternate_crusades_trigger = yes }
+
+		custom_tooltip = { text = EVTOPTA_HFP_41004_TT }
+	}
+
+	option = {
+		name = EVTOPTC_HFP_41004
+
+		trigger = { check_if_alternate_crusades_trigger = no }
+	}
+}
+
+## Pledge and Beneficiary Events
+# Pledge preperation start event - AI only
+character_event = {
+	id = HFP.41005
+
+	is_triggered_only = yes # on_crusade_preparation_starts
+	hide_window = yes
+
+	trigger = {
+		uses_new_crusade = yes
+		holy_order = no
+	}
+
+	immediate = {
+		crusade_target_title = {
+			empire = {
+				save_event_target_as = crusade_target_empire_liege
+			}
+		}
+
+		any_playable_ruler = {
+			limit = {
+				religion = ROOT
+
+				trigger_if = {
+					limit = { independent = no }
+					higher_real_tier_than = COUNT
+				}
+
+				trigger_if = {
+					limit = { holy_order = no }
+					is_landed = yes
+				}
+
+				rightful_religious_head_scope = {
+					character = ROOT
+					NOT = { war_with = PREV }
+				}
+
+				is_adult = yes
+				check_if_alternate_crusades_trigger = yes
+				mercenary = no
+				is_within_diplo_range = ROOT
+			}
+
+			random = {
+				chance = 20
+
+				mult_modifier = {
+					factor = 1.5
+					trait = zealous
+				}
+
+				mult_modifier = {
+					factor = 1.5
+					trait = holy_warrior
+				}
+
+				mult_modifier = {
+					factor = 1.25
+					ai_zeal >= 0
+				}
+
+				mult_modifier = {
+					factor = 1.5
+					ai_zeal >= 10
+				}
+
+				mult_modifier = {
+					factor = 1.5
+					ai_zeal >= 20
+				}
+
+				mult_modifier = {
+					factor = 1.5
+					ai_zeal >= 30
+				}
+
+				mult_modifier = {
+					factor = 1.5
+					ai_zeal >= 40
+				}
+
+				mult_modifier = {
+					factor = 0.1
+					trait = cynical
+				}
+
+				mult_modifier = {
+					factor = 0.2
+					is_patrician = yes
+				}
+
+				mult_modifier = {
+					factor = 0.1
+					real_tier = COUNT
+				}
+
+				mult_modifier = {
+					factor = 0.3
+					real_tier = DUKE
+				}
+
+				mult_modifier = {
+					factor = 1.5
+					real_tier = EMPEROR
+				}
+
+				mult_modifier = {
+					factor = 0.5
+					war = yes
+				}
+
+				mult_modifier = {
+					factor = 100
+					holy_order = yes
+				}
+
+				mult_modifier = {
+					factor = 4
+					de_jure_liege = event_target:crusade_target_empire_liege
+				}
+
+				character_event = {
+					id = HFP.41007 # Pledge and select beneficiary
+					days = 5
+					random = 15
+				}
+			}
+		}
+	}
+}
+
+# Pledge monthly event - AI only
+# ROOT is religious head
+character_event = {
+	id = HFP.41006
+
+	is_triggered_only = yes # on_crusade_monthly
+	hide_window = yes
+
+	immediate = {
+		if = {
+			limit = {
+				is_preparing_crusade = yes
+				crusade_preparation_strength < 0.75
+			}
+
+			while = {
+				count = 2
+
+				random_playable_ruler = {
+					limit = {
+						rightful_religious_head = ROOT
+						higher_real_tier_than = BARON
+						is_landed = yes
+						is_adult = yes
+						ai_zeal >= 0
+						is_within_diplo_range = ROOT
+						has_pledged_crusade_participation = no
+						check_if_alternate_crusades_trigger = yes
+						holy_order = no
+						mercenary = no
+						ai = yes
+
+						NOR = {
+							character = ROOT
+							war_with = ROOT
+						}
+					}
+
+					preferred_limit = {
+						trigger_if = {
+							limit = { real_tier = EMPEROR }
+							ai_zeal >= 25
+						}
+						trigger_else_if = {
+							limit = { real_tier = KING }
+							ai_zeal >= 40
+						}
+						trigger_else = {
+							real_tier = DUKE
+							ai_zeal >= 55
+						}
+					}
+
+					preferred_limit = {
+						trigger_if = {
+							limit = { real_tier = EMPEROR }
+							ai_zeal >= 20
+						}
+						trigger_else_if = {
+							limit = { real_tier = KING }
+							ai_zeal >= 35
+						}
+						trigger_else = {
+							real_tier = DUKE
+							ai_zeal >= 50
+						}
+					}
+
+					preferred_limit = {
+						trigger_if = {
+							limit = { real_tier = KING }
+							ai_zeal >= 30
+						}
+						trigger_else = {
+							real_tier = DUKE
+							ai_zeal >= 45
+						}
+					}
+
+					preferred_limit = {
+						trigger_if = {
+							limit = { real_tier = KING }
+							ai_zeal >= 25
+						}
+						trigger_else = {
+							real_tier = DUKE
+							ai_zeal >= 40
+						}
+					}
+
+					preferred_limit = {
+						trigger_if = {
+							limit = { real_tier = KING }
+							ai_zeal >= 20
+						}
+						trigger_else = {
+							real_tier = DUKE
+							ai_zeal >= 35
+						}
+					}
+					preferred_limit = {
+						trigger_if = {
+							limit = { real_tier = KING }
+							ai_zeal >= 15
+						}
+						trigger_else = {
+							real_tier = DUKE
+							ai_zeal >= 30
+						}
+					}
+					preferred_limit = {
+						trigger_if = {
+							limit = { real_tier = KING }
+							ai_zeal >= 10
+						}
+						trigger_else = {
+							real_tier = DUKE
+							ai_zeal >= 25
+						}
+					}
+
+					preferred_limit = {
+						real_tier = DUKE
+						ai_zeal >= 20
+					}
+
+					preferred_limit = {
+						real_tier = DUKE
+						ai_zeal >= 15
+					}
+
+					preferred_limit = {
+						ai_zeal >= 10
+					}
+
+					preferred_limit = {
+						ai_zeal >= 5
+					}
+
+					character_event = {
+						id = HFP.41007
+						days = 5
+						random = 15
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				crusade_preparation_strength < 1
+				is_preparing_crusade = yes
+			}
+
+			random_playable_ruler = {
+				limit = {
+					rightful_religious_head = ROOT
+					higher_real_tier_than = BARON
+					is_landed = yes
+					is_adult = yes
+					ai_zeal >= 0
+					is_within_diplo_range = ROOT
+					has_pledged_crusade_participation = no
+				#	check_if_alternate_crusades_trigger = yes
+					holy_order = no
+					mercenary = no
+					ai = yes
+					NOT = { character = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = EMPEROR }
+						ai_zeal >= 25
+					}
+					trigger_else_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 40
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 55
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = EMPEROR }
+						ai_zeal >= 20
+					}
+					trigger_else_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 35
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 50
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 30
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 45
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 25
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 40
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 20
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 35
+					}
+				}
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 15
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 30
+					}
+				}
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 10
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 25
+					}
+				}
+
+				preferred_limit = {
+					real_tier = DUKE
+					ai_zeal >= 20
+				}
+
+				preferred_limit = {
+					real_tier = DUKE
+					ai_zeal >= 15
+				}
+
+				preferred_limit = {
+					ai_zeal >= 10
+				}
+
+				preferred_limit = {
+					ai_zeal >= 5
+				}
+
+				character_event = {
+					id = HFP.41007
+					days = 5
+					random = 15
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				is_preparing_crusade = yes
+				crusade_preparation_strength < 1.75
+				crusade_preparation_strength >= 1
+			}
+
+			random_playable_ruler = {
+				limit = {
+					rightful_religious_head = ROOT
+					higher_real_tier_than = BARON
+					is_landed = yes
+					is_adult = yes
+					ai_zeal >= 0
+					is_within_diplo_range = ROOT
+					has_pledged_crusade_participation = no
+				#	check_if_alternate_crusades_trigger = yes
+					mercenary = no
+					holy_order = no
+					ai = yes
+					NOT = { character = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 30
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 45
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 25
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 40
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 20
+					}
+					trigger_else_if = {
+						limit = { real_tier = DUKE }
+						ai_zeal >= 35
+					}
+					trigger_else = {
+						real_tier = COUNT
+						independent = yes
+						ai_zeal >= 50
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 15
+					}
+					trigger_else_if = {
+						limit = { real_tier = DUKE }
+						ai_zeal >= 30
+					}
+					trigger_else = {
+						real_tier = COUNT
+						independent = yes
+						ai_zeal >= 45
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 10
+					}
+					trigger_else_if = {
+						limit = { real_tier = DUKE }
+						ai_zeal >= 25
+					}
+					trigger_else = {
+						real_tier = COUNT
+						independent = yes
+						ai_zeal >= 40
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = DUKE }
+						ai_zeal >= 15
+					}
+					trigger_else = {
+						real_tier = COUNT
+						independent = yes
+						ai_zeal >= 30
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = DUKE }
+						ai_zeal >= 10
+					}
+					trigger_else = {
+						real_tier = COUNT
+						independent = yes
+						ai_zeal >= 25
+					}
+				}
+
+				character_event = {
+					id = HFP.41007
+					days = 5
+					random = 15
+				}
+			}
+		}
+	}
+}
+
+# Beneficiary event - AI only
+character_event = {
+	id = HFP.41007
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		OR = {
+			has_pledged_crusade_participation = yes
+			crusade_preparation_strength < 1.75
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { has_pledged_crusade_participation = no }
+
+			pledge_crusade_participation = yes
+
+			if = {
+				limit = { trait = excommunicated }
+
+				letter_event = {
+					id = HFP.41057
+					days = 3
+				}
+			}
+
+			trigger_switch = {
+				on_trigger = real_tier
+
+				EMPEROR = { add_to_crusade_prestige_pot = 2000 add_to_crusade_piety_pot = 800 }
+				KING    = { add_to_crusade_prestige_pot = 1000 add_to_crusade_piety_pot = 400 }
+				DUKE    = { add_to_crusade_prestige_pot =  500 add_to_crusade_piety_pot = 200 }
+				COUNT   = { add_to_crusade_prestige_pot =  250 add_to_crusade_piety_pot = 100 }
+				BARON   = { add_to_crusade_prestige_pot =  125 add_to_crusade_piety_pot = 100 }
+			}
+
+			random = {
+				chance = 50
+				add_to_crusade_artifact_pot = 1
+			}
+		}
+
+		# Any Dynasty courtier has a claim on the Crusade Title
+		if = {
+			limit = {
+				any_courtier = {
+					has_claim = crusade_target_title
+					dynasty = ROOT
+					is_adult = yes
+					is_ruler = no
+					is_lowborn = no
+
+					trigger_if = {
+						limit = { is_female = yes }
+						practical_age < 40
+					}
+
+					mercenary = no
+					is_incapable = no
+
+					NOR = {
+						trait = monk
+						trait = nun
+
+						any_heir_title = {
+							always = yes
+						}
+
+						any_spouse = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						betrothed = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+
+						player_heir = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+					}
+				}
+			}
+
+			random_courtier = {
+				limit = {
+					has_claim = crusade_target_title
+					dynasty = ROOT
+					is_adult = yes
+					is_ruler = no
+					is_lowborn = no
+
+					trigger_if = {
+						limit = { is_female = yes }
+						practical_age < 40
+					}
+
+					mercenary = no
+					is_incapable = no
+
+					NOR = {
+						trait = monk
+						trait = nun
+
+						any_heir_title = {
+							always = yes
+						}
+
+						any_spouse = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						betrothed = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						player_heir = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						OR = {
+							has_law = true_cognatic_succession
+							has_law = enatic_succession
+							has_law = enatic_cognatic_succession
+						}
+					}
+
+					reverse_opinion = {
+						who = PREV
+						value >= 90
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						OR = {
+							has_law = true_cognatic_succession
+							has_law = enatic_succession
+							has_law = enatic_cognatic_succession
+						}
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 75
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						OR = {
+							has_law = true_cognatic_succession
+							has_law = enatic_succession
+							has_law = enatic_cognatic_succession
+						}
+					}
+
+					reverse_opinion = {
+						who = PREV
+						value >= 50
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						OR = {
+							has_law = true_cognatic_succession
+							has_law = enatic_succession
+							has_law = enatic_cognatic_succession
+						}
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 25
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						OR = {
+							has_law = true_cognatic_succession
+							has_law = enatic_succession
+							has_law = enatic_cognatic_succession
+						}
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 90
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 75
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 50
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 25
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					NOT = { is_foe = ROOT }
+				}
+
+				set_character_flag = crusade_beneficiary
+
+				opinion = {
+					name = opinion_beneficiary
+					who = ROOT
+					years = 10
+				}
+
+				ROOT = {
+					set_crusade_beneficiary = PREV
+				}
+			}
+		}
+
+		# A fitting child for the Crusade Title
+		else_if = {
+			limit = {
+				any_child = {
+					is_adult = yes
+					practical_age < 40
+					is_ruler = no
+					is_incapable = no
+					mercenary = no
+
+					trigger_if = {
+						limit = { is_female = yes }
+
+						NOT = {
+							any_child = { is_ruler = yes }
+						}
+
+						OR = {
+							has_law = true_cognatic_succession
+							has_law = enatic_succession
+							has_law = enatic_cognatic_succession
+						}
+					}
+
+					NOR = {
+						trait = monk
+						trait = nun
+
+						any_heir_title = {
+							always = yes
+						}
+
+						any_spouse = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						betrothed = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						player_heir = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+					}
+				}
+			}
+
+			random_child = {
+				limit = {
+					is_adult = yes
+					practical_age < 40
+					is_ruler = no
+					is_incapable = no
+					mercenary = no
+
+					trigger_if = {
+						limit = { is_female = yes }
+
+						NOT = {
+							any_child = { is_ruler = yes }
+						}
+
+						OR = {
+							has_law = true_cognatic_succession
+							has_law = enatic_succession
+							has_law = enatic_cognatic_succession
+						}
+					}
+
+					NOR = {
+						trait = monk
+						trait = nun
+
+						any_heir_title = {
+							always = yes
+						}
+
+						any_spouse = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						betrothed = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						player_heir = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+					}
+				}
+
+				preferred_limit = {
+					opinion = {
+						who = ROOT
+						value >= 90
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					opinion = {
+						who = ROOT
+						value >= 75
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					opinion = {
+						who = ROOT
+						value >= 50
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					opinion = {
+						who = ROOT
+						value >= 25
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					NOT = { is_foe = ROOT }
+				}
+
+				opinion = {
+					name = opinion_beneficiary
+					who = ROOT
+					years = 10
+				}
+
+				set_character_flag = crusade_beneficiary
+
+				ROOT = {
+					set_crusade_beneficiary = PREV
+				}
+			}
+		}
+
+		# A fitting dynasty member for the Crusade Title
+		else_if = {
+			limit = {
+				any_courtier = {
+					dynasty = ROOT
+					is_adult = yes
+
+					trigger_if = {
+						limit = { is_female = yes }
+
+						practical_age < 40
+
+						OR = {
+							has_law = true_cognatic_succession
+							has_law = enatic_succession
+							has_law = enatic_cognatic_succession
+						}
+
+						NOT = {
+							any_child = { is_ruler = yes }
+						}
+					}
+					trigger_else = {
+						practical_age < 60
+					}
+
+					is_ruler = no
+					is_lowborn = no
+					mercenary = no
+					is_incapable = no
+
+					NOR = {
+						trait = monk
+						trait = nun
+						is_child_of = ROOT
+
+						any_heir_title = {
+							always = yes
+						}
+
+						any_spouse = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						betrothed = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						player_heir = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+					}
+				}
+			}
+
+			random_courtier = {
+				limit = {
+					dynasty = ROOT
+					is_adult = yes
+
+					trigger_if = {
+						limit = { is_female = yes }
+
+						practical_age < 40
+
+						OR = {
+							has_law = true_cognatic_succession
+							has_law = enatic_succession
+							has_law = enatic_cognatic_succession
+						}
+
+						NOT = {
+							any_child = { is_ruler = yes }
+						}
+					}
+					trigger_else = {
+						practical_age < 60
+					}
+
+					is_ruler = no
+					is_lowborn = no
+					mercenary = no
+					is_incapable = no
+
+					NOR = {
+						trait = monk
+						trait = nun
+						is_child_of = ROOT
+
+						any_heir_title = {
+							always = yes
+						}
+
+						any_spouse = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						betrothed = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						player_heir = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+					}
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 90
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+						is_married = no
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 75
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 75
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+						is_married = no
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 50
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 50
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+						is_married = no
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 25
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 25
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+						is_married = no
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					NOT = { is_foe = ROOT }
+				}
+
+				opinion = {
+					name = opinion_beneficiary
+					who = ROOT
+					years = 10
+				}
+
+				set_character_flag = crusade_beneficiary
+
+				ROOT = {
+					set_crusade_beneficiary = PREV
+				}
+			}
+		}
+
+		# Literally any dynasty member without land / heir to land
+		else_if = {
+			limit = {
+				any_dynasty_member = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						practical_age < 40
+
+						NOT = {
+							any_child = { is_ruler = yes }
+						}
+					}
+
+					trigger_if = {
+						limit = { is_adult = no }
+
+						age >= 12
+						is_female = no
+					}
+
+					is_ruler = no
+					is_incapable = no
+					is_lowborn = no
+
+					NOR = {
+						trait = monk
+						trait = nun
+
+						any_heir_title = {
+							always = yes
+						}
+
+						any_spouse = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						betrothed = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						player_heir = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+					}
+				}
+			}
+
+			random_dynasty_member = {
+				limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						practical_age < 40
+
+						NOT = {
+							any_child = { is_ruler = yes }
+						}
+					}
+
+					trigger_if = {
+						limit = { is_adult = no }
+
+						age >= 12
+						is_female = no
+					}
+
+					is_ruler = no
+					is_incapable = no
+					is_lowborn = no
+
+					NOR = {
+						trait = monk
+						trait = nun
+
+						any_heir_title = {
+							always = yes
+						}
+
+						any_spouse = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						betrothed = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+
+						player_heir = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = { always = yes }
+							}
+						}
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						is_married = no
+
+						ROOT = {
+							OR = {
+								has_law = true_cognatic_succession
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession
+							}
+						}
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 90
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						ROOT = {
+							OR = {
+								has_law = true_cognatic_succession
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession
+							}
+						}
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 90
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						is_married = no
+
+						ROOT = {
+							OR = {
+								has_law = true_cognatic_succession
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession
+							}
+						}
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 75
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						ROOT = {
+							OR = {
+								has_law = true_cognatic_succession
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession
+							}
+						}
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 75
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						is_married = no
+
+						ROOT = {
+							OR = {
+								has_law = true_cognatic_succession
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession
+							}
+						}
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 50
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						ROOT = {
+							OR = {
+								has_law = true_cognatic_succession
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession
+							}
+						}
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 50
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						is_married = no
+
+						ROOT = {
+							OR = {
+								has_law = true_cognatic_succession
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession
+							}
+						}
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 25
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						ROOT = {
+							OR = {
+								has_law = true_cognatic_succession
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession
+							}
+						}
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 25
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						is_married = no
+
+						ROOT = {
+							OR = {
+								has_law = true_cognatic_succession
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession
+							}
+						}
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+
+						ROOT = {
+							OR = {
+								has_law = true_cognatic_succession
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession
+							}
+						}
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+						is_married = no
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 90
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 90
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+						is_married = no
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 75
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 75
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+						is_married = no
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 50
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 50
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+						is_married = no
+					}
+
+					reverse_opinion = {
+						who = ROOT
+						value >= 25
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					reverse_opinion = {
+						who = ROOT
+						value >= 25
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { is_female = yes }
+						is_married = no
+					}
+
+					NOT = { is_foe = ROOT }
+				}
+
+				preferred_limit = {
+					NOT = { is_foe = ROOT }
+				}
+
+				opinion = {
+					name = opinion_beneficiary
+					who = ROOT
+					years = 10
+				}
+
+				set_character_flag = crusade_beneficiary
+
+				ROOT = {
+					set_crusade_beneficiary = PREV
+				}
+			}
+		}
+
+		# If nobody can be found
+		else = {
+			set_crusade_beneficiary = none
+		}
+	}
+}
+
+## Launch Related Announcements
+# Crusade Launch pre-announcement event
+character_event = {
+	id = HFP.41008
+
+	is_triggered_only = yes # on_crusade_launches
+	hide_window = yes
+
+	trigger = {
+		NAND = {
+			crusade_target_title = {
+				title = k_thrace
+			}
+
+			crusade_target_char = {
+				has_landed_title = e_byzantium
+			}
+
+			has_global_flag = 4th_crusade_official
+		}
+	}
+
+	immediate = {
+		any_playable_ruler = {
+			narrative_event = { id = HFP.41009 }
+		}
+
+		any_war = {
+			limit = { using_cb = new_crusade }
+
+			any_attacker = {
+				limit = { holy_order = yes }
+
+				set_crusade_pot_multiplier = 0
+			}
+		}
+	}
+}
+
+# Crusade Launch announcement event
+narrative_event = {
+	id = HFP.41009
+	title = EVTTITLE_HFP_41009
+	desc = EVTDESC_HFP_41009
+	border = GFX_event_narrative_frame_religion
+	picture = GFX_evt_mass_crusade
+
+	is_triggered_only = yes
+
+	trigger = {
+		FROM = { is_preparing_crusade = yes }
+	}
+
+	immediate = {
+		random_list = {
+			50 = { sound_effect = crusade_start_01 }
+			50 = { sound_effect = crusade_start_02 }
+		}
+
+		FROM = {
+			crusade_target_title = {
+				save_event_target_as = crusade_title
+			}
+
+			crusade_target_char = {
+				save_event_target_as = crusade_character
+			}
+		}
+
+		event_target:crusade_title = {
+			if = {
+				limit = {
+					OR = {
+						region = world_europe_west
+						region = world_europe_south
+						region = world_middle_east_jerusalem
+						region = world_africa_north
+					}
+				}
+
+				set_title_flag = crusade_inherently_christian
+			}
+			else_if = {
+				limit = {
+					OR = {
+						region = world_europe_north
+						region = world_europe_east
+					}
+				}
+
+				set_title_flag = crusade_fringe_christian
+			}
+			else_if = {
+				limit = {
+					NOR = {
+						has_title_flag = crusade_inherently_christian
+						has_title_flag = crusade_fringe_christian
+					}
+				}
+
+				set_title_flag = crusade_outside_christian
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HFP_41009
+
+		trigger = { religion_group = christian }
+
+		custom_tooltip = { text = EVTOPTA_HFP_41009_TT }
+
+		if = {
+			limit = {
+				has_pledged_crusade_participation = yes
+				religion = FROM
+			}
+
+			piety = 100
+		}
+	}
+
+	option = {
+		name = EVTOPTB_HFP_41009
+
+		trigger = {
+			NOT = { religion_group = christian}
+		}
+
+		custom_tooltip = { text = EVTOPTA_HFP_41009_TT }
+	}
+
+	after = {
+		crusade_target_title = {
+			set_title_flag = crusaded_against_before
+		}
+
+		clr_character_flag = asked_to_pledge
+	}
+}
+
+# Crusade fail to launch pre-announcement event
+character_event = {
+	id = HFP.41010
+
+	is_triggered_only = yes # on_crusade_canceled
+	hide_window = yes
+
+	immediate = {
+		any_playable_ruler = {
+			limit = { religion = ROOT }
+
+			narrative_event = { id = HFP.41011 }
+			clr_character_flag = forced_to_crusade
+		}
+
+		religion_authority = {
+			name = failed_to_launch_crusade_modifier
+		}
+	}
+}
+
+# Crusade fail to launch Announcement event
+narrative_event = {
+	id = HFP.41011
+	title = EVTTITLE_HFP_41011
+	desc = EVTDESC_HFP_41011
+	border = GFX_event_narrative_frame_religion
+	picture = GFX_evt_bishop
+	sound = crusade_outcome_negative
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_HFP_41011
+
+		custom_tooltip = { text = EVTOPTA_HFP_41011_TT }
+
+		piety = -100
+	}
+}
+
+# Crusade cancelled check
+character_event = {
+	id = HFP.41012
+
+	is_triggered_only = yes # on_crusade_monthly
+	hide_window = yes
+
+	trigger = {
+		is_preparing_crusade = yes
+		crusade_preparation_time_remaining <= 35
+		crusade_preparation_strength <= 0.75
+	}
+
+	immediate = {
+		cancel_crusade = yes
+
+		add_character_modifier = {
+			name = cancel_crusade_cooldown
+			years = 10
+			hidden = yes
+		}
+	}
+}
+
+## Favor Related Events
+# Pope forcing people owing him a favor to pledge - AI only
+character_event = {
+	id = HFP.41020
+
+	is_triggered_only = yes # on_crusade_monthly
+	hide_window = yes
+
+	ai = yes
+
+	trigger = {
+		is_preparing_crusade = yes
+	}
+
+	immediate = {
+		random_favor_ower = {
+			limit = {
+				is_playable = yes
+				is_adult = yes
+				higher_real_tier_than = BARON
+				is_within_diplo_range = ROOT
+				has_pledged_crusade_participation = no
+				check_if_alternate_crusades_trigger = yes
+				mercenary = no
+				ai = yes
+
+				rightful_religious_head_scope = {
+					character = ROOT
+					NOT = { war_with = ROOT }
+				}
+			}
+
+			preferred_limit = { real_tier = EMPEROR }
+			preferred_limit = { real_tier = KING }
+			preferred_limit = { real_tier = DUKE }
+
+			reverse_remove_favor = ROOT
+			pledge_crusade_participation = yes
+		}
+	}
+}
+
+# Pope asking a player owing him a favor, to pledge
+character_event = {
+	id = HFP.41021
+
+	is_triggered_only = yes # on_crusade_preparation_starts
+	hide_window = yes
+
+	trigger = {
+		uses_new_crusade = yes
+		is_preparing_crusade = yes
+		check_if_not_fourth_crusade_trigger = yes
+	}
+
+	immediate = {
+		random_player = {
+			limit = {
+				owes_favor_to = ROOT
+				is_adult = yes
+				higher_real_tier_than = BARON
+				is_within_diplo_range = ROOT
+				check_if_alternate_crusades_trigger = yes
+
+				rightful_religious_head_scope = {
+					character = ROOT
+					NOT = { war_with = PREV }
+				}
+
+				NOR = {
+					has_character_flag = asked_to_pledge
+					any_war = { using_cb = crusade }
+				}
+			}
+
+			letter_event = {
+				id = HFP.41022
+				days = 10
+				random = 10
+			}
+		}
+	}
+}
+
+# Player receives the Popes letter about joining the war - Player Only
+letter_event = {
+	id = HFP.41022
+	desc = EVTDESC_HFP_41022
+	border = GFX_event_letter_frame_religion
+
+	is_triggered_only = yes
+
+	ai = no
+
+	trigger = {
+		is_preparing_crusade = yes
+		has_pledged_crusade_participation = no
+		owes_favor_to = FROM
+		higher_real_tier_than = BARON
+		check_if_not_fourth_crusade_trigger = yes
+		check_if_alternate_crusades_trigger = yes
+		mercenary = no
+
+		rightful_religious_head_scope = {
+			character = FROM
+			NOT = { war_with = ROOT }
+		}
+
+
+		NOR = {
+			has_character_flag = asked_to_pledge
+			any_war = { using_cb = crusade }
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HFP_41022
+
+		set_character_flag = asked_to_pledge
+		pledge_crusade_participation = yes
+		remove_trait = excommunicated
+		set_character_flag = forced_to_crusade
+		reverse_remove_favor = FROM
+
+		hidden_effect = {
+			piety = 100
+
+			add_character_modifier = {
+				name = recently_pledged_to_crusade_cooldown
+				days = 45
+				hidden = yes
+			}
+
+			trigger_switch = {
+				on_trigger = real_tier
+
+				EMPEROR = { add_to_crusade_prestige_pot = 2000 add_to_crusade_piety_pot = 800 }
+				KING    = { add_to_crusade_prestige_pot = 1000 add_to_crusade_piety_pot = 400 }
+				DUKE    = { add_to_crusade_prestige_pot =  500 add_to_crusade_piety_pot = 200 }
+				COUNT   = { add_to_crusade_prestige_pot =  250 add_to_crusade_piety_pot = 100 }
+				BARON   = { add_to_crusade_prestige_pot =  125 add_to_crusade_piety_pot = 100 }
+			}
+
+			random = {
+				chance = 50
+				add_to_crusade_artifact_pot = 1
+			}
+		}
+	}
+}
+
+## Pledge Event Tombola
+# Random Event Tombola when you pledge to join the Crusade - Player Only
+character_event = {
+	id = HFP.41030
+
+	is_triggered_only = yes # on_pledge_crusade_participation
+	hide_window = yes
+
+	ai = no
+	min_age = 16
+
+	trigger = {
+		is_preparing_crusade = yes
+		crusade_preparation_time_remaining >= 20
+	}
+
+	immediate = {
+		random_list = {
+			# Courtier approves of your decision to join the Crusade
+			10 = {
+				trigger = {
+					any_courtier = {
+						religion = ROOT
+						is_adult = yes
+						ai = yes
+
+						NOR = {
+							trait = excommunicated
+							trait = cynical
+							is_foe = ROOT
+						}
+					}
+				}
+
+				character_event = {
+					id = HFP.41031
+					days = 10
+					random = 10
+				}
+			}
+
+			# Another participant approves of your decision to join the Crusade
+			10 = {
+				trigger = {
+					any_crusade_participant = {
+						religion = ROOT
+						ai = yes
+						NOT = { is_foe = ROOT }
+					}
+				}
+
+				letter_event = {
+					id = HFP.41032
+					days = 10
+					random = 10
+				}
+			}
+
+			# A rival participant wants to make amends, now that you are going to war together
+			10 = {
+				trigger = {
+					any_rival = {
+						has_pledged_crusade_participation = yes
+						religion = ROOT
+						ai = yes
+					}
+				}
+
+				character_event = {
+					id = HFP.41033
+					days = 10
+					random = 10
+				}
+			}
+
+			# Feeling Zealous about the upcoming Crusade
+			10 = {
+				trigger = {
+					NOR = {
+						trait = zealous
+						trait = cynical
+					}
+				}
+
+				character_event = {
+					id = HFP.41034
+					days = 10
+					random = 10
+				}
+			}
+
+			# Lunatic Event
+			5 = {
+				trigger = {
+					trait = lunatic
+
+					has_game_rule = {
+						name = supernatural_events
+						value = on
+					}
+				}
+
+				character_event = {
+					id = HFP.41035
+					days = 10
+					random = 10
+				}
+			}
+
+			# Nothing particular of interest happens
+			20 = { }
+		}
+	}
+}
+
+# Courtier pleased with your decision to pledge to the Crusade - Player Only
+character_event = {
+	id = HFP.41031
+	desc = EVTDESC_HFP_41031
+	border = GFX_event_normal_frame_religion
+	picture = GFX_evt_courtiers_talking
+	portrait = event_target:pleased_courtier
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_preparing_crusade = yes
+		has_pledged_crusade_participation = yes
+
+		any_courtier = {
+			religion = ROOT
+			is_adult = yes
+			ai = yes
+
+			NOR = {
+				trait = excommunicated
+				trait = cynical
+				is_foe = ROOT
+			}
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = {
+				religion = ROOT
+				is_adult = yes
+				ai = yes
+
+				NOR = {
+					trait = excommunicated
+					trait = cynical
+					is_foe = ROOT
+				}
+			}
+
+			preferred_limit = { ai_zeal >= 30 }
+			preferred_limit = { ai_zeal >= 20 }
+			preferred_limit = { ai_zeal >= 10 }
+
+			save_event_target_as = pleased_courtier
+		}
+	}
+
+	# Happy to hear you like my decision
+	option = {
+		name = EVTOPTA_HFP_41031
+
+		opinion = {
+			name = approves_of_my_behaviour
+			who = event_target:pleased_courtier
+			years = 5
+		}
+
+		reverse_opinion = {
+			name = opinion_crusade_agreement
+			who = event_target:pleased_courtier
+			years = 5
+		}
+	}
+}
+
+# Another participant pleased with your decision to pledge to the Crusade - Player Only
+letter_event = {
+	id = HFP.41032
+	desc = EVTDESC_HFP_41032
+	border = GFX_event_letter_frame_religion
+	portrait = event_target:pleased_participant
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_pledged_crusade_participation = yes
+
+		any_crusade_participant = {
+			religion = ROOT
+			ai = yes
+			NOT = { is_foe = ROOT }
+		}
+	}
+
+	immediate = {
+		random_crusade_participant = {
+			limit = {
+				religion = ROOT
+				ai = yes
+				NOT = { is_foe = ROOT }
+			}
+
+			save_event_target_as = pleased_participant
+		}
+	}
+
+	# Happy to hear you like my decision
+	option = {
+		name = EVTOPTA_HFP_41032
+
+		trigger = {
+			NAND = {
+				trait = zealous
+				event_target:pleased_participant = {
+					trait = zealous
+				}
+			}
+		}
+
+		opinion = {
+			name = approves_of_my_behaviour
+			who = event_target:pleased_participant
+			years = 5
+		}
+
+		reverse_opinion = {
+			name = opinion_crusade_agreement
+			who = event_target:pleased_participant
+			years = 5
+		}
+	}
+
+	# Let us fight together
+	option = {
+		name = EVTOPTB_HFP_41032
+
+		trigger = {
+			trait = zealous
+			event_target:pleased_participant = {
+				trait = zealous
+			}
+		}
+
+		add_friend = event_target:pleased_participant
+	}
+}
+
+# A rival participant tries to make amends with you, as you are Crusading together - Player Only
+character_event = {
+	id = HFP.41033
+	desc = EVTDESC_HFP_41033
+	picture = GFX_evt_recieve_letter
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:pleased_participant
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_pledged_crusade_participation = yes
+
+		any_rival = {
+			has_pledged_crusade_participation = yes
+			religion = ROOT
+			ai = yes
+		}
+	}
+
+	immediate = {
+		random_rival= {
+			limit = {
+				has_pledged_crusade_participation = yes
+				religion = ROOT
+				ai = yes
+			}
+
+			save_event_target_as = pleased_participant
+
+			crusade_target_title = {
+				save_event_target_as = crusade_title
+			}
+		}
+	}
+
+	# Let us make amends
+	option = {
+		name = EVTOPTA_HFP_41033
+		remove_rival = event_target:pleased_participant
+	}
+
+	# Let us not
+	option = {
+		name = EVTOPTB_HFP_41033
+
+		opinion = {
+			name = insulted
+			who = event_target:pleased_participant
+		}
+
+		reverse_opinion = {
+			name = insulted
+			who = event_target:pleased_participant
+		}
+	}
+}
+
+# Feeling Zealous about the upcoming Crusade - Player Only
+character_event = {
+	id = HFP.41034
+	desc = EVTDESC_HFP_41034
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_pledged_crusade_participation = yes
+
+		NOR = {
+			trait = zealous
+			trait = cynical
+		}
+	}
+
+	immediate = {
+		crusade_target_title = {
+			save_event_target_as = crusade_title
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HFP_41034
+
+		add_trait = zealous
+	}
+}
+
+# Saying good bye to the local monster - Player Lunatics Only
+character_event = {
+	id = HFP.41035
+	border = GFX_event_normal_frame_religion
+
+	desc = {
+		text = EVTDESC_HFP_41035_1
+		picture = GFX_evt_kraken
+		trigger = {
+			capital_scope = {
+				OR = {
+					is_coastal = yes
+					borders_lake = yes
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_HFP_41035_2
+		picture = GFX_evt_garden
+		trigger = {
+			capital_scope = {
+				is_coastal = no
+				borders_lake = no
+			}
+		}
+	}
+
+	is_triggered_only = yes
+
+	trigger = {
+		trait = lunatic
+		has_pledged_crusade_participation = yes
+	}
+
+	immediate = {
+		crusade_target_title = {
+			save_event_target_as = crusade_title
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HFP_41035
+
+		trigger = {
+			NOT = { trait = diligent }
+		}
+
+		add_trait = diligent
+	}
+
+	option = {
+		name = EVTOPTB_HFP_41035
+
+		trigger = {
+			NOR = {
+				trait = blinded
+				trait = one_eyed
+			}
+		}
+
+		random = {
+			chance = 50
+			change_learning = 2
+		}
+
+		add_trait_one_eyed_effect = yes
+	}
+
+	option = {
+		name = EVTOPTC_HFP_41035
+
+		add_trait_fully_silently_trusting_effect = yes
+	}
+}
+
+## Unpledge Event Tombola
+# Random Event Tombola when you remove your pledge from the Crusade - Player Only
+character_event = {
+	id = HFP.41040
+
+	is_triggered_only = yes # on_unpledge_crusade_participation
+	hide_window = yes
+
+	ai = no
+	min_age = 16
+
+	trigger = {
+		check_if_alternate_crusades_trigger = yes
+		check_if_not_fourth_crusade_trigger = yes
+
+		NAND = {
+			crusade_target_title = {
+				title = k_thrace
+			}
+
+			crusade_target_char = {
+				has_landed_title = e_byzantium
+				religion_group = ROOT
+			}
+		}
+	}
+
+	immediate = {
+		save_event_target_as = unpledging_actor
+
+		random_list = {
+			# Courtier disapproves of your decision to leave the Crusade
+			10 = {
+				trigger = {
+					any_courtier = {
+						religion = ROOT
+						is_adult = yes
+						ai = yes
+
+						NOR = {
+							trait = excommunicated
+							trait = cynical
+							is_foe = ROOT
+						}
+					}
+				}
+
+				character_event = {
+					id = HFP.41041
+					days = 10
+					random = 10
+				}
+			}
+
+			# Another participant disapproves of your decision to leave the Crusade
+			10 = {
+				trigger = {
+					any_crusade_participant = {
+						religion = ROOT
+						ai = yes
+						NOT = { is_foe = ROOT }
+					}
+				}
+
+				letter_event = {
+					id = HFP.41042
+					days = 10
+					random = 10
+				}
+			}
+
+			# You gain a new rival from leaving the Crusade
+			10 = {
+				trigger = {
+					any_crusade_participant = {
+						religion = ROOT
+						ai = yes
+						NOT = { is_foe = ROOT }
+					}
+				}
+
+				character_event = {
+					id = HFP.41043
+					days = 10
+					random = 10
+				}
+			}
+
+			# Ruler gets Excommunicated by the Pope
+			5 = {
+				trigger = {
+					rightful_religious_head_scope = {
+						opinion = {
+							who = ROOT
+							value < 20
+						}
+					}
+
+					NOT = { trait = excommunicated }
+				}
+
+				rightful_religious_head_scope = {
+					narrative_event = {
+						id = HFP.41044
+						days = 10
+						random = 10
+					}
+				}
+			}
+		}
+	}
+}
+
+# Courtier disapproves of your decision to leave the Crusade - Player Only
+character_event = {
+	id = HFP.41041
+	desc = EVTDESC_HFP_41041
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:displeased_courtier
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_pledged_crusade_participation = no
+
+		any_courtier = {
+			is_adult = yes
+			religion = ROOT
+			ai = yes
+
+			NOR = {
+				trait = excommunicated
+				trait = cynical
+				is_foe = ROOT
+			}
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = {
+				is_adult = yes
+				religion = ROOT
+				ai = yes
+				NOR = {
+					trait = excommunicated
+					trait = cynical
+					is_foe = ROOT
+				}
+			}
+
+			preferred_limit = { ai_zeal >= 30 }
+			preferred_limit = { ai_zeal >= 20 }
+			preferred_limit = { ai_zeal >= 10 }
+
+			save_event_target_as = displeased_courtier
+		}
+	}
+
+	# Well, that is none of his/her business
+	option = {
+		name = EVTOPTA_HFP_41041
+
+		opinion = {
+			name = insulted
+			who = event_target:displeased_courtier
+			years = 5
+		}
+
+		reverse_opinion = {
+			name = opinion_disapprove
+			who = event_target:displeased_courtier
+			years = 5
+		}
+	}
+
+	# Regrets
+	option = {
+		name = EVTOPTB_HFP_41041
+
+		reverse_opinion = {
+			name = opinion_disapprove
+			who = event_target:displeased_courtier
+			years = 5
+		}
+
+		add_trait_silently_stressed_effect = yes
+	}
+}
+
+# Another participant displeased with your decision to leave the Crusade - Player Only
+letter_event = {
+	id = HFP.41042
+	desc = EVTDESC_HFP_41042
+	border = GFX_event_letter_frame_religion
+	portrait = event_target:displeased_participant
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_pledged_crusade_participation = no
+
+		any_crusade_participant = {
+			religion = ROOT
+			ai = yes
+			NOT = { is_foe = ROOT }
+		}
+	}
+
+	immediate = {
+		random_crusade_participant = {
+			limit = {
+				religion = ROOT
+				ai = yes
+				NOT = { is_foe = ROOT }
+			}
+
+			save_event_target_as = displeased_participant
+		}
+	}
+
+	# That is none of her/his business
+	option = {
+		name = EVTOPTA_HFP_41042
+
+		opinion = {
+			name = insulted
+			who = event_target:displeased_participant
+			years = 5
+		}
+
+		reverse_opinion = {
+			name = opinion_disapprove
+			who = event_target:displeased_participant
+			years = 5
+		}
+	}
+}
+
+# Another participant declares you a rival for leaving the Crusade - Player Only
+character_event = {
+	id = HFP.41043
+	desc = EVTDESC_HFP_41043
+	picture = GFX_evt_recieve_letter
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:displeased_participant
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_pledged_crusade_participation = no
+
+		any_crusade_participant = {
+			religion = ROOT
+			ai = yes
+			NOT = { is_foe = ROOT }
+		}
+	}
+
+	immediate = {
+		random_crusade_participant = {
+			limit = {
+				religion = ROOT
+				ai = yes
+				NOT = { is_foe = ROOT }
+			}
+
+			preferred_limit = {
+				opinion = {
+					who = ROOT
+					value < 5
+				}
+			}
+
+			preferred_limit = { ai_zeal >= 30 }
+			preferred_limit = { ai_zeal >= 20 }
+			preferred_limit = { ai_zeal >= 10 }
+
+			save_event_target_as = displeased_participant
+		}
+	}
+
+	# That is none of her/his business
+
+	option = {
+		name = EVTOPTA_HFP_41043
+
+		add_rival = event_target:displeased_participant
+	}
+}
+
+# Pope sends out letters declaring Excommunication
+narrative_event = {
+	id = HFP.41044
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		FROM = {
+			religion = ROOT
+			NOT = { trait = excommunicated }
+		}
+	}
+
+	immediate = {
+		any_playable_ruler = {
+			limit = { religion = ROOT }
+			narrative_event = { id = HFP.41045 }
+		}
+	}
+}
+
+# Ruler Excommunicated by the Pope
+narrative_event = {
+	id = HFP.41045
+	title = EVTTITLE_HFP_41045
+	desc = EVTDESC_HFP_41045
+	picture = GFX_evt_pope
+	border = GFX_event_narrative_frame_religion
+
+	is_triggered_only = yes
+
+	immediate = {
+		crusade_target_title = {
+			save_event_target_as = crusade_title
+		}
+
+		event_target:unpledging_actor = {
+			add_trait = excommunicated
+		}
+	}
+
+	#  Generic Response
+	option = {
+		name = EVTOPTA_HFP_41045
+
+		trigger = {
+			NOT = { character = event_target:unpledging_actor }
+		}
+
+		if = {
+			limit = { has_pledged_crusade_participation = yes }
+
+			opinion = {
+				name = opinion_disapprove_of_crusade_unpledge
+				who = event_target:unpledging_actor
+				years = 10
+			}
+		}
+	}
+
+	# Excommunicated Character's Response
+	option = {
+		name = EVTOPTB_HFP_41045
+
+		trigger = { character = event_target:unpledging_actor }
+
+		add_rival = FROM
+
+		opinion = {
+			name = insulted
+			who = FROM
+			years = 10
+		}
+
+		piety = -100
+	}
+}
+
+## Misc Events
+# The Pope decides to ask a player for their pledge for the Crusade
+character_event = {
+	id = HFP.41050
+
+	is_triggered_only = yes # on_crusade_monthly
+	hide_window = yes
+
+	ai = yes
+
+	trigger = {
+		is_preparing_crusade = yes
+		crusade_preparation_time_remaining < 150
+		check_if_not_fourth_crusade_trigger = yes
+	}
+
+	immediate = {
+		random_player = {
+			limit = {
+				religion = ROOT
+				is_adult = yes
+				higher_tier_than = BARON
+				mercenary = no
+				check_if_alternate_crusades_trigger = yes
+
+				rightful_religious_head_scope = {
+					character = ROOT
+					NOT = { war_with = PREV }
+				}
+
+				NOR = {
+					has_character_flag = asked_to_pledge
+					any_war = { using_cb = crusade }
+				}
+			}
+
+			letter_event = {
+				id = HFP.41051
+				days = 10
+				random = 10
+			}
+		}
+	}
+}
+
+# The player receives a letter from the Pope, asking to pledge to the Crusade - Player Only
+letter_event = {
+	id = HFP.41051
+	desc = EVTDESC_HFP_41051
+	border = GFX_event_letter_frame_religion
+
+	is_triggered_only = yes
+
+	min_age = 16
+
+	trigger = {
+		is_preparing_crusade = yes
+		religion = FROM
+		higher_real_tier_than = BARON
+		has_pledged_crusade_participation = no
+		mercenary = no
+		check_if_alternate_crusades_trigger = yes
+		check_if_not_fourth_crusade_trigger = yes
+
+		rightful_religious_head_scope = {
+			character = FROM
+			NOT = { war_with = PREV }
+		}
+
+		NOR = {
+			has_character_flag = asked_to_pledge
+			any_war = { using_cb = crusade }
+		}
+	}
+
+	immediate = {
+		set_character_flag = asked_to_pledge
+
+		crusade_target_title = {
+			save_event_target_as = crusade_title
+		}
+
+		export_to_variable = {
+			which = local_small_contribution
+			value = yearly_income
+		}
+
+		if = {
+			limit = {
+				check_variable = {
+					which = local_small_contribution
+					value < 100
+				}
+			}
+
+			set_variable = {
+				which = local_small_contribution
+				value = 100
+			}
+		}
+
+		set_variable = {
+			which = local_small_contribution_cost
+			value = 0
+		}
+
+		subtract_variable = {
+			which = local_small_contribution_cost
+			which = local_small_contribution
+		}
+
+		set_variable = {
+			which = local_small_piety_boon
+			which = local_small_contribution
+		}
+
+		divide_variable = {
+			which = local_small_piety_boon
+			value = 2
+		}
+
+		if = {
+			limit = {
+				check_variable = {
+					which = local_small_piety_boon
+					value < 50
+				}
+			}
+
+			set_variable = {
+				which = local_small_piety_boon
+				value = 50
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HFP_41051
+
+		reverse_opinion = {
+			name = pope_invest_approve
+			who = FROM
+			years = 5
+		}
+
+		hidden_effect = {
+			piety = 100
+
+			add_character_modifier = {
+				name = recently_pledged_to_crusade_cooldown
+				days = 45
+				hidden = yes
+			}
+
+			trigger_switch = {
+				on_trigger = real_tier
+
+				EMPEROR = { add_to_crusade_prestige_pot = 2000 add_to_crusade_piety_pot = 800 }
+				KING    = { add_to_crusade_prestige_pot = 1000 add_to_crusade_piety_pot = 400 }
+				DUKE    = { add_to_crusade_prestige_pot =  500 add_to_crusade_piety_pot = 200 }
+				COUNT   = { add_to_crusade_prestige_pot =  250 add_to_crusade_piety_pot = 100 }
+				BARON   = { add_to_crusade_prestige_pot =  125 add_to_crusade_piety_pot = 100 }
+			}
+
+			random = {
+				chance = 50
+				add_to_crusade_artifact_pot = 1
+			}
+		}
+
+		pledge_crusade_participation = yes
+
+		if = {
+			limit = { trait = excommunicated }
+
+			letter_event = {
+				id = HFP.41057
+				days = 3
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTC_HFP_41022
+
+		wealth = local_small_contribution_cost
+		add_to_crusade_gold_pot = local_small_contribution
+		piety = local_small_piety_boon
+
+		reverse_opinion = {
+			name = pope_invest_approve
+			who = FROM
+			years = 5
+		}
+
+		reverse_remove_favor = ROOT
+	}
+
+	option = {
+		name = EVTOPTB_HFP_41051
+
+		custom_tooltip = { text = EVTOPTB_HFP_41051_TT }
+
+		reverse_opinion = {
+			name = opinion_insulted
+			who = FROM
+			years = 5
+		}
+
+		add_character_modifier = {
+			name = not_pledged_to_crusade
+			years = 10
+			hidden = yes
+		}
+	}
+}
+
+# Recheck Beneficiary every month
+character_event = {
+	id = HFP.41052
+
+	is_triggered_only = yes # on_crusade_monthly, HFP.41053
+	hide_window = yes
+
+	trigger = {
+		is_preparing_crusade = yes
+	}
+
+	immediate = {
+		any_crusade_participant = {
+			limit = {
+				ai = yes
+
+				OR = {
+					holy_order = yes
+
+					crusade_beneficiary = {
+						OR = {
+							is_alive = no
+							character = FROM
+							is_landed = yes
+							mercenary = yes
+							holy_order = yes
+							is_sick_or_injured_trigger = yes
+							trait = monk
+							trait = nun
+
+							trigger_if = {
+								limit = { is_female = yes }
+
+								PREV = {
+									NOR = {
+										has_law = true_cognatic_succession
+										has_law = enatic_succession
+										has_law = enatic_cognatic_succession
+									}
+								}
+							}
+
+							any_heir_title = {
+								always = yes
+							}
+
+							trigger_if = {
+								limit = { ai = yes }
+
+								OR = {
+									any_spouse = {
+										OR = {
+											is_ruler = yes
+											any_heir_title = { always = yes }
+										}
+									}
+
+									betrothed = {
+										OR = {
+											is_ruler = yes
+											any_heir_title = { always = yes }
+										}
+									}
+
+									player_heir = {
+										OR = {
+											is_ruler = yes
+											any_heir_title = { always = yes }
+										}
+									}
+								}
+							}
+						}
+					}
+
+					NOT = {
+						crusade_beneficiary = {
+							always = yes
+						}
+					}
+				}
+			}
+
+			reverse_remove_opinion = {
+				who = crusade_beneficiary
+				name = opinion_beneficiary
+			}
+
+			set_crusade_beneficiary = none
+			character_event = { id = HFP.41007 } # Select new beneficiary
+		}
+
+		any_crusade_participant = {
+			limit = {
+				ai = no
+
+				OR = {
+					holy_order = yes
+
+					crusade_beneficiary = {
+						OR = {
+							is_alive = no
+							character = FROM
+							is_ruler = yes
+							mercenary = yes
+							holy_order = yes
+							age < 12
+							trait = monk
+							trait = nun
+							is_sick_or_injured_trigger = yes
+
+							any_heir_title = {
+								always = yes
+							}
+						}
+					}
+
+					NOT = {
+						crusade_beneficiary = {
+							always = yes
+						}
+					}
+				}
+			}
+
+			crusade_beneficiary = {
+				save_event_target_as = old_crusade_beneficiary
+			}
+
+			if = {
+				limit = {
+					crusade_beneficiary = {
+						OR = {
+							is_alive = no
+							FROM = { has_character_flag = dying_beneficiary }
+						}
+					}
+
+					NOT = { has_global_flag = distributing_crusade }
+				}
+
+				set_character_flag = dead_beneficiary_flag
+				FROM = { clr_character_flag = dying_beneficiary }
+			}
+
+			else_if = {
+				limit = {
+					crusade_beneficiary = {
+						OR = {
+							is_landed = yes
+							FROM = { has_character_flag = landed_beneficiary }
+						}
+					}
+
+					NOT = { has_global_flag = distributing_crusade }
+				}
+
+				set_character_flag = landed_beneficiary_flag
+				FROM = { clr_character_flag = landed_beneficiary }
+			}
+
+			else_if = {
+				limit = {
+					crusade_beneficiary = {
+						any_heir_title = {
+							always = yes
+						}
+					}
+
+					NOT = { has_global_flag = distributing_crusade }
+				}
+
+				set_character_flag = heir_beneficiary_flag
+			}
+
+			else_if = {
+				limit = {
+					crusade_beneficiary = {
+						mercenary = yes
+					}
+
+					NOT = { has_global_flag = distributing_crusade }
+				}
+
+				set_character_flag = mercenary_beneficiary_flag
+			}
+
+			else_if = {
+				limit = {
+					crusade_beneficiary = {
+						holy_order = yes
+					}
+
+					NOT = { has_global_flag = distributing_crusade }
+				}
+
+				set_character_flag = holy_order_beneficiary_flag
+			}
+
+			else_if = {
+				limit = {
+					crusade_beneficiary = {
+						age < 12
+					}
+
+					NOT = { has_global_flag = distributing_crusade }
+				}
+
+				set_character_flag = underage_beneficiary_flag
+			}
+
+			else_if = {
+				limit = {
+					crusade_beneficiary = {
+						is_sick_or_injured_trigger = yes
+					}
+
+					NOT = { has_global_flag = distributing_crusade }
+				}
+
+				set_character_flag = sick_or_injured_beneficiary_flag
+			}
+
+			else_if = {
+				limit = {
+					crusade_beneficiary = {
+						OR = {
+							trait = monk
+							trait = nun
+						}
+					}
+
+					NOT = { has_global_flag = distributing_crusade }
+				}
+
+				set_character_flag = monk_nun_beneficiary_flag
+			}
+
+			character_event = { id = HFP.41110 }
+
+			reverse_remove_opinion = {
+				who = crusade_beneficiary
+				name = opinion_beneficiary
+			}
+
+			set_crusade_beneficiary = none
+		}
+	}
+}
+
+# Recheck Beneficiary when someone die / gain a new title
+character_event = {
+	id = HFP.41053
+
+	is_triggered_only = yes # on_death, on_new_holder
+	hide_window = yes
+
+	has_character_flag = crusade_beneficiary
+
+	immediate = {
+		clr_character_flag = crusade_beneficiary
+
+		if = {
+			limit = { is_dying = yes }
+			set_character_flag = dying_beneficiary
+		}
+		else = {
+			set_character_flag = landed_beneficiary
+		}
+
+		rightful_religious_head_scope = {
+			character_event = { id = HFP.41052 }
+		}
+	}
+}
+
+# Play as Crusader King / Queen
+narrative_event = {
+	id = HFP.41054
+	title = EVTTITLE_HFP_41054
+	desc = EVTDESC_HFP_41054
+	picture = GFX_evt_book_carolingian_script
+	portrait = event_target:new_crusader_king
+
+	is_triggered_only = yes # new_crusade CB
+
+	ai = no
+
+	trigger = {
+		event_target:new_crusader_king = {
+			ai = yes
+			is_alive = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HFP_41054
+	}
+
+	option = {
+		name = EVTOPTB_HFP_41054
+		tooltip_info = yes
+
+		if = {
+			limit = {
+				event_target:new_crusader_king = {
+					ai = yes
+					is_alive = yes
+				}
+			}
+
+			custom_tooltip = {
+				text = player_character_TT
+
+				set_player_character = event_target:new_crusader_king
+
+				event_target:new_crusader_king = {
+					if = {
+						limit = {
+							dynasty = 308
+							completely_controls = c_jerusalem
+							higher_real_tier_than = DUKE
+							is_ironman = yes
+						}
+
+						set_character_flag = achievement_defender_of_the_holy_sepulchre
+					}
+				}
+			}
+		}
+	}
+}
+
+# Monthly Pulse check
+character_event = {
+	id = HFP.41055
+
+	is_triggered_only = yes # on_crusade_monthly
+	hide_window = yes
+
+	trigger = {
+		OR = {
+			is_preparing_crusade = yes
+			any_war = { using_cb = new_crusade }
+		}
+	}
+
+	immediate = {
+		any_crusade_participant = {
+			limit = {
+				OR = {
+					NOT = { rightful_religious_head = ROOT }
+
+					rightful_religious_head_scope = {
+						war_with = PREV
+					}
+
+					AND = {
+						is_patrician = no
+						is_landed = no
+						holy_order = no
+					}
+				}
+
+				NOT = {
+					any_war = {
+						using_cb = new_crusade
+					}
+				}
+			}
+
+			pledge_crusade_participation = no
+		}
+	}
+}
+
+# Recommunicated
+letter_event = {
+	id = HFP.41057
+	desc = EVTDESC_HFP_41057
+	portrait = event_target:target_religion_head
+
+	is_triggered_only = yes
+
+	trigger = {
+		trait = excommunicated
+	}
+
+	immediate  = {
+		rightful_religious_head_scope = {
+			save_event_target_as = target_religion_head
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HFP_41057
+
+		piety = 25
+
+		if = {
+			limit = { trait = excommunicated }
+			remove_trait = excommunicated
+		}
+	}
+}
+
+# Pre-event to play as a Beneficiary, fired straight away to make use of scopes that disappear after war ends
+character_event = {
+	id = HFP.41060
+
+	is_triggered_only = yes # new_crusade CB
+	hide_window = yes
+
+	immediate = {
+		crusader_king = {
+			save_event_target_as = beneficiary_check_crusader_king
+		}
+
+		crusade_beneficiary = {
+			save_event_target_as = beneficiary_check_crusader_beneficiary
+		}
+
+		narrative_event = {
+			id = HFP.41061
+			days = 3
+		}
+	}
+}
+
+# Event to play as a Beneficiary
+narrative_event = {
+	id = HFP.41061
+	title = EVTTITLE_HFP_41061
+	desc = EVTDESC_HFP_41061
+	picture = GFX_evt_book_carolingian_script
+	border = GFX_event_narrative_frame_religion
+	portrait = event_target:beneficiary_check_crusader_beneficiary
+
+	is_triggered_only = yes
+
+	trigger = {
+		event_target:beneficiary_check_crusader_beneficiary = {
+			num_of_count_titles >= 1
+			is_vassal_or_below_of = event_target:beneficiary_check_crusader_king
+			is_alive = yes
+			ai = yes
+		}
+	}
+
+	immediate = {
+		event_target:beneficiary_check_crusader_beneficiary = {
+			set_character_flag = beneficiary_check_potential_player_character
+
+			if = {
+				limit = { NOT = { trait = crusader } }
+				add_trait = crusader
+			}
+
+			if = {
+				limit = { wealth < 150 }
+
+				clear_wealth = yes
+				wealth = 150
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HFP_41061
+	}
+
+	option = {
+		name = EVTOPTB_HFP_41061
+		tooltip_info = yes
+
+		if = {
+			limit = {
+				event_target:beneficiary_check_crusader_beneficiary = {
+					is_alive = yes
+					ai = yes
+					num_of_count_titles >= 1
+				}
+			}
+
+			custom_tooltip = {
+				text = player_character_beneficiary_TT
+				set_player_character = event_target:beneficiary_check_crusader_beneficiary
+			}
+		}
+	}
+
+	after = {
+		clr_character_flag = beneficiary_check_potential_player_character
+	}
+}
+
+## Counter Pledge Events
+# Getting AI defense pledges
+character_event = {
+	id = HFP.41070
+
+	is_triggered_only = yes # on_crusade_preparation_starts
+	hide_window = yes
+
+	trigger = {
+		uses_new_crusade = yes
+		is_preparing_crusade = yes
+	}
+
+	immediate = {
+		crusade_target_title = {
+			empire = {
+				save_event_target_as = crusade_target_empire_liege
+			}
+		}
+
+		crusade_target_char = {
+			save_event_target_as = crusade_defender
+		}
+
+		any_playable_ruler = {
+			limit = {
+				religion = event_target:crusade_defender
+				is_adult = yes
+				ai = yes
+
+				OR = {
+					independent = yes
+					higher_real_tier_than = BARON
+					holy_order = yes
+				}
+
+				mercenary = no
+				is_within_diplo_range = event_target:crusade_defender
+			}
+
+			random = {
+				chance = 25
+
+				mult_modifier = {
+					factor = 1.5
+					trait = zealous
+				}
+
+				mult_modifier = {
+					factor = 1.5
+					trait = holy_warrior
+				}
+
+				mult_modifier = {
+					factor = 1.5
+					ai_zeal >= 10
+				}
+
+				mult_modifier = {
+					factor = 1.5
+					ai_zeal >= 20
+				}
+
+				mult_modifier = {
+					factor = 1.5
+					ai_zeal >= 30
+				}
+
+				mult_modifier = {
+					factor = 1.5
+					ai_zeal >= 40
+				}
+
+				mult_modifier = {
+					factor = 0.1
+					trait = cynical
+				}
+
+				mult_modifier = {
+					factor = 0.2
+					is_patrician = yes
+				}
+
+				mult_modifier = {
+					factor = 0.2
+					real_tier = COUNT
+				}
+
+				mult_modifier = {
+					factor = 0.5
+					real_tier = DUKE
+				}
+
+				mult_modifier = {
+					factor = 1.5
+					real_tier = EMPEROR
+				}
+
+				mult_modifier = {
+					factor = 0.5
+					war = yes
+				}
+
+				mult_modifier = {
+					factor = 100
+					holy_order = yes
+				}
+
+				mult_modifier = {
+					factor = 4
+					de_jure_liege = event_target:crusade_target_empire_liege
+				}
+
+				character_event = {
+					id = HFP.41071
+					days = 3
+					random = 10
+				}
+			}
+		}
+	}
+}
+
+# Characters pledging defense from Crusade - AI only
+character_event = {
+	id = HFP.41071
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	ai = yes
+
+	trigger = {
+		FROM = { is_preparing_crusade = yes }
+		is_religion_crusade_target = yes
+		NOT = { character = event_target:crusade_defender }
+	}
+
+	immediate = {
+		pledge_crusade_defense = yes
+
+		if = {
+			limit = { higher_real_tier_than = DUKE }
+
+			event_target:crusade_defender = {
+				letter_event = { id = HFP.41075 }
+			}
+		}
+	}
+}
+
+# Get new pledges, if the target is changed to someone of another religion - AI only
+character_event = {
+	id = HFP.41072
+
+	is_triggered_only = yes # on_crusade_target_changes
+	hide_window = yes
+
+	trigger = {
+		NOT = { religion = crusade_target_char }
+	}
+
+	immediate = {
+		character_event = { id = HFP.41070 }
+	}
+}
+
+# Defense severely outmatched - AI only
+character_event = {
+	id = HFP.41073
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		is_preparing_crusade = yes
+		crusade_preparation_strength >= 1.2
+	}
+
+	immediate = {
+		crusade_target_char = {
+			save_event_target_as = crusade_defender
+		}
+
+		random_playable_ruler = {
+			limit = {
+				religion = event_target:crusade_defender
+				is_adult = yes
+				higher_real_tier_than = BARON
+				ai_zeal >= 5
+				has_pledged_crusade_defense = no
+				NOT = { character = event_target:crusade_defender }
+				is_within_diplo_range = event_target:crusade_defender
+				holy_order = no
+				mercenary = no
+				ai = yes
+			}
+
+			preferred_limit = {
+				trigger_if = {
+					limit = { real_tier = EMPEROR }
+					ai_zeal >= 25
+				}
+				trigger_else_if = {
+					limit = { real_tier = KING }
+					ai_zeal >= 40
+				}
+				trigger_else = {
+					real_tier = DUKE
+					ai_zeal >= 55
+				}
+			}
+
+			preferred_limit = {
+				trigger_if = {
+					limit = { real_tier = EMPEROR }
+					ai_zeal >= 20
+				}
+				trigger_else_if = {
+					limit = { real_tier = KING }
+					ai_zeal >= 35
+				}
+				trigger_else = {
+					real_tier = DUKE
+					ai_zeal >= 50
+				}
+			}
+
+			preferred_limit = {
+				trigger_if = {
+					limit = { real_tier = KING }
+					ai_zeal >= 30
+				}
+				trigger_else = {
+					real_tier = DUKE
+					ai_zeal >= 45
+				}
+			}
+
+			preferred_limit = {
+				trigger_if = {
+					limit = { real_tier = KING }
+					ai_zeal >= 25
+				}
+				trigger_else = {
+					real_tier = DUKE
+					ai_zeal >= 40
+				}
+			}
+
+			preferred_limit = {
+				trigger_if = {
+					limit = { real_tier = KING }
+					ai_zeal >= 20
+				}
+				trigger_else = {
+					real_tier = DUKE
+					ai_zeal >= 35
+				}
+			}
+
+			preferred_limit = {
+				trigger_if = {
+					limit = { real_tier = KING }
+					ai_zeal >= 15
+				}
+				trigger_else = {
+					real_tier = DUKE
+					ai_zeal >= 30
+				}
+			}
+
+			preferred_limit = {
+				trigger_if = {
+					limit = { real_tier = KING }
+					ai_zeal >= 10
+				}
+				trigger_else = {
+					real_tier = DUKE
+					ai_zeal >= 25
+				}
+			}
+
+			preferred_limit = {
+				tier = DUKE
+				ai_zeal >= 20
+			}
+
+			preferred_limit = {
+				tier = DUKE
+				ai_zeal >= 15
+			}
+
+			preferred_limit = {
+				ai_zeal >= 10
+			}
+
+			preferred_limit = {
+				ai_zeal >= 5
+			}
+
+			character_event = {
+				id = HFP.41071
+				days = 3
+				random = 10
+			}
+		}
+
+		if = {
+			limit = { crusade_preparation_strength >= 3 }
+
+			random_playable_ruler = {
+				limit = {
+					religion = event_target:crusade_defender
+					is_adult = yes
+					ai_zeal >= 5
+					has_pledged_crusade_defense = no
+					higher_real_tier_than = BARON
+					is_within_diplo_range = event_target:crusade_defender
+					holy_order = no
+					mercenary = no
+					NOT = { character = event_target:crusade_defender }
+					ai = yes
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = EMPEROR }
+						ai_zeal >= 25
+					}
+					trigger_else_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 40
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 55
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = EMPEROR }
+						ai_zeal >= 20
+					}
+					trigger_else_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 35
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 50
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 30
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 45
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 25
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 40
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 20
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 35
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 15
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 30
+					}
+				}
+
+				preferred_limit = {
+					trigger_if = {
+						limit = { real_tier = KING }
+						ai_zeal >= 10
+					}
+					trigger_else = {
+						real_tier = DUKE
+						ai_zeal >= 25
+					}
+				}
+
+				preferred_limit = {
+					tier = DUKE
+					ai_zeal >= 20
+				}
+
+				preferred_limit = {
+					tier = DUKE
+					ai_zeal >= 15
+				}
+
+				preferred_limit = {
+					ai_zeal >= 10
+				}
+
+				preferred_limit = {
+					ai_zeal >= 5
+				}
+
+				character_event = {
+					id = HFP.41071
+					days = 3
+					random = 10
+				}
+			}
+		}
+	}
+}
+
+# Any character owing a favor of the same religion will pledge to the defense - AI only
+character_event = {
+	id = HFP.41074
+
+	is_triggered_only = yes # on_crusade_monthly
+	hide_window = yes
+
+	trigger = {
+		is_preparing_crusade = yes
+	}
+
+	immediate = {
+		crusade_target_char = {
+			save_event_target_as = crusade_defender
+		}
+
+		event_target:crusade_defender = {
+			if = {
+				limit = { ai = yes }
+
+				random_favor_ower = {
+					limit = {
+						is_playable = yes
+						religion = event_target:crusade_defender
+						is_adult = yes
+						higher_real_tier_than = BARON
+						is_within_diplo_range = event_target:crusade_defender
+						mercenary = no
+						ai = yes
+					}
+
+					preferred_limit = { real_tier = EMPEROR }
+					preferred_limit = { real_tier = KING }
+					preferred_limit = { real_tier = DUKE }
+
+					reverse_remove_favor = event_target:crusade_defender
+
+					character_event = {
+						id = HFP.41071
+						days = 3
+						random = 10
+					}
+				}
+			}
+		}
+	}
+}
+
+# Receiving letter with pledge
+letter_event = {
+	id = HFP.41075
+	desc = EVTDESC_HFP_41075
+	border = GFX_event_letter_frame_religion
+
+	is_triggered_only = yes # HFP.41071
+
+	option = {
+		name = EVTOPTA_HFP_41075
+
+		if = {
+			limit = { religion = FROM }
+
+			opinion = {
+				name = opinion_grateful
+				who = FROM
+				years = 10
+			}
+		}
+	}
+}
+
+## The Pot events
+# Initial Rewards
+character_event = {
+	id = HFP.41080
+
+	is_triggered_only = yes # on_crusade_preparation_starts
+	hide_window = yes
+
+	trigger = {
+		uses_new_crusade = yes
+	}
+
+	immediate = {
+		# Pope puts half his treasury into the pot
+		export_to_variable = {
+			which = local_small_contribution
+			value = wealth
+		}
+
+		divide_variable = {
+			which = local_small_contribution
+			value = 2
+		}
+
+		subtract_variable = {
+			which = local_small_contribution_cost
+			which = local_small_contribution
+		}
+
+		add_to_crusade_gold_pot = local_small_contribution
+		add_to_crusade_piety_pot = 400
+		add_to_crusade_prestige_pot = 1000
+		add_to_crusade_artifact_pot = 4
+
+		wealth = local_small_contribution_cost
+	}
+}
+
+# Seeking Christian Monetary support - AI
+character_event = {
+	id = HFP.41081
+
+	is_triggered_only = yes # on_crusade_preparation_starts
+	hide_window = yes
+
+	trigger = {
+		uses_new_crusade = yes
+	}
+
+	immediate = {
+		any_independent_ruler = {
+			if = {
+				limit = {
+					religion = ROOT
+					ai = yes
+
+					trigger_if = {
+						limit = { higher_tier_than = DUKE }
+						ai_zeal >= -10
+					}
+					trigger_else = {
+						ai_zeal >= 0
+					}
+
+					mercenary = no
+					holy_order = no
+					is_within_diplo_range = ROOT
+				}
+
+				character_event = {
+					id = HFP.41082
+					days = 1
+					random = 350
+				}
+			}
+
+			any_realm_lord = {
+				if = {
+					limit = {
+						religion = ROOT
+						ai = yes
+
+						trigger_if = {
+							limit = { higher_real_tier_than = DUKE }
+							ai_zeal >= -10
+						}
+						trigger_else = {
+							ai_zeal >= 0
+						}
+
+						mercenary = no
+						holy_order = no
+						is_within_diplo_range = ROOT
+					}
+
+					character_event = {
+						id = HFP.41082
+						days = 3
+						random = 350
+					}
+				}
+			}
+		}
+	}
+}
+
+# Receiving Christian Monetary Support - AI
+character_event = {
+	id = HFP.41082
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	ai = yes
+
+	trigger = {
+		is_preparing_crusade = yes
+	}
+
+	immediate = {
+		set_character_flag = supported_crusade
+
+		export_to_variable = {
+			which = local_small_contribution
+			value = yearly_income
+		}
+
+		# Enforce minimum contribution, depending on tier
+		if = {
+			limit = {
+				lower_real_tier_than = DUKE
+
+				check_variable = {
+					which = local_small_contribution
+					value < 10
+				}
+			}
+
+			set_variable = {
+				which = local_small_contribution
+				value = 10
+			}
+		}
+		else_if = {
+			limit = {
+				real_tier = DUKE
+
+				check_variable = {
+					which = local_small_contribution
+					value < 20
+				}
+			}
+
+			set_variable = {
+				which = local_small_contribution
+				value = 20
+			}
+		}
+		else_if = {
+			limit = {
+				real_tier = KING
+
+				check_variable = {
+					which = local_small_contribution
+					value < 30
+				}
+			}
+
+			set_variable = {
+				which = local_small_contribution
+				value = 30
+			}
+		}
+		else_if = {
+			limit = {
+				real_tier = EMPEROR
+
+				check_variable = {
+					which = local_small_contribution
+					value < 40
+				}
+			}
+
+			set_variable = {
+				which = local_small_contribution
+				value = 40
+			}
+		}
+
+		# Set=up larger contributions
+		set_variable = {
+			which = local_medium_contribution
+			which = local_small_contribution
+		}
+
+		multiply_variable = {
+			which = local_medium_contribution
+			value = 2
+		}
+
+		set_variable = {
+			which = local_large_contribution
+			which = local_medium_contribution
+		}
+
+		multiply_variable = {
+			which = local_large_contribution
+			value = 2
+		}
+
+		set_variable = {
+			which = local_small_contribution_cost
+			value = 0
+		}
+
+		subtract_variable = {
+			which = local_small_contribution_cost
+			which = local_small_contribution
+		}
+
+		set_variable = {
+			which = local_medium_contribution_cost
+			value = 0
+		}
+
+		subtract_variable = {
+			which = local_medium_contribution_cost
+			which = local_medium_contribution
+		}
+
+		set_variable = {
+			which = local_large_contribution_cost
+			value = 0
+		}
+
+		subtract_variable = {
+			which = local_large_contribution_cost
+			which = local_large_contribution
+		}
+
+		# Set-up initial piety gain
+		set_variable = {
+			which = local_small_piety_boon
+			which = local_small_contribution
+		}
+
+		divide_variable = {
+			which = local_small_piety_boon
+			value = 2
+		}
+
+		# Enforce minimum piety gain
+		if = {
+			limit = {
+				lower_real_tier_than = DUKE
+
+				check_variable = {
+					which = local_small_piety_boon
+					value < 5
+				}
+			}
+
+			set_variable = {
+				which = local_small_piety_boon
+				value = 5
+			}
+		}
+		else_if = {
+			limit = {
+				real_tier = DUKE
+
+				check_variable = {
+					which = local_small_piety_boon
+					value < 10
+				}
+			}
+
+			set_variable = {
+				which = local_small_piety_boon
+				value = 10
+			}
+		}
+		else_if = {
+			limit = {
+				real_tier = KING
+
+				check_variable = {
+					which = local_small_piety_boon
+					value < 15
+				}
+			}
+
+			set_variable = {
+				which = local_small_piety_boon
+				value = 15
+			}
+		}
+		else_if = {
+			limit = {
+				real_tier = EMPEROR
+
+				check_variable = {
+					which = local_small_piety_boon
+					value < 20
+				}
+			}
+
+			set_variable = {
+				which = local_small_piety_boon
+				value = 20
+			}
+		}
+
+		# Set-up larger piety gains, to go with larger contributions
+		set_variable = {
+			which = local_medium_piety_boon
+			which = local_medium_contribution
+		}
+
+		divide_variable = {
+			which = local_medium_piety_boon
+			value = 2
+		}
+
+		set_variable = {
+			which = local_large_piety_boon
+			which = local_large_contribution
+		}
+
+		divide_variable = {
+			which = local_large_piety_boon
+			value = 2
+		}
+
+		trigger_switch = {
+			on_trigger = ai_zeal
+
+			70 = { add_to_crusade_gold_pot = local_large_contribution  wealth = local_large_contribution_cost  piety = local_large_piety_boon }
+			35 = { add_to_crusade_gold_pot = local_medium_contribution wealth = local_medium_contribution_cost piety = local_medium_piety_boon }
+			 0 = { add_to_crusade_gold_pot = local_small_contribution  wealth = local_small_contribution_cost  piety = local_small_piety_boon }
+		}
+
+		if = {
+			limit = { wealth < 1 }
+			clear_wealth = yes
+		}
+	}
+}
+
+# Giving out gold at the start of a Crusade
+character_event = {
+	id = HFP.41083
+
+	is_triggered_only = yes # on_crusade_launches
+	hide_window = yes
+
+	immediate = {
+		distribute_crusade_pot = {
+			amount = 0.2
+			type = gold
+		}
+	}
+}
+
+# Add to pot at the end of every won siege
+character_event = {
+	id = HFP.41084
+
+	is_triggered_only = yes # on_siege_over_winner
+	hide_window = yes
+
+	trigger = {
+		OR = {
+			is_preparing_crusade = yes
+			any_war = { using_cb = new_crusade }
+		}
+
+		FROM = {
+			holder_scope = {
+				OR = {
+					any_war = {
+						using_cb = new_crusade
+					}
+
+					any_liege = {
+						any_war = {
+							using_cb = new_crusade
+						}
+					}
+				}
+			}
+		}
+
+		OR = {
+			religion = catholic
+			religion = fraticelli
+		}
+	}
+
+	immediate = {
+		add_to_crusade_piety_pot = 350
+		add_to_crusade_prestige_pot = 350
+		add_to_crusade_gold_pot = 350
+
+		random = {
+			chance = 5
+			add_to_crusade_artifact_pot = 1
+		}
+	}
+}
+
+# Add to pot at the end of every won battle
+character_event = {
+	id = HFP.41085
+
+	is_triggered_only = yes # on_battle_won_leader
+	hide_window = yes
+
+	trigger = {
+		any_war = {
+			using_cb = new_crusade
+		}
+
+		FROM = {
+			OR = {
+				any_war = {
+					using_cb = new_crusade
+				}
+				any_liege = {
+					any_war = {
+						using_cb = new_crusade
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		add_to_crusade_piety_pot = 350
+		add_to_crusade_prestige_pot = 350
+		add_to_crusade_gold_pot = 350
+
+		random = {
+			chance = 5
+			add_to_crusade_artifact_pot = 1
+		}
+	}
+}
+
+# No Pot rewards for Holy Orders - AI only
+character_event = {
+	id = HFP.41086
+
+	is_triggered_only = yes # on_crusade_monthly
+	hide_window = yes
+
+	immediate = {
+		any_war = {
+			limit = { using_cb = new_crusade }
+
+			any_attacker = {
+				limit = { holy_order = yes}
+				set_crusade_pot_multiplier = 0
+			}
+		}
+	}
+}
+
+# No Pot rewards for Holy Orders when they get a new Grandmaster either - AI only
+character_event = {
+	id = HFP.41087
+
+	is_triggered_only = yes # on_new_holder_inheritance
+	hide_window = yes
+
+	trigger = {
+		OR = {
+			holy_order = yes
+
+			FROMFROM = {
+				holy_order = yes
+			}
+		}
+	}
+
+	immediate = {
+		religion_head = {
+			character_event = {
+				id = HFP.41086
+				days = 1
+			}
+		}
+	}
+}
+
+# Add gold to pot
+character_event = {
+	id = HFP.41088
+	desc = EVTDESC_HFP_41088
+	picture = GFX_evt_throne_room
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes # contribute_to_crusade_pot_effect
+
+	immediate = {
+		# Variable Magic, essentially this:
+		# A Small Contribution is one yearly income
+		# A Medium Contribution is 2x Small
+		# A Large Contribution is 2x Medium
+		# The piety boon you get is half of what you give in wealth
+		# If the small contribution is less than 50 gold, it will be set to 50 gold
+		# All other values are based on the small contribution, they then update accordingly
+
+		export_to_variable = {
+			which = local_small_contribution
+			value = yearly_income
+		}
+
+		if = {
+			limit = {
+				check_variable = {
+					which = local_small_contribution
+					value < 50
+				}
+			}
+
+			set_variable = {
+				which = local_small_contribution
+				value = 50
+			}
+		}
+
+		# Set-up larger contributions
+		set_variable = {
+			which = local_medium_contribution
+			which = local_small_contribution
+		}
+		multiply_variable = {
+			which = local_medium_contribution
+			value = 2
+		}
+
+		set_variable = {
+			which = local_large_contribution
+			which = local_medium_contribution
+		}
+		multiply_variable = {
+			which = local_large_contribution
+			value = 2
+		}
+
+		# Set-up variables to take away wealth
+		set_variable = {
+			which = local_small_contribution_cost
+			value = 0
+		}
+		subtract_variable = {
+			which = local_small_contribution_cost
+			which = local_small_contribution
+		}
+
+		set_variable = {
+			which = local_medium_contribution_cost
+			value = 0
+		}
+		subtract_variable = {
+			which = local_medium_contribution_cost
+			which = local_medium_contribution
+		}
+
+		set_variable = {
+			which = local_large_contribution_cost
+			value = 0
+		}
+		subtract_variable = {
+			which = local_large_contribution_cost
+			which = local_large_contribution
+		}
+
+		# Set-up piety gains
+		set_variable = {
+			which = local_small_piety_boon
+			which = local_small_contribution
+		}
+		divide_variable = {
+			which = local_small_piety_boon
+			value = 2
+		}
+
+		set_variable = {
+			which = local_medium_piety_boon
+			which = local_medium_contribution
+		}
+		divide_variable = {
+			which = local_medium_piety_boon
+			value = 2
+		}
+
+		set_variable = {
+			which = local_large_piety_boon
+			which = local_large_contribution
+		}
+		divide_variable = {
+			which = local_large_piety_boon
+			value = 2
+		}
+	}
+
+	# A small gift
+	option = {
+		name = EVTOPTA_HFP_41088
+
+		trigger = { wealth >= local_small_contribution }
+
+		wealth = local_small_contribution_cost
+		add_to_crusade_gold_pot = local_small_contribution
+		piety = local_small_piety_boon
+
+		hidden_effect = {
+			remove_character_modifier = not_pledged_to_crusade
+		}
+	}
+
+	# A medium gift
+	option = {
+		name = EVTOPTB_HFP_41088
+
+		trigger = { wealth >= local_medium_contribution }
+
+		religion_head = {
+			show_scope_change = no
+
+			opinion = {
+				name = opinion_grateful
+				who = ROOT
+				years = 3
+			}
+		}
+
+		wealth = local_medium_contribution_cost
+		add_to_crusade_gold_pot = local_medium_contribution
+		piety = local_medium_piety_boon
+
+		hidden_effect = {
+			remove_character_modifier = not_pledged_to_crusade
+		}
+	}
+
+	# A large gift
+	option = {
+		name = EVTOPTC_HFP_41088
+
+		trigger = { wealth >= local_large_contribution }
+
+		religion_head = {
+			show_scope_change = no
+
+			opinion = {
+				name = opinion_very_grateful_donation
+				who = ROOT
+				years = 5
+			}
+		}
+
+		wealth = local_large_contribution_cost
+		add_to_crusade_gold_pot = local_large_contribution
+		piety = local_large_piety_boon
+
+		hidden_effect = {
+			remove_character_modifier = not_pledged_to_crusade
+		}
+	}
+
+	# Change your mind
+	option = {
+		name = EVTOPTD_HFP_41088
+	}
+}
+
+## Post Crusade Events
+# Refill the levy, and remove the negative modifiers
+character_event = {
+	id = HFP.41090
+
+	is_triggered_only = yes # new_crusade CB
+	hide_window = yes
+
+	immediate = {
+		any_realm_province = {
+			if = {
+				limit = { held_under_PREV = yes }
+
+				remove_province_modifier = sold_off_land
+				remove_province_modifier = thieves_guild
+				remove_province_modifier = incompetent_rule
+				remove_province_modifier = smugglers_ring
+				remove_province_modifier = highway_robber_band
+				remove_province_modifier = excessive_bureaucracy
+				remove_province_modifier = peasant_unrest
+			}
+
+			any_province_holding = {
+				remove_holding_modifier = new_administration
+				remove_holding_modifier = recently_conquered
+				refill_holding_levy = yes
+			}
+		}
+	}
+}
+
+## Stance Selection
+# Stance event
+character_event = {
+	id = HFP.41091
+	desc = EVTDESC_HFP_41091
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = { has_character_flag = stance_selection_open }
+	}
+
+	immediate = {
+		set_character_flag = stance_selection_open
+	}
+
+	# Follow Papal Will
+	option = {
+		name = EVTOPTA_HFP_41091
+
+		trigger = {
+			NOT = { has_character_flag = crusade_papal_stance }
+
+			official_crusade_recipient = {
+				is_alive = yes
+			}
+		}
+
+		custom_tooltip = {
+			text = EVTOPTA_HFP_41091_TT
+
+			if = {
+				limit = {
+					any_owned_bloodline = {
+						has_bloodline_flag = grand_crusader_bloodline
+						bloodline_is_active_for = PREV
+					}
+				}
+
+				set_crusade_pot_multiplier = 1.4
+			}
+			else = {
+				set_crusade_pot_multiplier = 1.2
+			}
+
+			set_character_flag = crusade_papal_stance
+			clr_character_flag = crusade_beneficiary_stance
+			clr_character_flag = crusade_selfish_stance
+		}
+	}
+
+	# My Beneficiary (without Papal Recipient)
+	option = {
+		name = EVTOPTB_HFP_41091
+
+		trigger = {
+			NOR = {
+				has_character_flag = crusade_beneficiary_stance
+
+				official_crusade_recipient = {
+					is_alive = yes
+				}
+			}
+		}
+
+		custom_tooltip = {
+			text = EVTOPTB_HFP_41091_TT
+
+			if = {
+				limit = {
+					any_owned_bloodline = {
+						has_bloodline_flag = grand_crusader_bloodline
+						bloodline_is_active_for = PREV
+					}
+				}
+
+				set_crusade_pot_multiplier = 1.2
+			}
+			else = {
+				set_crusade_pot_multiplier = 1
+			}
+
+			set_character_flag = crusade_beneficiary_stance
+			clr_character_flag = crusade_papal_stance
+			clr_character_flag = crusade_selfish_stance
+		}
+	}
+
+	# My Beneficiary (with Papal Recipient)
+	option = {
+		name = EVTOPTB_HFP_41091
+
+		trigger = {
+			NOT = { has_character_flag = crusade_beneficiary_stance }
+
+			official_crusade_recipient = {
+				is_alive = yes
+			}
+		}
+
+		custom_tooltip = {
+			text = EVTOPTB_HFP_41091_TT
+
+			if = {
+				limit = {
+					any_owned_bloodline = {
+						has_bloodline_flag = grand_crusader_bloodline
+						bloodline_is_active_for = PREV
+					}
+				}
+
+				set_crusade_pot_multiplier = 1.1
+			}
+			else = {
+				set_crusade_pot_multiplier = 0.9
+			}
+
+			set_character_flag = crusade_beneficiary_stance
+			clr_character_flag = crusade_papal_stance
+			clr_character_flag = crusade_selfish_stance
+		}
+	}
+
+	# You mean MY new Kingdom?
+	option = {
+		name = EVTOPTC_HFP_41091
+
+		trigger = {
+			NOT = { has_character_flag = crusade_selfish_stance }
+		}
+
+		custom_tooltip = {
+			text = EVTOPTC_HFP_41091_TT
+
+			if = {
+				limit = {
+					any_owned_bloodline = {
+						has_bloodline_flag = grand_crusader_bloodline
+						bloodline_is_active_for = PREV
+					}
+				}
+
+				set_crusade_pot_multiplier = 0.2
+			}
+			else = {
+				set_crusade_pot_multiplier = 0
+			}
+
+			set_character_flag = crusade_selfish_stance
+			clr_character_flag = crusade_papal_stance
+			clr_character_flag = crusade_beneficiary_stance
+		}
+
+		religion_head = {
+			show_scope_change = no
+
+			opinion = {
+				name = opinion_selfish_crusader
+				who = ROOT
+				years = 20
+			}
+		}
+	}
+
+	# I will stick to my decision
+	option = {
+		name = EVTOPTD_HFP_41091
+
+		trigger = {
+			OR = {
+				has_character_flag = crusade_papal_stance
+				has_character_flag = crusade_beneficiary_stance
+				has_character_flag = crusade_selfish_stance
+			}
+		}
+
+		trigger_switch = {
+			on_trigger = has_character_flag
+
+			crusade_papal_stance = { custom_tooltip = { text = EVTOPTA_HFP_41091_TT } }
+			crusade_beneficiary_stance = { custom_tooltip = { text = EVTOPTB_HFP_41091_TT } }
+			crusade_selfish_stance = { custom_tooltip = { text = EVTOPTC_HFP_41091_TT } }
+		}
+	}
+
+	after = {
+		hidden_effect = {
+			if = {
+				limit = { NOT = { has_character_flag = crusade_selfish_stance } }
+
+				religion_head = {
+					remove_opinion = {
+						who = ROOT
+						name = opinion_selfish_crusader
+					}
+				}
+			}
+		}
+
+		clr_character_flag = stance_selection_open
+	}
+}
+
+## Loss of Beneficiary Notification
+# Beneficiary message check - Player Only
+character_event = {
+	id = HFP.41110
+
+	is_triggered_only = yes # HFP.41052
+	hide_window = yes
+
+	ai = no
+
+	immediate = {
+		trigger_switch = {
+			on_trigger = has_character_flag
+
+			dead_beneficiary_flag = { character_event = { id = HFP.41111 } }
+			landed_beneficiary_flag = { character_event = { id = HFP.41112 } }
+			heir_beneficiary_flag = { character_event = { id = HFP.41113 } }
+			mercenary_beneficiary_flag = { character_event = { id = HFP.41114 } }
+			holy_order_beneficiary_flag = { character_event = { id = HFP.41115 } }
+			underage_beneficiary_flag = { character_event = { id = HFP.41116 } }
+			sick_or_injured_beneficiary_flag = { character_event = { id = HFP.41117 } }
+			monk_nun_beneficiary_flag = { character_event = { id = HFP.41118 } }
+		}
+
+		clr_character_flag = dead_beneficiary_flag
+		clr_character_flag = landed_beneficiary_flag
+		clr_character_flag = heir_beneficiary_flag
+		clr_character_flag = mercenary_beneficiary_flag
+		clr_character_flag = holy_order_beneficiary_flag
+		clr_character_flag = underage_beneficiary_flag
+		clr_character_flag = sick_or_injured_beneficiary_flag
+		clr_character_flag = monk_nun_beneficiary_flag
+	}
+}
+
+# Dead Beneficiary Message - Player Only
+character_event = {
+	id = HFP.41111
+	desc = EVTDESC_HFP_41111
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes
+	notification = yes
+
+	ai = no
+
+	option = {
+		name = OK
+	}
+}
+
+# Landed Beneficiary Message - Player Only
+character_event = {
+	id = HFP.41112
+	desc = EVTDESC_HFP_41112
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes
+	notification = yes
+
+	ai = no
+
+	option = {
+		name = OK
+	}
+}
+
+# Heir Beneficiary Message - Player Only
+character_event = {
+	id = HFP.41113
+	desc = EVTDESC_HFP_41113
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes
+	notification = yes
+
+	ai = no
+
+	option = {
+		name = OK
+	}
+}
+
+# Mercenary Beneficiary Message - Player Only
+character_event = {
+	id = HFP.41114
+	desc = EVTDESC_HFP_41114
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes
+	notification = yes
+
+	ai = no
+
+	option = {
+		name = OK
+	}
+}
+
+# Holy Order Beneficiary Message - Player Only
+character_event = {
+	id = HFP.41115
+	desc = EVTDESC_HFP_41115
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes
+	notification = yes
+
+	ai = no
+
+	option = {
+		name = OK
+	}
+}
+
+# Underage Beneficiary Message - Player Only
+character_event = {
+	id = HFP.41116
+	desc = EVTDESC_HFP_41116
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes
+	notification = yes
+
+	ai = no
+
+	option = {
+		name = OK
+	}
+}
+
+# Sick or Injured Beneficiary Message - Player Only
+character_event = {
+	id = HFP.41117
+	desc = EVTDESC_HFP_41117
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes
+	notification = yes
+
+	ai = no
+
+	option = {
+		name = OK
+	}
+}
+
+# Monk or Nun Beneficiary Message - Player Only
+character_event = {
+	id = HFP.41118
+	desc = EVTDESC_HFP_41118
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes
+	notification = yes
+
+	ai = no
+
+	option = {
+		name = OK
+	}
+}
+
+## New Official Crusade Recipient notification
+# Recipient remove and replaced message
+letter_event = {
+	id = HFP.41120
+
+	desc = {
+		text = EVTDESC_HFP_41120_1
+		trigger = {
+			event_target:old_crusade_recipient = {
+				is_dying = no
+				is_alive = yes
+			}
+
+			NOT = { character = event_target:new_crusade_recipient }
+		}
+	}
+	desc = {
+		text = EVTDESC_HFP_41120_2
+		trigger = {
+			event_target:old_crusade_recipient = {
+				OR = {
+					is_alive = no
+					is_dying = yes
+				}
+			}
+
+			event_target:new_crusade_recipient = {
+				NOR = {
+					is_primary_heir = event_target:old_crusade_recipient
+					character = ROOT
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_HFP_41120_3
+		trigger = {
+			event_target:old_crusade_recipient = {
+				OR = {
+					is_alive = no
+					is_dying = yes
+				}
+			}
+
+			event_target:new_crusade_recipient = {
+				is_primary_heir = event_target:old_crusade_recipient
+				NOT = { character = ROOT }
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_HFP_41120_4
+		trigger = {
+			character = event_target:new_crusade_recipient
+
+			event_target:old_crusade_recipient = {
+				OR = {
+					is_alive = no
+					is_dying = yes
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_HFP_41120_5
+		trigger = {
+			character = event_target:new_crusade_recipient
+
+			event_target:old_crusade_recipient = {
+				is_alive = yes
+				is_dying = no
+			}
+		}
+	}
+
+	is_triggered_only = yes # HFP.41000
+
+	option = {
+		name = {
+			text = I_SEE
+			trigger = {
+				NOT = { character = event_target:new_crusade_recipient }
+			}
+		}
+		name = {
+			text = EVTOPTB_HFP_41120
+			trigger = { character = event_target:new_crusade_recipient }
+		}
+	}
+}
+
+# Recipient removed and no replacement message
+letter_event = {
+	id = HFP.41121
+
+	desc = {
+		text = EVTDESC_HFP_41121_1
+		trigger = {
+			event_target:old_crusade_recipient = {
+				is_alive = yes
+				is_dying = no
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_HFP_41121_2
+		trigger = {
+			event_target:old_crusade_recipient = {
+				OR = {
+					is_alive = no
+					is_dying = yes
+				}
+			}
+		}
+	}
+
+	is_triggered_only = yes # HFP.41000
+
+	option = {
+		name = EVTOPTA_HFP_41121
+
+		custom_tooltip = { text = EVTOPTA_HFP_41121_TT }
+	}
+}
+
+## Not pledged to Crusade
+# Pope finds people to be disappointed in - AI only
+character_event = {
+	id = HFP.41130
+
+	is_triggered_only = yes # on_crusade_launches
+	hide_window = yes
+
+	trigger = {
+		check_if_not_fourth_crusade_trigger = yes
+		check_if_alternate_crusades_trigger = yes
+	}
+
+	immediate = {
+		any_player = {
+			limit = {
+				rightful_religious_head = ROOT
+				has_character_modifier = not_pledged_to_crusade
+				NOT = { war_with = ROOT }
+			}
+
+			letter_event = { id = HFP.41131 }
+		}
+
+		# CleanSlate: Unclear if punishment was purposefully removed from ai or typo
+		# any_playable_ruler = {
+		#	limit = {
+		#		rightful_religious_head = ROOT
+		#		has_pledged_crusade_participation = no
+		#		ai = yes
+		#
+		#		NOR = {
+		#			has_character_flag = supported_crusade
+		#			war_with = ROOT
+		#		}
+		#	}
+		# }
+
+		any_playable_ruler = {
+			clr_character_flag = supported_crusade
+		}
+	}
+}
+
+# Pope is disappointed in a character
+letter_event = {
+	id = HFP.41131
+	desc = EVTDESC_HFP_41131
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_character_modifier = not_pledged_to_crusade
+		check_if_not_fourth_crusade_trigger = yes
+		check_if_alternate_crusades_trigger = yes
+	}
+
+	immediate = {
+		random_list = {
+			60 = {
+				mult_modifier = {
+					factor = 0.5
+					higher_real_tier_than = DUKE
+				}
+
+				set_character_flag = crusade_light_punishment
+			}
+
+			30 = {
+				mult_modifier = {
+					factor = 2
+					higher_real_tier_than = DUKE
+				}
+
+				set_character_flag = crusade_harsh_punishment
+			}
+
+			10 = {
+				trigger = {
+					ai = no
+					NOT = { excommunicated_for = FROM }
+				}
+
+				mult_modifier = {
+					factor = 2
+					higher_real_tier_than = DUKE
+				}
+
+				set_character_flag = crusade_excommunicated
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HFP_41131
+
+		hidden_effect = {
+			remove_character_modifier = not_pledged_to_crusade
+		}
+
+		trigger_switch = {
+			on_trigger = has_character_flag
+
+			crusade_light_punishment = {
+				clr_character_flag = crusade_light_punishment
+
+				piety = -100
+
+				reverse_opinion = {
+					name = opinion_insulted
+					who = FROM
+					years = 5
+				}
+			}
+
+			crusade_harsh_punishment = {
+				clr_character_flag = crusade_harsh_punishment
+
+				piety = -200
+
+				reverse_opinion = {
+					name = opinion_deeply_insulted
+					who = FROM
+					years = 5
+				}
+			}
+
+			crusade_excommunicated = {
+				clr_character_flag = crusade_excommunicated
+
+				piety = -300
+
+				reverse_opinion = {
+					name = opinion_deeply_insulted
+					who = FROM
+					years = 5
+				}
+
+				if = {
+					limit = { NOT = { trait = excommunicated } }
+					add_trait = excommunicated
+				}
+			}
+		}
+	}
+}
+
+## Pope checking if anyone hasn't been properly Crusading
+# Prepare check
+character_event = {
+	id = HFP.41140
+
+	is_triggered_only = yes # on_crusade_launches
+	hide_window = yes
+
+	trigger = {
+		check_if_not_fourth_crusade_trigger = yes
+		check_if_alternate_crusades_trigger = yes
+	}
+
+	immediate = {
+		event_target:pulse_province = {
+			province_event = { id = HFP.41141 }
+		}
+	}
+}
+
+# Inbetween province event, to make sure the event goes through
+province_event = {
+	id = HFP.41141
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		province_event = {
+			id = HFP.41142
+			years = 1
+			random = 180
+		}
+	}
+}
+
+# Second part of the inbetween province event
+province_event = {
+	id = HFP.41142
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		if = {
+			limit = {
+				k_papacy = {
+					holder_scope = {
+						any_war = {
+							using_cb = new_crusade
+						}
+					}
+				}
+			}
+
+			k_papacy = {
+				holder_scope = {
+					save_event_target_as = crusade_pope
+					character_event = { id = HFP.41143 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				d_fraticelli = {
+					holder_scope = {
+						any_war = {
+							using_cb = new_crusade
+						}
+					}
+				}
+			}
+
+			d_fraticelli = {
+				holder_scope = {
+					save_event_target_as = crusade_pope
+					character_event = { id = HFP.41143 }
+				}
+			}
+		}
+
+		# Prepare second round of angry letters
+		event_target:crusade_pope = {
+			if = { # Delay event if the target is far far away
+				limit = {
+					any_war = {
+						using_cb = new_crusade
+
+						war_participation = {
+							who = PREV
+							score <= 0.001
+						}
+
+						defender = {
+							distance = {
+								who = PREVPREV
+								distance >= 800
+							}
+						}
+					}
+				}
+
+				event_target:pulse_province = {
+					province_event = {
+						id = HFP.41145
+						years = 2
+						random = 180
+					}
+				}
+			}
+			else = {
+				event_target:pulse_province = {
+					province_event = {
+						id = HFP.41145
+						years = 1
+						random = 180
+					}
+				}
+			}
+		}
+	}
+}
+
+# Pope sends out angry letters to everyone who hasn't been Crusading properly
+character_event = {
+	id = HFP.41143
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		any_crusade_participant = {
+			limit = {
+				trigger_if = {
+					limit = { ai = yes }
+					random < 20 # 20% chance
+				}
+
+				any_war = {
+					using_cb = new_crusade
+
+					war_participation = {
+						who = PREV
+						score <= 0.001
+					}
+				}
+			}
+
+			if = { # Delay event if the target is far far away
+				limit = {
+					any_war = {
+						using_cb = new_crusade
+
+						war_participation = {
+							who = PREV
+							score <= 0.001
+						}
+
+						defender = {
+							distance = {
+								who = PREVPREV
+								distance >= 800
+							}
+						}
+					}
+				}
+
+				letter_event = {
+					id = HFP.41144
+					years = 1
+				}
+			}
+			else = {
+				letter_event = { id = HFP.41144 }
+			}
+		}
+	}
+}
+
+# Receiving angry Pope letters
+letter_event = {
+	id = HFP.41144
+	desc = EVTDESC_HFP_41144
+
+	is_triggered_only = yes
+
+	trigger = {
+		check_if_not_fourth_crusade_trigger = yes
+		check_if_alternate_crusades_trigger = yes
+
+		any_war = {
+			using_cb = new_crusade
+
+			war_participation = {
+				who = ROOT
+				score <= 0.001
+			}
+		}
+	}
+
+	immediate = {
+		random_list = {
+			60 = {
+				mult_modifier = {
+					factor = 0.5
+					higher_real_tier_than = DUKE
+				}
+
+				set_character_flag = crusade_light_punishment
+			}
+
+			30 = {
+				mult_modifier = {
+					factor = 2
+					higher_real_tier_than = DUKE
+				}
+
+				set_character_flag = crusade_harsh_punishment
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HFP_41144
+
+		trigger_switch = {
+			on_trigger = has_character_flag
+
+			crusade_light_punishment = {
+				clr_character_flag = crusade_light_punishment
+
+				piety = -100
+
+				reverse_opinion = {
+					name = opinion_insulted
+					who = FROM
+					years = 5
+				}
+			}
+
+			crusade_harsh_punishment = {
+				clr_character_flag = crusade_harsh_punishment
+
+				piety = -200
+
+				reverse_opinion = {
+					name = opinion_deeply_insulted
+					who = FROM
+					years = 5
+				}
+			}
+		}
+	}
+}
+
+# Second round of angry letters
+province_event = {
+	id = HFP.41145
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		if = {
+			limit = {
+				k_papacy = {
+					holder_scope = {
+						any_war = {
+							using_cb = new_crusade
+						}
+					}
+				}
+			}
+
+			k_papacy = {
+				holder_scope = {
+					character_event = { id = HFP.41146 }
+				}
+			}
+		}
+
+		else_if = {
+			limit = {
+				d_fraticelli = {
+					holder_scope = {
+						any_war = {
+							using_cb = new_crusade
+						}
+					}
+				}
+			}
+
+			d_fraticelli = {
+				holder_scope = {
+					character_event = { id = HFP.41146 }
+				}
+			}
+		}
+	}
+}
+
+# Pope sends out angry letters to everyone who hasn't been Crusading properly
+character_event = {
+	id = HFP.41146
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		any_crusade_participant = {
+			limit = {
+				trigger_if = {
+					limit = { ai = yes }
+					random < 20 # 20% chance
+				}
+
+				any_war = {
+					using_cb = new_crusade
+
+					war_participation = {
+						who = PREV
+						score <= 0.001
+					}
+				}
+			}
+
+			letter_event = { id = HFP.41147 }
+		}
+	}
+}
+
+# Receiving angry Pope letter V2.0
+letter_event = {
+	id = HFP.41147
+	desc = EVTDESC_HFP_41147
+
+	is_triggered_only = yes
+
+	trigger = {
+		check_if_not_fourth_crusade_trigger = yes
+		check_if_alternate_crusades_trigger = yes
+	}
+
+	option = {
+		name = EVTOPTA_HFP_41147
+
+		piety = -300
+
+		if = {
+			limit = { NOT = { trait = excommunicated } }
+			add_trait = excommunicated
+		}
+
+		reverse_opinion = {
+			name = opinion_deeply_insulted
+			who = FROM
+			years = 5
+		}
+	}
+}
+
+## Winning Crusade Victories
+# Winning Crusade
+narrative_event = {
+	id = HFP.41160
+	title = EVTTITLE_HFP_41160
+	desc = EVTDESC_HFP_41160
+	picture = GFX_evt_mass_crusade
+	border = GFX_event_narrative_frame_religion
+	portrait = event_target:crusade_king_recipient
+	sound = crusade_outcome_positive
+
+	is_triggered_only = yes
+
+	option = {
+		name = {
+			text = EVTOPTA_HFP_41160
+			trigger = { religion_group = FROM }
+		}
+		name = {
+			text = EVTOPTB_HFP_41160
+			trigger = {
+				NOT = { religion_group = FROM }
+			}
+		}
+	}
+}
+
+## Dynasty Modifiers
+# Remove Dynasty Modifier on death
+character_event = {
+	id = HFP.41170
+
+	is_triggered_only = yes # on_death
+	hide_window = yes
+
+	has_character_flag = beneficiary_who_received_titles
+
+	trigger = {
+		has_dynasty_modifier = ruling_in_crusader_kingdom
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				NOT = {
+					any_dynasty_member = {
+						has_character_flag = beneficiary_who_received_titles
+					}
+				}
+			}
+
+			remove_dynasty_modifier = ruling_in_crusader_kingdom
+		}
+	}
+}
+
+# Cleanup Event
+character_event = {
+	id = HFP.41199
+
+	is_triggered_only = yes # new_crusade CB
+	hide_window = yes
+
+	immediate = {
+		clr_global_flag = 4th_crusade_official
+		clr_global_flag = distributing_crusade
+
+		any_character = {
+			limit = { has_character_flag = asked_to_pledge }
+			clr_character_flag = asked_to_pledge
+		}
+	}
+}
+
+# Crusade NAP dealing...
+character_event = {
+	id = HFP.49122
+
+	is_triggered_only = yes # on_crusade_launches
+	hide_window = yes
+
+	trigger = {
+		any_crusade_participant = {
+			has_non_aggression_pact_with = crusade_target_char
+		}
+	}
+
+	immediate = {
+		any_crusade_participant = {
+			limit = { has_non_aggression_pact_with = crusade_target_char }
+
+			reverse_opinion = {
+				name = broken_non_aggression_pact
+				who = crusade_target_char
+			}
+
+			prestige = -200
+
+			add_character_modifier = {
+				name = broken_non_aggression_pact_char_modifier
+				years = 10
+			}
+
+			# log = "[This.GetTitledFirstName] has a NAP with [crusade_target_char.GetTitledFirstName]"
+		}
+	}
+}

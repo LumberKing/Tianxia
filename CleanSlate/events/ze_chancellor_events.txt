@@ -1,0 +1,482 @@
+###########################################
+#                                         #
+# Zeus | Chancellor flavor events		  #
+# ID ZE.2000-2049	                      #
+#                                         #
+###########################################
+
+# Written by Joel Hansson
+
+namespace = ZE
+
+character_event = {
+	id = ZE.2020
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+	hide_window = yes
+
+	only_playable = yes
+	has_dlc = "Conclave"
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+
+	trigger = {
+		NOR = {
+			trait = charismatic_negotiator
+			trait = grey_eminence
+			trait = gregarious
+			has_character_modifier = multilingual
+		}
+
+		is_inaccessible_trigger = no
+
+		job_chancellor = {
+			OR = {
+				trait = diligent
+
+				trigger_if = {
+					limit = { trait = gregarious }
+					diplomacy >= 12
+				}
+			}
+
+			is_inaccessible_trigger = no
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+
+		mult_modifier = {
+			factor = 2
+			diplomacy < 10
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = wroth
+		}
+	}
+
+	immediate = {
+		job_chancellor = {
+			character_event = { id = ZE.2021 }
+		}
+	}
+}
+
+character_event = {
+	id = ZE.2021
+	desc = EVTDESC_ZE_2021
+	picture = GFX_evt_leaving_table_angrily
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_ZE_2021
+
+		liege = {
+			show_scope_change = no
+
+			character_event = {
+				id = ZE.2022
+				tooltip = EVTTOOLTIP_ZE_2021
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_ZE_2021
+
+		prestige = -5
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+character_event = {
+	id = ZE.2022
+	desc = EVTDESC_ZE_2022
+	picture = GFX_evt_council_speaker
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	immediate = {
+		job_chancellor = {
+			save_event_target_as = language_teacher
+		}
+	}
+
+	option = {
+		name = EVTOPTA_ZE_2022
+
+		if = {
+			limit = {
+				NOT = { has_character_modifier = student_of_language }
+			}
+
+			add_character_modifier = {
+				name = student_of_language
+				duration = -1
+			}
+		}
+
+		reverse_add_favor = FROM
+
+		hidden_effect = {
+			character_event = {
+				id = ZE.2023 # Periodically check if chancellor is still around
+				months = 1
+			}
+
+			random_list = {
+				65 = { character_event = { id = ZE.2026 days = 200 random = 50 } }
+				35 = { character_event = { id = ZE.2025 days = 545 random = 100 } }
+			}
+
+			FROM = {
+				character_event = { id = ZE.2029 }
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_ZE_2022
+
+		random_list = {
+			40 = { add_trait_fully_shy_effect = yes }
+			20 = { add_trait_fully_proud_effect = yes }
+			40 = { }
+		}
+
+		FROM = {
+			character_event = { id = ZE.2028 }
+		}
+	}
+}
+
+# Periodically check if chancellor is still around
+character_event = {
+	id = ZE.2023
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		if = {
+			limit = {
+				job_chancellor = {
+					character = event_target:language_teacher
+				}
+			}
+
+			repeat_event = {
+				id = ZE.2023
+				months = 1
+			}
+		}
+
+		else = {
+			clear_delayed_event = { id = ZE.2025 }
+			clear_delayed_event = { id = ZE.2026 }
+			character_event = { id = ZE.2024 }
+		}
+	}
+}
+
+character_event = {
+	id = ZE.2024
+	desc = EVTDESC_ZE_2024
+	picture = GFX_evt_stressed_ruler
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_ZE_2024
+
+		remove_character_modifier = student_of_language
+	}
+}
+
+character_event = {
+	id = ZE.2025
+	desc = EVTDESC_ZE_2025
+	picture = GFX_evt_noble_in_castle
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	immediate = {
+		clear_delayed_event = { id = ZE.2023 }
+	}
+
+	option = {
+		name = EVTOPTA_ZE_2025
+
+		hidden_effect = {
+			remove_character_modifier = student_of_language
+		}
+
+		add_character_modifier = {
+			name = multilingual
+			duration = -1
+		}
+	}
+}
+
+character_event = {
+	id = ZE.2026
+	desc = EVTDESC_ZE_2026
+	picture = GFX_evt_stressed_ruler
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_ZE_2026
+
+		character_event = {
+			id = ZE.2025
+			days = 340
+			random = 150
+		}
+
+		random = {
+			chance = 15
+			add_trait_partially_diligent_effect = yes
+		}
+
+		random = {
+			chance = 30
+			add_trait_stressed_effect = yes
+		}
+
+		ai_chance = {
+			factor = 20
+
+			mult_modifier = {
+				factor = 2
+				event_target:language_teacher = { diplomacy >= 12 }
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_ZE_2026
+
+		custom_tooltip = {
+			text = EVTTOOLTIP_ZE_2026
+
+			clear_delayed_event = { id = ZE.2023 }
+		}
+
+		remove_character_modifier = student_of_language
+
+		random = {
+			chance = 15
+			add_trait_fully_slothful_effect = yes
+		}
+
+
+		event_target:language_teacher = {
+			show_scope_change = no
+
+			opinion = {
+				name = opinion_disappointed
+				who = ROOT
+				years = 5
+			}
+
+			character_event = { id = ZE.2027 }
+		}
+
+		ai_chance = {
+			factor = 5
+
+			mult_modifier = {
+				factor = 5
+				trait = slothful
+			}
+
+			mult_modifier = {
+				factor = 2
+				event_target:language_teacher = { trait = underhanded_rogue }
+			}
+
+			mult_modifier = {
+				factor = 3
+				event_target:language_teacher = { trait = naive_appeaser }
+			}
+		}
+	}
+}
+
+character_event = {
+	id = ZE.2027
+	desc = EVTDESC_ZE_2027
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_ZE_2027
+
+		random = {
+			chance = 35
+			add_trait_fully_wroth_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_ZE_2027
+
+		random = {
+			chance = 10
+			add_trait_fully_patient_effect = yes
+		}
+	}
+}
+
+character_event = {
+	id = ZE.2028
+	desc = EVTDESC_ZE_2028
+	picture = GFX_evt_council_speaker
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_ZE_2028
+	}
+}
+
+character_event = {
+	id = ZE.2029
+	desc = EVTDESC_ZE_2029
+	picture = GFX_evt_council_speaker
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EXCELLENT
+
+		tooltip = { add_favor = FROM }
+	}
+}
+
+# Abuse of office
+character_event = {
+	id = ZE.2030
+	desc = EVTDESC_ZE_2030
+	picture = GFX_evt_bad_news_female
+	border = GFX_event_normal_frame_diplomacy
+	portrait = job_chancellor
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	has_dlc = "Conclave"
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_inaccessible_trigger = no
+
+		job_chancellor = {
+			opinion = {
+				who = liege
+				value < -75
+			}
+
+			NOT = { trait = honest }
+			is_inaccessible_trigger = no
+			ai = yes
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+
+		mult_modifier = {
+			factor = 2
+			job_chancellor = { trait = deceitful }
+		}
+
+		mult_modifier = {
+			factor = 2
+			job_chancellor = { trait = arbitrary }
+		}
+
+		mult_modifier = {
+			factor = 0.5
+			job_chancellor = { trait = craven }
+		}
+
+		mult_modifier = {
+			factor = 0.5
+			job_chancellor = { trait = slothful }
+		}
+	}
+
+	immediate = {
+		job_chancellor = {
+			wealth = 100
+			set_character_flag = chancellor_abuse_of_office
+		}
+	}
+
+	option = {
+		name = EVTOPTA_ZE_2030 # Depose + get imprison reason
+
+		opinion = {
+			name = abuse_of_office
+			who = job_chancellor
+			years = 3
+		}
+
+		job_chancellor = {
+			show_scope_change = no
+
+			remove_title = job_chancellor
+			prestige = -50
+			piety = -50
+			imprison = ROOT
+		}
+	}
+
+	option = {
+		name = EVTOPTB_ZE_2030 # Turn a blind eye for now but get imprison reason
+
+		capital_scope = {
+			show_scope_change = no
+
+			add_province_modifier = {
+				name = excessive_bureaucracy
+				years = 5
+			}
+		}
+
+		opinion = {
+			name = abuse_of_office
+			who = job_chancellor
+			years = 3
+		}
+
+		reverse_opinion = {
+			name = opinion_turned_a_blind_eye
+			who = job_chancellor
+			years = 3
+		}
+	}
+}

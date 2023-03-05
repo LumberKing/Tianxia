@@ -1,0 +1,161 @@
+# The entry should be named in the same way that the elective succession law is named to define its voter's logic
+# ROOT 			Voter, the character voting in the election
+# FROM			Candidate, character considered for the title
+# FROMFROM		The title the nomination is for
+# FROMFROMFROM	The title owner's candidate
+# The voter will vote for the top score candidate calculated from this script
+
+tanistry = {
+	elector_vote_strength = {
+		days = 1
+	}
+
+	elector_selection = {
+		days = -5
+
+		trigger = {
+			# The title must currently exist
+			FROMFROM = {
+				has_holder = yes
+			}
+		}
+
+		additive_modifier = {
+			value = 10
+
+			is_vassal_or_below_of = FROMFROM
+
+			# Any vassals of one or two lower tiers than the main title are valid electors
+			trigger_if = {
+				limit = { FROMFROM = { real_tier = EMPEROR } }
+				higher_real_tier_than = COUNT # Dukes and Kings
+			}
+			trigger_else_if = {
+				limit = { FROMFROM = { real_tier = KING } }
+				higher_real_tier_than = BARON # Counts and Dukes
+			}
+			trigger_else = { # Duchies and Counties
+				is_ruler = yes # Barons and Counts
+			}
+		}
+
+		additive_modifier = { # Current ruler is always an elector
+			value = 10
+
+			has_landed_title = FROMFROM
+		}
+	}
+
+	# ROOT is current title holder
+	# FROM is candidate
+	# FROMFROM is title
+	# FROMFROMFROM is null
+	candidate_trigger = {
+		# Title must currently exist
+		FROMFROM = {
+			has_holder = yes
+		}
+
+		FROM = {
+			dynasty = ROOT
+
+			# Candidate should not be a landless Courtier who is about to inherit a Theocracy or Republic
+			trigger_if = {
+				limit = {
+					any_heir_title = {
+						OR = {
+							is_republic = yes
+							is_theocracy = yes
+						}
+					}
+				}
+
+				is_landed = yes
+				is_republic = no
+				is_theocracy = no
+			}
+
+			# If the title controls the religion, candidates must be of the same religion
+			trigger_if = {
+				limit = { ROOT = { controls_religion = yes } }
+				religion = ROOT
+			}
+
+			is_ascetic_trigger = no
+			is_theocracy = no
+			is_republic = no
+
+			NOR = {
+				trait = cat
+				trait = disinherited
+				trait = horse
+				trait = eunuch
+				trait = bastard
+				character = ROOT # Not the current ruler
+			}
+		}
+	}
+
+	candidate_vote_score = {
+		days = 0
+
+		### Elector voting himself ###
+		elector_self_tribal_vote = yes
+
+		### Candidate ###
+
+		# Heir
+		elector_heir_vote = yes
+
+		## All candidates
+
+		# Sexism
+		elector_candidate_gender_vote = yes
+
+		# Ageism - Tanistry is more biased towards older rulers
+		elector_candidate_age_tanistry_vote = yes
+
+		# Culturism - Tanistry is tribalistic succession, therefore malus/bonus on cultural bias are increased
+		elector_candidate_culture_bias_strong_vote = yes
+
+		# Faithism - Tanistry is more about choosing a good dynastic member, so faith bias is slightly reduced
+		elector_candidate_religion_bias_weak_vote = yes
+
+		# Barbarism - Tribal succession, that is the point
+
+		# Tribalism
+		elector_candidate_tribalism_vote = yes
+
+		# Nepotism - All characters are relatives, although some might not be of the same dynasty as the Elector
+		elector_candidate_nepotism_vote = yes
+		elector_candidate_nepotism_vote_tanistry = yes
+
+		# Prestige
+		elector_candidate_prestige_vote = yes
+
+		# Piety
+		elector_candidate_piety_vote = yes
+
+		# Education and lifestyle
+		elector_candidate_education_lifestyle_vote = yes
+
+		# Claims - less important in Tanistry
+		elector_candidate_claims_bias_weak_vote = yes
+
+		# Traits
+		elector_candidate_traits_vote = yes
+		elector_candidate_traits_disfigured_vote = yes
+		elector_candidate_traits_excommunication_vote = yes
+		elector_candidate_traits_tribal_vote = yes
+		elector_candidate_traits_pagan_branch_bias_weak_vote = yes
+
+		# Ruler traits
+		elector_ruler_traits_vote = yes
+
+		# Candidate opinion
+		elector_candidate_opinion_vote = yes
+
+		# Ruler opinion
+		elector_ruler_opinion_vote = yes
+	}
+}

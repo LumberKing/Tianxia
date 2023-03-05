@@ -1,0 +1,338 @@
+targeted_decisions = {
+	select_crusade_beneficiary = {
+		# Filters don't work for this special decision
+
+		ai = no
+
+		from_potential = {
+			has_pledged_crusade_participation = yes
+		}
+
+		potential = {
+			dynasty = FROM
+			religion = FROM
+			age >= 12
+			is_sick_or_injured_trigger = no
+			is_ruler = no
+			mercenary = no
+			holy_order = no
+
+			NOR = {
+				trait = nun
+				trait = monk
+
+				FROM = {
+					crusade_beneficiary = {
+						character = ROOT
+					}
+				}
+
+				any_heir_title = {
+					always = yes
+				}
+			}
+		}
+
+		allow = {
+		}
+
+		effect = {
+			FROM = {
+				show_scope_change = no
+
+				hidden_effect = {
+					crusade_beneficiary = {
+						remove_opinion = {
+							name = opinion_beneficiary
+							who = FROM
+						}
+					}
+				}
+
+				set_crusade_beneficiary = ROOT
+
+				hidden_effect = {
+					crusade_beneficiary = {
+						set_character_flag = crusade_beneficiary
+
+						if = {
+							limit = {
+								NOT = {
+									has_opinion_modifier = {
+										name = opinion_beneficiary
+										who = FROM
+									}
+								}
+							}
+						}
+
+						opinion = {
+							name = opinion_beneficiary
+							who = FROM
+							years = 10
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+title_decisions = {
+	dynamic_crusader_state = {
+		# filter = all # CleanSlate: Nonfunctional
+		ai_target_filter = all
+		ai_check_interval = 36
+
+		is_high_prio = yes
+
+		only_playable = yes
+
+		from_potential = {
+			religion_group = christian
+			has_pledged_crusade_participation = yes
+
+			trigger_if = {
+				limit = {
+					has_game_rule = {
+						name = dynamic_crusader_states
+						value = limited
+					}
+				}
+
+				ai = no
+			}
+		}
+
+		potential = {
+			real_tier = DUKE
+			is_alternate_start = no
+		}
+
+		allow = {
+			FROM = {
+				show_scope_change = no
+
+				trigger_if = {
+					limit = {
+						any_owned_bloodline = {
+							has_bloodline_flag = crusade_lord_bloodline
+							bloodline_is_active_for = PREV
+						}
+					}
+
+					prestige >= 300
+					wealth   >= 100
+				}
+				trigger_else = {
+					prestige >= 500
+					wealth   >= 300
+				}
+
+				trigger_if = {
+					limit = { has_character_modifier = settled_crusader_state }
+					NOT = { has_character_modifier = settled_crusader_state }
+				}
+			}
+
+			custom_tooltip = {
+				text = dynamic_crusader_state_tooltip
+
+				NOT = {
+					any_direct_de_jure_vassal_title = {
+						location = {
+							NOT = { controlled_by = FROM }
+						}
+					}
+				}
+			}
+
+			custom_tooltip = {
+				text = dynamic_crusader_state_tooltip_2
+
+				NOT = {
+					any_direct_de_jure_vassal_title = {
+						holder_scope = {
+							NOR = {
+								has_pledged_crusade_defense = yes
+								is_crusade_target = yes
+
+								any_liege = {
+									OR = {
+										has_pledged_crusade_defense = yes
+										is_crusade_target = yes
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			custom_tooltip = {
+				text = dynamic_crusader_state_tooltip_3
+
+				any_direct_de_jure_vassal_title = {
+					location = {
+						OR = {
+							is_coastal = yes
+
+							any_neighbor_province = {
+								OR = {
+									AND = {
+										religion_group = FROM
+
+										NOR = {
+											is_heresy_of = FROM
+											is_parent_religion = FROM
+										}
+									}
+
+									owner = {
+										religion_group = FROM
+
+										NOR = {
+											is_heresy_of = FROM
+											is_parent_religion = FROM
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			custom_tooltip = {
+				text = dynamic_crusader_state_tooltip_4
+
+				FROM = {
+					OR = {
+						crusade_beneficiary = { always = yes }
+
+						any_dynasty_member = {
+							is_lowborn = no
+							mercenary = no
+							is_landed = no
+							is_incapable = no
+
+							NOR = {
+								trait = monk
+								trait = nun
+
+								any_heir_title = { always = yes }
+
+								player_heir = {
+									OR = {
+										is_landed = yes
+										any_heir_title = { always = yes }
+									}
+								}
+							}
+
+							trigger_if = {
+								limit = { is_female = yes }
+
+								practical_age < 40
+
+								NOT = {
+									any_child = { is_landed = yes }
+								}
+							}
+
+							trigger_if = {
+								limit = { is_adult = no }
+
+								age >= 12
+								is_female = no
+							}
+
+							trigger_if = {
+								limit = { is_married = yes }
+
+								NOT = {
+									any_spouse = {
+										OR = {
+											is_landed = yes
+											any_heir_title = { always = yes }
+										}
+									}
+								}
+							}
+
+							trigger_if = {
+								limit = { is_betrothed = yes }
+
+								betrothed = {
+									NOR = {
+										is_landed = yes
+										any_heir_title = { always = yes }
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			OR = {
+				custom_tooltip = {
+					text = dynamic_crusader_state_tooltip_5
+
+					ROOT = {
+						kingdom = {
+							FROM = {
+								crusade_target_title = {
+									NOT = { title = PREVPREV }
+								}
+							}
+						}
+					}
+				}
+
+				custom_tooltip = {
+					text = dynamic_crusader_state_tooltip_6
+
+					NOT = {
+						any_direct_de_jure_vassal_title = {
+							holder_scope = {
+								OR = {
+									is_crusade_target = yes
+									any_liege = { is_crusade_target = yes }
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		effect = {
+			save_event_target_as = duchy_region
+
+			FROM = {
+				show_scope_change = no
+
+				save_event_target_as = crusader_lord
+
+				if = {
+					limit = {
+						any_owned_bloodline = {
+							has_bloodline_flag = crusade_lord_bloodline
+							bloodline_is_active_for = PREV
+						}
+					}
+
+					prestige = -300
+					wealth   = -100
+				}
+				else = {
+					prestige = -500
+					wealth   = -300
+				}
+
+				character_event = { id = HFP.42100 } # Decide who gets the Crusader State
+			}
+		}
+	}
+}
