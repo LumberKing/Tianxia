@@ -1,0 +1,8245 @@
+####################
+# Game Rule Events #
+####################
+# Alexander Oltner
+# Mathilda Bjarnehed
+
+namespace = GR
+
+# Remove Titles without De Jure land
+character_event = {
+	id = GR.1
+	desc = EVTDESC_GR_1
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes # on_five_year_pulse
+
+	only_playable = yes
+	war = no
+
+	trigger = {
+		has_game_rule = {
+			name = de_jure_requirement
+			value = required
+		}
+
+		is_merchant_republic = no
+
+		any_demesne_title = {
+			higher_tier_than = COUNT
+
+			NOT = {
+				any_de_jure_vassal_title = {
+					tier = COUNT
+
+					holder_scope = {
+						OR = {
+							character = ROOT
+							is_vassal_or_below_of = ROOT
+						}
+					}
+				}
+			}
+
+			is_titular = no
+			is_landless_type_title = no
+			controls_religion = no
+		}
+	}
+
+	immediate = {
+		random_demesne_title = {
+			limit = {
+				higher_tier_than = COUNT
+
+				NOT = {
+					any_de_jure_vassal_title = {
+						tier = COUNT
+
+						holder_scope = {
+							OR = {
+								character = ROOT
+								is_vassal_or_below_of = ROOT
+							}
+						}
+					}
+				}
+
+				is_titular = no
+				is_landless_type_title = no
+				controls_religion = no
+			}
+
+			save_event_target_as = title_to_destroy
+		}
+	}
+
+	option = {
+		name = EVTOPTA_GR_1
+
+		destroy_landed_title = event_target:title_to_destroy
+		add_claim = event_target:title_to_destroy
+		if = { # Take care of CI titles lost this way
+			limit = {
+				event_target:title_to_destroy = {
+					tier = emperor
+					ROOT = {
+						trait = eoc_trait
+					}
+				}
+			}
+			add_trait = former_eoc_trait
+			save_then_remove_all_mandate_modifiers_effect = yes
+			set_correct_feudal_government_type_effect = yes
+			if = {
+				limit = {
+					event_target:title_to_destroy = {
+						title = e_china
+					}
+				}
+				if = {
+					limit = {
+						has_global_flag = treasure_fleet_is_active
+					}
+					set_global_flag = abort_treasure_fleet_no_china
+				}
+				clean_up_chinese_dynasty_effect = yes
+			}
+			event_target:title_to_destroy = {
+				clear_all_chinese_dynasty_flags_and_update_global_flags_effect = yes
+			}
+		}
+	}
+}
+
+# Nomad Realm Instability
+character_event = {
+	id = GR.10
+
+	is_triggered_only = yes # on_death
+	hide_window = yes
+
+	only_independent = yes
+
+	trigger = {
+		is_nomadic = yes
+		has_dlc = "Horse Lords"
+
+		NOT = {
+			has_game_rule = {
+				name = nomad_stability
+				value = stable
+			}
+		}
+	}
+
+	immediate = {
+		current_heir = {
+			save_event_target_as = nomadic_heir
+		}
+
+		any_vassal = {
+			character_event = { id = GR.11 }
+		}
+	}
+}
+
+character_event = {
+	id = GR.11
+	desc = EVTDESC_GR_11
+	picture = GFX_evt_horsemanship
+
+	is_triggered_only = yes
+
+	only_playable = yes
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+
+	trigger = {
+		FROM = {
+			independent = yes
+			is_nomadic = yes
+			in_revolt = no
+		}
+
+		in_revolt = no
+		independent = no
+	}
+
+	option = {
+		name = EVTOPTA_GR_11 # Remain a vassal
+
+		ai_chance = {
+			factor = 100
+
+			mult_modifier = {
+				factor = 2
+
+				opinion = {
+					who = FROM
+					value >= 25
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+
+				opinion = {
+					who = FROM
+					value >= 50
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+
+				opinion = {
+					who = FROM
+					value >= 75
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+
+				opinion = {
+					who = FROM
+					value >= 100
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+				FROM = { realm_size < 50 }
+			}
+
+			mult_modifier = {
+				factor = 3
+				is_nomadic = yes
+			}
+
+			mult_modifier = {
+				factor = 10
+				FROM = { has_landed_title = e_mongol_empire }
+			}
+
+			mult_modifier = {
+				factor = 4
+				trait = content
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_GR_11 # Go independent
+
+		event_target:nomadic_heir = {
+			character_event = {
+				id = GR.12
+				days = 1
+			}
+		}
+
+		if = {
+			limit = { is_nomadic = yes }
+
+			any_demesne_title = {
+				show_scope_change = no
+
+				limit = { tier = COUNT }
+
+				add_claim = event_target:nomadic_heir
+			}
+		}
+
+		else = {
+			reverse_opinion = {
+				name = declared_independence_nomad
+				who = event_target:nomadic_heir
+				years = 50
+			}
+
+			hidden_effect = {
+				any_courtier_or_vassal = {
+					limit = { dynasty = ROOT }
+
+					reverse_opinion = {
+						name = declared_independence_nomad
+						who = event_target:nomadic_heir
+						years = 50
+					}
+				}
+			}
+		}
+
+		# Avoid invalidating defensive wars (?)
+		liege = {
+			show_scope_change = no
+
+			any_vassal = {
+				show_scope_change = no
+
+				limit = {
+					in_revolt = yes
+
+					any_war = {
+						defender = {
+							character = ROOT
+						}
+
+						attacker = {
+							character = THIS
+						}
+					}
+				}
+
+				set_defacto_liege = THIS
+			}
+		}
+
+		set_defacto_liege = THIS
+
+		ai_chance = {
+			factor = 50
+
+			trigger = {
+				trigger_if = {
+					limit = { clan = yes }
+
+					NOR = {
+						has_blood_oath_with = FROM
+						is_friend = FROM
+					}
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+
+				clan = yes
+
+				OR = {
+					has_feud_with = FROM
+					is_rival = FROM
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+
+				opinion = {
+					who = FROM
+					value < -25
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+
+				opinion = {
+					who = FROM
+					value < -50
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+
+				opinion = {
+					who = FROM
+					value < -75
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+
+				opinion = {
+					who = FROM
+					value <= -100
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = ambitious
+			}
+		}
+	}
+}
+
+# The liege is notified of the independence
+character_event = {
+	id = GR.12
+	desc = EVTDESC_GR_12
+	picture = GFX_evt_emissary
+
+	is_triggered_only = yes
+	notification = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_GR_12
+		
+		# TODO: Grace penalty
+	}
+}
+
+# True cognatic for gender quality rule
+character_event = {
+	id = GR.13
+
+	is_triggered_only = yes # on_startup
+	hide_window = yes
+
+	ai = no
+
+	trigger = {
+		always = no # Managed through gender law triggers/default selection instead, so it also affects titles after start-up
+		is_multiplayer_host_character = yes
+		is_save_game = no
+
+		has_game_rule = {
+			name = gender
+			value = all
+		}
+	}
+
+	immediate = {
+		any_title = {
+			limit = { holder_scope = { is_republic = no } }
+
+			add_law = {
+				law = true_cognatic_succession
+				cooldown = no
+				opinion_effect = no
+			}
+		}
+	}
+}
+
+# Border Gore cleanser (Limited)
+character_event = {
+	id = GR.14
+
+	hide_window = yes
+	is_triggered_only = yes # on_death
+
+	only_independent = yes
+
+	trigger = {
+		has_game_rule = {
+			name = exclave_purge
+			value = limited
+		}
+
+		holy_order = no # Holy orders are intended to hold baronies all over the place
+		NOT = { has_landed_title = k_papacy } # The Pope should also be able to hold baronies all over the place # TODO: Should this be expanded to include d_fraticelli or other religious heads?
+
+		capital_scope = {
+			any_disconnected_province = {
+				sub_realm = no
+
+				NOR = {
+					de_jure_liege_or_above = ROOT
+
+					is_connected_to = {
+						sub_realm = no
+						target = realm_capital
+						land_gap = yes
+						naval_distance = yes
+					}
+				}
+			}
+		}
+
+		# Players who are at war during succession do not need the extra stress element of getting their realm cleansed
+		trigger_if = {
+			limit = { ai = no }
+			war = no
+		}
+	}
+
+	immediate = {
+		if = { # AI characters at war will get this event later
+			limit = {
+				war = yes
+				ai = yes
+
+				player_heir = {
+					ai = yes
+				}
+			}
+
+			player_heir = {
+				set_character_flag = delayed_cleanse_ai
+			}
+		}
+		else = {
+			# Counties are set free first, to avoid releasing vassals of vassals we first loop through provinces held by Kings, then Dukes, and finally Counts
+			while = { # Eliminate County exclaves (Kings)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								real_tier = KING
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								real_tier = KING
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												land_gap = yes
+												naval_distance = yes
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal who holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											land_gap = yes
+											naval_distance = yes
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											land_gap = yes
+											naval_distance = yes
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate County exclaves (Dukes)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								real_tier = DUKE
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								real_tier = DUKE
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												land_gap = yes
+												naval_distance = yes
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											land_gap = yes
+											naval_distance = yes
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							holder_scope = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											land_gap = yes
+											naval_distance = yes
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate County exclaves (All others)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												land_gap = yes
+												naval_distance = yes
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											land_gap = yes
+											naval_distance = yes
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											land_gap = yes
+											naval_distance = yes
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Set Peasant Leaders free in 'chunks'
+				count = 100
+
+				limit = {
+					any_realm_province = {
+						has_province_flag = peasant_cleansed
+					}
+				}
+
+				random_realm_province = {
+					limit = { has_province_flag = peasant_cleansed }
+
+					create_character = {
+						random_traits = yes
+						dynasty = culture
+						religion = THIS
+						culture = THIS
+						female = 5
+						age = 25
+						add_trait = peasant_leader
+					}
+
+					new_character = {
+						save_event_target_as = new_holder
+					}
+
+					county = {
+						usurp_title = {
+							target = event_target:new_holder
+							type = revolt
+						}
+					}
+
+					event_target:new_holder = {
+						save_event_target_as = text_target
+
+						any_liege = {
+							character_event = { id = GR.20 } # Notify peasant independence
+						}
+					}
+
+					owner = {
+						set_defacto_liege = event_target:new_holder
+					}
+
+					log = "[This.GetName] is being set independent under a peasant leader ([new_holder.GetBestName])"
+
+					if = { # Special case for Nomads
+						limit = {
+							event_target:new_holder = {
+								is_nomadic = yes
+							}
+
+							OR = {
+								has_castle = yes
+								has_city = yes
+								has_temple = yes
+								has_tribal = yes
+							}
+						}
+
+						event_target:new_holder = {
+							set_government_type = tribal_government
+						}
+
+						if = {
+							limit = {
+								any_province_holding = {
+									holding_type = tribal
+									is_capital = no
+									holder = event_target:new_holder
+								}
+							}
+
+							random_province_holding = {
+								limit = {
+									holding_type = tribal
+									is_capital = no
+									holder = event_target:new_holder
+								}
+
+								destroy_settlement = THIS
+							}
+						}
+
+						log = "The holder is nomadic, but the county is unsuitable for nomadic life - reverting to tribalism"
+					}
+
+					any_connected_province = {
+						sub_realm = ROOT
+
+						limit = { has_province_flag = peasant_cleansed }
+
+						county = {
+							usurp_title = {
+								target = event_target:new_holder
+								type = revolt
+							}
+
+							log = "The [This.GetName] County is being assigned to [new_holder.GetBestName] as it is directly connected to their capital of [new_holder.Capital.GetName]"
+						}
+					}
+
+					event_target:new_holder = {
+						wealth = 300
+						prestige = 300
+						piety = 200
+
+						any_realm_province = {
+							clr_province_flag = peasant_cleansed
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate Barony exclaves
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = ROOT
+
+							owner = {
+								NOT = { same_realm = ROOT }
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+
+								is_connected_to = {
+									sub_realm = ROOT
+									target = realm_capital
+									land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = ROOT
+
+						limit = {
+							owner = {
+								NOT = { same_realm = ROOT }
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+
+								is_connected_to = {
+									sub_realm = ROOT
+									target = realm_capital
+									land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+
+						log = "Baronies in [This.GetName] considered for cleansing"
+
+					#	county = {
+					#		save_event_target_as = barony_origin_province
+					#	}
+
+						any_province_holding = {
+							limit = {
+								holder_scope = {
+									same_realm = ROOT
+								}
+
+								NOR = {
+									holding_type = nomad
+									holding_type = family_palace
+								}
+							}
+
+							holder_scope = {
+								save_event_target_as = owner_independent
+
+								liege = {
+									save_event_target_as = owner_liege
+								}
+							}
+
+							log = "[This.GetName] is considered for cleansing"
+
+							if = { # If the holder is you, set the barony free under a peasant
+								limit = { holder = ROOT }
+
+								create_character = {
+									random_traits = yes
+									dynasty = culture
+									religion = PREV
+									culture = PREV
+									female = 5
+									age = 25
+									add_trait = peasant_leader
+								}
+
+								new_character = {
+									save_event_target_as = new_holder
+								}
+
+								usurp_title = {
+									target = event_target:new_holder
+									type = revolt
+								}
+
+								save_event_target_as = text_target_barony
+
+								holder_scope = {
+									save_event_target_as = text_target
+
+									any_liege = {
+										character_event = { id = GR.21 } # Notify independence
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] was cleansed by giving it to a peasant leader ([new_holder.GetBestName])"
+							}
+							else_if = { # Characters who only hold this barony are set free
+								limit = {
+									holder_scope = {
+										num_of_titles_in_realm == 1
+									}
+								}
+
+								holder_scope = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+
+									set_defacto_liege = THIS
+								}
+
+								log = "[This.GetName] was set independent as they only held one holding"
+							}
+							else_if = { # If the holder has no holdings that connect to the realm capital, set them free
+								limit = {
+									holder_scope = {
+										any_demesne_title = {
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												land_gap = yes
+												naval_distance = yes
+											}
+										}
+									}
+								}
+
+								holder_scope = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+
+									set_defacto_liege = THIS
+								}
+
+								log = "[This.GetName] was set independent as they held no land connected to the liege's realm"
+							}
+							else_if = { # If the holder is higher tier than baron, but doesn't hold ANY count titles, transfer all vassals/baronies in the capital area to their liege and set them independent
+								limit = {
+									holder_scope = {
+										higher_real_tier_than = BARON
+										num_of_count_titles == 0
+
+										any_realm_province = {
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												land_gap = yes
+												naval_distance = yes
+											}
+										}
+									}
+								}
+
+								holder_scope = {
+									any_vassal = {
+										limit = {
+											any_realm_province = {
+												is_connected_to = {
+													sub_realm = ROOT
+													target = realm_capital
+													land_gap = yes
+													naval_distance = yes
+												}
+											}
+										}
+
+										set_defacto_liege = event_target:owner_liege
+									}
+
+									any_demesne_title = {
+										limit = {
+											tier = BARON
+
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												land_gap = yes
+												naval_distance = yes
+											}
+										}
+
+										grant_title = ROOT
+									}
+
+									event_target:new_holder = {
+										save_event_target_as = text_target
+										character_event = { id = GR.22 } # Notify player going independent
+
+										any_liege = {
+											character_event = { id = GR.19 } # Notify independence
+										}
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] belonged to a vassal of higher tier than Baron with vassals, all their vassals in the capital area were reassigned to liege, and then the holder was set independent"
+							}
+							else_if = { # If the holder has land that connects to the liege's capital, set the baronies free under peasants
+								limit = {
+									holder_scope = {
+										any_realm_province = {
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												land_gap = yes
+												naval_distance = yes
+											}
+										}
+									}
+								}
+
+								create_character = {
+									random_traits = yes
+									dynasty = culture
+									religion = PREV
+									culture = PREV
+									female = 5
+									age = 25
+									add_trait = peasant_leader
+								}
+
+								new_character = {
+									save_event_target_as = new_holder
+								}
+
+								usurp_title = {
+									target = event_target:new_holder
+									type = revolt
+								}
+
+								save_event_target_as = text_target_barony
+
+								holder_scope = {
+									save_event_target_as = text_target
+
+									any_liege = {
+										character_event = { id = GR.21 } # Notify independence
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] belonged to a vassal, and was cleansed by giving it to a peasant leader ([new_holder.GetBestName])"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Border Gore cleanser (Significant)
+character_event = {
+	id = GR.15
+
+	is_triggered_only = yes # on_death
+	hide_window = yes
+
+	only_independent = yes
+
+	trigger = {
+		has_game_rule = {
+			name = exclave_purge
+			value = significant
+		}
+
+		holy_order = no # Holy orders are intended to hold baronies all over the place
+		NOT = { has_landed_title = k_papacy } # The Pope should also be able to hold baronies all over the place
+
+		capital_scope = {
+			any_disconnected_province = {
+				sub_realm = no
+
+				NOR = {
+					de_jure_liege_or_above = ROOT
+
+					is_connected_to = {
+						sub_realm = no
+						target = realm_capital
+						# land_gap = yes
+						naval_distance = yes
+					}
+				}
+			}
+		}
+
+		# Players who are at war during succession do not need the extra stress element of getting their realm cleansed
+		trigger_if = {
+			limit = { ai = no }
+			war = no
+		}
+	}
+
+	immediate = {
+		if = { # AI characters at war will get this event later
+			limit = {
+				ai = yes
+				war = yes
+
+				player_heir = {
+					ai = yes
+				}
+			}
+
+			player_heir = {
+				set_character_flag = delayed_cleanse_ai
+			}
+		}
+		else = {
+			# Counties are set free first, to avoid releasing vassals of vassals we first loop through provinces held by Kings, then Dukes, and finally Counts
+			while = { # Eliminate County exclaves (Kings)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								tier = KING
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								real_tier = KING
+								same_realm = ROOT
+							}
+
+							NOR = {
+								owned_by = ROOT
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = yes
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = yes
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = yes
+										}
+									}
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate County exclaves (Dukes)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								real_tier = DUKE
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								real_tier = DUKE
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = yes
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = yes
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = yes
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate County exclaves (All others)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = yes
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = yes
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = yes
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Set Peasant Leaders free in 'chunks'
+				count = 100
+
+				limit = {
+					any_realm_province = {
+						has_province_flag = peasant_cleansed
+					}
+				}
+
+				random_realm_province = {
+					limit = { has_province_flag = peasant_cleansed }
+
+					create_character = {
+						random_traits = yes
+						dynasty = culture
+						religion = THIS
+						culture = THIS
+						female = 5
+						age = 25
+						add_trait = peasant_leader
+					}
+
+					new_character = {
+						save_event_target_as = new_holder
+					}
+
+					county = {
+						usurp_title = {
+							target = event_target:new_holder
+							type = revolt
+						}
+					}
+
+					event_target:new_holder = {
+						save_event_target_as = text_target
+
+						any_liege = {
+							character_event = { id = GR.20 } # Notify peasant independence
+						}
+					}
+
+					owner = {
+						set_defacto_liege = event_target:new_holder
+					}
+
+					log = "[This.GetName] is being set independent under a peasant leader ([new_holder.GetBestName])"
+
+					if = { # Special case for Nomads
+						limit = {
+							event_target:new_holder = {
+								is_nomadic = yes
+							}
+
+							OR = {
+								has_castle = yes
+								has_city = yes
+								has_temple = yes
+								has_tribal = yes
+							}
+						}
+
+						event_target:new_holder = {
+							set_government_type = tribal_government
+						}
+
+						if = {
+							limit = {
+								any_province_holding = {
+									holding_type = tribal
+									is_capital = no
+
+									holder_scope = {
+										character = event_target:new_holder
+									}
+								}
+							}
+
+							random_province_holding = {
+								limit = {
+									holding_type = tribal
+									is_capital = no
+
+									holder_scope = {
+										character = event_target:new_holder
+									}
+								}
+
+								destroy_settlement = THIS
+							}
+						}
+
+						log = "The holder is nomadic, but the county is unsuitable for nomadic life - reverting to tribalism"
+					}
+
+					any_connected_province = {
+						sub_realm = ROOT
+
+						limit = { has_province_flag = peasant_cleansed }
+
+						county = {
+							usurp_title = {
+								target = event_target:new_holder
+								type = revolt
+							}
+
+							log = "The [This.GetName] County is being assigned to [new_holder.GetBestName] as it is directly connected to their capital of [new_holder.Capital.GetName]"
+						}
+					}
+
+					event_target:new_holder = {
+						wealth = 300
+						prestige = 300
+						piety = 200
+
+						any_realm_province = {
+							clr_province_flag = peasant_cleansed
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate Barony exclaves
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = ROOT
+
+							owner = {
+								NOT = { same_realm = ROOT }
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+
+								is_connected_to = {
+									sub_realm = ROOT
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = ROOT
+
+						limit = {
+							owner = {
+								NOT = { same_realm = ROOT }
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+
+								is_connected_to = {
+									sub_realm = ROOT
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = yes
+								}
+							}
+						}
+
+						log = "Baronies in [This.GetName] considered for cleansing"
+
+					#	county = {
+					#		save_event_target_as = barony_origin_province
+					#	}
+
+						any_province_holding = {
+							limit = {
+								holder_scope = {
+									same_realm = ROOT
+								}
+
+								NOR = {
+									holding_type = nomad
+									holding_type = family_palace
+								}
+							}
+
+							holder_scope = {
+								save_event_target_as = owner_independent
+
+								liege = {
+									save_event_target_as = owner_liege
+								}
+							}
+
+							log = "[This.GetName] is considered for cleansing"
+
+							if = { # If the holder is you, set the barony free under a peasant
+								limit = { holder = ROOT }
+
+								create_character = {
+									random_traits = yes
+									dynasty = culture
+									religion = PREV
+									culture = PREV
+									female = 5
+									age = 25
+									add_trait = peasant_leader
+								}
+
+								new_character = {
+									save_event_target_as = new_holder
+								}
+
+								usurp_title = {
+									target = event_target:new_holder
+									type = revolt
+								}
+
+								save_event_target_as = text_target_barony
+
+								holder_scope = {
+									save_event_target_as = text_target
+
+									any_liege = {
+										character_event = { id = GR.21 } # Notify independence
+									}
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] was cleansed by giving it to a peasant leader ([new_holder.GetBestName])"
+							}
+							else_if = { # Characters who only hold this barony are set free
+								limit = {
+									holder_scope = {
+										num_of_titles_in_realm == 1
+									}
+								}
+
+								holder_scope = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+
+									set_defacto_liege = THIS
+								}
+
+								log = "[This.GetName] was set independent as they only held one holding"
+							}
+							else_if = { # If the holder has no holdings that connect to the realm capital, set them free
+								limit = {
+									holder_scope = {
+										NOT = {
+											any_demesne_title = {
+												is_connected_to = {
+													sub_realm = ROOT
+													target = realm_capital
+													# land_gap = yes
+													naval_distance = yes
+												}
+											}
+										}
+									}
+								}
+
+								holder_scope = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+
+									set_defacto_liege = THIS
+								}
+
+								log = "[This.GetName] was set independent as they held no land connected to the liege's realm"
+							}
+							else_if = { # If the holder is higher tier than baron, but doesn't hold ANY count titles, transfer all vassals/baronies in the capital area to their liege and set them independent
+								limit = {
+									holder_scope = {
+										higher_real_tier_than = BARON
+										num_of_count_titles == 0
+
+										any_realm_province = {
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = yes
+											}
+										}
+									}
+								}
+
+								holder_scope = {
+									any_vassal = {
+										limit = {
+											any_realm_province = {
+												is_connected_to = {
+													sub_realm = ROOT
+													target = realm_capital
+													# land_gap = yes
+													naval_distance = yes
+												}
+											}
+										}
+
+										set_defacto_liege = event_target:owner_liege
+									}
+
+									any_demesne_title = {
+										limit = {
+											tier = BARON
+
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = yes
+											}
+										}
+
+										grant_title = ROOT
+									}
+
+									event_target:new_holder = {
+										save_event_target_as = text_target
+										character_event = { id = GR.22 } # Notify player going independent
+
+										any_liege = {
+											character_event = { id = GR.19 } # Notify independence
+										}
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] belonged to a vassal of higher tier than Baron with vassals, all their vassals in the capital area were reassigned to liege, and then the holder was set independent"
+							}
+							else_if = { # If the holder has land that connects to the liege's capital, set the baronies free under peasants
+								limit = {
+									holder_scope = {
+										any_realm_province = {
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = yes
+											}
+										}
+									}
+								}
+
+								create_character = {
+									random_traits = yes
+									dynasty = culture
+									religion = PREV
+									culture = PREV
+									female = 5
+									age = 25
+									add_trait = peasant_leader
+								}
+
+								new_character = {
+									save_event_target_as = new_holder
+								}
+
+								usurp_title = {
+									target = event_target:new_holder
+									type = revolt
+								}
+
+								save_event_target_as = text_target_barony
+
+								holder_scope = {
+									save_event_target_as = text_target
+
+									any_liege = {
+										character_event = { id = GR.21 } # Notify independence
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] belonged to a vassal, and was cleansed by giving it to a peasant leader ([new_holder.GetBestName])"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Border Gore cleanser (Harsh)
+character_event = {
+	id = GR.16
+
+	is_triggered_only = yes # on_death
+	hide_window = yes
+
+	only_independent = yes
+	only_playable = yes
+
+	trigger = {
+		has_game_rule = {
+			name = exclave_purge
+			value = harsh
+		}
+
+		holy_order = no # Holy orders are intended to hold baronies all over the place
+		NOT = { has_landed_title = k_papacy } # The Pope should also be able to hold baronies all over the place
+
+		capital_scope = {
+			any_disconnected_province = {
+				sub_realm = no
+
+				NOR = {
+					de_jure_liege_or_above = ROOT
+
+					is_connected_to = {
+						sub_realm = no
+						target = realm_capital
+						# land_gap = yes
+						naval_distance = 1000
+					}
+				}
+			}
+		}
+
+		# Players who are at war during succession do not need the extra stress element of getting their realm cleansed
+		trigger_if = {
+			limit = { ai = no }
+			war = no
+		}
+	}
+
+	immediate = {
+		if = { # AI characters at war will get this event later
+			limit = {
+				ai = yes
+				war = yes
+
+				player_heir = {
+					ai = yes
+				}
+			}
+
+			player_heir = {
+				set_character_flag = delayed_cleanse_ai
+			}
+		}
+		else = {
+			# Counties are set free first, to avoid releasing vassals of vassals we first loop through provinces held by Kings, then Dukes, and finally Counts
+			while = { # Eliminate County exclaves (Kings)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								real_tier = KING
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								real_tier = KING
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = 1000
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = 1000
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate County exclaves (Dukes)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								real_tier = DUKE
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								real_tier = DUKE
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = 1000
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = 1000
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate County exclaves (All others)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = 1000
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = 1000
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Set Peasant Leaders free in 'chunks'
+				count = 100
+
+				limit = {
+					any_realm_province = {
+						has_province_flag = peasant_cleansed
+					}
+				}
+
+				random_realm_province = {
+					limit = { has_province_flag = peasant_cleansed }
+
+					create_character = {
+						random_traits = yes
+						dynasty = culture
+						religion = THIS
+						culture = THIS
+						female = 5
+						age = 25
+						add_trait = peasant_leader
+					}
+
+					new_character = {
+						save_event_target_as = new_holder
+					}
+
+					county = {
+						usurp_title = {
+							target = event_target:new_holder
+							type = revolt
+						}
+					}
+
+					event_target:new_holder = {
+						save_event_target_as = text_target
+
+						any_liege = {
+							character_event = { id = GR.20 } # Notify peasant independence
+						}
+					}
+
+					owner = {
+						set_defacto_liege = event_target:new_holder
+					}
+
+					log = "[This.GetName] is being set independent under a peasant leader ([new_holder.GetBestName])"
+
+					if = { # Special case for Nomads
+						limit = {
+							event_target:new_holder = {
+								is_nomadic = yes
+							}
+
+							OR = {
+								has_castle = yes
+								has_city = yes
+								has_temple = yes
+								has_tribal = yes
+							}
+						}
+
+						event_target:new_holder = {
+							set_government_type = tribal_government
+						}
+
+						if = {
+							limit = {
+								any_province_holding = {
+									holding_type = tribal
+									is_capital = no
+
+									holder_scope = {
+										character = event_target:new_holder
+									}
+								}
+							}
+
+							random_province_holding = {
+								limit = {
+									holding_type = tribal
+									is_capital = no
+
+									holder_scope = {
+										character = event_target:new_holder
+									}
+								}
+
+								destroy_settlement = THIS
+							}
+						}
+
+						log = "The holder is nomadic, but the county is unsuitable for nomadic life - reverting to tribalism"
+					}
+
+					any_connected_province = {
+						sub_realm = ROOT
+
+						limit = { has_province_flag = peasant_cleansed }
+
+						county = {
+							usurp_title = {
+								target = event_target:new_holder
+								type = revolt
+							}
+
+							log = "The [This.GetName] County is being assigned to [new_holder.GetBestName] as it is directly connected to their capital of [new_holder.Capital.GetName]"
+						}
+					}
+
+					event_target:new_holder = {
+						wealth = 300
+						prestige = 300
+						piety = 200
+
+						any_realm_province = {
+							clr_province_flag = peasant_cleansed
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate Barony exclaves
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = ROOT
+
+							owner = {
+								NOT = { same_realm = ROOT }
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+
+								is_connected_to = {
+									sub_realm = ROOT
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = ROOT
+
+						limit = {
+							owner = {
+								NOT = { same_realm = ROOT }
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+
+								is_connected_to = {
+									sub_realm = ROOT
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+
+						log = "Baronies in [This.GetName] considered for cleansing"
+
+					#	county = {
+					#		save_event_target_as = barony_origin_province
+					#	}
+
+						any_province_holding = {
+							limit = {
+								holder_scope = {
+									same_realm = ROOT
+								}
+
+								NOR = {
+									holding_type = nomad
+									holding_type = family_palace
+								}
+							}
+
+							holder_scope = {
+								save_event_target_as = owner_independent
+
+								liege = {
+									save_event_target_as = owner_liege
+								}
+							}
+
+							log = "[This.GetName] is considered for cleansing"
+
+							if = { # If the holder is you, set the barony free under a peasant
+								limit = { holder = ROOT }
+
+								create_character = {
+									random_traits = yes
+									dynasty = culture
+									religion = PREV
+									culture = PREV
+									female = 5
+									age = 25
+									add_trait = peasant_leader
+								}
+
+								new_character = {
+									save_event_target_as = new_holder
+								}
+
+								usurp_title = {
+									target = event_target:new_holder
+									type = revolt
+								}
+
+								save_event_target_as = text_target_barony
+
+								holder_scope = {
+									save_event_target_as = text_target
+
+									any_liege = {
+										character_event = { id = GR.21 } # Notify independence
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] was cleansed by giving it to a peasant leader ([new_holder.GetBestName])"
+							}
+							else_if = { # Characters that only hold this barony are set free
+								limit = {
+									holder_scope = {
+										num_of_titles_in_realm == 1
+									}
+								}
+
+								holder_scope = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+
+									set_defacto_liege = THIS
+								}
+
+								log = "[This.GetName] was set independent as they only held one holding"
+							}
+							else_if = { # If the holder has no holdings that connect to the realm capital, set them free
+								limit = {
+									holder_scope = {
+										NOR = {
+											character = ROOT
+
+											any_demesne_title = {
+												is_connected_to = {
+													sub_realm = ROOT
+													target = realm_capital
+													# land_gap = yes
+													naval_distance = 1000
+												}
+											}
+										}
+									}
+								}
+
+								holder_scope = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+
+									set_defacto_liege = THIS
+								}
+
+								log = "[This.GetName] was set independent as they held no land connected to the liege's realm"
+							}
+							else_if = { # If the holder is higher tier than baron, but doesn't hold ANY count titles, transfer all vassals/baronies in the capital area to their liege and set them independent
+								limit = {
+									holder_scope = {
+										NOT = { character = ROOT }
+										higher_real_tier_than = BARON
+										num_of_count_titles == 0
+
+										any_realm_province = {
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+
+								holder_scope = {
+									any_vassal = {
+										limit = {
+											any_realm_province = {
+												is_connected_to = {
+													sub_realm = ROOT
+													target = realm_capital
+													# land_gap = yes
+													naval_distance = 1000
+												}
+											}
+										}
+
+										set_defacto_liege = event_target:owner_liege
+									}
+
+									any_demesne_title = {
+										limit = {
+											tier = BARON
+
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = 1000
+											}
+										}
+
+										grant_title = ROOT
+									}
+
+									event_target:new_holder = {
+										save_event_target_as = text_target
+										character_event = { id = GR.22 } # Notify player going independent
+
+										any_liege = {
+											character_event = { id = GR.19 } # Notify independence
+										}
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] belonged to a vassal of higher tier than Baron with vassals, all their vassals in the capital area were reassigned to liege, and then the holder was set independent"
+							}
+							else_if = { # If the holder has land that connects to the liege's capital, set the baronies free under peasants
+								limit = {
+									holder_scope = {
+										NOT = { character = ROOT }
+
+										any_realm_province = {
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+
+								create_character = {
+									random_traits = yes
+									dynasty = culture
+									religion = PREV
+									culture = PREV
+									female = 5
+									age = 25
+									add_trait = peasant_leader
+								}
+
+								new_character = {
+									save_event_target_as = new_holder
+								}
+
+								usurp_title = {
+									target = event_target:new_holder
+									type = revolt
+								}
+
+								save_event_target_as = text_target_barony
+
+								holder_scope = {
+									save_event_target_as = text_target
+
+									any_liege = {
+										character_event = { id = GR.21 } # Notify independence
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] belonged to a vassal, and was cleansed by giving it to a peasant leader ([new_holder.GetBestName])"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Border Gore cleanser (Total)
+character_event = {
+	id = GR.17
+
+	is_triggered_only = yes # on_death
+	hide_window = yes
+
+	only_independent = yes
+	only_playable = yes
+
+	trigger = {
+		has_game_rule = {
+			name = exclave_purge
+			value = total
+		}
+
+		holy_order = no # Holy orders are intended to hold baronies all over the place
+		NOT = { has_landed_title = k_papacy } # The Pope should also be able to hold baronies all over the place
+
+		capital_scope = {
+			any_disconnected_province = {
+				sub_realm = no
+
+				NOR = {
+					# de_jure_liege_or_above = ROOT
+
+					is_connected_to = {
+						sub_realm = no
+						target = realm_capital
+						# land_gap = yes
+						naval_distance = 1000
+					}
+				}
+			}
+		}
+
+		# Players who are at war during succession do not need the extra stress element of getting their realm cleansed
+		trigger_if = {
+			limit = { ai = no }
+			war = no
+		}
+	}
+
+	immediate = {
+		if = { # AI characters at war will get this event later
+			limit = {
+				ai = yes
+				war = yes
+
+				player_heir = {
+					ai = yes
+				}
+			}
+
+			player_heir = {
+				set_character_flag = delayed_cleanse_ai
+			}
+		}
+		else = {
+			# Counties are set free first, to avoid releasing vassals of vassals we first loop through provinces held by Kings, then Dukes, and finally Counts
+			while = { # Eliminate County exclaves (Kings)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								real_tier = KING
+								same_realm = ROOT
+							}
+
+							NOR = {
+								# de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								real_tier = KING
+								same_realm = ROOT
+							}
+
+							NOR = {
+								# de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = 1000
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = 1000
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate County exclaves (Dukes)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								real_tier = DUKE
+								same_realm = ROOT
+							}
+
+							NOR = {
+								# de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								real_tier = DUKE
+								same_realm = ROOT
+							}
+
+							NOR = {
+								# de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = 1000
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = 1000
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate County exclaves (All others)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								same_realm = ROOT
+							}
+
+							NOR = {
+								# de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								same_realm = ROOT
+							}
+
+							NOR = {
+								# de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = 1000
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											# land_gap = yes
+											naval_distance = 1000
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Set Peasant Leaders free in 'chunks'
+				count = 100
+
+				limit = {
+					any_realm_province = {
+						has_province_flag = peasant_cleansed
+					}
+				}
+
+				random_realm_province = {
+					limit = { has_province_flag = peasant_cleansed }
+
+					create_character = {
+						random_traits = yes
+						dynasty = culture
+						religion = THIS
+						culture = THIS
+						female = 5
+						age = 25
+						add_trait = peasant_leader
+					}
+
+					new_character = {
+						save_event_target_as = new_holder
+					}
+
+					county = {
+						usurp_title = {
+							target = event_target:new_holder
+							type = revolt
+						}
+					}
+
+					event_target:new_holder = {
+						save_event_target_as = text_target
+
+						any_liege = {
+							character_event = { id = GR.20 } # Notify peasant independence
+						}
+					}
+
+					owner = {
+						set_defacto_liege = event_target:new_holder
+					}
+
+					log = "[This.GetName] is being set independent under a peasant leader ([new_holder.GetBestName])"
+
+					if = { # Special case for Nomads
+						limit = {
+							event_target:new_holder = {
+								is_nomadic = yes
+							}
+
+							OR = {
+								has_castle = yes
+								has_city = yes
+								has_temple = yes
+								has_tribal = yes
+							}
+						}
+
+						event_target:new_holder = {
+							set_government_type = tribal_government
+						}
+
+						if = {
+							limit = {
+								any_province_holding = {
+									holding_type = tribal
+									is_capital = no
+
+									holder_scope = {
+										character = event_target:new_holder
+									}
+								}
+							}
+
+							random_province_holding = {
+								limit = {
+									holding_type = tribal
+									is_capital = no
+
+									holder_scope = {
+										character = event_target:new_holder
+									}
+								}
+
+								destroy_settlement = THIS
+							}
+						}
+
+						log = "The holder is nomadic, but the county is unsuitable for nomadic life - reverting to tribalism"
+					}
+
+					any_connected_province = {
+						sub_realm = ROOT
+
+						limit = { has_province_flag = peasant_cleansed }
+
+						county = {
+							usurp_title = {
+								target = event_target:new_holder
+								type = revolt
+							}
+
+							log = "The [This.GetName] County is being assigned to [new_holder.GetBestName] as it is directly connected to their capital of [new_holder.Capital.GetName]"
+						}
+					}
+
+					event_target:new_holder = {
+						wealth = 300
+						prestige = 300
+						piety = 200
+
+						any_realm_province = {
+							clr_province_flag = peasant_cleansed
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate Barony exclaves
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = ROOT
+
+							owner = {
+								NOT = { same_realm = ROOT }
+							}
+
+							NOR = {
+								# de_jure_liege_or_above = ROOT
+
+								is_connected_to = {
+									sub_realm = ROOT
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = ROOT
+
+						limit = {
+							owner = {
+								NOT = { same_realm = ROOT }
+							}
+
+							NOR = {
+								# de_jure_liege_or_above = ROOT
+
+								is_connected_to = {
+									sub_realm = ROOT
+									target = realm_capital
+									# land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+
+						log = "Baronies in [This.GetName] considered for cleansing"
+
+					#	county = {
+					#		save_event_target_as = barony_origin_province
+					#	}
+
+						any_province_holding = {
+							limit = {
+								holder_scope = {
+									same_realm = ROOT
+								}
+
+								NOR = {
+									holding_type = nomad
+									holding_type = family_palace
+								}
+							}
+
+							holder_scope = {
+								save_event_target_as = owner_independent
+
+								liege = {
+									save_event_target_as = owner_liege
+								}
+							}
+
+							log = "[This.GetName] is considered for cleansing"
+
+							if = { # If the holder is you, set the barony free under a peasant
+								limit = { holder = ROOT }
+
+								create_character = {
+									random_traits = yes
+									dynasty = culture
+									religion = PREV
+									culture = PREV
+									female = 5
+									age = 25
+									add_trait = peasant_leader
+								}
+
+								new_character = {
+									save_event_target_as = new_holder
+								}
+
+								usurp_title = {
+									target = event_target:new_holder
+									type = revolt
+								}
+
+								save_event_target_as = text_target_barony
+
+								holder_scope = {
+									save_event_target_as = text_target
+
+									any_liege = {
+										character_event = { id = GR.21 } # Notify independence
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] was cleansed by giving it to a peasant leader ([new_holder.GetBestName])"
+							}
+							else_if = { # Characters that only hold this barony are set free
+								limit = {
+									holder_scope = {
+										num_of_titles_in_realm == 1
+									}
+								}
+
+								holder_scope = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+
+									set_defacto_liege = THIS
+								}
+
+								log = "[This.GetName] was set independent as they only held one holding"
+							}
+							else_if = { # If the holder has no holdings that connect to the realm capital, set them free
+								limit = {
+									holder_scope = {
+										NOR = {
+											character = ROOT
+
+											any_demesne_title = {
+												is_connected_to = {
+													sub_realm = ROOT
+													target = realm_capital
+													# land_gap = yes
+													naval_distance = 1000
+												}
+											}
+										}
+									}
+								}
+
+								holder_scope = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+
+									set_defacto_liege = THIS
+								}
+
+								log = "[This.GetName] was set independent as they held no land connected to the liege's realm"
+							}
+							else_if = { # If the holder is higher tier than baron, but doesn't hold ANY count titles, transfer all vassals/baronies in the capital area to their liege and set them independent
+								limit = {
+									holder_scope = {
+										NOT = { character = ROOT }
+										higher_real_tier_than = BARON
+										num_of_count_titles == 0
+
+										any_realm_province = {
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+
+								holder_scope = {
+									any_vassal = {
+										limit = {
+											any_realm_province = {
+												is_connected_to = {
+													sub_realm = ROOT
+													target = realm_capital
+													# land_gap = yes
+													naval_distance = 1000
+												}
+											}
+										}
+
+										set_defacto_liege = event_target:owner_liege
+									}
+
+									any_demesne_title = {
+										limit = {
+											tier = BARON
+
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = 1000
+											}
+										}
+
+										grant_title = ROOT
+									}
+
+									event_target:new_holder = {
+										save_event_target_as = text_target
+										character_event = { id = GR.22 } # Notify player going independent
+
+										any_liege = {
+											character_event = { id = GR.19 } # Notify independence
+										}
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] belonged to a vassal of higher tier than Baron with vassals, all their vassals in the capital area were reassigned to liege, and then the holder was set independent"
+							}
+							else_if = { # If the holder has land that connects to the liege's capital, set the baronies free under peasants
+								limit = {
+									holder_scope = {
+										NOT = { character = ROOT }
+
+										any_realm_province = {
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												# land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+
+								create_character = {
+									random_traits = yes
+									dynasty = culture
+									religion = PREV
+									culture = PREV
+									female = 5
+									age = 25
+									add_trait = peasant_leader
+								}
+
+								new_character = {
+									save_event_target_as = new_holder
+								}
+
+								usurp_title = {
+									target = event_target:new_holder
+									type = revolt
+								}
+
+								save_event_target_as = text_target_barony
+
+								holder_scope = {
+									save_event_target_as = text_target
+
+									any_liege = {
+										character_event = { id = GR.21 } # Notify independence
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] belonged to a vassal, and was cleansed by giving it to a peasant leader ([new_holder.GetBestName])"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Border Gore cleanser (Limited Naval)
+character_event = {
+	id = GR.18
+
+	is_triggered_only = yes # on_death
+	hide_window = yes
+
+	only_independent = yes
+	only_playable = yes
+
+	trigger = {
+		has_game_rule = {
+			name = exclave_purge
+			value = limited_naval
+		}
+
+		holy_order = no # Holy orders are intended to hold baronies all over the place
+		NOT = { has_landed_title = k_papacy } # The Pope should also be able to hold baronies all over the place
+
+		capital_scope = {
+			any_disconnected_province = {
+				sub_realm = no
+
+				NOR = {
+					de_jure_liege_or_above = ROOT
+
+					is_connected_to = {
+						sub_realm = no
+						target = realm_capital
+						land_gap = yes
+						naval_distance = 1000
+					}
+				}
+			}
+		}
+
+		# Players who are at war during succession do not need the extra stress element of getting their realm cleansed
+		trigger_if = {
+			limit = { ai = no }
+			war = no
+		}
+	}
+
+	immediate = {
+		if = { # AI characters at war will get this event later
+			limit = {
+				ai = yes
+				war = yes
+
+				player_heir = {
+					ai = yes
+				}
+			}
+
+			player_heir = {
+				set_character_flag = delayed_cleanse_ai
+			}
+		}
+		else = {
+			# Counties are set free first, to avoid releasing vassals of vassals we first loop through provinces held by Kings, then Dukes, and finally Counts
+			while = { # Eliminate County exclaves (Kings)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								same_realm = ROOT
+								real_tier = KING
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								same_realm = ROOT
+								real_tier = KING
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											land_gap = yes
+											naval_distance = 1000
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											land_gap = yes
+											naval_distance = 1000
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate County exclaves (Dukes)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								real_tier = DUKE
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								same_realm = ROOT
+								real_tier = DUKE
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											land_gap = yes
+											naval_distance = 1000
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											land_gap = yes
+											naval_distance = 1000
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate County exclaves (All others)
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = no
+
+							owner = {
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = no
+
+						limit = {
+							owner = {
+								same_realm = ROOT
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+								has_province_flag = peasant_cleansed
+
+								is_connected_to = {
+									sub_realm = no
+									target = realm_capital
+									land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+
+						log = "[This.GetName] considered for cleansing"
+
+						county = {
+							save_event_target_as = county_to_clear
+						}
+
+						owner = {
+							save_event_target_as = owner_independent
+
+							liege = {
+								save_event_target_as = owner_liege
+							}
+						}
+
+						if = { # If there's a vassal with NO land in the capital region of the top liege, set them free
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									NOT = {
+										any_realm_province = {
+											owner = {
+												OR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											is_connected_to = {
+												sub_realm = no
+												target = realm_capital
+												land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed"
+
+							owner = {
+								save_event_target_as = text_target
+								character_event = { id = GR.22 } # Notify player going independent
+
+								any_liege = {
+									character_event = { id = GR.19 } # Notify independence
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # If the county belongs to a vassal that holds land in the capital region of the top liege, set them free but leave all land that IS in the capital region of the top liege
+							limit = {
+								owner = {
+									NOT = { character = ROOT }
+
+									capital_scope = {
+										is_connected_to = {
+											target = event_target:county_to_clear
+										}
+									}
+
+									any_realm_province = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											land_gap = yes
+											naval_distance = 1000
+										}
+									}
+								}
+							}
+
+							log = "[This.GetName] is being cleansed in the first else_if"
+
+							owner = {
+								any_realm_province = { # Reassign counties not connected to the capital
+									limit = {
+										owner = {
+											OR = {
+												character = event_target:owner_independent
+												is_vassal_or_below_of = event_target:owner_independent
+											}
+										}
+
+										is_connected_to = {
+											sub_realm = no
+											target = realm_capital
+											land_gap = yes
+											naval_distance = 1000
+										}
+									}
+
+									if = {
+										limit = { owned_by = event_target:owner_independent }
+
+										county = {
+											grant_title = event_target:owner_liege
+											log = "[This.GetName] County is reassigned to liege"
+										}
+									}
+									else = {
+										owner = {
+											set_defacto_liege = event_target:owner_liege
+											log = "[This.GetBestName] set as vassal of liege"
+										}
+									}
+								}
+
+								if = { # If they hold baronies within the liege's realm that are not connected to the province being cleansed, reassign them to liege
+									limit = {
+										any_realm_province = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+									}
+
+									log = "The character holds loose baronies in the Liege's realm"
+
+									any_realm_province = {
+										limit = {
+											owner = {
+												same_realm = ROOT
+
+												NOR = {
+													character = event_target:owner_independent
+													is_vassal_or_below_of = event_target:owner_independent
+												}
+											}
+
+											NOT = {
+												is_connected_to = {
+													target = event_target:county_to_clear
+												}
+											}
+										}
+
+										any_province_holding = {
+											limit = {
+												holder_scope = {
+													OR = {
+														character = event_target:owner_independent
+														is_vassal_or_below_of = event_target:owner_independent
+													}
+												}
+											}
+
+											log = "[This.GetName] Barony is being handled"
+
+											if = {
+												limit = { holder = event_target:owner_independent }
+
+												grant_title = event_target:owner_liege
+												log = "[This.GetName] Barony given to liege"
+											}
+											else = {
+												set_defacto_liege = event_target:owner_liege
+												log = "[This.GetName] Barony set as vassal of liege"
+											}
+										}
+									}
+								}
+
+								event_target:owner_independent = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+								}
+
+								set_defacto_liege = event_target:owner_independent
+								log = "[This.GetBestName] set independent"
+							}
+						}
+						else_if = { # Last resort is to create a peasant leader to seize control of the land
+							limit = {
+								owner = {
+									capital_scope = {
+										NOT = {
+											is_connected_to = {
+												target = event_target:county_to_clear
+											}
+										}
+									}
+								}
+							}
+
+							set_province_flag = peasant_cleansed # The actual assigning of titles happen in a later while loop
+						}
+					}
+				}
+			}
+
+			while = { # Set Peasant Leaders free in 'chunks'
+				count = 100
+
+				limit = {
+					any_realm_province = {
+						has_province_flag = peasant_cleansed
+					}
+				}
+
+				random_realm_province = {
+					limit = { has_province_flag = peasant_cleansed }
+
+					create_character = {
+						random_traits = yes
+						dynasty = culture
+						religion = THIS
+						culture = THIS
+						female = 5
+						age = 25
+						add_trait = peasant_leader
+					}
+
+					new_character = {
+						save_event_target_as = new_holder
+					}
+
+					county = {
+						usurp_title = {
+							target = event_target:new_holder
+							type = revolt
+						}
+					}
+
+					event_target:new_holder = {
+						save_event_target_as = text_target
+
+						any_liege = {
+							character_event = { id = GR.20 } # Notify peasant independence
+						}
+					}
+
+					owner = {
+						set_defacto_liege = event_target:new_holder
+					}
+
+					log = "[This.GetName] is being set independent under a peasant leader ([new_holder.GetBestName])"
+
+					if = { # Special case for Nomads
+						limit = {
+							event_target:new_holder = {
+								is_nomadic = yes
+							}
+
+							OR = {
+								has_castle = yes
+								has_city = yes
+								has_temple = yes
+								has_tribal = yes
+							}
+						}
+
+						event_target:new_holder = {
+							set_government_type = tribal_government
+						}
+
+						if = {
+							limit = {
+								any_province_holding = {
+									holding_type = tribal
+									is_capital = no
+
+									holder_scope = {
+										character = event_target:new_holder
+									}
+								}
+							}
+
+							random_province_holding = {
+								limit = {
+									holding_type = tribal
+									is_capital = no
+
+									holder_scope = {
+										character = event_target:new_holder
+									}
+								}
+
+								destroy_settlement = THIS
+							}
+						}
+
+						log = "The holder is nomadic, but the county is unsuitable for nomadic life - reverting to tribalism"
+					}
+
+					any_connected_province = {
+						sub_realm = ROOT
+
+						limit = { has_province_flag = peasant_cleansed }
+
+						county = {
+							usurp_title = {
+								target = event_target:new_holder
+								type = revolt
+							}
+
+							log = "The [This.GetName] County is being assigned to [new_holder.GetBestName] as it is directly connected to their capital of [new_holder.Capital.GetName]"
+						}
+					}
+
+					event_target:new_holder = {
+						wealth = 300
+						prestige = 300
+						piety = 200
+
+						any_realm_province = {
+							clr_province_flag = peasant_cleansed
+						}
+					}
+				}
+			}
+
+			while = { # Eliminate Barony exclaves
+				count = 100
+
+				limit = {
+					capital_scope = {
+						any_disconnected_province = {
+							sub_realm = ROOT
+
+							owner = {
+								NOT = { same_realm = ROOT }
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+
+								is_connected_to = {
+									sub_realm = ROOT
+									target = realm_capital
+									land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+					}
+				}
+
+				capital_scope = {
+					random_disconnected_province = {
+						sub_realm = ROOT
+
+						limit = {
+							owner = {
+								NOT = { same_realm = ROOT }
+							}
+
+							NOR = {
+								de_jure_liege_or_above = ROOT
+
+								is_connected_to = {
+									sub_realm = ROOT
+									target = realm_capital
+									land_gap = yes
+									naval_distance = 1000
+								}
+							}
+						}
+
+						log = "Baronies in [This.GetName] considered for cleansing"
+
+					#	county = {
+					#		save_event_target_as = barony_origin_province
+					#	}
+
+						any_province_holding = {
+							limit = {
+								holder_scope = {
+									same_realm = ROOT
+								}
+
+								NOR = {
+									holding_type = nomad
+									holding_type = family_palace
+								}
+							}
+
+							holder_scope = {
+								save_event_target_as = owner_independent
+
+								liege = {
+									save_event_target_as = owner_liege
+								}
+							}
+
+							log = "[This.GetName] is considered for cleansing"
+
+							if = { # If the holder is you, set the barony free under a peasant
+								limit = { holder = ROOT }
+
+								create_character = {
+									random_traits = yes
+									dynasty = culture
+									religion = PREV
+									culture = PREV
+									female = 5
+									age = 25
+									add_trait = peasant_leader
+								}
+
+								new_character = {
+									save_event_target_as = new_holder
+								}
+
+								usurp_title = {
+									target = event_target:new_holder
+									type = revolt
+								}
+
+								save_event_target_as = text_target_barony
+
+								holder_scope = {
+									save_event_target_as = text_target
+
+									any_liege = {
+										character_event = { id = GR.21 } # Notify independence
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] was cleansed by giving it to a peasant leader ([new_holder.GetBestName])"
+							}
+							else_if = { # Characters that only hold this barony are set free
+								limit = {
+									holder_scope = {
+										num_of_titles_in_realm == 1
+									}
+								}
+
+								holder_scope = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+
+									set_defacto_liege = THIS
+								}
+
+								log = "[This.GetName] was set independent as they only held one holding"
+							}
+							else_if = { # If the holder has no holdings that connect to the realm capital, set them free
+								limit = {
+									holder_scope = {
+										NOR = {
+											character = ROOT
+
+											any_demesne_title = {
+												is_connected_to = {
+													sub_realm = ROOT
+													target = realm_capital
+													land_gap = yes
+													naval_distance = 1000
+												}
+											}
+										}
+									}
+								}
+
+								holder_scope = {
+									save_event_target_as = text_target
+									character_event = { id = GR.22 } # Notify player going independent
+
+									any_liege = {
+										character_event = { id = GR.19 } # Notify independence
+									}
+
+									set_defacto_liege = THIS
+								}
+
+								log = "[This.GetName] was set independent as they held no land connected to the liege's realm"
+							}
+							else_if = { # If the holder is higher tier than baron, but doesn't hold ANY count titles, transfer all vassals/baronies in the capital area to their liege and set them independent
+								limit = {
+									holder_scope = {
+										NOT = { character = ROOT }
+										higher_real_tier_than = BARON
+										num_of_count_titles == 0
+
+										any_realm_province = {
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+
+								holder_scope = {
+									any_vassal = {
+										limit = {
+											any_realm_province = {
+												is_connected_to = {
+													sub_realm = ROOT
+													target = realm_capital
+													land_gap = yes
+													naval_distance = 1000
+												}
+											}
+										}
+
+										set_defacto_liege = event_target:owner_liege
+									}
+
+									any_demesne_title = {
+										limit = {
+											tier = BARON
+
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												land_gap = yes
+												naval_distance = 1000
+											}
+										}
+
+										grant_title = ROOT
+									}
+
+									event_target:new_holder = {
+										save_event_target_as = text_target
+										character_event = { id = GR.22 } # Notify player going independent
+
+										any_liege = {
+											character_event = { id = GR.19 } # Notify independence
+										}
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+								log = "[This.GetName] belonged to a vassal of higher tier than Baron with vassals, all their vassals in the capital area were reassigned to liege, and then the holder was set independent"
+							}
+							else_if = { # If the holder has land that connects to the liege's capital, set the baronies free under peasants
+								limit = {
+									holder_scope = {
+										NOT = { character = ROOT }
+
+										any_realm_province = {
+											is_connected_to = {
+												sub_realm = ROOT
+												target = realm_capital
+												land_gap = yes
+												naval_distance = 1000
+											}
+										}
+									}
+								}
+
+								create_character = {
+									random_traits = yes
+									dynasty = culture
+									religion = PREV
+									culture = PREV
+									female = 5
+									age = 25
+									add_trait = peasant_leader
+								}
+
+								new_character = {
+									save_event_target_as = new_holder
+								}
+
+								usurp_title = {
+									target = event_target:new_holder
+									type = revolt
+								}
+
+								save_event_target_as = text_target_barony
+
+								holder_scope = {
+									save_event_target_as = text_target
+
+									any_liege = {
+										character_event = { id = GR.21 } # Notify independence
+									}
+
+									set_defacto_liege = event_target:new_holder
+								}
+
+								log = "[This.GetName] belonged to a vassal, and was cleansed by giving it to a peasant leader ([new_holder.GetBestName])"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Liege notified of vassal independence
+character_event = {
+	id = GR.19
+	desc = EVTDESC_GR_19
+	picture = GFX_evt_large_army
+	portrait = event_target:text_target
+
+	notification = yes
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = OK
+	}
+}
+
+# Liege notified of takeover by peasants
+character_event = {
+	id = GR.20
+	desc = EVTDESC_GR_20
+	picture = GFX_evt_large_army
+	portrait = event_target:text_target
+
+	notification = yes
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = OK
+	}
+}
+
+# Liege notified of barony takeover by peasants
+character_event = {
+	id = GR.21
+	desc = EVTDESC_GR_21
+	picture = GFX_evt_large_army
+	portrait = event_target:text_target
+
+	notification = yes
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = OK
+	}
+}
+
+# Character going independent
+character_event = {
+	id = GR.22
+	desc = EVTDESC_GR_22
+	picture = GFX_evt_large_army
+
+	notification = yes
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = OK
+	}
+}
+
+# Delayed cleansing
+character_event = {
+	id = GR.23
+
+	hide_window = yes
+	is_triggered_only = yes # on_yearly_pulse
+
+	only_playable = yes
+	has_character_flag = delayed_cleanse_ai
+	ai = yes
+	war = no
+
+	immediate = {
+		clr_character_flag = delayed_cleanse_ai
+
+		if = {
+			limit = { independent = yes }
+
+			if = {
+				limit = {
+					has_game_rule = {
+						name = exclave_purge
+						value = limited
+					}
+				}
+				character_event = { id = GR.14 }
+			}
+			else_if = {
+				limit = {
+					has_game_rule = {
+						name = exclave_purge
+						value = significant
+					}
+				}
+				character_event = { id = GR.15 }
+			}
+			else_if = {
+				limit = {
+					has_game_rule = {
+						name = exclave_purge
+						value = harsh
+					}
+				}
+				character_event = { id = GR.16 }
+			}
+			else_if = {
+				limit = {
+					has_game_rule = {
+						name = exclave_purge
+						value = total
+					}
+				}
+				character_event = { id = GR.17 }
+			}
+			else_if = {
+				limit = {
+					has_game_rule = {
+						name = exclave_purge
+						value = limited_naval
+					}
+				}
+				character_event = { id = GR.18 }
+			}
+		}
+	}
+}
+
+# Generate 'Fake Family' for characters without any
+character_event = {
+	id = GR.30
+
+	is_triggered_only = yes # on_startup
+	hide_window = yes
+
+	only_playable = yes
+	only_men = yes
+	min_age = 16
+
+	trigger = {
+		is_save_game = no
+
+		trigger_if = {
+			limit = { ai = no }
+
+			has_game_rule = {
+				name = generate_families
+				value = on
+			}
+		}
+		trigger_else = {
+			NOT = {
+				has_game_rule = {
+					name = generate_families
+					value = off
+				}
+			}
+		}
+
+		trigger_if = {
+			limit = { is_married = yes }
+
+			has_children = no
+
+			spouse = {
+				is_lowborn = yes
+			}
+		}
+
+		OR = {
+			is_feudal = yes
+			is_nomadic = yes
+			is_tribal = yes
+		}
+
+		is_landed = yes
+		mercenary = no
+		holy_order = no
+
+		NOR = {
+			trait = eunuch
+			trait = celibate
+			government = confucian_bureaucracy
+			government = order_government
+			has_nickname = nick_the_chaste
+		}
+		
+		NOT = {
+			dynasty = 1000027000 # Imperial Family
+		}
+
+		trigger_if = {
+			limit = { num_of_dynasty_members > 1 }
+
+			OR = {
+				# All close relatives must be your children
+				NOT = {
+					any_close_relative = {
+						is_alive = yes
+						NOT = { is_child_of = ROOT }
+					}
+
+				#	any_dynasty_member = {
+				#		NOR = {
+				#			character = ROOT
+				#			is_child_of = ROOT
+				#		}
+				#
+				#		is_alive = yes
+				#	}
+				}
+
+				trigger_if = {
+					limit = { has_children = yes }
+
+					NOR = {
+						any_child = {
+							mother = { always = yes }
+						}
+
+						any_dynasty_member = {
+							NOT = { is_child_of = ROOT }
+						}
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		# Generate a fitting spouse, first and foremost
+		# Rulers with really old children might still end up with no mother, but that should be rare
+		if = {
+			limit = {
+				is_married = no
+				can_marry = yes
+			}
+
+			set_character_flag = recieved_royal_marriage_aid_duty
+
+			if = {
+				limit = { practical_age >= 44 }
+
+				create_character = {
+					age = 44
+					female = yes
+					religion = ROOT
+					culture = ROOT
+					dynasty = actually_culture
+					random_traits = yes
+				}
+			}
+			else_if = {
+				limit = { practical_age >= 40 }
+
+				create_character = {
+					age = 40
+					female = yes
+					religion = ROOT
+					culture = ROOT
+					dynasty = actually_culture
+					random_traits = yes
+				}
+			}
+			else_if = {
+				limit = { practical_age >= 35 }
+
+				create_character = {
+					age = 35
+					female = yes
+					religion = ROOT
+					culture = ROOT
+					dynasty = actually_culture
+					random_traits = yes
+				}
+			}
+			else_if = {
+				limit = { practical_age >= 30 }
+
+				create_character = {
+					age = 30
+					female = yes
+					religion = ROOT
+					culture = ROOT
+					dynasty = actually_culture
+					random_traits = yes
+				}
+			}
+			else_if = {
+				limit = { practical_age >= 27 }
+
+				create_character = {
+					age = 27
+					female = yes
+					religion = ROOT
+					culture = ROOT
+					dynasty = actually_culture
+					random_traits = yes
+				}
+			}
+			else_if = {
+				limit = { practical_age >= 25 }
+
+				create_character = {
+					age = 25
+					female = yes
+					religion = ROOT
+					culture = ROOT
+					dynasty = actually_culture
+					random_traits = yes
+				}
+			}
+			else_if = {
+				limit = { practical_age >= 20 }
+
+				create_character = {
+					age = 20
+					female = yes
+					religion = ROOT
+					culture = ROOT
+					dynasty = actually_culture
+					random_traits = yes
+				}
+			}
+			else_if = {
+				limit = { practical_age >= 18 }
+
+				create_character = {
+					age = 18
+					female = yes
+					religion = ROOT
+					culture = ROOT
+					dynasty = actually_culture
+					random_traits = yes
+				}
+			}
+			else = {
+				create_character = {
+					age = 16
+					female = yes
+					religion = ROOT
+					culture = ROOT
+					dynasty = actually_culture
+					random_traits = yes
+				}
+			}
+
+			new_character = {
+				add_spouse = ROOT
+				save_event_target_as = mother_target
+			}
+
+			trigger_switch = {
+				on_trigger = real_tier
+
+				EMPEROR = { prestige = 400 }
+				KING    = { prestige = 300 }
+				DUKE    = { prestige = 200 }
+				COUNT   = { prestige = 100 }
+			}
+		}
+
+		# Then, generate a sort of random amount of children
+		if = {
+			limit = { has_children = no }
+
+			if = {
+				limit = { practical_age >= 40 }
+
+				random_list = {
+					5 = {
+						create_character = {
+							age = 24
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					2 = {
+						create_character = {
+							age = 24
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					10 = {
+						create_character = {
+							age = 24
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 23
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					10 = {
+						create_character = {
+							age = 24
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 23
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					10 = {
+						create_character = {
+							age = 24
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 23
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 22
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					10 = {
+						create_character = {
+							age = 24
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 23
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 22
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					10 = {
+						create_character = {
+							age = 24
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 23
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 22
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 21
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					10 = {
+						create_character = {
+							age = 24
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 23
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 22
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 21
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = { practical_age >= 30 }
+
+				random_list = {
+					5 = {
+						create_character = {
+							age = 13
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					2 = {
+						create_character = {
+							age = 13
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					10 = {
+						create_character = {
+							age = 13
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 12
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					10 = {
+						create_character = {
+							age = 13
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 12
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					5 = {
+						create_character = {
+							age = 13
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 12
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+						create_character = {
+							age = 11
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					5 = {
+						create_character = {
+							age = 13
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 12
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 11
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = { practical_age >= 25 }
+
+				random_list = {
+					5 = {
+						create_character = {
+							age = 8
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					2 = {
+						create_character = {
+							age = 8
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					10 = {
+						create_character = {
+							age = 8
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 7
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					10 = {
+						create_character = {
+							age = 8
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 7
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					5 = {
+						create_character = {
+							age = 8
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 7
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 6
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					5 = {
+						create_character = {
+							age = 8
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 7
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 6
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = { practical_age >= 20 }
+
+				random_list = {
+					15 = {
+						create_character = {
+							age = 1
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					5 = {
+						create_character = {
+							age = 1
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					2 = {
+						create_character = {
+							age = 1
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 0
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					2 = {
+						create_character = {
+							age = 1
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 0
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = { practical_age >= 18 }
+
+				random_list = {
+					15 = {
+						create_character = {
+							age = 0
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					5 = {
+						create_character = {
+							age = 0
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					2 = {
+						create_character = {
+							age = 1
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 0
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					2 = {
+						create_character = {
+							age = 1
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+
+						create_character = {
+							age = 0
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+				}
+			}
+			else = {
+				random_list = {
+					18 = {
+						create_character = {
+							age = 0
+							religion = ROOT
+							culture = ROOT
+							female = no
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+
+					2 = {
+						create_character = {
+							age = 0
+							religion = ROOT
+							culture = ROOT
+							female = yes
+						}
+						new_character = {
+							dynasty = ROOT
+							set_father = ROOT
+							set_mother = event_target:mother_target
+							save_event_target_as = inheritance_sanity_check_character
+							inheritance_sanity_check_effect = yes
+						}
+					}
+				}
+			}
+		}
+
+		if = { # Sayyid fix
+			limit = {
+				# religion_group = muslim # not religion-specific
+				trait = sayyid
+				is_female = no
+			}
+
+			any_child = {
+				limit = {
+					NOT = { trait = sayyid }
+				}
+
+				add_trait = sayyid
+			}
+		}
+
+		if = { # Mirza fix
+			limit = {
+				# religion_group = muslim # not religion-specific
+				trait = sayyid
+				is_female = yes
+			}
+
+			any_child = {
+				limit = {
+					NOR = {
+						trait = mirza
+						trait = sayyid
+					}
+				}
+
+				add_trait = mirza
+			}
+		}
+
+		if = { # Caste fix
+			limit = {
+				religion = hindu
+				trait = kshatriya
+			}
+
+			any_child = {
+				limit = {
+					religion = hindu
+					NOT = { trait = kshatriya }
+				}
+
+				add_trait = kshatriya
+			}
+		}
+
+		# Set orphaned historical children to new mother - not happening!
+		#spouse = {
+		#	save_event_target_as = new_mother
+		#}
+
+		any_child = {
+			#if = {
+			#	limit = {
+			#		mother = {
+			#			character = yes
+			#			NOT = { character = event_target:new_mother }
+			#		}
+			#
+			#		could_be_child_of = event_target:new_mother
+			#
+			#		NOR = {
+			#			trait = legit_bastard
+			#			trait = bastard
+			#		}
+			#	}
+			#
+			#	set_mother = event_target:new_mother
+			#}
+
+			character_event = { id = RoI.30121 } # Set religious branch to liege's branch
+
+			# Fix for children not getting any traits
+			if = {
+				limit = {
+					is_adult = yes
+					has_education_diplomacy_trigger = no
+					has_education_martial_trigger = no
+					has_education_learning_trigger = no
+					has_education_stewardship_trigger = no
+				}
+
+				add_random_education_trait = yes
+
+				random_independent_ruler = {
+					limit = {
+						PREV = {
+							can_copy_personality_trait_from = PREV
+						}
+					}
+
+					PREV = {
+						copy_random_personality_trait = PREV
+					}
+				}
+
+				random_independent_ruler = {
+					limit = {
+						PREV = {
+							can_copy_personality_trait_from = PREV
+						}
+					}
+
+					PREV = {
+						copy_random_personality_trait = PREV
+					}
+				}
+
+				random_independent_ruler = {
+					limit = {
+						PREV = {
+							can_copy_personality_trait_from = PREV
+						}
+					}
+
+					PREV = {
+						copy_random_personality_trait = PREV
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					is_adult = no
+					practical_age >= 10
+					personality_traits < 2
+				}
+
+				random_independent_ruler = {
+					limit = {
+						PREV = {
+							can_copy_personality_trait_from = PREV
+						}
+					}
+
+					PREV = {
+						copy_random_personality_trait = PREV
+					}
+				}
+
+				random_independent_ruler = {
+					limit = {
+						PREV = {
+							can_copy_personality_trait_from = PREV
+						}
+					}
+
+					PREV = {
+						copy_random_personality_trait = PREV
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					practical_age >= 6
+					practical_age < 10
+					personality_traits < 1
+				}
+
+				random_independent_ruler = {
+					limit = {
+						PREV = {
+							can_copy_personality_trait_from = PREV
+						}
+					}
+
+					PREV = {
+						copy_random_personality_trait = PREV
+					}
+				}
+			}
+		}
+
+		recalc_succession = yes
+	}
+}
