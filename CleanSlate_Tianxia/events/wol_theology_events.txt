@@ -1,0 +1,1302 @@
+###########################################
+#                                         #
+# Way of Life theology events             #
+#                                         #
+# ID WoL.7000-WoL.7999                    #
+#                                         #
+###########################################
+
+# Written by Tobias Bodlund
+# Tweaks and additional events by Henrik Fåhraeus
+
+namespace = WoL
+
+
+# Study religious myths?
+character_event = {
+	id = WoL.7000
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+
+	desc = {
+		text = EVTDESC_WoL_7000_non_unref_pagan
+		trigger = { is_unreformed_pagan_trigger = no } # Scriptures
+	}
+	desc = {
+		text = EVTDESC_WoL_7000_unref_pagan
+		trigger = { is_unreformed_pagan_trigger = yes } # Stories
+	}
+
+	is_triggered_only = yes # on_focus_pulse, random_events
+
+	only_playable = yes
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		has_focus = focus_theology
+		is_priest = no
+		holy_order = no
+		is_inaccessible_trigger = no
+		NOT = { has_character_flag = studied_religious_myths }
+	}
+
+	immediate = {
+		set_character_flag = studied_religious_myths
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_WoL_7000 # Yes, study scriptures
+			trigger = { is_unreformed_pagan_trigger = no }
+		}
+		name = {
+			text = EVTOPTA_WoL_7000 # Yes, listen to stories
+			trigger = { is_unreformed_pagan_trigger = yes }
+		}
+
+		piety = 20
+
+		character_event = {
+			id = WoL.7001
+			months = 3
+		}
+	}
+
+	option = {
+		name = EVTOPTC_WoL_7000 # I have no time
+
+		piety = -5
+
+		if = {
+			limit = { has_character_modifier = religious_studies }
+			remove_character_modifier = religious_studies
+		}
+	}
+}
+
+# Results of studying religous scriptures or stories
+character_event = {
+	id = WoL.7001
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+
+	desc = {
+		text = EVTDESC_WoL_7001_non_unref_pagan
+		trigger = { is_unreformed_pagan_trigger = no } # Scriptures
+	}
+	desc = {
+		text = EVTDESC_WoL_7001_unref_pagan
+		trigger = { is_unreformed_pagan_trigger = yes } # Stories
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = {
+			text = EVTOPTA_WoL_7001 # Scriptures
+			trigger = { is_unreformed_pagan_trigger = no }
+		}
+		name = {
+			text = EVTOPTB_WoL_7001 # Stories
+			trigger = { is_unreformed_pagan_trigger = yes }
+		}
+
+		piety = 20
+
+		add_character_modifier = {
+			name = ancient_wisdom
+			years = 3
+		}
+
+		if = {
+			limit = {
+				NOR = {
+					has_character_modifier = religious_philosopher
+					trait = theologian
+				}
+			}
+
+			if = {
+				limit = {
+					NOT = { has_character_modifier = religious_studies }
+				}
+
+				add_character_modifier = {
+					name = religious_studies
+					duration = -1
+				}
+
+				set_character_flag = religious_studies_timer
+			}
+			else_if = {
+				limit = {
+					had_character_flag = {
+						flag = religious_studies_timer
+						days >= 1800
+					}
+				}
+
+				clr_character_flag = religious_studies_timer
+				remove_character_modifier = religious_studies
+
+				add_character_modifier = {
+					name = religious_philosopher
+					duration = -1
+				}
+			}
+		}
+	}
+}
+
+# Befriend priest through your religious interest
+character_event = {
+	id = WoL.7012
+	desc = EVTDESC_WoL_7012
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:target_priest
+
+	is_triggered_only = yes # on_focus_pulse, random_events
+
+	only_playable = yes
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		has_focus = focus_theology
+		is_priest = no
+
+		any_realm_character = {
+			is_priest = yes
+			religion = ROOT
+			NOT = { is_friend = ROOT }
+			is_inaccessible_or_incapable_trigger = no
+		}
+	}
+
+	immediate = {
+		random_realm_character = {
+			limit = {
+				is_priest = yes
+				religion = ROOT
+				NOT = { is_friend = ROOT }
+				is_inaccessible_or_incapable_trigger = no
+			}
+
+			save_event_target_as = target_priest
+		}
+	}
+
+	option = {
+		name = EVTOPTA_WoL_7012
+
+		add_friend = event_target:target_priest
+	}
+}
+
+# Visit holy site and speak with priests there (not Muslims, Christians, Jews or Indians)
+character_event = {
+	id = WoL.7020
+	desc = EVTDESC_WoL_7020
+	picture = GFX_evt_cathedral
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes # on_focus_pulse, random_events
+
+	only_playable = yes
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+	war = no
+	in_command = no
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		has_focus = focus_theology
+		is_inaccessible_trigger = no
+
+		NOR = {
+			religion_group = christian
+			religion_group = muslim
+			religion_group = jewish_group
+			religion_group = indian_group
+			has_character_flag = do_not_disturb
+			has_character_flag = wol_theology_visited_holy_site
+			NOT = {
+				trait = treasure_fleet_preparation
+			}
+		}
+
+		any_realm_title = {
+			is_holy_site = ROOT
+			holder_scope = { ai = yes }
+		}
+	}
+
+	immediate = {
+		set_character_flag = wol_theology_visited_holy_site
+
+		random_realm_title = {
+			limit = {
+				is_holy_site = ROOT
+				holder_scope = { ai = yes }
+			}
+
+			save_event_target_as = holy_site_visiting # For localization
+		}
+	}
+
+	option = {
+		name = EVTOPTA_WoL_7020 # Go
+
+		piety = 20
+		scaled_wealth = -0.2
+		set_character_flag = do_not_disturb
+
+		character_event = {
+			id = WoL.7021
+			days = 20
+		}
+	}
+
+	option = {
+		name = EVTOPTB_WoL_7020 # Don't go
+
+		piety = -5
+	}
+}
+
+# Experience at holy site
+character_event = {
+	id = WoL.7021
+	desc = EVTDESC_WoL_7021
+	picture = GFX_evt_cathedral
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_WoL_7021
+
+		piety = 50
+
+		if = {
+			limit = { trait = cynical }
+
+			random = {
+				chance = 20
+				remove_trait_cynical_effect =yes
+			}
+		}
+		else = {
+			random = {
+				chance = 20
+				add_trait_zealous_effect = yes
+			}
+		}
+
+		clr_character_flag = do_not_disturb
+		clear_event_target = holy_site_visiting
+
+		if = {
+			limit = {
+				NOR = {
+					has_character_modifier = religious_philosopher
+					trait = theologian
+				}
+			}
+
+			if = {
+				limit = {
+					NOT = { has_character_modifier = religious_studies }
+				}
+
+				add_character_modifier = {
+					name = religious_studies
+					duration = -1
+				}
+
+				set_character_flag = religious_studies_timer
+			}
+			else_if = {
+				limit = {
+					had_character_flag = {
+						flag = religious_studies_timer
+						days >= 1800
+					}
+				}
+
+				clr_character_flag = religious_studies_timer
+				remove_character_modifier = religious_studies
+
+				add_character_modifier = {
+					name = religious_philosopher
+					duration = -1
+				}
+			}
+		}
+	}
+}
+
+# Reflect on own life and how it relates to the gods.
+character_event = {
+	id = WoL.7030
+	desc = EVTDESC_WoL_7030
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes # on_focus_pulse, random_events
+
+	only_playable = yes
+	min_age = 16
+	#only_capable = yes
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		is_priest = no
+		has_focus = focus_theology
+
+		NOR = {
+			has_character_flag = wol_theology_reflect_on_self_and_gods
+			has_character_modifier = religious_philosopher
+			trait = possessed
+			trait = theologian
+		}
+
+		any_realm_character = {
+			is_priest = yes
+			religion = ROOT
+			is_actually_incapable_trigger = no
+			is_inaccessible_trigger = no
+		}
+	}
+
+	immediate = {
+		set_character_flag = wol_theology_reflect_on_self_and_gods
+	}
+
+	option = {
+		name = EVTOPTA_WoL_7030 # Indeed
+
+		piety = 10
+	}
+
+	option = {
+		name = EVTOPTB_WoL_7030 # Study more deeply
+
+		piety = 30
+
+		if = {
+			limit = {
+				NOR = {
+					has_character_modifier = religious_philosopher
+					trait = theologian
+				}
+			}
+
+			if = {
+				limit = {
+					NOT = { has_character_modifier = religious_studies }
+				}
+
+				add_character_modifier = {
+					name = religious_studies
+					duration = -1
+				}
+
+				set_character_flag = religious_studies_timer
+			}
+			else_if = {
+				limit = {
+					had_character_flag = {
+						flag = religious_studies_timer
+						days >= 1800
+					}
+				}
+
+				clr_character_flag = religious_studies_timer
+				remove_character_modifier = religious_studies
+
+				add_character_modifier = {
+					name = religious_philosopher
+					duration = -1
+				}
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTC_WoL_7030 # Stop this
+
+		piety = -10
+
+		if = {
+			limit = { has_character_modifier = religious_studies }
+
+			remove_character_modifier = religious_studies
+			add_trait_fully_silently_cynical_effect = yes
+		}
+
+		set_character_flag = religious_studies_timer
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+# Theologian's view of other religions
+character_event = {
+	id = WoL.7042
+	desc = EVTDESC_WoL_7042
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes # on_focus_pulse, random_events
+	hide_from = yes
+
+	min_age = 16
+	only_playable = yes
+	#only_capable = yes
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		has_focus = focus_theology
+		is_priest = no
+		has_any_sympathy_trait_trigger = no
+
+		NOR = {
+			trait = zealous
+			has_character_flag = wol_theology_view_other_religions
+		}
+
+		any_realm_character = {
+			NOT = { religion_group = ROOT }
+		}
+	}
+
+	immediate = {
+		set_character_flag = wol_theology_view_other_religions
+
+		random_realm_character = {
+			limit = {
+				NOT = { religion_group = ROOT }
+			}
+
+			save_event_target_as = target_character
+		}
+	}
+
+	option = {
+		name = EVTOPTA_WoL_7042 # Accept
+
+		event_target:target_character = {
+			show_scope_change = no
+
+			trigger_switch = {
+				on_trigger = religion_group
+
+				christian = { 			ROOT = { show_scope_change = no add_trait = sympathy_christendom } }
+				muslim = { 				ROOT = { show_scope_change = no add_trait = sympathy_islam } }
+				pagan_group = { 		ROOT = { show_scope_change = no add_trait = sympathy_pagans } }
+				zoroastrian_group = { 	ROOT = { show_scope_change = no add_trait = sympathy_zoroastrianism } }
+				jewish_group = { 		ROOT = { show_scope_change = no add_trait = sympathy_judaism } }
+				indian_group = { 		ROOT = { show_scope_change = no add_trait = sympathy_indian } }
+			}
+		}
+
+		ai_chance = {
+			factor = 1
+
+			mult_modifier = {
+				factor = 5
+				trait = cynical
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_WoL_7042 # Condemn
+
+		piety = 50
+	}
+}
+
+# Question own faith
+character_event = {
+	id = WoL.7050
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_religion
+
+	desc = {
+		text = EVTDESC_WoL_7050
+		trigger = {
+			OR = {
+				is_unreformed_pagan_trigger = no
+
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_WoL_7050_PAGAN
+		trigger = {
+			is_unreformed_pagan_trigger = yes
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+
+	is_triggered_only = yes # on_focus_pulse, random_events
+
+	only_playable = yes
+	min_age = 16
+	#only_capable = yes
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		has_focus = focus_theology
+		NOT = { has_character_flag = wol_theology_question_gods }
+	}
+
+	immediate = {
+		set_character_flag = wol_theology_question_gods
+	}
+
+	option = {
+		name = EVTOPTA_WoL_7050 # Become Cynical (non-zealous)
+
+		trigger = {
+			NOT = { trait = cynical }
+		}
+
+		if = {
+			limit = { trait = zealous }
+			remove_trait = zealous
+		}
+		else = {
+			add_trait = cynical
+		}
+	}
+
+	option = {
+		name = EVTOPTB_WoL_7050 # Stay true to faith
+
+		piety = 100
+
+		random = {
+			chance = 30
+			add_trait_depressed_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTC_WoL_7050 # Become zealous
+
+		trigger = {
+			NOT = { trait = zealous }
+		}
+
+		if = {
+			limit = { trait = cynical }
+			remove_trait = cynical
+		}
+		else = {
+			add_trait = zealous
+		}
+
+		ai_chance = { factor = 10 }
+	}
+}
+
+# Embrace heresy?
+character_event = {
+	id = WoL.7060
+	desc = EVTDESC_WoL_7060
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes # on_focus_pulse, random_events
+
+	only_playable = yes
+	min_age = 16
+	#only_capable = yes
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		has_focus = focus_theology
+		trait = zealous
+
+		OR = {
+			religion_group = christian
+			religion_group = muslim
+			religion_group = zoroastrian_group
+			religion_group = jewish_group
+		}
+
+		is_heretic = no
+		is_priest = no
+		holy_order = no
+		mercenary = no
+		NOT = { has_character_flag = wol_theology_heretic }
+		controls_religion = no # Makes little sense!
+	}
+
+	immediate = {
+		set_character_flag = wol_theology_heretic
+		set_character_flag = convert_heretic
+	}
+
+	option = {
+		name = EVTOPTA_WoL_7060 # Settle firmly into orthodoxy
+
+		piety = 30
+
+		ai_chance = { factor = 20 }
+	}
+
+	option = {
+		name = EVTOPTB_WoL_7060 # Take middle ground
+
+		remove_trait = zealous
+	}
+
+	option = {
+		name = EVTOPTC_WoL_7060 # Become heretic
+
+		piety = 100
+
+		# Workaround for automatic usurption of theocratic characters
+		convert_religion_failsafe_effect = yes
+
+		if = {
+			limit = {
+				NOR = {
+					has_character_modifier = religious_philosopher
+					trait = theologian
+				}
+			}
+
+			if = {
+				limit = {
+					NOT = { has_character_modifier = religious_studies }
+				}
+
+				add_character_modifier = {
+					name = religious_studies
+					duration = -1
+				}
+
+				set_character_flag = religious_studies_timer
+			}
+			else_if = {
+				limit = {
+					had_character_flag = {
+						flag = religious_studies_timer
+						days >= 1800
+					}
+				}
+
+				clr_character_flag = religious_studies_timer
+				remove_character_modifier = religious_studies
+
+				add_character_modifier = {
+					name = religious_philosopher
+					duration = -1
+				}
+			}
+		}
+
+		ai_chance = { factor = 2 }
+	}
+
+	after = {
+		clr_character_flag = convert_heretic
+	}
+}
+
+# Embrace theologian lifestyle?
+character_event = {
+	id = WoL.7070
+	desc = EVTDESC_WoL_7070
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes # on_focus_pulse, random_events
+
+	only_playable = yes
+	min_age = 16
+	#only_capable = yes
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		has_focus = focus_theology
+		has_character_modifier = religious_philosopher
+		lifestyle_traits < 1
+		NOT = {  has_character_flag = wol_theology_lifestyle_question }
+	}
+
+	immediate = {
+		set_character_flag = wol_theology_lifestyle_question
+	}
+
+	option = {
+		name = EVTOPTA_WoL_7070 # Become theologian
+
+		trigger = {
+			NOT = { trait = cynical }
+		}
+
+		remove_character_modifier = religious_philosopher
+		add_trait = theologian
+
+		if = {
+			limit = {
+				ai = no
+				is_ironman = yes
+			}
+
+			set_character_flag = achievement_by_the_gods
+		}
+
+		if = {
+			limit = { has_nickname = no }
+
+			random_list = {
+				20 = { give_nickname = nick_the_pious }
+				20 = { give_nickname = nick_the_holy }
+
+				20 = {
+					trigger = { religion_group = christian }
+					give_nickname = nick_the_apostle
+				}
+
+				20 = {
+					trigger = { religion_group = christian }
+					give_nickname = nick_the_confessor
+				}
+
+				20 = {
+					trigger = { religion_group = christian }
+					give_nickname = nick_the_blessed
+				}
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_WoL_7070 # Become cynical theologian
+
+		trigger = { trait = cynical }
+
+		remove_character_modifier = religious_philosopher
+		add_trait = theologian
+
+		if = {
+			limit = {
+				ai = no
+				is_ironman = yes
+			}
+
+			set_character_flag = achievement_by_the_gods
+		}
+
+		if = {
+			limit = { has_nickname = no }
+
+			random_list = {
+				50 = { give_nickname = nick_the_scholar }
+				50 = { give_nickname = nick_the_wise }
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTC_WoL_7070  # There are other paths in life
+
+		if = {
+			limit = { has_nickname = no }
+
+			random_list = {
+				50 = { give_nickname = nick_the_scholar }
+				50 = { give_nickname = nick_the_wise }
+			}
+		}
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+# Lose Stressed/Depressed
+character_event = {
+	id = WoL.7080
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_religion
+
+	desc = {
+		text = EVTDESC_WoL_7080
+		trigger = {
+			NOR = {
+				AND = {
+					religion_group = pagan_group
+					religions_are_standard_trigger = no
+				}
+				religion_openly_baltic_or_reformed_trigger = yes
+				religion_openly_finnish_or_reformed_trigger = yes
+				religion_openly_slavic_or_reformed_trigger = yes
+				religion_openly_tengri_or_reformed_trigger = yes
+				religion_openly_west_african_or_reformed_trigger = yes
+				religion_openly_hellenic_or_reformed_trigger = yes
+				religion_openly_ainu_or_reformed_trigger = yes
+				religion_openly_andamanese_or_reformed_trigger = yes
+				religion_openly_jurchen_or_reformed_trigger = yes
+				religion_openly_nivkh_or_reformed_trigger = yes
+				AND = {
+					religion_group = muslim
+					religions_are_standard_trigger = yes
+				}
+				AND = {
+					has_dharmic_religion_trigger = yes
+					religions_are_standard_trigger = yes
+					OR = {
+						NOT = {
+							religion = buddhist
+						}
+						has_caste_traits_trigger = yes
+					}
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_WoL_7080_PAGAN
+		trigger = {
+			OR = {
+				AND = {
+					religion_group = pagan_group
+					religions_are_standard_trigger = no
+				}
+				religion_openly_baltic_or_reformed_trigger = yes
+				religion_openly_finnish_or_reformed_trigger = yes
+				religion_openly_slavic_or_reformed_trigger = yes
+				religion_openly_tengri_or_reformed_trigger = yes
+				religion_openly_west_african_or_reformed_trigger = yes
+				religion_openly_hellenic_or_reformed_trigger = yes
+				religion_openly_ainu_or_reformed_trigger = yes
+				religion_openly_andamanese_or_reformed_trigger = yes
+				religion_openly_jurchen_or_reformed_trigger = yes
+				religion_openly_nivkh_or_reformed_trigger = yes
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_WoL_7080_MUSLIM
+		trigger = { # TODO: Block for Yazidis?
+			religion_group = muslim
+			religions_are_standard_trigger = yes
+		}
+	}
+	desc = {
+		text = EVTDESC_WoL_7080_INDIAN
+		trigger = {
+			has_dharmic_religion_trigger = yes
+			religions_are_standard_trigger = yes
+			OR = {
+				NOT = {
+					religion = buddhist
+				}
+				has_caste_traits_trigger = yes # Speaks of Chakras and the like, which is a bit weird in places
+			}
+		}
+	}
+
+	is_triggered_only = yes # on_focus_pulse, random_events
+
+	only_playable = yes
+	#only_capable = yes
+	min_age = 16
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		has_focus = focus_theology
+
+		OR = {
+			trait = stressed
+			trait = depressed
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+
+		mult_modifier = {
+			factor = 0.25
+			trait = cynical
+		}
+
+		mult_modifier = {
+			factor = 2
+			trait = zealous
+		}
+	}
+
+	option = {
+		name = EVTOPTA_WoL_7080
+
+		remove_trait_silently_stressed_effect = yes
+		remove_trait_silently_depressed_effect = yes
+	}
+}
+
+# Meditation/Prayer in Seclusion - Go into hiding for a week.
+# Lose Drunkard, Gluttonous and Lustful and possible gain Temperate and Chaste (depending on religion).
+# Tiny Chance of restored eyesight or cured illness.
+character_event = {
+	id = WoL.7090
+	desc = EVTDESC_WoL_7090
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes # on_focus_pulse, random_events
+
+	only_playable = yes
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		has_focus = focus_theology
+		is_inaccessible_trigger = no
+	}
+
+	weight_multiplier = {
+		factor = 1
+
+		mult_modifier = {
+			factor = 0.25
+			trait = cynical
+		}
+
+		mult_modifier = {
+			factor = 2
+			trait = zealous
+		}
+	}
+
+	option = {
+		name = EVTOPTA_WoL_7090
+
+		add_trait = in_hiding
+		set_character_flag = do_not_disturb
+		set_character_flag = in_religious_seclusion
+
+		character_event = {
+			id = WoL.7092
+			days = 7
+			random = 14
+		}
+	}
+
+	option = {
+		name = EVTOPTB_WoL_7090
+	}
+}
+
+# Hidden event - clear out the hiding status no matter what.
+character_event = {
+	id = WoL.7092
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		clr_character_flag = in_religious_seclusion
+		end_inaccessibility_effect = yes # removes in_hiding or in_seclusion
+		character_event = { id = WoL.7091 }
+	}
+}
+
+character_event = {
+	id = WoL.7091
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_religion
+
+	desc = {
+		text = EVTDESC_WoL_7091
+		trigger = {
+			NOR = {
+				trait = lunatic
+				religion_group = pagan_group
+				has_dharmic_religion_trigger = yes
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_WoL_7091_PAGAN
+		trigger = {
+			religion_group = pagan_group
+			NOT = { trait = lunatic }
+		}
+	}
+	desc = {
+		text = EVTDESC_WoL_7091_INDIAN
+		trigger = {
+			has_dharmic_religion_trigger = yes
+			NOT = { trait = lunatic }
+		}
+	}
+	desc = {
+		text = EVTDESC_WoL_7091_LUNATIC
+		trigger = { trait = lunatic }
+	}
+
+	is_triggered_only = yes
+
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		is_pilgrim = no
+	}
+
+	option = {
+		name = EVTOPT_WoL_7091_DRUNKARD
+
+		trigger = { trait = drunkard }
+
+		remove_trait = drunkard
+
+		random = {
+			chance = 20
+			add_trait_temperate_effect = yes
+		}
+
+		random = {
+			chance = 10
+			add_trait_diligent_effect = yes
+		}
+
+		ai_chance = { factor = 100 }
+	}
+
+	option = {
+		name = EVTOPT_WoL_7091_GLUTTON
+
+		trigger = { trait = gluttonous }
+
+		remove_trait = gluttonous
+
+		random = {
+			chance = 20
+
+			tooltip = {
+				add_trait = temperate
+			}
+
+			add_trait_temperate_effect = yes
+		}
+
+		random = {
+			chance = 10
+			add_trait_diligent_effect = yes
+		}
+
+		ai_chance = { factor = 100 }
+	}
+
+	option = {
+		name = EVTOPT_WoL_7091_SLOTHFUL
+
+		trigger = { trait = slothful }
+
+		remove_trait = slothful
+
+		random = {
+			chance = 10
+
+			tooltip = {
+				add_trait = diligent
+			}
+
+			add_trait_diligent_effect = yes
+		}
+
+		random = {
+			chance = 20
+			add_trait_temperate_effect = yes
+		}
+
+		ai_chance = { factor = 100 }
+	}
+
+	option = {
+		name = EVTOPT_WoL_7091_LUSTFUL
+
+		trigger = {
+			trait = lustful
+			religion_group = christian
+		}
+
+		remove_trait = lustful
+		piety = 100
+
+		random = {
+			chance = 10
+
+			tooltip = {
+				add_trait = chaste
+			}
+
+			add_trait_chaste_effect = yes
+		}
+
+		random = {
+			chance = 20
+			add_trait_temperate_effect = yes
+		}
+
+		random = {
+			chance = 10
+			add_trait_diligent_effect = yes
+		}
+
+		ai_chance = {
+			factor = 10
+
+			trigger = {
+				NOT = { trait = hedonist }
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPT_WoL_7091_BLIND
+
+		trigger = {
+			trait = blinded
+
+			NOT = {
+				has_game_rule = {
+					name = supernatural_events
+					value = off
+				}
+			}
+
+			random < 10 # 10% chance
+		}
+
+		remove_trait = blinded
+
+		ai_chance = { factor = 1000 }
+	}
+
+	option = {
+		name = EVTOPT_WoL_7091_POX
+
+		trigger = {
+			trait = great_pox
+			random < 75 # 75% chance
+		}
+
+		remove_trait = great_pox
+
+		ai_chance = { factor = 1000 }
+	}
+
+	option = {
+		name = EVTOPT_WoL_7091_LUNATIC
+
+		trigger = {
+			trait = lunatic
+			NOT = { trait = possessed }
+		}
+
+		random = {
+			chance = 50
+			remove_trait_lunatic_effect = yes
+		}
+
+		random = {
+			chance = 50
+			add_trait_possessed_effect = yes
+		}
+
+		ai_chance = { factor = 100 }
+	}
+
+	option = {
+		name = EVTOPT_WoL_7091_LEPER
+
+		trigger = {
+			trait = leper
+
+			NOT = {
+				has_game_rule = {
+					name = supernatural_events
+					value = off
+				}
+			}
+
+			random < 10 # 10% chance
+		}
+
+		remove_trait = leper
+
+		ai_chance = { factor = 1000 }
+	}
+
+	option = {
+		name = EVTOPT_WoL_7091_CHASTE
+
+		trigger = {
+			trait = chaste
+
+			NOT = { religion_group = christian }
+			has_dharmic_religion_trigger = no
+		}
+
+		remove_trait = chaste
+		piety = 50
+
+		random = {
+			chance = 50
+
+			tooltip = {
+				add_trait = lustful
+			}
+
+			add_trait_lustful_effect = yes
+		}
+
+		ai_chance = { factor = 100 }
+	}
+
+	option = {
+		name = EVTOPT_WoL_7091
+
+		piety = 100
+
+		random = {
+			chance = 20
+			add_trait_temperate_effect = yes
+		}
+
+		random = {
+			chance = 10
+			add_trait_diligent_effect = yes
+		}
+	}
+}

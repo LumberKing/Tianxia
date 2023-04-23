@@ -1,0 +1,240 @@
+# Charlemagne misc Zunist events
+
+namespace = CM
+
+
+####################################################
+# Zunist torture events
+# By Henrik "Groogy" Hansson
+####################################################
+character_event = {
+	id = CM.15000
+	desc = EVTDESCCM15000
+	picture = GFX_evt_emissary
+
+	is_triggered_only = yes # vassal_zun_judgement_decision, vassal_decisions.txt
+
+	immediate = {
+		add_character_modifier = {
+			name = zun_judgement
+			duration = -1
+		}
+
+		character_event = {
+			id = CM.15001
+			days = 30
+		}
+	}
+
+	option = {
+		name = OK
+	}
+}
+
+# Zun judgment tombola
+character_event = {
+	id = CM.15001
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		if = {
+			limit = { is_incapable = yes }
+
+			random_list = {
+				60 = { character_event = { id = CM.15003 } } # Character lives
+				40 = { character_event = { id = CM.15004 } } # Character dies
+				10 = { character_event = { id = CM.15002 } } # Character is freed
+			}
+		}
+
+		# If neither cynical, zealous nor Zunist
+		else_if = {
+			limit = {
+				NOR = {
+					trait = zealous
+					trait = cynical
+				}
+
+				religion_openly_zun_or_reformed_trigger = no
+			}
+
+			if = {
+				limit = { trait = lunatic }
+
+				random_list = {
+					60 = { character_event = { id = CM.15003 } } # Character lives
+					10 = { character_event = { id = CM.15004 } } # Character dies
+					 5 = { character_event = { id = CM.15005 } } # Character goes insane
+					 5 = { character_event = { id = CM.15006 } } # Character goes zealous
+					 5 = {
+						trigger = {
+							controls_religion = no
+						}
+						character_event = { id = CM.15007 } # Character goes Zunist
+					}
+					10 = { character_event = { id = CM.15002 } } # Character is freed
+				}
+			}
+			else = {
+				random_list = {
+					60 = { character_event = { id = CM.15003 } } # Character lives
+					 5 = { character_event = { id = CM.15004 } } # Character dies
+					 5 = { character_event = { id = CM.15006 } } # Character goes zealous
+					 5 = {
+						trigger = {
+							controls_religion = no
+						}
+						character_event = { id = CM.15007 } # Character goes Zunist
+					}
+					20 = { character_event = { id = CM.15002 } } # Character is freed
+				}
+			}
+		}
+		else = {
+			if = {
+				limit = { trait = lunatic }
+
+				random_list = {
+					60 = { character_event = { id = CM.15003 } } # Character lives
+					 5 = { character_event = { id = CM.15004 } } # Character dies
+					20 = { character_event = { id = CM.15002 } } # Character is freed
+				}
+			}
+			else = {
+				random_list = {
+					60 = { character_event = { id = CM.15003 } } # Character lives
+					 5 = { character_event = { id = CM.15004 } } # Character dies
+					 5 = { character_event = { id = CM.15005 } } # Character goes insane
+					20 = { character_event = { id = CM.15002 } } # Character is freed
+				}
+			}
+		}
+	}
+}
+
+character_event = { # End torture
+	id = CM.15002
+	desc = EVTDESCCM15002
+	picture = GFX_evt_emissary
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTACM15002
+
+		remove_character_modifier = zun_judgement
+		imprison = no
+
+		liege = {
+			clear_prison_reasons = ROOT
+		}
+	}
+}
+
+character_event = { # Character lives
+	id = CM.15003
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		character_event = {
+			id = CM.15001
+			days = 30
+		}
+	}
+}
+
+character_event = { # Character dies
+	id = CM.15004
+	desc = EVTDESCCM15004
+	picture = GFX_evt_emissary
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTACM15004
+
+		remove_character_modifier = zun_judgement
+
+		host = {
+			show_scope_change = no
+
+			ROOT = {
+				show_scope_change = no
+
+				death = {
+					death_reason = death_sacrificed
+					killer = PREV
+				}
+			}
+		}
+
+	}
+}
+
+character_event = { # Character goes insane
+	id = CM.15005
+	desc = EVTDESCCM15005
+	picture = GFX_evt_emissary
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTACM15005
+
+		add_trait = lunatic
+
+		character_event = {
+			id = CM.15001
+			days = 30
+		}
+	}
+}
+
+character_event = { # Character goes zealous
+	id = CM.15006
+	desc = EVTDESCCM15006
+	picture = GFX_evt_emissary
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTACM15006
+
+		add_trait = zealous
+
+		character_event = {
+			id = CM.15001
+			days = 30
+		}
+	}
+}
+
+character_event = { # Character goes Zunist
+	id = CM.15007
+	desc = EVTDESCCM15007
+	picture = GFX_evt_emissary
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTACM15007
+
+		# Workaround for automatic usurption of theocratic characters
+		host = {
+			religion_scope = {
+				save_event_target_as = target_religion
+			}
+		}
+
+		convert_religion_failsafe_effect = yes
+
+		character_event = {
+			id = CM.15001
+			days = 30
+		}
+	}
+}

@@ -1,0 +1,1167 @@
+
+# Written by Emil Tisander and Alexander Oltner
+
+###########################################
+#										  #
+# Sky Burial events 					  #
+# by Emil Tisander						  #
+# ID HLF.8000-HLF.8050					  #
+#										  #
+###########################################
+
+namespace = HLF
+
+# Sky Burial trigger event
+character_event = {
+	id = HLF.8001
+
+	is_triggered_only = yes # on_death
+	hide_window = yes
+
+	only_playable = yes
+
+	trigger = {
+		OR = {
+			any_owned_bloodline = {
+				has_bloodline_flag = bloodline_sky_burial
+				bloodline_is_active_for = PREV
+			}
+
+			trigger_if = {
+				limit = { has_dlc = "Horse Lords" }
+
+				OR = {
+					religion_group = zoroastrian_group
+					religion_openly_bon_or_reformed_trigger = yes
+
+					trigger_if = {
+						limit = { is_nomadic = yes }
+
+						OR = {
+							religion_openly_tengri_or_reformed_trigger = yes
+							has_dharmic_religion_trigger = yes
+						}
+					}
+				}
+			}
+		}
+
+		death_in_china_trigger = no
+		death_no_trace_trigger = no
+
+	}
+
+	immediate = {
+		if = {
+			limit = { prestige >= 20000 }
+
+			current_heir = {
+				set_character_flag = sky_burial_tomb
+			}
+		}
+
+		if = {
+			limit = { is_parent_of = current_heir }
+
+			if = {
+				limit = { is_female = yes }
+
+				current_heir = {
+					set_character_flag = sky_burial_mother
+				}
+			}
+			else = {
+				current_heir = {
+					set_character_flag = sky_burial_father
+				}
+			}
+		}
+		else_if = {
+			limit = { sibling = current_heir }
+
+			if = {
+				limit = { is_female = yes }
+
+				current_heir = {
+					set_character_flag = sky_burial_sister
+				}
+			}
+			else = {
+				current_heir = {
+					set_character_flag = sky_burial_brother
+				}
+			}
+		}
+
+		current_heir = {
+			set_character_flag = sky_burial
+
+			character_event = {
+				id = HLF.8002
+				days = 60
+			}
+		}
+	}
+}
+
+# Clear event
+character_event = {
+	id = HLF.8002
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		clr_character_flag = sky_burial
+		clr_character_flag = sky_burial_tomb
+		clr_character_flag = sky_burial_father
+		clr_character_flag = sky_burial_brother
+		clr_character_flag = sky_burial_mother
+		clr_character_flag = sky_burial_sister
+	}
+}
+
+# Decide on Burial
+character_event = {
+	id = HLF.8005
+	title = EVTNAME_HL_8005
+	picture = GFX_evt_shaman
+
+	desc = { # Father
+		text = EVTDESC_HL_8005_father
+		trigger = { has_character_flag = sky_burial_father }
+	}
+	desc = { # Mother
+		text = EVTDESC_HL_8005_mother
+		trigger = { has_character_flag = sky_burial_mother }
+	}
+	desc = { # Brother
+		text = EVTDESC_HL_8005_brother
+		trigger = { has_character_flag = sky_burial_brother }
+	}
+	desc = { # Sister
+		text = EVTDESC_HL_8005_sister
+		trigger = { has_character_flag = sky_burial_sister }
+	}
+	desc = { # Any other predecessor
+		text = EVTDESC_HL_8005_other
+		trigger = {
+			NOR = {
+				has_character_flag = sky_burial_father
+				has_character_flag = sky_burial_brother
+				has_character_flag = sky_burial_mother
+				has_character_flag = sky_burial_sister
+			}
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = { # Sky Burial
+		name = EVTOPTA_HL_8005
+
+		custom_tooltip = {
+			text = EVTOPTC_HL_8005_custom_tooltip_a
+
+			random_list = {
+				25 = { character_event = { id = HLF.8006 days = 10 } }
+				25 = { character_event = { id = HLF.8008 days = 10 } }
+				50 = { character_event = { id = HLF.8010 days = 10 } }
+			}
+		}
+	}
+
+	option = { # Raise a Golden Tomb instead
+		name = EVTOPTB_HL_8005
+
+		trigger = { has_character_flag = sky_burial_tomb }
+
+		wealth = -250
+
+		custom_tooltip = {
+			text = EVTOPTC_HL_8005_custom_tooltip_b
+
+			character_event = {
+				id = HLF.8020
+				days = 10
+			}
+		}
+	}
+
+	option = { # Lunatic option
+		name = EVTOPTC_HL_8005
+		tooltip_info = lunatic
+
+		trigger = {
+			trait = lunatic
+
+			c_anxi = {
+				holder_scope = {
+					OR = {
+						character = ROOT
+						is_vassal_or_below_of = ROOT
+					}
+				}
+			}
+		}
+
+		custom_tooltip = {
+			text = EVTOPTC_HL_8005_custom_tooltip_c
+
+			character_event = {
+				id = HLF.8030
+				days = 20
+			}
+		}
+	}
+
+	option = { # Also for possessed
+		name = EVTOPTC_HL_8005
+		tooltip_info = possessed
+
+		trigger = {
+			trait = possessed
+
+			c_anxi = {
+				holder_scope = {
+					OR = {
+						character = ROOT
+						is_vassal_or_below_of = ROOT
+					}
+				}
+			}
+		}
+
+		custom_tooltip = {
+			text = EVTOPTC_HL_8005_custom_tooltip_c
+
+			character_event = {
+				id = HLF.8030
+				days = 20
+			}
+		}
+	}
+}
+
+# Sky Burial - Bad weather
+character_event = {
+	id = HLF.8006
+	title = EVTNAME_HL_8006
+	desc = EVTDESC_HL_8006
+	picture = GFX_evt_nomad_camp
+
+	is_triggered_only = yes
+
+	option = { # Find shelter
+		name = EVTOPTA_HL_8006
+
+		if = {
+			limit = { trait = patient }
+			prestige = 30
+		}
+		else = {
+			random = {
+				chance = 30
+				add_trait_fully_patient_effect = yes
+			}
+		}
+	}
+
+	option = { # Continue
+		name = EVTOPTB_HL_8006
+
+		if = {
+			limit = { trait = craven }
+
+			random_list = {
+				50 = { remove_trait_craven_effect = yes }
+
+				30 = {
+					if = {
+						limit = { has_dlc = "Reapers" }
+						add_symptom_effect = yes
+					}
+					else = {
+						add_trait_ill_effect = yes
+					}
+				}
+
+				20 = { }
+			}
+		}
+
+		else_if = {
+			limit = { trait = brave }
+
+			random_list = {
+				30 = { add_trait_fully_ambitious_effect = yes }
+
+				30 = {
+					if = {
+						limit = { has_dlc = "Reapers" }
+						add_symptom_effect = yes
+					}
+					else = {
+						add_trait_ill_effect = yes
+					}
+				}
+
+				40 = { }
+			}
+		}
+
+		else = {
+			random_list = {
+				30 = { add_trait_brave_effect = yes }
+
+				30 = {
+					if = {
+						limit = { has_dlc = "Reapers" }
+						add_symptom_effect = yes
+					}
+					else = {
+						add_trait_ill_effect = yes
+					}
+				}
+
+				40 = { }
+			}
+		}
+	}
+
+	after = {
+		character_event = {
+			id = HLF.8010
+			days = 5
+		}
+	}
+}
+
+# Sky Burial - Hermit encountered
+character_event = {
+	id = HLF.8008
+	title = EVTNAME_HL_8008
+	desc = EVTDESC_HL_8008
+	picture = GFX_evt_lunatic
+
+	is_triggered_only = yes
+
+	option = { # Give gift
+		name = EVTOPTA_HL_8008
+
+		trigger = {
+			NOT = { trait = greedy }
+		}
+
+		wealth = -10
+
+		if = {
+			limit = { trait = charitable }
+			prestige = 20
+		}
+		else = {
+			random = {
+				chance = 50
+				add_trait_charitable_effect = yes
+			}
+		}
+	}
+
+	option = { # Ask to join
+		name = EVTOPTB_HL_8008
+
+		ai_chance = { factor = 0 }
+
+		create_character = {
+			random_traits = yes
+			dynasty = none
+			female = no
+			age = 40
+			religion = ROOT
+			culture = ROOT
+			add_trait = brilliant_strategist
+
+			attributes = {
+				martial = 10
+			}
+		}
+	}
+
+	option = { # Leave the hermit
+		name = EVTOPTC_HL_8008
+	}
+
+	after = {
+		character_event = {
+			id = HLF.8010
+			days = 5
+		}
+	}
+}
+
+# Perform Sky Burial
+character_event = {
+	id = HLF.8010
+	title = EVTNAME_HL_8010
+	desc = EVTDESC_HL_8010
+	picture = GFX_evt_shaman
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_HL_8010
+
+		prestige = 100
+
+		random = {
+			chance = 10
+
+			character_event = {
+				id = HLF.8011
+				days = 10
+			}
+		}
+	}
+}
+
+# Followed by a Vulture
+character_event = {
+	id = HLF.8011
+	title = EVTNAME_HL_8011
+	desc = EVTDESC_HL_8011
+	picture = GFX_evt_nomad_camp
+
+	is_triggered_only = yes
+
+	option = { # Keep the vulture
+		name = EVTOPTA_HL_8011
+
+		prestige = 10
+
+		if = {
+			limit = {
+				NOT = { trait = falconer }
+			}
+
+			add_trait = falconer
+		}
+	}
+
+	option = { # Send it away
+		name = EVTOPTB_HL_8011
+	}
+}
+
+# Begin construction on Golden Tomb
+character_event = {
+	id = HLF.8020
+	title = EVTNAME_HL_8020
+	desc = EVTDESC_HL_8020
+	picture = GFX_evt_fishing
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_HL_8020
+
+		prestige = 10
+
+		character_event = {
+			id = HLF.8022
+			days = 5
+		}
+	}
+}
+
+# Golden Tomb Completed
+character_event = {
+	id = HLF.8022
+	title = EVTNAME_HL_8022
+	desc = EVTDESC_HL_8022
+	picture = GFX_evt_tengri_throneroom_oldgods
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_HL_8022
+
+		prestige = 250
+	}
+
+	option = { # Cruel option
+		name = EVTOPTB_HL_8022
+
+		if = {
+			limit = { trait = cruel }
+			prestige = 300
+		}
+		else = {
+			remove_trait_silently_kind_effect = yes
+			add_trait = cruel
+			prestige = 250
+		}
+	}
+}
+
+# On the way to olgoi-khorkhoi (Mongolian death worm)
+character_event = {
+	id = HLF.8030
+	title = EVTNAME_HL_8030
+	desc = EVTDESC_HL_8030
+	picture = GFX_evt_sand_desert
+
+	is_triggered_only = yes
+
+	option = { # Continue
+		name = EVTOPTA_HL_8030
+
+		prestige = -100
+		piety = 100
+
+		random_list = {
+			15 = {
+				death = { death_reason = death_accident }
+			}
+
+			85 = {
+				character_event = {
+					id = HLF.8032
+					days = 10
+				}
+			}
+		}
+	}
+
+	option = { # Go back
+		name = EVTOPTB_HL_8030
+
+		prestige = -100
+
+		random_list = {
+			5 = {
+				death = { death_reason = death_accident }
+			}
+
+			95 = { custom_tooltip = { text = EVTOPTA_HL_8032_custom_tooltip } }
+		}
+	}
+}
+
+# Sacrifice to olgoi-khorkhoi (Mongolian death worm)
+character_event = {
+	id = HLF.8032
+	title = EVTNAME_HL_8032
+	desc = EVTDESC_HL_8032
+	picture = GFX_evt_sand_desert
+
+	is_triggered_only = yes
+
+	option = { # Return home
+		name = EVTOPTA_HL_8032
+
+		trigger = {
+			is_weak_trigger = no
+			is_ill = no
+			NOT = { trait = wounded }
+			is_maimed_trigger = no
+		}
+
+		prestige = -100
+		piety = 100
+
+		random_list = {
+			40 = {
+				death = { death_reason = death_accident }
+			}
+
+			60 = {
+				custom_tooltip = {
+					text = EVTOPTA_HL_8032_custom_tooltip
+
+					character_event = {
+						id = HLF.8035
+						days = 10
+					}
+				}
+			}
+		}
+	}
+
+	option = { # Rest
+		name = EVTOPTB_HL_8032
+
+		trigger = {
+			OR = {
+				is_weak_trigger = yes
+				is_ill = yes
+				trait = wounded
+				is_maimed_trigger = yes
+			}
+		}
+
+		death = { death_reason = death_accident }
+	}
+}
+
+# You return home from the desert
+character_event = {
+	id = HLF.8035
+	title = EVTNAME_HL_8035
+	desc = EVTDESC_HL_8035
+	picture = GFX_evt_tengri_throneroom_oldgods
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_HL_8035
+
+		prestige = 150
+
+		if = {
+			limit = { is_strong_trigger = no }
+			add_trait = brawny
+		}
+	}
+}
+
+###########################################
+#                                         #
+# Mongol wrestling events				  #
+# by Alexander Oltner                     #
+# ID HLF.9000-HLF.9050      	          #
+#                                         #
+###########################################
+
+character_event = {
+	id = HLF.9000
+	desc = EVTDESC_HL_9000
+	picture = GFX_evt_steppe_mercenaries
+	border = GFX_event_normal_frame_war
+
+	is_triggered_only = yes # on_five_year_pulse, random_events, mongol_wrestling
+
+	#only_independent = yes
+	only_men = yes
+	has_dlc = "Horse Lords"
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+	war = no
+
+	trigger = {
+		is_nomadic = yes
+		can_be_commander_trigger = yes
+		is_actually_incapable_trigger = no
+
+		NOR = {
+			has_character_modifier = manly_skill_wrestling
+			has_character_modifier = denied_wrestling
+		}
+
+		any_demesne_title = {
+			tier = BARON
+			has_building = no_wrestling_1
+		}
+
+		any_realm_character = {
+			#is_female = no
+			martial >= 10
+			is_adult = yes
+			prisoner = no
+			#is_incapable = no
+			can_be_commander_trigger = yes
+			is_actually_incapable_trigger = no
+			health_traits < 1
+			ai = yes
+
+			NOR = {
+				character = ROOT
+				trait = infirm
+				trait = craven
+			}
+		}
+
+	}
+
+	weight_multiplier = {
+		factor = 1
+
+		mult_modifier = {
+			factor = 1.43
+			has_focus = focus_war
+		}
+
+		mult_modifier = {
+			factor = 1.25
+			has_focus = focus_hunting
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HL_9000
+
+		character_event = {
+			id = HLF.9001
+			tooltip = EVTTOOLTIP_HL_9000A
+		}
+	}
+
+	option = {
+		name = EVTOPTB_HL_9000
+
+		trigger = {
+			NOT = { trait = slothful }
+		}
+
+		random = {
+			chance = 35
+			add_trait_diligent_effect = yes
+		}
+
+		add_character_modifier = {
+			name = denied_wrestling
+			years = 1
+		}
+	}
+
+	option = {
+		name = EVTOPTD_HL_9000
+
+		prestige = -20
+		remove_trait_silently_proud_effect = yes
+	}
+}
+
+character_event = {
+	id = HLF.9001 # Wrestling Event
+	desc = EVTDESC_HL_9001
+	picture = GFX_evt_steppe_mercenaries
+	border = GFX_event_normal_frame_war
+
+	is_triggered_only = yes
+
+	immediate = {
+		random_realm_character = {
+			limit = {
+				#is_female = no
+				martial >= 10
+				is_adult = yes
+				prisoner = no
+				#is_incapable = no
+				can_be_commander_trigger = yes
+				is_actually_incapable_trigger = no
+				health_traits < 1
+				ai = yes
+
+				NOR = {
+					character = ROOT
+					trait = infirm
+					trait = craven
+				}
+			}
+
+			save_event_target_as = wrestling_opponent
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HL_9001
+
+		custom_tooltip = {
+			text = EVTTOOLTIP_HL_9001A
+
+			if = {
+				limit = {
+					trigger_if = {
+						limit = { is_strong_trigger = yes }
+						event_target:wrestling_opponent = { is_strong_trigger = no }
+					}
+					trigger_else = {
+						event_target:wrestling_opponent = { is_weak_trigger = yes }
+					}
+				}
+
+				random_list = {
+					95 = { long_character_event = { id = HLF.9003 } } # Win
+					 5 = { long_character_event = { id = HLF.9004 } } # Lose
+				}
+			}
+			else_if = {
+				limit = {
+					trigger_if = {
+						limit = { is_strong_trigger = yes }
+						event_target:wrestling_opponent = {	is_strong_trigger = yes }
+					}
+					trigger_else = {
+						is_weak_trigger = no
+
+						event_target:wrestling_opponent = {
+							is_strong_trigger = no
+							is_weak_trigger = no
+						}
+					}
+				}
+
+				random_list = {
+					70 = { long_character_event = { id = HLF.9003 } }
+					30 = { long_character_event = { id = HLF.9004 } }
+				}
+			}
+			else_if = {
+				limit = {
+					is_weak_trigger = yes
+					event_target:wrestling_opponent = {	is_weak_trigger = yes }
+				}
+
+				random_list = {
+					50 = { long_character_event = { id = HLF.9003 } }
+					50 = { long_character_event = { id = HLF.9004 } }
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						AND = {
+							is_weak_trigger = yes
+							event_target:wrestling_opponent = {	is_weak_trigger = no }
+						}
+
+						AND = {
+							is_strong_trigger = no
+							event_target:wrestling_opponent = {	is_strong_trigger = yes }
+						}
+					}
+				}
+
+				random_list = {
+					 5 = { long_character_event = { id = HLF.9003 } }
+					95 = { long_character_event = { id = HLF.9004 } }
+				}
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTD_HL_9001
+		tooltip_info = lunatic
+
+		trigger = { trait = lunatic }
+
+		prestige = -50
+
+		random_list = {
+			29 = { add_trait_wounded_effect = yes }
+			45 = { add_maimed_trait_effect = yes }
+			25 = { death = { death_reason = death_accident } }
+
+			 1 = {
+				custom_tooltip = {
+					text = wrestling_win_vs_horse
+
+					add_character_modifier = {
+						name = manly_skill_wrestling
+						years = 5
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_HL_9001
+
+		trigger = {
+			NOT = { trait = arbitrary }
+		}
+
+		prestige = 50
+		add_trait_fully_silently_arbitrary_effect = yes
+	}
+
+	option = {
+		name = EVTOPTB_HL_9001
+		tooltip_info = arbitrary
+
+		trigger = {
+			trait = arbitrary
+			NOT = { trait = proud }
+		}
+
+		prestige = 50
+		add_trait_fully_silently_proud_effect = yes
+	}
+
+	option = {
+		name = EVTOPTB_HL_9001
+
+		trigger = {
+			trait = arbitrary
+			trait = proud
+		}
+
+		prestige = 75
+	}
+
+	option = {
+		name = EVTOPTC_HL_9001
+
+		prestige = -10
+		add_trait_fully_silently_craven_effect = yes
+	}
+}
+
+long_character_event = {
+	id = HLF.9003 # Win Wrestling
+	desc = EVTDESC_HL_9003
+	picture = GFX_evt_tengri_throneroom_oldgods
+	border = GFX_event_long_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_HL_9003
+		tooltip_info = proud
+
+		trigger = { trait = proud }
+
+		prestige = 100
+
+		if = {
+			limit = {
+				NOT = { is_rival = event_target:wrestling_opponent }
+			}
+
+			add_rival = event_target:wrestling_opponent
+		}
+
+		add_character_modifier = {
+			name = manly_skill_wrestling
+			years = 5
+		}
+	}
+
+	option = {
+		name = EVTOPTB_HL_9003
+
+		prestige = 50
+
+		add_character_modifier = {
+			name = manly_skill_wrestling
+			years = 5
+		}
+	}
+
+	option = {
+		name = EVTOPTC_HL_9003
+		tooltip_info = kind
+
+		trigger = {
+			trait = kind
+			NOT = { is_friend = event_target:wrestling_opponent }
+		}
+
+		prestige = 25
+		add_friend = event_target:wrestling_opponent
+
+		add_character_modifier = {
+			name = manly_skill_wrestling
+			years = 5
+		}
+	}
+
+	option = {
+		name = EVTOPTC_HL_9003
+		tooltip_info = gregarious
+
+		trigger = {
+			trait = gregarious
+
+			NOR = {
+				trait = kind
+				is_friend = event_target:wrestling_opponent
+			}
+		}
+
+		prestige = 25
+		add_friend = event_target:wrestling_opponent
+
+		add_character_modifier = {
+			name = manly_skill_wrestling
+			years = 5
+		}
+	}
+
+	option = {
+		name = EVTOPTD_HL_9003
+		#tooltip_info = homosexual
+
+		trigger = {
+			OR = {
+				AND = {
+					is_opposite_sex = event_target:wrestling_opponent
+					NOT = {
+						trait = homosexual
+					}
+					event_target:wrestling_opponent = {
+						NOT = {
+							trait = homosexual
+						}
+					}
+				}
+				AND = {
+					same_sex = event_target:wrestling_opponent
+					trait = homosexual
+					event_target:wrestling_opponent = {
+						trait = homosexual
+					}
+				}
+			}
+
+			NOR = {
+				is_lover = event_target:wrestling_opponent
+				is_former_lover = event_target:wrestling_opponent
+				is_close_relative = event_target:wrestling_opponent
+			}
+		}
+
+		prestige = 50
+		add_lover = event_target:wrestling_opponent
+		event_target:wrestling_opponent = {
+			save_event_target_as = sex_partner
+		}
+		unprotected_sex_effect_event_target = yes
+
+		add_character_modifier = {
+			name = manly_skill_wrestling
+			years = 5
+		}
+	}
+}
+
+long_character_event = {
+	id = HLF.9004 # Lose Wrestling
+	desc = EVTDESC_HL_9004
+	picture = GFX_evt_mongols
+	border = GFX_event_long_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTB_HL_9004
+		tooltip_info = gregarious
+
+		trigger = { trait = gregarious }
+
+		prestige = -25
+
+		event_target:wrestling_opponent = {
+			show_scope_change = no
+
+			prestige = 25
+		}
+
+		if = {
+			limit = {
+				NOT = { is_friend = event_target:wrestling_opponent }
+			}
+
+			add_friend = event_target:wrestling_opponent
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HL_9004
+
+		prestige = -50
+
+		event_target:wrestling_opponent = {
+			show_scope_change = no
+
+			prestige = 50
+		}
+	}
+
+	option = {
+		name = EVTOPTC_HL_9004
+		tooltip_info = wroth
+
+		trigger = {
+			trait = wroth
+
+			event_target:wrestling_opponent = {
+				health_traits < 1
+			}
+		}
+
+		prestige = -75
+
+		event_target:wrestling_opponent = {
+			show_scope_change = no
+
+			prestige = 75
+
+			random_list = {
+				90 = { add_trait_wounded_effect = yes }
+				10 = { add_maimed_trait_effect = yes }
+			}
+		}
+
+		if = {
+			limit = {
+				NOT = { is_rival = event_target:wrestling_opponent }
+			}
+
+			add_rival = event_target:wrestling_opponent
+		}
+
+		add_trait_fully_silently_cruel_effect = yes
+	}
+
+	option = {
+		name = EVTOPTD_HL_9004
+		#tooltip_info = homosexual
+
+		trigger = {
+			OR = {
+				AND = {
+					is_opposite_sex = event_target:wrestling_opponent
+					NOT = {
+						trait = homosexual
+					}
+					event_target:wrestling_opponent = {
+						NOT = {
+							trait = homosexual
+						}
+					}
+				}
+				AND = {
+					same_sex = event_target:wrestling_opponent
+					trait = homosexual
+					event_target:wrestling_opponent = {
+						trait = homosexual
+					}
+				}
+			}
+
+			NOR = {
+				is_lover = event_target:wrestling_opponent
+				is_former_lover = event_target:wrestling_opponent
+				is_close_relative = event_target:wrestling_opponent
+			}
+		}
+
+		prestige = -50
+
+		event_target:wrestling_opponent = {
+			show_scope_change = no
+
+			prestige = 50
+		}
+
+		add_lover = event_target:wrestling_opponent
+		event_target:wrestling_opponent = {
+			save_event_target_as = sex_partner
+		}
+		unprotected_sex_effect_event_target = yes
+	}
+}
