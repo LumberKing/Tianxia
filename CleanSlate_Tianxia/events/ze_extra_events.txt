@@ -1,0 +1,2428 @@
+###########################################
+#                                         #
+# Conclave Favor and Mercenary Events	  #
+# Written by Emil Tisander				  #
+#										  #
+# ID ZE.23000-ZE.25999     	              #
+#                                         #
+###########################################
+
+###########################################
+#                                         #
+# Favor Events							  #
+# by Alexander Oltner                     #
+# ID ZE.22300-ZE.22800              	  #
+#                                         #
+###########################################
+
+namespace = ZE
+
+# Councillor is Overburdened with Work
+character_event = {
+	id = ZE.23000
+	desc = EVTDESC_ZE_23000
+	picture = GFX_evt_noble_in_castle
+
+	min_age = 16
+	has_dlc = "Conclave"
+	#only_capable = yes
+	prisoner = no
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		is_voter = yes
+		is_inaccessible_trigger = no
+
+		liege = {
+			any_voter = {
+				is_inaccessible_or_incapable_trigger = no
+
+				NOR = {
+					character = ROOT
+					holds_favor_on = ROOT
+					is_rival = ROOT
+				}
+
+			}
+		}
+	}
+
+	immediate = {
+		liege = {
+			random_voter = {
+				limit = {
+					is_inaccessible_or_incapable_trigger = no
+
+					NOR = {
+						character = ROOT
+						holds_favor_on = ROOT
+						is_rival = ROOT
+					}
+				}
+
+				save_event_target_as = target_help_councillor
+			}
+		}
+	}
+
+	option = { # Accept Help
+		name = EVTOPTA_ZE_23000
+
+		event_target:target_help_councillor = {
+			show_scope_change = no
+
+			character_event = {
+				id = ZE.23001
+				days = 5
+			}
+
+			add_favor = ROOT
+		}
+
+		opinion = {
+			name = opinion_very_grateful
+			who = event_target:target_help_councillor
+			years = 3
+		}
+
+		ai_chance = {
+			factor = 50
+
+			mult_modifier = {
+				factor = 1.5
+				trait = humble
+			}
+		}
+	}
+
+	option = { # Refuse Help
+		name = EVTOPTB_ZE_23000
+
+		if = {
+			limit = {
+				NOT = { trait = stressed }
+			}
+
+			random = {
+				chance = 75
+				add_trait_stressed_effect = yes
+			}
+
+			prestige = -20
+		}
+		else_if = {
+			limit = {
+				NOT = { trait = depressed }
+			}
+
+			random = {
+				chance = 50
+				add_trait_depressed_effect = yes
+			}
+
+			prestige = -20
+		}
+		else = {
+			prestige = -100
+		}
+
+		event_target:target_help_councillor = {
+			show_scope_change = no
+
+			opinion = {
+				name = insulted
+				who = ROOT
+				years = 3
+			}
+
+			character_event = {
+				id = ZE.23002
+				days = 5
+			}
+		}
+
+		ai_chance = {
+			factor = 50
+
+			mult_modifier = {
+				factor = 1.5
+				trait = proud
+			}
+		}
+	}
+}
+
+# Help Accepted
+character_event = {
+	id = ZE.23001
+	desc = EVTDESC_ZE_23001
+	picture = GFX_evt_noble_in_castle
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_ZE_23001
+
+		tooltip = {
+			add_favor = FROM
+
+			reverse_opinion = {
+				name = opinion_very_grateful
+				who = FROM
+				years = 3
+			}
+		}
+
+		prestige = 20
+	}
+}
+
+# Help Refused
+character_event = {
+	id = ZE.23002
+	desc = EVTDESC_ZE_23002
+	picture = GFX_evt_noble_in_castle
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_ZE_23002
+
+		tooltip = {
+			opinion = {
+				name = insulted
+				who = FROM
+				years = 3
+			}
+		}
+	}
+}
+
+# Troublesome Peasants
+long_character_event = {
+	id = ZE.23005
+	desc = EVTDESC_ZE_23005
+	picture = GFX_evt_noble_haughty_talking_to_peasants
+
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+	has_dlc = "Conclave"
+	war = no
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		can_be_maimed_trigger = no
+		is_nomadic = no
+
+		NOR = {
+			trait = grey_eminence
+			trait = gregarious
+			trait = wounded
+		}
+
+		any_vassal = {
+			is_voter = no
+			block_general_event_trigger = no
+
+			NOR = {
+				character = ROOT
+				holds_favor_on = ROOT
+				is_rival = ROOT
+			}
+		}
+	}
+
+	immediate = {
+		random_vassal = {
+			limit = {
+				is_voter = no
+				block_general_event_trigger = no
+
+				NOR = {
+					character = ROOT
+					holds_favor_on = ROOT
+					is_rival = ROOT
+				}
+			}
+
+			save_event_target_as = helping_vassal
+		}
+	}
+
+	option = { # Run for Nearby Vassal
+
+		name = EVTOPTA_ZE_23005
+
+
+		event_target:helping_vassal = {
+			show_scope_change = no
+
+			character_event = {
+				id = ZE.23006
+				days = 5
+				tooltip = EVTOPTA_ZE_23005_custom_tooltip_a
+			}
+		}
+	}
+
+	option = { # Make a run for it
+		name = EVTOPTB_ZE_23005
+
+		random_list = {
+			50 = { add_trait_wounded_effect = yes }
+			10 = { add_maimed_trait_effect = yes }
+			40 = { custom_tooltip = { text = EVTOPTA_ZE_23005_custom_tooltip_b } }
+		}
+	}
+}
+
+# Troublesome Peasants - Vassal sees Liege in Trouble
+character_event = {
+	id = ZE.23006
+	desc = EVTDESC_ZE_23006
+	picture = GFX_evt_hiding_from_pursuers
+
+	is_triggered_only = yes
+
+	option = { # Aid Liege
+		name = EVTOPTA_ZE_23006
+
+		tooltip = {
+			add_favor = FROM
+
+			reverse_opinion = {
+				name = opinion_very_grateful
+				who = FROM
+				years = 3
+			}
+		}
+
+		FROM = {
+			character_event = {
+				id = ZE.23007
+				days = 5
+			}
+		}
+
+		ai_chance = {
+			factor = 60
+
+			mult_modifier = {
+				factor = 1.5
+				trait = kind
+			}
+
+			mult_modifier = {
+				factor = 1.5
+				trait = content
+			}
+
+			mult_modifier = {
+				factor = 1.5
+				trait = just
+			}
+		}
+	}
+
+	option = { # Ignore Liege
+		name = EVTOPTB_ZE_23006
+		
+		# TODO: Grace penalty
+
+		tooltip = {
+			reverse_opinion = {
+				name = opinion_hate
+				who = FROM
+				years = 3
+			}
+
+			add_rival = FROM
+		}
+
+		FROM = {
+			character_event = {
+				id = ZE.23008
+				days = 5
+			}
+		}
+
+		ai_chance = {
+			factor = 40
+
+			mult_modifier = {
+				factor = 1.2
+				trait = cruel
+			}
+		}
+	}
+}
+
+# Troublesome Peasants - Vassal helps Liege
+character_event = {
+	id = ZE.23007
+	desc = EVTDESC_ZE_23007
+	picture = GFX_evt_hiding_from_pursuers
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_ZE_23007
+
+		reverse_add_favor = FROM
+
+		opinion = {
+			name = opinion_very_grateful
+			who = FROM
+			years = 3
+		}
+	}
+}
+
+# Troublesome Peasants - Vassal ignores Liege
+character_event = {
+	id = ZE.23008
+	desc = EVTDESC_ZE_23008
+	picture = GFX_evt_hiding_from_pursuers
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_ZE_23008
+
+		opinion = {
+			name = opinion_hate
+			who = FROM
+			years = 3
+		}
+
+		add_rival = FROM
+
+		random_list = {
+			70 = { custom_tooltip = { text = EVTOPTA_ZE_23005_custom_tooltip_b } }
+			30 = { add_trait_wounded_effect = yes }
+		}
+	}
+}
+
+## Dynamic Mercenaries Events
+# Troop Composition
+character_event = {
+	id = ZE.23101
+	desc = EVTDESC_ZE_23101
+	picture = GFX_evt_large_army
+
+	is_triggered_only = yes # change_composition_mercenary_company_feudal, ze_decisions.txt
+
+	option = {
+		name = EVTOPTA_ZE_23101
+
+		FROM = {
+			show_scope_change = no
+
+			primary_title = {
+				show_scope_change = no
+
+				change_mercenary_composition = {
+					from = light_infantry
+					change = 50
+					type = heavy_infantry
+				}
+			}
+		}
+
+		wealth = -50
+	}
+
+	option = {
+		name = EVTOPTB_ZE_23101
+
+		FROM = {
+			show_scope_change = no
+
+			primary_title = {
+				show_scope_change = no
+
+				change_mercenary_composition = {
+					from = light_infantry
+					type = pikemen
+					change = 50
+				}
+			}
+		}
+
+		wealth = -50
+	}
+
+	option = {
+		name = EVTOPTC_ZE_23101
+
+		FROM = {
+			show_scope_change = no
+
+			primary_title = {
+				show_scope_change = no
+
+				change_mercenary_composition = {
+					from = light_cavalry
+					type = knights
+					change = 50
+				}
+			}
+		}
+
+		wealth = -50
+	}
+
+	option = {
+		name = EVTOPTD_ZE_23101
+	}
+}
+
+# Send Troops
+character_event = {
+	id = ZE.23106
+	picture = GFX_evt_large_army
+	desc = EVTDESC_ZE_23106
+
+	is_triggered_only = yes # send_troops_mercenary_company_feudal, ze_decisions.txt
+
+	option = {
+		name = EVTOPTA_ZE_23106
+
+		FROM = {
+			show_scope_change = no
+
+			primary_title = {
+				show_scope_change = no
+
+				change_mercenary_composition = {
+					type = light_infantry
+					change = 100
+				}
+			}
+		}
+
+		wealth = -50
+
+	}
+
+	option = {
+		name = EVTOPTB_ZE_23106
+
+		FROM = {
+			show_scope_change = no
+
+			primary_title = {
+				show_scope_change = no
+
+				change_mercenary_composition = {
+					type = light_cavalry
+					change = 100
+				}
+			}
+		}
+
+		wealth = -50
+	}
+
+	option = {
+		name = EVTOPTD_ZE_23101
+	}
+}
+
+# Band Leader Speaks Highly of Employer
+character_event = {
+	id = ZE.23150
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+	hide_window = yes
+
+	has_dlc = "Conclave"
+
+	trigger = {
+		mercenary = yes
+
+		primary_title = {
+			has_title_flag = ze_dyn_merc
+
+			NOR = {
+				has_title_flag = not_hired
+				has_title_flag = mercenary_unemployment
+			}
+
+			band_creator = {
+				OR = {
+					is_feudal = yes
+					is_republic = yes
+				}
+
+				NOT = { is_rival = ROOT }
+				is_adult = yes
+
+				reverse_opinion = {
+					who = ROOT
+					value >= 10
+				}
+			}
+
+			capital_scope = {
+				owner = {
+					is_adult = yes
+
+					ROOT = {
+						primary_title = {
+							band_creator = {
+								NOR = {
+									character = PREVPREVPREV
+									war_with = PREVPREVPREV
+									is_rival = PREVPREVPREV
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		primary_title = {
+			band_creator = {
+				save_event_target_as = merc_band_employer
+			}
+
+			capital_scope = {
+				owner = {
+					character_event = { id = ZE.23152 }
+				}
+			}
+		}
+	}
+}
+
+# Host speak to Band Leader
+character_event = {
+	id = ZE.23152
+	desc = EVTDESC_ZE_23152
+	picture = GFX_evt_large_army
+
+	is_triggered_only = yes
+
+	option = { # Write to Employer
+		name = EVTOPTA_ZE_23152
+
+		FROM = {
+			primary_title = {
+				band_creator = {
+					letter_event = {
+						id = ZE.23154
+						days = 5
+					}
+				}
+			}
+		}
+	}
+
+	option = { # Do nothing
+		name = EVTOPTB_ZE_23152
+	}
+}
+
+# Employer receives letter
+letter_event = {
+	id = ZE.23154
+	desc = EVTDESC_ZE_23154
+
+	is_triggered_only = yes
+
+	option = { # Accept the invitation
+		name = EVTOPTA_ZE_23154
+
+		FROM = {
+			letter_event = {
+				id = ZE.23155
+				days = 5
+			}
+		}
+	}
+
+	option = { # Decline the invitation
+		name = EVTOPTB_ZE_23154
+
+		FROM = {
+			letter_event = {
+				id = ZE.23156
+				days = 5
+			}
+		}
+	}
+}
+
+# Host receives positive response
+letter_event = {
+	id = ZE.23155
+	desc = EVTDESC_ZE_23155
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_ZE_23155
+
+		character_event = {
+			id = ZE.23157
+			days = 5
+		}
+	}
+}
+
+# Host receives	negative response
+letter_event = {
+	id = ZE.23156
+	desc = EVTDESC_ZE_23156
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_ZE_23156
+	}
+}
+
+# Employer and Host attends feast
+character_event = {
+	id = ZE.23157
+	picture = GFX_evt_feast
+	desc = EVTDESC_ZE_23157
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_ZE_23157
+
+		add_friend = FROMFROM
+
+		opinion = {
+			name = in_non_aggression_pact
+			who = FROMFROM
+			years = 3
+			origin_description = EVTTITLE_ZE_23157
+		}
+
+		FROMFROM = {
+			show_scope_change = no
+
+			opinion = {
+				name = in_non_aggression_pact
+				who = ROOT
+				years = 3
+				origin_description = EVTTITLE_ZE_23157
+			}
+
+			character_event = {
+				id = ZE.23158
+				days = 1
+			}
+		}
+	}
+}
+
+# Employer returns home
+character_event = {
+	id = ZE.23158
+	picture = GFX_evt_feast
+	desc = EVTDESC_ZE_23158
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_ZE_23158
+
+		tooltip = {
+			add_friend = FROM
+
+			opinion = {
+				name = in_non_aggression_pact
+				who = FROM
+				years = 3
+				origin_description = EVTTITLE_ZE_23157
+			}
+
+			reverse_opinion = {
+				name = in_non_aggression_pact
+				who = FROM
+				years = 3
+				origin_description = EVTTITLE_ZE_23157
+			}
+		}
+	}
+}
+
+# Pardon a young noble to use as a future 'Yes Man'.
+character_event = {
+	id = ZE.22300
+	desc = EVTDESC_ZE_22300
+	picture = GFX_evt_judged_by_ruler
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	has_dlc = "Conclave"
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+	war = no
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		is_nomadic = no
+		is_republic = no
+		is_inaccessible_trigger = no
+	}
+
+	# Pardon
+	option = {
+		name = EVTOPTA_ZE_22300
+
+		prestige = -50
+		random_list = {
+			50 = {
+				trigger = {
+					OR = {
+						has_religion_feature = religion_matriarchal
+						has_religion_feature = religion_equal
+						has_religion_feature = religon_feature_bon
+					}
+				}
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					female = yes
+					age = 20
+					religion = ROOT
+					culture = ROOT
+				}
+			}
+			50 = {
+				trigger = {
+					NOT = {
+						has_religion_feature = religion_matriarchal
+					}
+				}
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					female = no
+					age = 20
+					religion = ROOT
+					culture = ROOT
+				}
+			}
+		}
+
+		new_character = {
+			reverse_add_favor = ROOT
+		}
+
+		custom_tooltip = { text = character_owe_favor }
+	}
+
+	# Condemn
+	option = {
+		name = EVTOPTB_ZE_22300
+
+		prestige = 50
+	}
+}
+
+# Voter saves another voters face at a Council Meeting.
+character_event = {
+	id = ZE.22400
+	desc = EVTDESC_ZE_22400
+	picture = GFX_evt_council_quarrelling
+	portrait = event_target:target_saved_voter
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	has_dlc = "Conclave"
+	min_age = 16
+	only_capable = yes # Voter
+	prisoner = no
+
+	trigger = {
+		is_voter = yes
+		diplomacy < 10
+		is_inaccessible_trigger = no
+
+		liege = {
+			any_voter = {
+				diplomacy >= 10
+				is_inaccessible_or_incapable_trigger = no
+
+				NOR = {
+					character = ROOT
+					owes_favor_to = ROOT
+					is_rival = ROOT
+				}
+			}
+		}
+	}
+
+	immediate = {
+		liege = {
+			random_voter = {
+				limit = {
+					diplomacy >= 10
+					is_inaccessible_or_incapable_trigger = no
+
+					NOR = {
+						character = ROOT
+						owes_favor_to = ROOT
+						is_rival = ROOT
+					}
+				}
+
+				save_event_target_as = target_saved_voter
+			}
+		}
+	}
+
+	# Accept save of face
+	option = {
+		name = EVTOPTA_ZE_22400
+
+		prestige = 150
+
+		event_target:target_saved_voter = {
+			show_scope_change = no
+
+			add_favor = ROOT
+
+			character_event = {
+				id = ZE.22410
+				days = 1
+			}
+		}
+
+		ai_chance = {
+			factor = 70
+
+			mult_modifier = {
+				factor = 0.5
+				trait = proud
+			}
+		}
+	}
+
+	# Deny
+	option = {
+		name = EVTOPTB_ZE_22400
+
+		prestige = -150
+
+		add_character_modifier = {
+			name = publicly_humiliated
+			years = 3
+		}
+
+		event_target:target_saved_voter = {
+			show_scope_change = no
+
+			opinion = {
+				name = opinion_dislike
+				who = ROOT
+				years = 15
+			}
+
+			character_event = {
+				id = ZE.22420
+				days = 1
+			}
+		}
+
+		ai_chance = { factor = 30 }
+	}
+}
+
+# Another voter was saved by you!
+character_event = {
+	id = ZE.22410
+	desc = EVTDESC_ZE_22410
+	picture = GFX_evt_council_agreement
+
+	is_triggered_only = yes
+
+	ai = no
+
+	# Accept save of face
+	option = {
+		name = EVTOPTA_ZE_22410
+
+		tooltip = {
+			FROM = {
+				show_scope_change = no
+
+				prestige = 150
+				add_favor = ROOT
+			}
+		}
+	}
+}
+
+# You saved the face of another voter but they weren't grateful.
+character_event = {
+	id = ZE.22420
+	desc = EVTDESC_ZE_22420
+	picture = GFX_evt_leaving_table_angrily
+
+	is_triggered_only = yes
+
+	# Decline save of face
+	option = {
+		name = EVTOPTA_ZE_22420
+
+		prestige = 50
+
+		tooltip = {
+			FROM = {
+				show_scope_change = no
+
+				prestige = -150
+			}
+		}
+	}
+}
+
+# Godly voter shows you how to be more pious.
+character_event = {
+	id = ZE.22500
+	desc = EVTDESC_ZE_22500
+	picture = GFX_evt_council_agreement
+	portrait = event_target:target_pious_voter
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	has_dlc = "Conclave"
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		is_voter = yes
+		piety < 200
+		is_inaccessible_trigger = no
+
+		NOR = {
+			trait = zealous
+			trait = humble
+			trait = erudite
+			trait = theologian
+			trait = faqih
+			trait = hafiz
+		}
+
+		liege = {
+			any_voter = {
+				religion = ROOT
+				is_inaccessible_or_incapable_trigger = no
+
+				OR = {
+					AND = {
+						is_theocracy = yes
+						piety >= 0
+						has_bad_priest_trait_trigger = no
+					}
+
+					AND = {
+						piety >= 200
+
+						OR = {
+							trait = zealous
+							trait = humble
+							trait = erudite
+							trait = theologian
+							trait = faqih
+							trait = hafiz
+						}
+					}
+				}
+
+				NOR = {
+					trait = cynical
+					character = ROOT
+					owes_favor_to = ROOT
+					is_rival = ROOT
+				}
+			}
+		}
+	}
+
+	immediate = {
+		liege = {
+			random_voter = {
+				limit = {
+					religion = ROOT
+					is_inaccessible_or_incapable_trigger = no
+
+					OR = {
+						AND = {
+							is_theocracy = yes
+							piety >= 0
+							has_bad_priest_trait_trigger = no
+						}
+
+						AND = {
+							piety >= 200
+
+							OR = {
+								trait = zealous
+								trait = humble
+								trait = erudite
+								trait = theologian
+								trait = faqih
+								trait = hafiz
+							}
+						}
+					}
+
+					NOR = {
+						trait = cynical
+						character = ROOT
+						owes_favor_to = ROOT
+						is_rival = ROOT
+					}
+				}
+
+				save_event_target_as = target_pious_voter
+			}
+		}
+	}
+
+	# Accept
+	option = {
+		name = EVTOPTA_ZE_22500
+
+		piety = 100
+
+		add_character_modifier = {
+			name = the_pious
+			years = 3
+		}
+
+		event_target:target_pious_voter = {
+			show_scope_change = no
+
+			add_favor = ROOT
+
+			character_event = {
+				id = ZE.22510
+				days = 1
+			}
+		}
+
+		ai_chance = {
+			factor = 70
+
+			mult_modifier = {
+				factor = 0.5
+				trait = proud
+			}
+		}
+	}
+
+	# Deny
+	option = {
+		name = EVTOPTB_ZE_22500
+
+		piety = -50
+
+		event_target:target_pious_voter = {
+			show_scope_change = no
+
+			opinion = {
+				name = opinion_dislike
+				who = ROOT
+				years = 15
+			}
+
+			character_event = {
+				id = ZE.22520
+				days = 1
+			}
+		}
+
+		ai_chance = { factor = 30 }
+	}
+}
+
+# The voter accepts your help!
+character_event = {
+	id = ZE.22510
+	desc = EVTDESC_ZE_22510
+	picture = GFX_evt_council_agreement
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_ZE_22510
+
+		piety = 100
+
+		tooltip = {
+			add_favor = FROM
+		}
+	}
+}
+
+# The voter denies your help.
+character_event = {
+	id = ZE.22520
+	desc = EVTDESC_ZE_22520
+	picture = GFX_evt_leaving_table_angrily
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_ZE_22520
+
+		piety = 50
+
+		tooltip = {
+			FROM = {
+				show_scope_change = no
+
+				piety = -50
+			}
+		}
+	}
+}
+
+# Ask foreign voter with the same job as you to help you get better at your job
+# on_yearly_pulse
+character_event = {
+	id = ZE.22600
+	desc = EVTDESC_ZE_22600
+	picture = GFX_evt_council_quarrelling
+	portrait = event_target:target_foreign_voter
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	has_dlc = "Conclave"
+	min_age = 16
+	only_capable = yes # Voter
+	prisoner = no
+	war = no
+
+	trigger = {
+		is_voter = yes
+		is_inaccessible_trigger = no
+		liege = { war = no }
+
+		NOR = {
+			trait = slothful
+			has_character_flag = asked_for_job_advice
+		}
+
+		trigger_if = {
+			limit = { has_job_title = job_chancellor }
+			diplomacy < 10
+		}
+		trigger_else_if = {
+			limit = { has_job_title = job_treasurer }
+			stewardship < 10
+		}
+		trigger_else_if = {
+			limit = { has_job_title = job_spymaster }
+			intrigue < 10
+		}
+		trigger_else_if = {
+			limit = { has_job_title = job_spiritual }
+			learning < 10
+		}
+		trigger_else = {
+			has_job_title = job_marshal
+			martial < 10
+		}
+
+		top_liege = {
+			any_neighbor_independent_ruler = {
+				any_voter = {
+					trigger_if = {
+						limit = { ROOT = { has_job_title = job_chancellor } }
+
+						has_job_title = job_chancellor
+						diplomacy >= 10
+					}
+					trigger_else_if = {
+						limit = { ROOT = { has_job_title = job_treasurer } }
+
+						has_job_title = job_treasurer
+						stewardship >= 10
+					}
+					trigger_else_if = {
+						limit = { ROOT = { has_job_title = job_spymaster } }
+
+						has_job_title = job_spymaster
+						intrigue >= 10
+					}
+					trigger_else_if = {
+						limit = { ROOT = { has_job_title = job_spiritual } }
+
+						has_job_title = job_spiritual
+						learning >= 10
+					}
+					trigger_else = {
+						ROOT = { has_job_title = job_marshal }
+						has_job_title = job_marshal
+						martial >= 10
+					}
+
+					is_inaccessible_or_incapable_trigger = no
+
+					NOR = {
+						holds_favor_on = ROOT
+						is_rival = ROOT
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		top_liege = {
+			random_neighbor_independent_ruler = {
+				limit = {
+					any_voter = {
+						trigger_if = {
+							limit = { ROOT = { has_job_title = job_chancellor } }
+
+							has_job_title = job_chancellor
+							diplomacy >= 10
+						}
+						trigger_else_if = {
+							limit = { ROOT = { has_job_title = job_treasurer } }
+
+							has_job_title = job_treasurer
+							stewardship >= 10
+						}
+						trigger_else_if = {
+							limit = { ROOT = { has_job_title = job_spymaster } }
+
+							has_job_title = job_spymaster
+							intrigue >= 10
+						}
+						trigger_else_if = {
+							limit = { ROOT = { has_job_title = job_spiritual } }
+
+							has_job_title = job_spiritual
+							learning >= 10
+						}
+						trigger_else = {
+							ROOT = { has_job_title = job_marshal }
+							has_job_title = job_marshal
+							martial >= 10
+						}
+
+						is_inaccessible_or_incapable_trigger = no
+
+						NOR = {
+							holds_favor_on = ROOT
+							is_rival = ROOT
+						}
+					}
+				}
+
+				random_voter = {
+					limit = {
+						trigger_if = {
+							limit = { ROOT = { has_job_title = job_chancellor } }
+
+							has_job_title = job_chancellor
+							diplomacy >= 10
+						}
+						trigger_else_if = {
+							limit = { ROOT = { has_job_title = job_treasurer } }
+
+							has_job_title = job_treasurer
+							stewardship >= 10
+						}
+						trigger_else_if = {
+							limit = { ROOT = { has_job_title = job_spymaster } }
+
+							has_job_title = job_spymaster
+							intrigue >= 10
+						}
+						trigger_else_if = {
+							limit = { ROOT = { has_job_title = job_spiritual } }
+
+							has_job_title = job_spiritual
+							learning >= 10
+						}
+						trigger_else = {
+							ROOT = { has_job_title = job_marshal }
+							has_job_title = job_marshal
+							martial >= 10
+						}
+
+						is_inaccessible_or_incapable_trigger = no
+
+						NOR = {
+							holds_favor_on = ROOT
+							is_rival = ROOT
+						}
+					}
+
+					save_event_target_as = target_foreign_voter
+				}
+			}
+		}
+	}
+
+	# I should approach the voter
+	option = {
+		name = EVTOPTA_ZE_22600
+
+		event_target:target_foreign_voter = {
+			letter_event = { id = ZE.22610 }
+		}
+
+		ai_chance = {
+			factor = 90
+
+			mult_modifier = {
+				factor = 0.5
+				trait = proud
+			}
+		}
+	}
+
+	# Let's not
+	option = {
+		name = EVTOPTB_ZE_22600
+
+		prestige = -10
+
+		ai_chance = { factor = 10 }
+	}
+}
+
+# A voter from another realm asks you for help
+letter_event = {
+	id = ZE.22610
+	desc = EVTDESC_ZE_22610
+
+	is_triggered_only = yes
+
+	# Agree
+	option = {
+		name = EVTOPTA_ZE_22610
+
+		FROM = {
+			letter_event = {
+				id = ZE.22620
+				days = 5
+			}
+		}
+
+		ai_chance = {
+			factor = 50
+
+			mult_modifier = {
+				factor = 2
+				trait = charitable
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = kind
+			}
+
+			mult_modifier = {
+				factor = 2
+
+				opinion = {
+					who = FROM
+					value >= 25
+				}
+			}
+		}
+	}
+
+	# Deny
+	option = {
+		name = EVTOPTB_ZE_22610
+
+		FROM = {
+			letter_event = {
+				id = ZE.22630
+				days = 5
+			}
+		}
+
+		ai_chance = {
+			factor = 50
+
+			trigger = {
+				NOT = { is_friend = FROM }
+			}
+
+			mult_modifier = {
+				factor = 3
+				trait = paranoid
+			}
+		}
+	}
+}
+
+# Help is accepted!
+letter_event = {
+	id = ZE.22620
+	desc = EVTDESC_ZE_22620
+
+	is_triggered_only = yes
+
+	# Fantastic!
+	option = {
+		name = EVTOPTA_ZE_22620
+
+		set_character_flag = asked_for_job_advice
+		reverse_add_favor = FROM
+
+		if = {
+			limit = {
+				NOT = { is_friend = FROM }
+			}
+
+			add_friend = FROM
+		}
+
+		trigger_switch = {
+			on_trigger = has_job_title
+
+			job_chancellor = { change_diplomacy = 2 }
+			job_treasurer  = { change_stewardship = 2 }
+			job_spymaster  = { change_intrigue = 2 }
+			job_spiritual  = { change_learning = 2 }
+			job_marshal    = { change_martial = 2 }
+		}
+
+		FROM = {
+			letter_event = { id = ZE.22640 }
+		}
+	}
+}
+
+# Help is denied!
+letter_event = {
+	id = ZE.22630
+	desc = EVTDESC_ZE_22630
+
+	is_triggered_only = yes
+
+	# Disappointed!
+	option = {
+		name = EVTOPTA_ZE_22630
+
+		prestige = -50
+
+		FROM = {
+			letter_event = { id = ZE.22650 }
+		}
+
+		ai_chance = {
+			factor = 20
+
+			mult_modifier = {
+				factor = 2
+				trait = humble
+			}
+		}
+	}
+
+	# You dare to deny me help?
+	option = {
+		name = EVTOPTB_ZE_22630
+		tooltip_info = wroth
+
+		trigger = { trait = wroth }
+
+		prestige = -25
+		add_rival = FROM
+
+		FROM = {
+			letter_event = { id = ZE.22660 }
+		}
+
+		ai_chance = { factor = 60 }
+	}
+
+	# Perhaps some money will help?
+	option = {
+		name = EVTOPTC_ZE_22630
+
+		trigger = { wealth >= 100 }
+
+		tooltip = {
+			transfer_scaled_wealth = {
+				to = FROM
+				value = 1
+				min = 100
+				max = 100
+			}
+		}
+
+		FROM = {
+			letter_event = {
+				id = ZE.22670
+				days = 5
+			}
+		}
+
+		ai_chance = {
+			factor = 20
+
+			mult_modifier = {
+				factor = 2
+				trait = ambitious
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = stubborn
+			}
+		}
+	}
+}
+
+# Notified of gratitude & friendship
+letter_event = {
+	id = ZE.22640
+	desc = EVTDESC_ZE_22640
+
+	is_triggered_only = yes
+
+	ai = no
+
+	# Lovely!
+	option = {
+		name = PERFECT
+
+		tooltip = {
+			add_favor = FROM
+			add_friend = FROM
+		}
+
+		custom_tooltip = { text = stats_increased_tooltip }
+	}
+}
+
+# Convey disappointment
+letter_event = {
+	id = ZE.22650
+	desc = EVTDESC_ZE_22650
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_ZE_22650
+
+		tooltip = {
+			FROM = {
+				show_scope_change = no
+
+				prestige = -25
+			}
+		}
+	}
+}
+
+# Convey rage!
+letter_event = {
+	id = ZE.22660
+	desc = EVTDESC_ZE_22660
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_ZE_22660
+
+		tooltip = {
+			add_rival = FROM
+
+			FROM = {
+				show_scope_change = no
+
+				prestige = -25
+			}
+		}
+	}
+}
+
+# Bribery
+letter_event = {
+	id = ZE.22670
+	desc = EVTDESC_ZE_22670
+
+	is_triggered_only = yes
+
+	# When you put it like that!
+	option = {
+		name = EVTOPTA_ZE_22670
+
+		transfer_scaled_wealth = {
+			from = FROM
+			value = 1
+			min = 100
+			max = 100
+		}
+
+		tooltip = {
+			add_favor = FROM
+		}
+
+		custom_tooltip = { text = stats_increased_tooltip }
+
+		FROM = {
+			letter_event = { id = ZE.22680 }
+		}
+
+		ai_chance = {
+			factor = 70
+
+			mult_modifier = {
+				factor = 5
+				trait = greedy
+			}
+
+			mult_modifier = {
+				factor = 5
+				wealth < 100
+			}
+		}
+	}
+
+	# Still no.
+	option = {
+		name = EVTOPTB_ZE_22670
+
+		FROM = {
+			letter_event = { id = ZE.22690 }
+		}
+
+		ai_chance = {
+			factor = 30
+
+			mult_modifier = {
+				factor = 2
+				trait = stubborn
+			}
+		}
+	}
+}
+
+# Bribery is accepted!
+letter_event = {
+	id = ZE.22680
+	desc = EVTDESC_ZE_22680
+
+	is_triggered_only = yes
+
+	# Fantastic!
+	option = {
+		name = EVTOPTA_ZE_22680
+
+		set_character_flag = asked_for_job_advice
+		reverse_add_favor = FROM
+
+		trigger_switch = {
+			on_trigger = has_job_title
+
+			job_chancellor = { change_diplomacy = 2 }
+			job_treasurer  = { change_stewardship = 2 }
+			job_spymaster  = { change_intrigue = 2 }
+			job_spiritual  = { change_learning = 2 }
+			job_marshal    = { change_martial = 2 }
+		}
+	}
+}
+
+# Bribery is denied!
+letter_event = {
+	id = ZE.22690
+	desc = EVTDESC_ZE_22690
+
+	is_triggered_only = yes
+
+	# Disappointed!
+	option = {
+		name = EVTOPTA_ZE_22690
+
+		prestige = -50
+	}
+}
+
+# Give land to an unlanded friend for a favor
+character_event = {
+	id = ZE.22702
+	desc = EVTDESC_ZE_22702
+	picture = GFX_evt_council_agreement
+	portrait = event_target:target_unlanded_friend
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	has_dlc = "Conclave"
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+	war = no
+
+	trigger = {
+		is_actually_incapable_trigger = no # Maybe not...
+		is_nomadic = no
+		is_inaccessible_trigger = no
+		higher_real_tier_than = COUNT
+
+		any_demesne_title = {
+			real_tier = COUNT
+			can_be_given_away = yes
+			is_feudal = yes
+
+			location = {
+				is_capital = no
+			}
+		}
+
+		any_friend = {
+			is_ruler = no
+			has_inheritance_blocker = no
+			block_general_event_trigger = no
+
+			trigger_if = {
+				limit = { is_female = yes }
+
+				ROOT = {
+					OR = {
+						has_law = enatic_succession
+						has_law = enatic_cognatic_succession
+						has_law = true_cognatic_succession
+					}
+				}
+			}
+			trigger_else = {
+				ROOT = {
+					OR = {
+						has_law = agnatic_succession
+						has_law = cognatic_succession
+						has_law = true_cognatic_succession
+					}
+				}
+			}
+
+			NOR = {
+				vassal_of = ROOT
+				is_close_relative = ROOT
+				owes_favor_to = ROOT
+				trait = celibate
+
+				any_heir_title = {
+					always = yes
+				}
+			}
+		}
+	}
+
+	immediate = {
+		random_friend = {
+			limit = {
+				is_ruler = no
+				has_inheritance_blocker = no
+				block_general_event_trigger = no
+
+				trigger_if = {
+					limit = { is_female = yes }
+
+					ROOT = {
+						OR = {
+							has_law = enatic_succession
+							has_law = enatic_cognatic_succession
+							has_law = true_cognatic_succession
+						}
+					}
+				}
+				trigger_else = {
+					ROOT = {
+						OR = {
+							has_law = agnatic_succession
+							has_law = cognatic_succession
+							has_law = true_cognatic_succession
+						}
+					}
+				}
+
+				NOR = {
+					vassal_of = ROOT
+					is_close_relative = ROOT
+					owes_favor_to = ROOT
+					trait = celibate
+
+					any_heir_title = {
+						always = yes
+					}
+				}
+			}
+
+			save_event_target_as = target_unlanded_friend
+		}
+
+		random_demesne_title = {
+			limit = {
+				real_tier = COUNT
+				can_be_given_away = yes
+				is_feudal = yes
+
+				location = {
+					is_capital = no
+				}
+			}
+
+			save_event_target_as = target_friend_land
+		}
+	}
+
+	# Give friend land
+	option = {
+		name = EVTOPTA_ZE_22702
+
+		event_target:target_unlanded_friend = {
+			show_scope_change = no
+
+			opinion = {
+				name = opinion_loyal_servant
+				who = ROOT
+				years = 100
+			}
+
+			reverse_add_favor = ROOT
+
+			hidden_effect = {
+				set_correct_feudal_government_type_effect = yes
+			}
+
+			grant_title = event_target:target_friend_land
+
+		}
+
+		custom_tooltip = {
+			text = indebted_to_family_tooltip
+
+			hidden_effect = {
+				generate_tooltip = no
+
+				any_dynasty_member = {
+					event_target:target_unlanded_friend = {
+						opinion = {
+							name = opinion_loyal_servant
+							who = PREV
+							years = 100
+						}
+					}
+				}
+			}
+		}
+
+		add_trait_fully_silently_charitable_effect = yes
+
+		ai_chance = {
+			factor = 50
+
+			mult_modifier = {
+				factor = 0.5
+				trait = greedy
+			}
+
+			mult_modifier = {
+				factor = 0.5
+				trait = paranoid
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = charitable
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = kind
+			}
+		}
+	}
+
+	# Deny friend land
+	option = {
+		name = EVTOPTB_ZE_22702
+
+		ai_chance = { factor = 50 }
+	}
+}
+
+# Offer to teach liege's commanders tactics
+character_event = {
+	id = ZE.22800
+	desc = EVTDESC_ZE_22800
+	picture = GFX_evt_war_planning
+	portrait = liege
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	has_dlc = "Conclave"
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+	war = no
+
+	trigger = {
+		martial >= 12
+		independent = no
+		is_inaccessible_trigger = no
+
+		OR = {
+			trait = light_foot_leader
+			trait = heavy_infantry_leader
+			trait = cavalry_leader
+			trait = inspiring_leader
+			trait = trickster
+			trait = organizer
+			trait = defensive_leader
+			trait = direct_leader
+			trait = flanker
+			trait = aggressive_leader
+			trait = siege_leader
+			trait = flat_terrain_expert
+			trait = rough_terrain_expert
+			trait = mountain_expert
+			trait = desert_expert
+			trait = unyielding_leader
+			trait = battlefield_terrain_master
+			trait = war_elephant_leader
+			trait = jungle_expert
+			trait = winter_soldier
+		}
+
+		NOR = {
+			trait = slothful
+			trait = shy
+			is_rival = liege
+			holds_favor_on = liege
+		}
+
+		liege = {
+			block_general_event_trigger = no
+
+			any_courtier_or_vassal = {
+				count = 3
+
+				has_minor_title = title_commander
+				can_have_more_leadership_traits = yes
+				martial >= 6
+				ai = yes
+
+				NOR = {
+					trait = light_foot_leader
+					trait = heavy_infantry_leader
+					trait = cavalry_leader
+					trait = inspiring_leader
+					trait = trickster
+					trait = organizer
+					trait = defensive_leader
+					trait = direct_leader
+					trait = flanker
+					trait = aggressive_leader
+					trait = siege_leader
+					trait = flat_terrain_expert
+					trait = rough_terrain_expert
+					trait = mountain_expert
+					trait = desert_expert
+					trait = unyielding_leader
+					trait = battlefield_terrain_master
+					trait = war_elephant_leader
+					trait = jungle_expert
+					trait = winter_soldier
+				}
+			}
+		}
+	}
+
+	immediate = {
+		liege = {
+			random_courtier_or_vassal = {
+				limit = {
+					has_minor_title = title_commander
+					can_have_more_leadership_traits = yes
+					martial >= 6
+					ai = yes
+
+					NOR = {
+						character = event_target:commander_two
+						character = event_target:commander_three
+						trait = light_foot_leader
+						trait = heavy_infantry_leader
+						trait = cavalry_leader
+						trait = inspiring_leader
+						trait = trickster
+						trait = organizer
+						trait = defensive_leader
+						trait = direct_leader
+						trait = flanker
+						trait = aggressive_leader
+						trait = siege_leader
+						trait = flat_terrain_expert
+						trait = rough_terrain_expert
+						trait = mountain_expert
+						trait = desert_expert
+						trait = unyielding_leader
+						trait = battlefield_terrain_master
+						trait = war_elephant_leader
+						trait = jungle_expert
+						trait = winter_soldier
+					}
+				}
+
+				save_event_target_as = commander_one
+			}
+
+			random_courtier_or_vassal = {
+				limit = {
+					has_minor_title = title_commander
+					can_have_more_leadership_traits = yes
+					martial >= 6
+					ai = yes
+
+					NOR = {
+						character = event_target:commander_one
+						character = event_target:commander_three
+						trait = light_foot_leader
+						trait = heavy_infantry_leader
+						trait = cavalry_leader
+						trait = inspiring_leader
+						trait = trickster
+						trait = organizer
+						trait = defensive_leader
+						trait = direct_leader
+						trait = flanker
+						trait = aggressive_leader
+						trait = siege_leader
+						trait = flat_terrain_expert
+						trait = rough_terrain_expert
+						trait = mountain_expert
+						trait = desert_expert
+						trait = unyielding_leader
+						trait = battlefield_terrain_master
+						trait = war_elephant_leader
+						trait = jungle_expert
+						trait = winter_soldier
+					}
+				}
+
+				save_event_target_as = commander_two
+			}
+
+			random_courtier_or_vassal = {
+				limit = {
+					has_minor_title = title_commander
+					can_have_more_leadership_traits = yes
+					martial >= 6
+					ai = yes
+
+					NOR = {
+						character = event_target:commander_two
+						character = event_target:commander_one
+						trait = light_foot_leader
+						trait = heavy_infantry_leader
+						trait = cavalry_leader
+						trait = inspiring_leader
+						trait = trickster
+						trait = organizer
+						trait = defensive_leader
+						trait = direct_leader
+						trait = flanker
+						trait = aggressive_leader
+						trait = siege_leader
+						trait = flat_terrain_expert
+						trait = rough_terrain_expert
+						trait = mountain_expert
+						trait = desert_expert
+						trait = unyielding_leader
+						trait = battlefield_terrain_master
+						trait = war_elephant_leader
+						trait = jungle_expert
+						trait = winter_soldier
+					}
+				}
+
+				save_event_target_as = commander_three
+			}
+		}
+	}
+
+	# Offer to train
+	option = {
+		name = EVTOPTA_ZE_22800
+
+		liege = {
+			letter_event = { id = ZE.22801 }
+		}
+
+		ai_chance = { factor = 90 }
+	}
+
+	# Rather not bother with it
+	option = {
+		name = EVTOPTB_ZE_22800
+
+		ai_chance = { factor = 10 }
+	}
+}
+
+# Liege receives offer
+letter_event = {
+	id = ZE.22801
+	desc = EVTDESC_ZE_22801
+	border = GFX_event_letter_frame_war
+
+	is_triggered_only = yes
+
+	# Accept offer
+	option = {
+		name = EVTOPTA_ZE_22801
+
+		FROM = {
+			show_scope_change = no
+
+			letter_event = {
+				id = ZE.22802
+				days = 7
+			}
+
+			tooltip = {
+				add_favor = ROOT
+			}
+
+			trigger_switch = {
+				on_trigger = trait
+
+				siege_leader = {
+					event_target:commander_one = { show_scope_change = no add_trait = siege_leader }
+					event_target:commander_two = { show_scope_change = no add_trait = siege_leader }
+					event_target:commander_three = { show_scope_change = no add_trait = siege_leader }
+				}
+
+				flat_terrain_expert = {
+					event_target:commander_one = { show_scope_change = no add_trait = flat_terrain_expert }
+					event_target:commander_two = { show_scope_change = no add_trait = flat_terrain_expert }
+					event_target:commander_three = { show_scope_change = no add_trait = flat_terrain_expert }
+				}
+
+				rough_terrain_expert = {
+					event_target:commander_one = { show_scope_change = no add_trait = rough_terrain_expert }
+					event_target:commander_two = { show_scope_change = no add_trait = rough_terrain_expert }
+					event_target:commander_three = { show_scope_change = no add_trait = rough_terrain_expert }
+				}
+
+				mountain_expert = {
+					event_target:commander_one = { show_scope_change = no add_trait = mountain_expert }
+					event_target:commander_two = { show_scope_change = no add_trait = mountain_expert }
+					event_target:commander_three = { show_scope_change = no add_trait = mountain_expert }
+				}
+
+				desert_expert = {
+					event_target:commander_one = { show_scope_change = no add_trait = desert_expert }
+					event_target:commander_two = { show_scope_change = no add_trait = desert_expert }
+					event_target:commander_three = { show_scope_change = no add_trait = desert_expert }
+				}
+
+				jungle_expert = {
+					event_target:commander_one = { show_scope_change = no add_trait = jungle_expert }
+					event_target:commander_two = { show_scope_change = no add_trait = jungle_expert }
+					event_target:commander_three = { show_scope_change = no add_trait = jungle_expert }
+				}
+
+				winter_soldier = {
+					event_target:commander_one = { show_scope_change = no add_trait = winter_soldier }
+					event_target:commander_two = { show_scope_change = no add_trait = winter_soldier }
+					event_target:commander_three = { show_scope_change = no add_trait = winter_soldier }
+				}
+
+				organizer = {
+					event_target:commander_one = { show_scope_change = no add_trait = organizer }
+					event_target:commander_two = { show_scope_change = no add_trait = organizer }
+					event_target:commander_three = { show_scope_change = no add_trait = organizer }
+				}
+
+				light_foot_leader = {
+					event_target:commander_one = { show_scope_change = no add_trait = light_foot_leader }
+					event_target:commander_two = { show_scope_change = no add_trait = light_foot_leader }
+					event_target:commander_three = { show_scope_change = no add_trait = light_foot_leader }
+				}
+
+				heavy_infantry_leader = {
+					event_target:commander_one = { show_scope_change = no add_trait = heavy_infantry_leader }
+					event_target:commander_two = { show_scope_change = no add_trait = heavy_infantry_leader }
+					event_target:commander_three = { show_scope_change = no add_trait = heavy_infantry_leader }
+				}
+
+				cavalry_leader= {
+					event_target:commander_one = { show_scope_change = no add_trait = cavalry_leader }
+					event_target:commander_two = { show_scope_change = no add_trait = cavalry_leader }
+					event_target:commander_three = { show_scope_change = no add_trait = cavalry_leader }
+				}
+
+				inspiring_leader = {
+					event_target:commander_one = { show_scope_change = no add_trait = inspiring_leader }
+					event_target:commander_two = { show_scope_change = no add_trait = inspiring_leader }
+					event_target:commander_three = { show_scope_change = no add_trait = inspiring_leader }
+				}
+
+				defensive_leader = {
+					event_target:commander_one = { show_scope_change = no add_trait = defensive_leader }
+					event_target:commander_two = { show_scope_change = no add_trait = defensive_leader }
+					event_target:commander_three = { show_scope_change = no add_trait = defensive_leader }
+				}
+
+				direct_leader = {
+					event_target:commander_one = { show_scope_change = no add_trait = direct_leader }
+					event_target:commander_two = { show_scope_change = no add_trait = direct_leader }
+					event_target:commander_three = { show_scope_change = no add_trait = direct_leader }
+				}
+
+				flanker = {
+					event_target:commander_one = { show_scope_change = no add_trait = flanker }
+					event_target:commander_two = { show_scope_change = no add_trait = flanker }
+					event_target:commander_three = { show_scope_change = no add_trait = flanker }
+				}
+
+				aggressive_leader = {
+					event_target:commander_one = { show_scope_change = no add_trait = aggressive_leader }
+					event_target:commander_two = { show_scope_change = no add_trait = aggressive_leader }
+					event_target:commander_three = { show_scope_change = no add_trait = aggressive_leader }
+				}
+
+				unyielding_leader = {
+					event_target:commander_one = { show_scope_change = no add_trait = unyielding_leader }
+					event_target:commander_two = { show_scope_change = no add_trait = unyielding_leader }
+					event_target:commander_three = { show_scope_change = no add_trait = unyielding_leader }
+				}
+
+				battlefield_terrain_master= {
+					event_target:commander_one = { show_scope_change = no add_trait = battlefield_terrain_master }
+					event_target:commander_two = { show_scope_change = no add_trait = battlefield_terrain_master }
+					event_target:commander_three = { show_scope_change = no add_trait = battlefield_terrain_master }
+				}
+
+				trickster = {
+					event_target:commander_one = { show_scope_change = no add_trait = trickster }
+					event_target:commander_two = { show_scope_change = no add_trait = trickster }
+					event_target:commander_three = { show_scope_change = no add_trait = trickster }
+				}
+
+				war_elephant_leader = {
+					event_target:commander_one = { show_scope_change = no add_trait = war_elephant_leader }
+					event_target:commander_two = { show_scope_change = no add_trait = war_elephant_leader }
+					event_target:commander_three = { show_scope_change = no add_trait = war_elephant_leader }
+				}
+			}
+		}
+
+		ai_chance = {
+			factor = 90
+
+			mult_modifier = {
+				factor = 0.5
+				trait = paranoid
+			}
+
+			mult_modifier = {
+				factor = 0.5
+				trait = proud
+			}
+		}
+	}
+
+	# An insult!
+	option = {
+		name = EVTOPTB_ZE_22801
+
+		opinion = {
+			name = insulted
+			who = FROM
+			years = 5
+		}
+
+		FROM = {
+			letter_event = {
+				id = ZE.22803
+				days = 7
+			}
+		}
+
+		ai_chance = { factor = 10 }
+	}
+}
+
+# Liege accepted!
+letter_event = {
+	id = ZE.22802
+	desc = EVTDESC_ZE_22802
+
+	is_triggered_only = yes
+
+	immediate = {
+		add_favor = FROM
+	}
+
+	option = {
+		name = EVTOPTA_ZE_22802
+
+		tooltip = {
+			add_favor = FROM
+		}
+	}
+}
+
+# Liege denied
+letter_event = {
+	id = ZE.22803
+	desc = EVTDESC_ZE_22803
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_ZE_22803
+
+		tooltip = {
+			reverse_opinion = {
+				name = insulted
+				who = FROM
+				years = 5
+			}
+		}
+	}
+}

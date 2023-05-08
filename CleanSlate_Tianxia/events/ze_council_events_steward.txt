@@ -1,0 +1,814 @@
+# Written by Markus Olsén
+# ZE.3000 - ZE.3001 Steward borrows money
+# ZE.3002 - ZE.3003 Steward collects money but wants land
+# ZE.3004 - ZE.3010 Steward builds statue for liege
+# ZE.3011 - ZE.3014 Steward wants to educate liege in stewardship
+
+namespace = ZE
+
+# Steward has low stewardship and is proud, borrows money from jews
+character_event = {
+	id = ZE.3000
+	desc = EVTDESC_ZE_3000
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_normal_frame_economy
+	portrait = job_treasurer
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	min_age = 16
+	only_playable = yes
+	has_dlc = "Sons of Abraham"
+	has_dlc = "Conclave"
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		job_treasurer = {
+			trait = proud
+			stewardship < 8
+			is_inaccessible_or_incapable_trigger = no
+			i_am_appropriate_regent_trigger = no
+			NOT = {
+				has_minor_title = title_grand_chancellor
+			}
+		}
+
+		OR = {
+			religion_group = christian
+			religion_group = muslim
+			religion_group = zoroastrian_group
+		}
+
+		is_nomadic = no
+		is_inaccessible_trigger = no
+
+		NOR = {
+			has_character_modifier = borrowed_from_jews
+			has_character_modifier = expelled_jewish
+			has_character_flag = ZE.3000_flag
+			top_liege = { has_character_modifier = expelled_jewish }
+		}
+		religions_are_standard_trigger = yes
+	}
+
+	immediate = {
+		set_character_flag = ZE.3000_flag
+
+		add_character_modifier = {
+			name = borrowed_from_jews
+			duration = -1
+			inherit = yes
+		}
+
+		job_treasurer = {
+			save_event_target_as = target_treasurer
+		}
+	}
+
+	option = {
+		name = EVTOPTA_ZE_3000
+
+		wealth = 300
+
+		character_event = {
+			id = ZE.3001
+			days = 14
+		}
+	}
+}
+
+
+# Jewish merchants approach court to talk payment plan, player finds out steward lent money
+character_event = {
+	id = ZE.3001
+	desc = EVTDESC_ZE_3001
+	picture = GFX_evt_jewish_market
+	border = GFX_event_normal_frame_economy
+
+	is_triggered_only = yes
+
+	only_playable = yes
+
+	trigger = {
+		has_character_modifier = borrowed_from_jews
+
+		NOR = {
+			has_character_modifier = expelled_jewish
+			top_liege = { has_character_modifier = expelled_jewish }
+		}
+	}
+
+	# Fire the steward
+	option = {
+		name = EVTOPTA_ZE_3001
+		
+		# TODO: Grace penalty
+
+		trigger = {
+			event_target:target_treasurer = {
+				has_job_title = job_treasurer
+			}
+		}
+
+		add_trait_partially_silently_just_effect = yes
+
+		opinion = {
+			name = opinion_very_disappointed
+			who = event_target:target_treasurer
+			years = 5
+		}
+
+		event_target:target_treasurer = {
+			show_scope_change = no
+
+			remove_title = job_treasurer
+		}
+	}
+
+	# Punish steward
+	option = {
+		name = EVTOPTB_ZE_3001
+		tooltip_info = wroth
+		
+		# TODO: Grace penalty
+
+		trigger = { trait = wroth }
+
+		add_trait_partially_silently_cruel_effect = yes
+
+		event_target:target_treasurer = {
+			show_scope_change = no
+
+			add_rival = ROOT
+
+			if = {
+				limit = { has_job_title = job_treasurer }
+				remove_title = job_treasurer
+			}
+
+			if = {
+				limit = { is_maimed_trigger = yes }
+
+				death = {
+					death_reason = death_execution
+					killer = ROOT
+				}
+			}
+			else_if = {
+				limit = { trait = wounded }
+				add_maimed_trait_effect = yes
+			}
+			else = {
+				add_trait_wounded_effect = yes
+			}
+		}
+	}
+
+	# Do nothing
+	option = {
+		name = EVTOPTC_ZE_3001
+
+		add_trait_partially_silently_patient_effect = yes
+
+		reverse_opinion = {
+			name = opinion_grateful
+			who = event_target:target_treasurer
+			years = 5
+		}
+	}
+}
+
+# Steward has high stewardship, makes extra money
+character_event = {
+	id = ZE.3002
+	desc = EVTDESC_ZE_3000
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_normal_frame_economy
+	portrait = job_treasurer
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	min_age = 16
+	only_playable = yes
+	has_dlc = "Conclave"
+	prisoner = no
+	#only_capable = yes
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
+		NOT = { has_character_flag = ZE.3002_flag }
+
+		job_treasurer = {
+			trait = ambitious
+			stewardship >= 15
+			is_inaccessible_or_incapable_trigger = no
+		}
+	}
+
+	immediate = {
+		set_character_flag = ZE.3002_flag
+		job_treasurer = { save_event_target_as = target_treasurer }
+	}
+
+	option = {
+		name = EVTOPTA_ZE_3000
+
+		wealth = 300
+
+		character_event = {
+			id = ZE.3003
+			days = 14
+		}
+	}
+}
+
+# Steward is ambitious and wants land for work done
+character_event = {
+	id = ZE.3003
+	desc = EVTDESC_ZE_3003
+	picture = GFX_evt_relaxed_ruler
+	border = GFX_event_normal_frame_economy
+	portrait = event_target:target_treasurer
+
+	is_triggered_only = yes
+
+	only_playable = yes
+
+	trigger = {
+		any_demesne_title = {
+			real_tier = COUNT
+			can_be_given_away = yes
+			num_of_settlements >= 1
+
+			location = {
+				is_capital = no
+			}
+		}
+	}
+
+	immediate = {
+		random_demesne_title = {
+			limit = {
+				real_tier = COUNT
+				can_be_given_away = yes
+				num_of_settlements >= 1
+
+				location = {
+					is_capital = no
+				}
+			}
+
+			save_event_target_as = requested_province
+		}
+	}
+
+	# Approve request, granting province title
+	option = {
+		name = EVTOPTA_ZE_3003
+
+		add_trait_partially_silently_just_effect = yes
+		wealth = 200
+
+		event_target:target_treasurer = {
+			show_scope_change = no
+
+			grant_title = event_target:requested_province
+		}
+	}
+
+	# Deny request but owe favor to steward
+	option = {
+		name = EVTOPTB_ZE_3003
+
+		trigger = {
+			NOT = { owes_favor_to = event_target:target_treasurer }
+		}
+
+		reverse_add_favor = event_target:target_treasurer
+	}
+
+	# Deny request
+	option = {
+		name = EVTOPTC_ZE_3003
+
+		add_trait_partially_silently_greedy_effect = yes
+		add_rival = event_target:target_treasurer
+	}
+}
+
+# Steward wants to build a statue in the capital
+# Depending on traits, statue outcome will change
+character_event = {
+	id = ZE.3004
+	desc = EVTDESC_ZE_3004
+	picture = GFX_evt_relaxed_ruler
+	border = GFX_event_normal_frame_economy
+	portrait = job_treasurer
+
+	is_triggered_only = yes
+
+	min_age = 16
+	only_playable = yes
+	has_dlc = "Conclave"
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		scaled_wealth = 2
+		is_inaccessible_trigger = no
+
+		NOR = {
+			has_character_flag = ZE.3004_flag
+			trait = blinded
+		}
+
+		job_treasurer = {
+			is_inaccessible_or_incapable_trigger = no
+		}
+	}
+
+	immediate = {
+		job_treasurer = { save_event_target_as = target_treasurer }
+		set_character_flag = ZE.3004_flag
+	}
+
+	# Approve request, pay the gold and wait
+	option = {
+		name = EVTOPTA_ZE_3004
+
+		scaled_wealth = -1
+
+		event_target:target_treasurer = {
+			show_scope_change = no
+
+			opinion = {
+				name = opinion_grateful
+				who = ROOT
+				years = 1
+			}
+
+			hidden_effect = {
+				if = { # lunatic = a giant ear
+					limit = { trait = lunatic }
+					ROOT = { character_event = { id = ZE.3006 years = 1 } }
+				}
+				else_if = { # possessed = demon on a throne
+					limit = { trait = possessed }
+					ROOT = { character_event = { id = ZE.3009 years = 1 } }
+				}
+				else_if = { # zealous = head of religion +piety
+					limit = {
+						trait = zealous
+						religion_head = { always = yes }
+						NOT = { rightful_religious_head = ROOT }
+					}
+
+					rightful_religious_head_scope = { save_event_target_as = religious_head }
+					ROOT = { character_event = { id = ZE.3005 years = 1 } }
+				}
+				else_if = { # proud = him/her self +nothing happens
+					limit = { trait = proud }
+					ROOT = { character_event = { id = ZE.3007 years = 1 } }
+				}
+				else_if = { # lustful = something vulgar -piety
+					limit = { trait = lustful }
+					ROOT = { character_event = { id = ZE.3008 years = 1 } }
+				}
+				else = {
+					ROOT = { character_event = { id = ZE.3010 years = 1 } }
+				}
+			}
+		}
+	}
+
+	# Ddeny request
+	option = {
+		name = EVTOPTB_ZE_3004
+
+		reverse_opinion = {
+			name = opinion_disappointed
+			who = event_target:target_treasurer
+			years = 2
+		}
+	}
+}
+
+# Statue completed and revealed, zealous type
+character_event = {
+	id = ZE.3005
+	desc = EVTDESC_ZE_3005
+	picture = GFX_evt_relaxed_ruler
+	border = GFX_event_normal_frame_economy
+	portrait = event_target:target_treasurer
+
+	is_triggered_only = yes
+
+	only_playable = yes
+
+	# Statue revealed
+	option = {
+		name = EVTOPTA_ZE_3005
+
+		piety = 100
+	}
+}
+
+# Statue completed and revealed, lunatic type
+character_event = {
+	id = ZE.3006
+	desc = EVTDESC_ZE_3006
+	picture = GFX_evt_relaxed_ruler
+	border = GFX_event_normal_frame_economy
+	portrait = event_target:target_treasurer
+
+	is_triggered_only = yes
+
+	only_playable = yes
+
+	# Statue revealed
+	option = {
+		name = EVTOPTA_ZE_3006
+
+		trigger = {
+			NOT = { trait = lunatic }
+		}
+
+		prestige = 100
+	}
+
+	option = {
+		name = EVTOPTB_ZE_3006
+		tooltip_info = lunatic
+
+		trigger = { trait = lunatic }
+
+		add_trait_partially_silently_brave_effect = yes
+		prestige = 200
+	}
+}
+
+# Statue completed and revealed, proud type
+character_event = {
+	id = ZE.3007
+	desc = EVTDESC_ZE_3007
+	picture = GFX_evt_relaxed_ruler
+	border = GFX_event_normal_frame_economy
+	portrait = event_target:target_treasurer
+
+	is_triggered_only = yes
+
+	only_playable = yes
+
+	# Be disappointed
+	option = {
+		name = EVTOPTA_ZE_3007
+
+		opinion = {
+			name = opinion_very_disappointed
+			who = event_target:target_treasurer
+			years = 5
+		}
+
+		event_target:target_treasurer = {
+			show_scope_change = no
+
+			prestige = 200
+		}
+	}
+
+	# Become rival, tear statue down
+	option = {
+		name = EVTOPTB_ZE_3007
+
+		add_rival = event_target:target_treasurer
+	}
+}
+
+# Statue completed and revealed, lustful type
+character_event = {
+	id = ZE.3008
+	desc = EVTDESC_ZE_3008
+	picture = GFX_evt_relaxed_ruler
+	border = GFX_event_normal_frame_economy
+	portrait = event_target:target_treasurer
+
+	is_triggered_only = yes
+
+	only_playable = yes
+
+	# Accept statue
+	option = {
+		name = EVTOPTA_ZE_3008
+
+		piety = -100
+		add_trait_partially_silently_lustful_effect = yes
+	}
+
+	# Tear it down
+	option = {
+		name = EVTOPTB_ZE_3008
+
+		opinion = {
+			name = opinion_very_disappointed
+			who = event_target:target_treasurer
+			years = 2
+		}
+
+		add_trait_partially_silently_chaste_effect = yes
+	}
+}
+
+# Statue completed and revealed, possessed type
+character_event = {
+	id = ZE.3009
+	desc = EVTDESC_ZE_3009
+	picture = GFX_evt_relaxed_ruler
+	border = GFX_event_normal_frame_economy
+	portrait = event_target:target_treasurer
+
+	is_triggered_only = yes
+
+	only_playable = yes
+
+	# Statue revealed
+	option = {
+		name = EVTOPTA_ZE_3009
+
+		piety = -200
+	}
+}
+
+# Statue completed and revealed, none of above type
+character_event = {
+	id = ZE.3010
+	desc = EVTDESC_ZE_3010
+	picture = GFX_evt_relaxed_ruler
+	border = GFX_event_normal_frame_economy
+	portrait = event_target:target_treasurer
+
+	is_triggered_only = yes
+
+	only_playable = yes
+
+	# Statue revealed
+	option = {
+		name = EVTOPTA_ZE_3010
+
+		prestige = 200
+
+		opinion = {
+			name = opinion_grateful
+			who = event_target:target_treasurer
+			years = 2
+		}
+	}
+
+	# Statue revealed, take it down
+	option = {
+		name = EVTOPTB_ZE_3010
+
+		add_trait_partially_silently_humble_effect = yes
+
+		reverse_opinion = {
+			name = opinion_disappointed
+			who = event_target:target_treasurer
+			years = 2
+		}
+	}
+}
+
+# Steward offers to teach liege some stewardship
+character_event = {
+	id = ZE.3011
+	desc = EVTDESC_ZE_3011
+	picture = GFX_evt_relaxed_ruler
+	border = GFX_event_normal_frame_economy
+	portrait = job_treasurer
+
+	is_triggered_only = yes
+
+	min_age = 16
+	only_playable = yes
+	has_dlc = "Conclave"
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		job_treasurer = {
+			stewardship >= 15
+
+			OR = {
+				trait = kind
+				trait = ambitious
+				trait = proud
+			}
+
+			is_inaccessible_or_incapable_trigger = no
+		}
+
+		stewardship < 10
+		is_inaccessible_trigger = no
+
+		NOR = {
+			trait = imbecile
+			has_character_flag = ZE.3011_flag
+		}
+	}
+
+	immediate = {
+		job_treasurer = { save_event_target_as = steward }
+		set_character_flag = ZE.3011_flag
+	}
+
+	# Accept
+	option = {
+		name = EVTOPTA_ZE_3011
+
+		character_event = {
+			id = ZE.3012
+			days = 2
+		}
+	}
+
+	# Decline
+	option = {
+		name = EVTOPTB_ZE_3011
+
+		reverse_opinion = {
+			name = opinion_disappointed
+			who = event_target:steward
+			years = 2
+		}
+	}
+}
+
+# Steward takes liege tax collecting
+character_event = {
+	id = ZE.3012
+	desc = EVTDESC_ZE_3012
+	picture = GFX_evt_relaxed_ruler
+	border = GFX_event_normal_frame_economy
+	portrait = event_target:target_treasurer
+
+	is_triggered_only = yes
+
+	only_playable = yes
+
+	# Earn respect to earn money
+	option = {
+		name = EVTOPTA_ZE_3012
+
+		add_trait_partially_silently_honest_effect = yes
+	}
+
+	# Demand more money
+	option = {
+		name = EVTOPTB_ZE_3012
+
+		scaled_wealth = 0.2
+		add_trait_partially_silently_greedy_effect = yes
+		set_character_flag = ZE.3011_failed_flag
+	}
+
+	after = {
+		character_event = {
+			id = ZE.3013
+			days = 1
+		}
+	}
+}
+
+# Steward takes liege to construction site
+character_event = {
+	id = ZE.3013
+	desc = EVTDESC_ZE_3013
+	picture = GFX_evt_relaxed_ruler
+	border = GFX_event_normal_frame_economy
+	portrait = event_target:target_treasurer
+
+	is_triggered_only = yes
+
+	only_playable = yes
+
+	# Be stern, but fair
+	option = {
+		name = EVTOPTA_ZE_3013
+
+		add_trait_partially_silently_gregarious_effect = yes
+	}
+
+	# Give builders money
+	option = {
+		name = EVTOPTB_ZE_3013
+
+		scaled_wealth = -0.2
+		add_trait_partially_silently_trusting_effect = yes
+		set_character_flag = ZE.3011_failed_flag
+	}
+
+	# Make sure their reputation is ruined
+	option = {
+		name = EVTOPTC_ZE_3013
+
+		add_trait_partially_silently_wroth_effect = yes
+		set_character_flag = ZE.3011_failed_flag
+
+		reverse_opinion = {
+			name = opinion_disappointed
+			who = event_target:steward
+			years = 2
+		}
+	}
+
+	after = {
+		character_event = {
+			id = ZE.3014
+			days = 1
+		}
+	}
+}
+
+# Steward gets visit from friend asking about your experiences doing steward work
+character_event = {
+	id = ZE.3014
+	desc = EVTDESC_ZE_3014
+	picture = GFX_evt_relaxed_ruler
+	border = GFX_event_normal_frame_economy
+	portrait = event_target:target_treasurer
+
+	is_triggered_only = yes
+	only_playable = yes
+
+	# It was interesting
+	# Remove any level 1 educations, add thrifty_clerk instead
+	option = {
+		name = EVTOPTA_ZE_3014
+
+		trigger = {
+			NOT = { has_character_flag = ZE.3011_failed_flag }
+		}
+
+		if = {
+			limit = { has_bottom_tier_education_trait_trigger = yes }
+
+			trigger_switch = {
+				on_trigger = trait
+
+				detached_priest    = { remove_trait = detached_priest }
+				misguided_warrior  = { remove_trait = misguided_warrior }
+				indulgent_wastrel  = { remove_trait = indulgent_wastrel }
+				naive_appeaser     = { remove_trait = naive_appeaser }
+				amateurish_plotter = { remove_trait = amateurish_plotter }
+			}
+
+			add_trait = thrifty_clerk
+		}
+		else_if = {
+			limit = { trait = arbitrary }
+			remove_trait = arbitrary
+		}
+		else_if = {
+			limit = {
+				NOT = { trait = just }
+			}
+
+			add_trait = just
+			change_stewardship = 1
+		}
+		else = {
+			change_stewardship = 3
+		}
+	}
+
+	# Wasn't for me
+	option = {
+		name = EVTOPTB_ZE_3014
+
+		add_trait_partially_silently_charitable_effect = yes
+		add_trait_partially_silently_shy_effect = yes
+
+		reverse_opinion = {
+			name = opinion_disappointed
+			who = event_target:steward
+			years = 2
+		}
+	}
+
+	# It was horrible we should take their money by force!
+	option = {
+		name = EVTOPTC_ZE_3014
+
+		add_trait_partially_silently_slothful_effect = yes
+
+		reverse_opinion = {
+			name = opinion_very_disappointed
+			who = event_target:steward
+			years = 2
+		}
+	}
+}
