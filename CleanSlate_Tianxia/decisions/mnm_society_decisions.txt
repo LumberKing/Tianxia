@@ -1,0 +1,551 @@
+###########################################
+#
+# General or shared decisions for Monks and Mystics
+#
+# Rank up within society
+# Abduct target
+#
+#
+###########################################
+
+# General
+society_decisions = {
+	request_to_rank_up_within_society = {
+		ai_check_interval = 24
+
+		hide_in_decisions_list = yes # This is shown in the Society View
+
+		only_playable = yes
+
+		potential = {
+			is_in_society = yes # Here because the next line causes the game to spew all over error.log for some reason
+			days_in_society > 365
+
+			# In some societies, there can only be 1 member at rank 4
+			trigger_if = {
+				limit = {
+					OR = {
+						society_member_of = the_assassins
+						is_devil_worshiper_trigger = yes
+					}
+				}
+
+				society_rank < 3
+			}
+			trigger_else = {
+				society_rank < 4
+			}
+
+			# Players can always rank up (if they have the power)
+			trigger_if = {
+				limit = { ai = yes }
+				society_can_rank_up = yes
+			}
+			trigger_if = {
+				limit = {
+					OR = {
+						society_member_of = warriors_of_the_rising_sun # Has its own decision!
+						society_member_of = hwarang # Has its own decision!
+					}
+				}
+				NOR = {
+					society_member_of = warriors_of_the_rising_sun # Has its own decision!
+					society_member_of = hwarang # Has its own decision!
+				}
+			}
+		}
+
+		allow = {
+			# Rank requirements. IMPORTANT!!! If you change the requirements, the customizable loc keys "GetSocietyRankUpTooltip" 1, 2, 3, and 4 must be updated, as it displays these requirements.
+			custom_tooltip = { # Sufficient currency
+				text = request_to_rank_up_within_society_currency_tt
+
+				trigger_if = {
+					limit = { society_rank == 1 }
+					society_currency >= 750
+				}
+				trigger_else_if = {
+					limit = { society_rank == 2 }
+					society_currency >= 1000
+				}
+				trigger_else = {
+					society_currency >= 2000 # rank 3
+				}
+			}
+
+			trigger_if = {
+				limit = { has_character_modifier = lost_rank_up_duel_cooldown }
+
+				custom_tooltip = {
+					text = recently_lost_rank_up_duel_tt
+
+					NOT = { has_character_modifier = lost_rank_up_duel_cooldown }
+				}
+			}
+
+			trigger_if = {
+				limit = {
+					ai = no
+					is_member_of_any_warrior_lodge_trigger = yes
+					society_rank == 3
+
+					society = {
+						any_society_member = { # and there are already 4 other Heroes (rank is full)
+							count >= 4
+							society_rank == 4
+						}
+					}
+				}
+
+				custom_tooltip = {
+					text = there_is_a_hero_available_to_duel_tt
+
+					society = {
+						any_society_member = { # there is no one to duel for the spot...
+							society_rank == 4
+							ai = yes
+							NOT = { has_character_flag = call_to_legend_active }
+							is_actually_incapable_trigger = no
+							prisoner = no
+						}
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { has_character_flag = rank_up_blocked }
+
+				custom_tooltip = {
+					text = rank_up_blocked_tt
+
+					NOT = { has_character_flag = rank_up_blocked }
+				}
+			}
+
+			custom_tooltip = {
+				text = request_to_rank_up_within_society_cynical_tt
+
+				trigger_if = {
+					limit = {
+						OR = {
+							society_member_of = monastic_order_jain
+							society_member_of = monastic_order_buddhist
+							society_member_of = monastic_order_stoics
+						}
+					}
+
+					trigger_if = {
+						limit = { society_rank == 1 }
+						NOT = { trait = cruel }
+					}
+					trigger_else_if = {
+						limit = { society_rank == 2 }
+
+						NOR = {
+							trait = cruel
+							trait = cynical
+						}
+					}
+					trigger_else_if = {
+						limit = { society_rank == 3 }
+
+						NOR = {
+							trait = cruel
+							trait = cynical
+							trait = greedy
+							trait = gluttonous
+							trait = slothful
+							trait = envious
+							trait = wroth
+							trait = proud
+						}
+					}
+				}
+			}
+
+			custom_tooltip = {
+				text = request_to_rank_up_within_society_virtues_tt
+
+				trigger_if = {
+					limit = {
+						OR = {
+							society_member_of = monastic_order_jain
+							society_member_of = monastic_order_buddhist
+							society_member_of = monastic_order_shaolin
+							society_member_of = monastic_order_japanese
+							society_member_of = monastic_order_stoics
+						}
+					}
+
+					trigger_if = {
+						limit = { society_rank == 1 }
+
+						OR = {
+							trait = humble
+							trait = charitable
+							trait = chaste
+							trait = kind
+							trait = temperate
+							trait = patient
+							trait = diligent
+						}
+					}
+					trigger_else_if = {
+						limit = { society_rank == 2 }
+
+						calc_true_if = {
+							amount >= 2
+
+							trait = humble
+							trait = charitable
+							trait = chaste
+							trait = kind
+							trait = temperate
+							trait = patient
+							trait = diligent
+						}
+					}
+					trigger_else_if = {
+						limit = { society_rank == 3 }
+
+						calc_true_if = {
+							amount >= 3
+
+							trait = humble
+							trait = charitable
+							trait = chaste
+							trait = kind
+							trait = temperate
+							trait = patient
+							trait = diligent
+						}
+					}
+				}
+			}
+
+			custom_tooltip = {
+				text = must_not_have_sent_request_already_tooltip
+
+				NOT = { has_character_flag = has_sent_request_to_rank_up }
+			}
+
+			custom_tooltip = {
+				text = must_be_allowed_to_rank_up_tooltip
+
+				days_at_current_society_rank >= 1095 # IMPORTANT! Update tooltip.
+			}
+
+			custom_tooltip = {
+				text = must_have_grandmaster_tooltip # You must have a grand master
+
+				society = {
+					leader = { always = yes }
+				}
+			}
+
+			custom_tooltip = {
+				text = must_have_multiple_rank_4 # Society must allow multiple characters at Rank 4
+
+				trigger_if = {
+					limit = { society_rank == 3 }
+
+					NOR = {
+						society_member_of = the_assassins
+						is_devil_worshiper_trigger = yes
+					}
+				}
+			}
+		}
+
+		effect = {
+			society = {
+				save_event_target_as = my_society
+			}
+
+			if = { # Special handling for warrior lodge rank 3 members (in a society with enough Heroes already)...
+				limit = {
+					ai = no
+					is_member_of_any_warrior_lodge_trigger = yes
+					society_rank == 3
+
+					society = {
+						any_society_member = { # make sure there is someone you can duel for the spot
+							society_rank == 4
+							NOT = { has_character_flag = call_to_legend_active }
+							ai = yes
+							prisoner = no
+						}
+
+						any_society_member = { # make sure there are already 4 other Heroes (rank is full)
+							count >= 4
+							society_rank == 4
+						}
+					}
+				}
+
+				set_character_flag = has_sent_request_to_rank_up
+				character_event = { id = HF.10060 } # Duel a current Hero or nah?
+			}
+
+			# For everyone else...
+			else = {
+				if = {
+					limit = { society_rank == 1 }
+					change_society_currency = -750
+				}
+				else_if = {
+					limit = { society_rank == 2 }
+					change_society_currency = -1000
+				}
+				else = {
+					change_society_currency = -2000
+				}
+
+				# Perform rank up
+				hidden_effect = {
+					# save_event_target_as = rank_up_target
+					set_character_flag = has_sent_request_to_rank_up
+
+					letter_event = {
+						id = MNM.10000 # sends hidden delayed event to self, which then sends request to Leader of the society
+						days = 20
+						random = 10
+					}
+
+					# Conversus power for Benedictines
+					if = {
+						limit = {
+							society_member_of = monastic_order_benedictine
+							society_rank == 3
+						}
+
+						character_event = {
+							id = MNM.4600
+							days = 10
+							random = 350
+						}
+					}
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.5
+
+			mult_modifier = {
+				factor = 0.5
+				trait = content
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = ambitious
+			}
+		}
+	}
+}
+
+targeted_decisions = {
+	# Shared abduct decision
+	decision_abduct = {
+		ai = no
+
+		from_potential = {
+			OR = {
+				is_devil_worshiper_trigger = yes
+				society_member_of = the_assassins
+			}
+
+			is_actually_incapable_trigger = no
+			prisoner = no
+			NOT = { has_any_opinion_modifier = opinion_abducting }
+		}
+
+		potential = {
+			ai = yes
+			is_patrician = no
+			is_within_diplo_range = FROM
+
+			trigger_if = {
+				limit = { is_landed = yes }
+				lower_real_tier_than = DUKE
+			}
+
+			trigger_if = {
+				limit = {
+					father = { always = yes }
+				}
+
+				father_even_if_dead = {
+					lower_real_tier_than = DUKE
+					is_patrician = no
+					ai = yes
+				}
+			}
+
+			trigger_if = {
+				limit = {
+					mother = { always = yes }
+				}
+
+				mother_even_if_dead = {
+					lower_real_tier_than = DUKE
+					is_patrician = no
+					ai = yes
+				}
+			}
+
+			trigger_if = {
+				limit = { is_married = yes }
+
+				spouse = {
+					lower_real_tier_than = DUKE
+					is_patrician = no
+					ai = yes
+				}
+			}
+		}
+
+		allow = {
+			in_revolt = no
+			NOT = { war_with = FROM }
+			NOT = { same_society_as = FROM }
+			prisoner = no
+
+			FROM = {
+				trigger_if = {
+					limit = {
+						ROOT = { is_ruler = no }
+					}
+
+					has_society_currency_tiny_trigger = yes
+				}
+				trigger_else_if = {
+					limit = {
+						ROOT = { real_tier = BARON }
+					}
+
+					has_society_currency_minor_trigger = yes
+				}
+				trigger_else = {
+					has_society_currency_medium_trigger = yes
+				}
+			}
+		}
+
+		effect = {
+			save_event_target_as = abduction_target
+
+			FROM = {
+				show_scope_change = no
+
+				if = {
+					limit = {
+						ROOT = { is_ruler = no }
+					}
+
+					detract_society_currency_tiny_effect = yes
+				}
+				else_if = {
+					limit = {
+						ROOT = { real_tier = BARON }
+					}
+
+					detract_society_currency_minor_effect = yes
+				}
+				else = {
+					detract_society_currency_medium_effect = yes
+				}
+
+				hidden_effect = {
+					opinion = {
+						name = opinion_abducting
+						who = ROOT
+						years = 1000
+					}
+				}
+
+				character_event = {
+					id = MNM.20070
+					days = 1
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	stop_abduct_decision = {
+		filter = self
+
+		ai = no
+
+		potential = {
+			has_any_opinion_modifier = opinion_abducting
+
+			OR = {
+				is_devil_worshiper_trigger = yes
+				society_member_of = the_assassins
+			}
+		}
+
+		effect = {
+			random_opinion_modifier_target = {
+				limit = {
+					reverse_has_opinion_modifier = {
+						name = opinion_abducting
+						who = ROOT
+					}
+				}
+
+				save_event_target_as = abduction_target
+
+				ROOT = {
+					character_event = {
+						id = MNM.20100
+						tooltip = stop_abduct_decision_tt
+					}
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	stop_abduct_decision_target = {
+		ai = no
+
+		from_potential = {
+			has_any_opinion_modifier = opinion_abducting
+
+			OR = {
+				is_devil_worshiper_trigger = yes
+				society_member_of = the_assassins
+			}
+		}
+
+		potential = {
+			reverse_has_opinion_modifier = {
+				name = opinion_abducting
+				who = FROM
+			}
+		}
+
+		effect = {
+			save_event_target_as = abduction_target
+
+			FROM = {
+				character_event = { id = MNM.20100 }
+			}
+		}
+
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+}

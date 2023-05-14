@@ -1,0 +1,3754 @@
+decisions = {
+	hold_a_epic_tournament = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			independent = yes
+			higher_real_tier_than = DUKE
+			is_nomadic = no # Strange requirement is strange...
+			owns = location
+
+			OR = {
+				religion_group = christian
+				religion_group = jewish_group
+				religion_group = zoroastrian_group
+			}
+
+			trigger_if = {
+				limit = { is_female = yes }
+				gender_equality_trigger = yes
+			}
+
+			NOR = {
+				has_character_modifier = epic_tournament
+				has_character_flag = epic_tournament
+			}
+			NOT = {
+				trait = treasure_fleet_preparation
+			}
+		}
+
+		allow = {
+			prestige >= 500
+			wealth >= 200
+			is_adult = yes
+			war = no
+			prisoner = no
+			in_command = no
+			is_inaccessible_trigger = no
+		}
+
+		effect = {
+			wealth = -200
+			prestige = 100
+
+			add_character_modifier = {
+				name = epic_tournament
+				years = 100
+				hidden = yes
+			}
+
+			set_character_flag = do_not_disturb
+			set_character_flag = epic_tournament
+
+			character_event = {
+				id = 70033
+				tooltip = tournament_invite
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+
+			trigger = {
+				scaled_wealth = {
+					value = 3.0
+					max = 1000
+				}
+			}
+		}
+	}
+
+	buy_indulgence_for_sins = {
+		ai_check_interval = 6
+
+		only_playable = yes
+
+		potential = {
+			religion = catholic
+			is_adult = yes
+			demesne_size >= 1
+
+			NOR = {
+				has_character_flag = ask_for_indulgence
+				trait = excommunicated
+			}
+		}
+
+		allow = {
+			scaled_wealth = {
+				value = 1.0
+				min = 25
+			}
+
+			is_heretic = no
+			prisoner = no
+			is_actually_incapable_trigger = no
+			is_inaccessible_trigger = no
+		}
+
+		effect = {
+			set_character_flag = ask_for_indulgence
+
+			rightful_religious_head_scope = {
+				character_event = {
+					id = 39250
+					days = 5
+					random = 12
+					tooltip = indulgence_ask
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+
+			trigger = {
+				piety < 0
+				NOT = { scaled_wealth = 10.0 }
+			}
+		}
+	}
+
+	issue_declaration_of_repentance = {
+		ai_check_interval = 80
+
+		is_high_prio = yes
+
+		only_playable = yes
+
+		potential = {
+			higher_real_tier_than = BARON # Low nobility requires somebody else to ask their religious head to Lift the Excommunication on their behalf
+			is_landed = yes
+			is_adult = yes
+
+			rightful_religious_head_scope = {
+				ROOT = { excommunicated_for = PREV }
+			}
+		}
+
+		allow = {
+			is_heretic = no
+
+			custom_tooltip = {
+				text = tooltip_issued_decla_repentance_recently
+
+				NOT = { has_character_modifier = asked_repentance_from_sins_cooldown }
+			}
+		}
+
+		effect = {
+			add_character_modifier = {
+				name = asked_repentance_from_sins_cooldown
+				years = 4
+				hidden = yes
+			}
+
+			rightful_religious_head_scope = {
+				show_scope_change = no
+
+				character_event = {
+					id = HFP.23003
+					days = 5
+					random = 12
+					tooltip = repentance_ask
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+
+			trigger = {
+				NOR = {
+					trait = stubborn
+					trait = cynical
+				}
+			}
+
+			mult_modifier = {
+				factor = 0.25
+				NOT = { scaled_wealth = 2.0 }
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = zealous
+			}
+		}
+	}
+
+	demand_liege_title = {
+		is_high_prio = yes
+
+		ai = no # The AI is limited to the similar event 63040
+
+		potential = {
+			has_ambition = obj_gain_any_title
+			independent = no
+			is_adult = yes
+			prisoner = no
+			is_actually_incapable_trigger = no
+		}
+
+		allow = {
+			prestige >= 60
+
+			liege = {
+				has_regent = no
+				demesne_size >= 3
+
+				any_demesne_title = {
+					tier = COUNT
+					can_be_given_away = yes
+
+					location = {
+						is_capital = no
+					}
+				}
+
+				NOT = {
+					has_opinion_modifier = {
+						name = requested_land
+						who = ROOT
+					}
+				}
+			}
+		}
+
+		effect = {
+			prestige = -60
+
+			liege = {
+				show_scope_change = no
+
+				opinion = {
+					name = requested_land
+					who = ROOT
+					years = 2
+				}
+
+				random_demesne_title = {
+					limit = {
+						tier = COUNT
+						can_be_given_away = yes
+
+						location = {
+							is_capital = no
+						}
+					}
+
+					save_event_target_as = vassal_wanted_title
+				}
+
+				letter_event = {
+					id = 63041 # "vassal_request_events.txt"
+					days = 4
+					tooltip = demand_liege_title_tooltip
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	sadaqah_saddka = {
+		ai_check_interval = 24
+
+		ai = no
+
+		potential = {
+			religion_group = muslim
+			is_adult = yes
+			demesne_size >= 1
+			NOT = { has_character_flag = voluntary_charity }
+
+			rightful_religious_head_scope = {
+				NOR = {
+					character = ROOT
+
+					has_opinion_modifier = {
+						name = opinion_sadaqah
+						who = ROOT
+					}
+				}
+			}
+		}
+
+		allow = {
+			scaled_wealth = 1.0
+			is_heretic = no
+		}
+
+		effect = {
+			set_character_flag = voluntary_charity
+			scaled_wealth = -0.25
+			piety = 25
+
+			rightful_religious_head_scope = {
+				show_scope_change = no
+
+				character_event = {
+					id = 31000
+					days = 5
+					random = 12
+					tooltip = sadaqah_voluntary_charity
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+
+			trigger = {
+				piety < 0
+				scaled_wealth = 10.0
+			}
+		}
+	}
+
+	hold_a_furusiyya = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			independent = yes
+			religion_group = muslim
+			higher_real_tier_than = DUKE
+			owns = location
+
+			trigger_if = {
+				limit = { is_female = yes }
+				gender_equality_trigger = yes
+			}
+
+			NOR = {
+				has_character_flag = epic_tournament_furusiyya
+				has_character_modifier = epic_tournament_furusiyya
+			}
+		}
+
+		allow = {
+			prestige >= 500
+			wealth   >= 200
+			is_adult = yes
+			war = no
+			in_command = no
+			prisoner = no
+			is_inaccessible_trigger = no
+
+			custom_tooltip = {
+				text = is_not_busy_trigger_tooltip
+
+				NOT = { has_character_flag = do_not_disturb }
+			}
+			NOT = {
+				trait = treasure_fleet_preparation
+			}
+		}
+
+		effect = {
+			wealth  = -200
+			prestige = 100
+			#decadence = -5 # Moved to end
+
+			add_character_modifier = {
+				name = epic_tournament_furusiyya
+				years = 100
+				hidden = yes
+			}
+
+			set_character_flag = do_not_disturb
+			set_character_flag = epic_tournament_furusiyya
+
+			character_event = {
+				id = 88283
+				tooltip = furusiyya_invite
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+
+			trigger = {
+				scaled_wealth = {
+					value = 3.0
+					max = 1000
+				}
+			}
+		}
+	}
+
+	restore_roman_empire = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			has_landed_title = e_byzantium
+			has_dlc = "Legacy of Rome"
+
+			OR = {
+				religion_group = christian
+				religion_openly_hellenic_or_reformed_trigger = yes
+			}
+
+			is_adult = yes
+			prisoner = no
+			is_actually_incapable_trigger = no
+
+			NOR = {
+				has_global_flag = rome_restored
+
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+
+		allow = {
+			primary_title = { title = e_byzantium }
+			prestige >= 3000
+
+			completely_controls = d_latium
+			completely_controls = d_venice
+			completely_controls = d_ferrara
+			completely_controls = d_sicily
+			completely_controls = d_genoa
+			completely_controls = d_capua
+			completely_controls = d_apulia
+			completely_controls = d_thrace
+			completely_controls = d_antioch
+			completely_controls = d_jerusalem
+			completely_controls = d_alexandria
+			completely_controls = d_hellas
+			completely_controls = d_tunis
+			completely_controls = d_croatia
+		}
+
+		effect = {
+			set_global_flag = rome_restored
+
+			narrative_event = {
+				id = LoR.20
+				tooltip = EVTTOOLTIPLoR.20
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	mend_great_schism = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			OR = {
+				has_landed_title = e_byzantium
+				has_landed_title = e_roman_empire
+			}
+
+			has_dlc = "Legacy of Rome"
+			is_orthodox_branch = yes
+			NOT = { religion = bogomilist }
+			is_heretic = no
+			is_adult = yes
+			prisoner = no
+			is_actually_incapable_trigger = no
+
+			k_papacy = {
+				holder_scope = {
+					is_heretic = no # If the Pope (and thus Catholicism) is heretical, mending the schism is no longer possible
+				}
+			}
+
+			NOT = {
+				has_global_flag = schism_mended
+
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+
+		allow = {
+			piety >= 2000
+			religion_authority >= 0.90
+
+			completely_controls = c_constantinopolis
+
+			b_hagiasophia = {
+				custom_tooltip = {
+					text = mend_the_schism_holder_religion
+
+					holder_scope = {
+						is_heretic = no
+						is_orthodox_branch = yes
+						NOT = { religion = bogomilist }
+					}
+				}
+			}
+
+			completely_controls = c_antioch
+
+			b_antioch = {
+				custom_tooltip = {
+					text = mend_the_schism_holder_religion
+
+					holder_scope = {
+						is_heretic = no
+						is_orthodox_branch = yes
+						NOT = { religion = bogomilist }
+					}
+				}
+			}
+
+			completely_controls = c_jerusalem
+
+			b_jerusalem = {
+				custom_tooltip = {
+					text = mend_the_schism_holder_religion
+
+					holder_scope = {
+						is_heretic = no
+						is_orthodox_branch = yes
+						NOT = { religion = bogomilist }
+					}
+				}
+			}
+
+			completely_controls = c_alexandria
+
+			b_alexandria = {
+				custom_tooltip = {
+					text = mend_the_schism_holder_religion
+
+					holder_scope = {
+						is_heretic = no
+						is_orthodox_branch = yes
+						NOT = { religion = bogomilist }
+					}
+				}
+			}
+
+			completely_controls = c_roma
+
+			b_roma = {
+				custom_tooltip = {
+					text = mend_the_schism_holder_religion
+
+					holder_scope = {
+						is_heretic = no
+						is_orthodox_branch = yes
+						NOT = { religion = bogomilist }
+					}
+				}
+			}
+		}
+
+		effect = {
+			set_global_flag = schism_mended
+
+			narrative_event = {
+				id = LoR.210
+				tooltip = EVTTOOLTIPLoR.210
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	claim_constantinople = {
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			has_landed_title = e_byzantium
+			has_dlc = "Legacy of Rome"
+			is_nomadic = no
+			NOT = { has_landed_title = c_constantinopolis }
+
+			c_constantinopolis = {
+				holder_scope = {
+					is_vassal_or_below_of = ROOT
+					ai = yes
+				}
+			}
+		}
+
+		allow = {
+			NOT = { has_landed_title = c_constantinopolis }
+
+			c_constantinopolis = {
+				holder_scope = {
+					is_vassal_or_below_of = ROOT
+				}
+			}
+		}
+
+		effect = {
+			usurp_title_plus_barony_if_unlanded_and_vassals = c_constantinopolis
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	make_rome_capital = {
+		is_high_prio = yes
+
+		ai = no
+
+		potential = {
+			has_dlc = "Legacy of Rome"
+			has_landed_title = e_roman_empire
+
+			capital_scope = {
+				NOT = { province_id = c_roma } # Rome
+			}
+
+			c_roma = {
+				holder_scope = {
+					is_vassal_or_below_of = ROOT
+					ai = yes
+				}
+			}
+
+			b_tivoli = {
+				holder_scope = {
+					is_vassal_or_below_of = ROOT
+					ai = yes
+				}
+			}
+		}
+
+		allow = {
+			has_landed_title = e_roman_empire
+
+			c_roma = {
+				holder_scope = {
+					is_vassal_or_below_of = ROOT
+				}
+			}
+		}
+
+		effect = {
+			custom_tooltip = {
+				text = rome_capital
+
+				b_tivoli = {
+					make_capital_holding = yes
+					usurp_title = ROOT
+					set_name = Rome
+				}
+
+				capital = b_tivoli
+
+				# b_roma = { set_name = Lateran }
+			}
+		}
+
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	petition_doge_for_tp = {
+		ai_check_interval = 6
+
+		is_high_prio = yes
+
+		only_playable = yes
+
+		potential = {
+			is_patrician = yes
+			lower_real_tier_than = DUKE
+
+			trigger_if = {
+				limit = { num_of_trade_posts > 0 }
+
+				liege = {
+					any_vassal = {
+						is_patrician = yes
+
+						num_of_trade_post_diff = {
+							character = ROOT
+							value >= 10
+						}
+					}
+				}
+			}
+			trigger_else = {
+				liege = {
+					any_vassal = {
+						is_patrician = yes
+						num_of_trade_posts >= 10
+					}
+				}
+			}
+
+			NOT = { has_character_flag = petition_doge_for_tp_taken }
+		}
+
+		allow = {
+			liege = {
+				opinion = {
+					who = ROOT
+					value >= 25
+				}
+			}
+		}
+
+		effect = {
+			set_character_flag = petition_doge_for_tp_taken
+
+			liege = {
+				letter_event = {
+					id = REP.500
+					days = 5
+					tooltip = EVTTOOLTIP_REP_500
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	usurp_tp = {
+		ai_check_interval = 6
+
+		is_high_prio = yes
+
+		only_playable = yes
+
+		potential = {
+			is_merchant_republic = yes
+			NOT = { has_character_flag = usurp_tp_taken }
+
+			trigger_if = {
+				limit = { num_of_trade_posts > 0 }
+
+				any_vassal = {
+					is_patrician = yes
+
+					num_of_trade_post_diff = {
+						character = ROOT
+						value >= 10
+					}
+				}
+			}
+			trigger_else = {
+				any_vassal = {
+					is_patrician = yes
+					num_of_trade_posts >= 10
+				}
+			}
+		}
+
+		allow = {
+			is_merchant_republic = yes
+		}
+
+		effect = {
+			set_character_flag = usurp_tp_taken
+
+			if = {
+				limit = { num_of_trade_posts > 0 }
+
+				random_vassal = {
+					limit = {
+						is_patrician = yes
+
+						num_of_trade_post_diff = {
+							character = ROOT
+							value >= 10
+						}
+					}
+
+					letter_event = {
+						id = REP.510
+						days = 5
+						tooltip = EVTTOOLTIP_REP_510
+					}
+				}
+			}
+			else = {
+				random_vassal = {
+					limit = {
+						is_patrician = yes
+						num_of_trade_posts >= 10
+					}
+
+					letter_event = {
+						id = REP.510
+						days = 5
+						tooltip = EVTTOOLTIP_REP_510
+					}
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	organize_varangian_guard = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			OR = {
+				has_landed_title = e_byzantium
+				has_landed_title = e_roman_empire
+			}
+
+			has_global_flag = viking_age_started
+			NOT = { has_global_flag = varangian_guard_founded }
+
+			trigger_if = {
+				limit = { is_female = yes }
+				gender_equality_trigger = yes
+			}
+
+			prisoner = no
+			is_adult = yes
+			is_actually_incapable_trigger = no
+
+			any_playable_ruler = {
+				religion = norse_pagan
+
+				capital_scope = {
+					distance = {
+						where = c_constantinopolis
+						value >= 400 # Not too far away
+					}
+				}
+			}
+		}
+
+		allow = {
+			prestige >= 300
+			wealth   >= 300
+		}
+
+		effect = {
+			set_global_flag = varangian_guard_founded
+
+			prestige = -300
+			wealth   = -300
+
+			hidden_tooltip = {
+				activate_title = {
+					title = d_varangian_guard
+					status = yes
+				}
+
+				narrative_event = { id = TOG.3100 }
+
+				if = {
+					limit = { gender_equality_trigger = yes }
+
+					create_character = {
+						random_traits = yes
+						religion = norse_pagan
+						culture = norse
+						dynasty = none
+						female = 50
+						age = 34
+						trait = skilled_tactician
+					}
+				}
+				else = {
+					create_character = {
+						random_traits = yes
+						religion = norse_pagan
+						culture = norse
+						dynasty = none
+						female = no
+						age = 34
+						trait = skilled_tactician
+					}
+				}
+
+				new_character = {
+					add_trait = varangian
+					set_character_flag = is_chosen_varangian_leader
+					grant_title = d_varangian_guard
+					set_defacto_liege = ROOT
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	create_hungary = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_playable = yes
+
+		potential = {
+			has_landed_title = k_magyar
+			culture = hungarian
+			NOT = { has_dlc = "Horse Lords" }
+
+			k_hungary = {
+				has_holder = no
+			}
+
+			k_magyar = {
+				is_vice_royalty = no
+			}
+			
+			could_have_chinese_government_trigger = no
+			could_have_japanese_government_trigger = no
+		}
+
+		allow = {
+			war = no
+			completely_controls = d_pest
+
+			OR = {
+				completely_controls = d_transylvania
+				completely_controls = d_ungvar
+				completely_controls = d_nyitra
+			}
+		}
+
+		effect = {
+			set_global_flag = avar_khaganate_renamed
+			reset_coa = k_hungary
+
+			if = {
+				limit = { has_nickname = no }
+				give_nickname = nick_the_great
+			}
+
+			set_government_type = feudal_government # TODO: Proper government
+
+			spawn_unit = {
+				province = 522 # Pest
+				owner = ROOT
+				attrition = 0.5
+
+				troops = {
+					light_infantry = { 2700 2700 }
+					heavy_infantry = { 180 180 }
+					light_cavalry = { 420 420 }
+					archers = { 600 600 }
+				}
+			}
+
+			spawn_unit = {
+				province = 522 # Pest
+				owner = ROOT
+				attrition = 0.5
+
+				troops = {
+					light_infantry = { 2700 2700 }
+					heavy_infantry = { 180 180 }
+					light_cavalry = { 420 420 }
+					archers = { 600 600 }
+				}
+			}
+
+			spawn_unit = {
+				province = 522 # Pest
+				owner = ROOT
+				attrition = 0.5
+
+				troops = {
+					light_infantry = { 2700 2700 }
+					heavy_infantry = { 180 180 }
+					light_cavalry = { 420 420 }
+					archers = { 600 600 }
+				}
+			}
+
+			custom_tooltip = {
+				text = EVTOPTA62910_CUSTOM
+			}
+
+			prestige = 1000
+			wealth = 1000
+
+			narrative_event = {
+				id = 62910
+				tooltip = EVTTOOLTIP62910
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	become_saoshyant = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			independent = yes
+			religion_group = zoroastrian_group
+			has_dlc = "The Old Gods"
+			is_random_world = no
+
+			NOR = {
+				religion = manichaean
+				has_global_flag = saoshyant_appears
+
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+
+		allow = {
+			piety >= 1500
+			has_landed_title = e_persia
+
+			completely_controls = d_fars
+			completely_controls = d_khiva
+			completely_controls = d_merv
+			completely_controls = d_tabaristan
+			completely_controls = d_basra
+			completely_controls = d_baghdad
+			completely_controls = d_mosul
+			completely_controls = d_jazira
+			completely_controls = d_kerman
+			completely_controls = d_khorasan
+			completely_controls = d_tabriz
+			completely_controls = d_azerbaijan
+			completely_controls = d_makran
+			completely_controls = d_sistan
+			completely_controls = d_kabulistan
+			completely_controls = d_zabulistan
+			completely_controls = d_samarkand
+			completely_controls = d_dihistan
+			completely_controls = d_mafaza
+			completely_controls = d_khozistan
+			completely_controls = d_jibal
+			completely_controls = d_kurdistan
+			completely_controls = d_khuttal
+			completely_controls = d_fergana
+			completely_controls = d_mudar
+			completely_controls = d_samarra
+			completely_controls = d_gilan
+			completely_controls = d_herat
+			completely_controls = d_balkh
+		}
+
+		effect = {
+			set_global_flag = saoshyant_appears
+			give_nickname = nick_the_saoshyant
+			save_event_target_as = pahlavi_creator
+			add_trait = saoshyant
+
+			custom_tooltip = {
+				text = tooltip_forge_pahalavi_crown
+
+				add_artifact = crown_pahlavi
+
+				new_artifact = {
+					set_name = crown_pahlavi_name
+				}
+			}
+
+			prestige = 500
+			piety = 500
+
+			if = {
+				limit = { has_dlc = "Holy Fury" }
+
+				if = {
+					limit = { is_female = yes }
+
+					create_bloodline = {
+						type = saoshyant_female
+					}
+
+					new_bloodline = {
+						set_description = bloodline_desc_saoshyant
+					}
+				}
+				else = {
+					create_bloodline = {
+						type = saoshyant_male
+					}
+
+					new_bloodline = {
+						set_description = bloodline_desc_saoshyant
+					}
+				}
+			}
+
+			narrative_event = { id = TOG.6000 }
+			
+			hidden_tooltip = {
+				save_global_event_target_as = the_saoshyant
+				create_bloodline = {
+					type = the_saoshyant # Dummy bloodline
+				}
+				character_event = { id = soh.6002 } # Propagate
+			}
+			
+			any_child_even_if_dead = {
+				character_event = { id = TOG.6001 }
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	restore_priesthood = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			independent = yes
+			religion = zoroastrian
+			has_dlc = "The Old Gods"
+			is_random_world = no
+
+			NOR = {
+				has_global_flag = zoroastrian_priesthood_founded
+
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+
+		allow = {
+			has_landed_title = e_persia
+			piety >= 300
+		}
+
+		effect = {
+			piety = -300
+			set_global_flag = zoroastrian_priesthood_founded
+
+			hidden_effect = {
+				activate_title = {
+					title = d_zoroastrian
+					status = yes
+				}
+
+				create_random_priest = {
+					random_traits = yes
+					religion = zoroastrian
+					culture = persian
+					dynasty = random
+					female = no
+					age = 41
+				}
+
+				new_character = {
+					grant_title = d_zoroastrian
+					set_defacto_liege = e_persia
+
+					narrative_event = {
+						id = TOG.6004
+						days = 2
+					}
+				}
+			}
+
+			event_target:pulse_province = {
+				province_event = {
+					id = SoA.1808 # Found holy order
+					years = 1
+					random = 1460 # 4 years
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	build_third_temple = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_playable = yes
+
+		potential = {
+			religion_group = jewish_group
+			has_dlc = "Sons of Abraham"
+
+			NOR = {
+				has_global_flag = third_temple_built
+				has_global_flag = building_third_temple
+
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+
+		allow = {
+			completely_controls = c_jerusalem
+
+			c_jerusalem = {
+				location = {
+					show_scope_change = no
+
+					religion = ROOT
+				}
+			}
+
+			wealth >= 1500
+			piety  >= 1500
+		}
+
+		effect = {
+			hidden_effect = {
+				set_global_flag = building_third_temple
+				character_event = { id = SoA.100 }
+
+				c_jerusalem = {
+					location = {
+						province_event = {
+							id = SoA.10199
+							years = 4
+							random = 50
+						}
+					}
+				}
+			}
+
+			wealth = -1500
+			prestige = 500
+			piety    = 500
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	restore_high_priesthood = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_playable = yes
+
+		potential = {
+			has_landed_title = k_israel
+			has_dlc = "Sons of Abraham"
+			religion = jewish
+			has_global_flag = third_temple_built
+
+			NOR = {
+				has_global_flag = jewish_priesthood_founded
+
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+
+		allow = {
+			completely_controls = c_jerusalem
+
+			c_jerusalem = {
+				location = {
+					show_scope_change = no
+
+					religion = jewish
+				}
+			}
+
+			piety >= 1000
+		}
+
+		effect = {
+			hidden_effect = {
+				set_global_flag = jewish_priesthood_founded
+
+				activate_title = {
+					title = d_jewish
+					status = yes
+				}
+
+				create_random_priest = {
+					random_traits = yes
+					religion = ROOT
+					culture = ROOT
+					dynasty = random
+					female = no
+					age = 41
+				}
+
+				new_character = {
+					grant_title = d_jewish
+					set_defacto_liege = k_israel
+					narrative_event = { id = SoA.550 }
+				}
+			}
+
+			event_target:pulse_province = {
+				province_event = {
+					id = SoA.1908 # Found holy order
+					years = 1
+					random = 1460 # 4 years
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	create_israel = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_playable = yes
+
+		potential = {
+			religion_group = jewish_group
+			has_dlc = "Sons of Abraham"
+
+			k_israel = {
+				has_holder = no
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+
+		allow = {
+			completely_controls = d_jerusalem
+			completely_controls = d_ascalon
+			completely_controls = d_galilee
+			completely_controls = d_oultrejourdain
+
+			c_jerusalem = {
+				location = {
+					show_scope_change = no
+
+					religion = ROOT
+				}
+			}
+
+			piety >= 500
+			prestige >= 500
+		}
+
+		effect = {
+			narrative_event = {
+				id = SoA.102
+				tooltip = EVTTOOLTIP_SoA_102
+			}
+
+			prestige = 1000
+
+			if = {
+				limit = { has_dlc = "Holy Fury" }
+
+				if = {
+					limit = { is_female = yes }
+
+					create_bloodline = {
+						type = israel_female
+					}
+
+					new_bloodline = {
+						set_description = bloodline_desc_israel
+					}
+				}
+
+				else = {
+					create_bloodline = {
+						type = israel_male
+					}
+
+					new_bloodline = {
+						set_description = bloodline_desc_israel
+					}
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	welcome_jews = {
+		ai_check_interval = 6
+
+		only_playable = yes
+
+		potential = {
+			# has_dlc = "Sons of Abraham"
+			has_character_modifier = expelled_jewish
+
+			NOR = {
+				religion_group = jewish_group
+				has_character_modifier = expelled_jews_timer
+				government = order_government
+			}
+		}
+
+		allow = {
+			has_character_modifier = expelled_jewish
+		}
+
+		effect = {
+			scaled_wealth = -1
+			prestige = 50
+			remove_character_modifier = expelled_jewish
+
+			if = {
+				limit = {
+					NOR = {
+						trait = zealous
+						trait = sympathy_judaism
+					}
+				}
+
+				random = {
+					chance = 50
+					add_trait = sympathy_judaism # TODO: Replace with scripted effect
+				}
+			}
+
+			custom_tooltip = {
+				text = jews_are_welcome
+
+				character_event = { id = SoA.106 }
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.5
+
+			trigger = {
+				NOT = { trait = zealous }
+			}
+		}
+	}
+
+	expel_jews = {
+		ai_check_interval = 60
+
+		only_independent = yes
+
+		potential = {
+			has_dlc = "Sons of Abraham"
+
+			trigger_if = {
+				limit = { ai = yes }
+				higher_real_tier_than = DUKE
+			}
+
+			OR = {
+				religion_group = christian
+				religion_group = muslim
+				religion_group = zoroastrian_group
+			}
+
+			is_nomadic = no
+			is_adult = yes
+
+			NOR = {
+				religion = manichaean
+				has_character_modifier = expelled_jewish
+				secret_religion_group = jewish_group
+				has_character_flag = currently_considering_expelling_jews
+				government = order_government
+			}
+		}
+
+		allow = {
+			independent = yes
+			higher_real_tier_than = DUKE
+
+			OR = {
+				religion_group = christian
+				religion_group = muslim
+				religion_group = zoroastrian_group
+			}
+
+			trigger_if = {
+				limit = {
+					any_realm_province = {
+						religion_group = jewish_group
+						held_under_PREV = yes
+					}
+				}
+
+				NOT = {
+					any_realm_province = {
+						religion_group = jewish_group
+						hidden_trigger = { held_under_PREV = yes }
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = {
+					any_realm_lord = {
+						religion_group = jewish_group
+					}
+				}
+
+				NOT = {
+					any_realm_lord = {
+						religion_group = jewish_group
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { has_character_flag = epidemic_blame_game }
+
+				custom_tooltip = {
+					text = cannot_expel_jews_during_blame_game_chain_TT
+					always = no
+				}
+			}
+
+			prisoner = no
+			is_actually_incapable_trigger = no
+
+			custom_tooltip = {
+				text = NOT_DESCENDANT_OF_A_JEWISH_SAINT
+
+				NOT = {
+					any_owned_bloodline = {
+						has_bloodline_flag = jewish_saintly_bloodline
+					}
+				}
+			}
+		}
+
+		effect = {
+			prestige = -100
+			scaled_wealth = 2
+			banish_religion = jewish
+
+			if = {
+				limit = { trait = sympathy_judaism }
+				remove_trait = sympathy_judaism
+			}
+
+			if = {
+				limit = {
+					NOT = { trait = arbitrary }
+					has_character_modifier = borrowed_from_jews
+				}
+
+				add_trait = arbitrary
+			}
+
+			if = {
+				limit = { has_character_modifier = borrowed_from_jews }
+				remove_character_modifier = borrowed_from_jews
+			}
+
+			add_character_modifier = {
+				name = expelled_jewish
+				duration = -1
+				inherit = yes
+			}
+
+			custom_tooltip = {
+				text = jews_are_expelled
+
+				character_event = { id = SoA.105 }
+
+				add_character_modifier = {
+					name = expelled_jews_timer
+					years = 20
+					hidden = yes
+				}
+			}
+
+			any_friend = {
+				limit = { religion_group = jewish_group }
+				remove_friend = ROOT
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.05
+
+			trigger = {
+				NOR = {
+					trait = kind
+
+					trigger_if = {
+						limit = { has_character_modifier = borrowed_from_jews }
+						trait = just
+					}
+
+					any_courtier = {
+						religion_group = jewish_group
+
+						reverse_opinion = {
+							who = ROOT
+							value >= 20
+						}
+					}
+
+					any_friend = {
+						religion_group = jewish_group
+					}
+
+					any_spouse = {
+						religion_group = jewish_group
+					}
+
+					any_child = {
+						religion_group = jewish_group
+					}
+				}
+			}
+
+			mult_modifier = {
+				factor = 1.2
+				trait = zealous
+				trait = arbitrary
+			}
+
+			mult_modifier = {
+				factor = 2
+				has_character_modifier = borrowed_from_jews
+				trait = greedy
+			}
+		}
+	}
+
+	become_samrat_chakravartin = {
+		ai_check_interval = 24
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			has_dlc = "Rajas of India"
+			independent = yes
+			higher_real_tier_than = DUKE
+			has_dharmic_religion_trigger = yes
+			is_feudal = yes
+
+			capital_scope = {
+				region = world_india
+			}
+
+			e_india = {
+				has_holder = no
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+			
+			could_have_chinese_government_trigger = yes
+			could_have_japanese_government_trigger = yes
+		}
+
+		allow = {
+			independent = yes
+			is_adult = yes
+			prisoner = no
+			is_actually_incapable_trigger = no
+			war = no
+			prestige >= 1000
+			wealth   >=  500
+
+			OR = {
+				has_landed_title = e_rajastan
+				e_rajastan = { has_holder = no }
+			}
+
+			OR = {
+				has_landed_title = e_bengal
+				e_bengal = { has_holder = no }
+			}
+
+			OR = {
+				has_landed_title = e_deccan
+				e_deccan = { has_holder = no }
+			}
+
+			completely_controls_region = world_india
+		}
+
+		effect = {
+			wealth  = -500
+			prestige = 500
+
+			hidden_effect = {
+				activate_title = {
+					title = e_india
+					status = yes
+				}
+
+				any_title = {
+					limit = {
+						tier = KING
+						region = world_india
+					}
+					de_jure_liege = e_india
+				}
+			}
+
+			primary_title = {
+				show_scope_change = no
+
+				e_india = {
+					show_scope_change = no
+
+					grant_title = ROOT
+					copy_title_laws = PREV
+					copy_title_history = PREV
+				}
+			}
+
+			hidden_effect = {
+				e_india = {
+					make_primary_title = yes
+				}
+			}
+
+			if = {
+				limit = { has_landed_title = e_rajastan }
+				destroy_landed_title = e_rajastan
+			}
+
+			if = {
+				limit = { has_landed_title = e_bengal }
+				destroy_landed_title = e_bengal
+			}
+
+			if = {
+				limit = { has_landed_title = e_deccan }
+				destroy_landed_title = e_deccan
+			}
+
+			hidden_effect = {
+				activate_title = {
+					title = e_rajastan
+					status = no
+				}
+
+				activate_title = {
+					title = e_bengal
+					status = no
+				}
+
+				activate_title = {
+					title = e_deccan
+					status = no
+				}
+			}
+
+			if = {
+				limit = { has_nickname = no }
+				give_nickname = nick_the_magnificent
+			}
+
+			if = {
+				limit = {
+					ai = no
+					is_ironman = yes
+				}
+
+				set_character_flag = achievement_my_very_own_subcontinent
+			}
+
+			if = {
+				limit = { has_dlc = "Holy Fury" }
+
+				if = {
+					limit = { is_female = yes }
+
+					create_bloodline = {
+						type = samrat_chakravartin_female
+					}
+
+					new_bloodline = {
+						set_description = bloodline_desc_samrat_chakravartin
+					}
+				}
+				else = {
+					create_bloodline = {
+						type = samrat_chakravartin_male
+					}
+
+					new_bloodline = {
+						set_description = bloodline_desc_samrat_chakravartin
+					}
+				}
+			}
+
+			chronicle = {
+				entry = CHRONICLE_UNITED_INDIA
+				picture = GFX_evt_throne_room
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	form_the_hre = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			independent = yes
+
+			OR = {
+				culture = german
+				culture = dutch
+			}
+
+			OR = {
+				religion = catholic
+				religion = fraticelli
+			}
+
+			NOT = { has_global_flag = hre_removed }
+			has_global_flag = charlemagne_hre
+
+			e_hre = {
+				has_holder = no
+			}
+
+			e_francia = {
+				has_holder = no
+			}
+
+			is_alternate_start = no
+		}
+
+		allow = {
+			has_landed_title = k_germany
+
+			trigger_if = {
+				limit = { start_date >= 936.8.7 }
+				has_landed_title = k_italy
+			}
+			trigger_else = {
+				custom_tooltip = {
+					text = FORM_THE_HRE_TT
+
+					any_demesne_title = {
+						tier = KING
+						NOT = { title = k_germany }
+					}
+				}
+			}
+
+			prestige >= 1000
+			realm_size >= 180
+
+			trigger_if = {
+				limit = { ai = no }
+				scaled_wealth = 2
+			}
+
+			is_adult = yes
+			prisoner = no
+			is_actually_incapable_trigger = no
+		}
+
+		effect = {
+			if = {
+				limit = { ai = no }
+				scaled_wealth = -2
+			}
+
+			if = {
+				limit = { has_nickname = no }
+				give_nickname = nick_the_great
+			}
+
+			if = {
+				limit = { has_character_flag = is_otto }
+
+				narrative_event = { id = LT.40015 }
+
+				any_player = {
+					limit = {
+						is_within_diplo_range = ROOT
+						NOT = { character = ROOT }
+					}
+
+					narrative_event = { id = LT.40015 }
+				}
+
+				create_bloodline = {
+					type = otto
+				}
+			}
+
+			add_artifact = crown_hre
+
+			primary_title = {
+				show_scope_change = no
+
+				e_hre = {
+					show_scope_change = no
+
+					grant_title = ROOT
+					copy_title_laws = PREV
+					add_law = succ_hre_elective
+				}
+			}
+
+			hidden_effect = {
+				princely_elective_german_elector_setup_effect = yes
+			}
+
+			any_demesne_title = {
+				show_scope_change = no
+
+				limit = {
+					higher_real_tier_than = DUKE
+					NOT = { title = e_hre }
+				}
+
+				destroy_landed_title = THIS
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	form_the_hre_early = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			OR = {
+				religion = catholic
+				religion = fraticelli
+			}
+
+			e_hre = {
+				has_holder = no
+			}
+
+			trigger_if = {
+				limit = { is_alternate_start = no }
+
+				NOR = {
+					has_global_flag = charlemagne_hre
+					is_title_active = e_hre
+				}
+			}
+
+			NOR = {
+				has_global_flag = rome_restored
+				has_landed_title = e_byzantium
+
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+
+		allow = {
+			realm_size >= 220
+			prestige >= 1000
+			is_adult = yes
+			prisoner = no
+			is_actually_incapable_trigger = no
+
+			trigger_if = {
+				limit = { is_alternate_start = no }
+
+				custom_tooltip = {
+					text = form_the_hre_early_tooltip_1
+
+					OR = {
+						has_landed_title = k_italy
+						has_landed_title = e_italia
+					}
+				}
+
+				custom_tooltip = {
+					text = form_the_hre_early_tooltip_2
+
+					any_demesne_title = {
+						OR = {
+							title = e_francia
+							title = e_germania
+							title = e_britannia
+							title = e_hispania
+
+							trigger_if = {
+								limit = { real_tier = KING }
+
+								empire = {
+									OR = {
+										title = e_francia
+										title = e_germania
+										title = e_britannia
+										title = e_hispania
+									}
+								}
+
+								NOT = { title = k_italy }
+							}
+						}
+					}
+				}
+
+				custom_tooltip = {
+					text = form_the_hre_early_tooltip_3
+
+					e_italia = {
+						trigger_if = {
+							limit = { has_holder = yes }
+
+							holder_scope = {
+								OR = {
+									character = ROOT
+									NOT = { religion_group = christian }
+								}
+							}
+						}
+					}
+
+					e_germania = {
+						trigger_if = {
+							limit = { has_holder = yes }
+
+							holder_scope = {
+								OR = {
+									character = ROOT
+									NOT = { religion_group = christian }
+								}
+							}
+						}
+					}
+
+					e_francia = {
+						trigger_if = {
+							limit = { has_holder = yes }
+
+							holder_scope = {
+								OR = {
+									character = ROOT
+									NOT = { religion_group = christian }
+								}
+							}
+						}
+					}
+
+					e_hispania = {
+						trigger_if = {
+							limit = { has_holder = yes }
+
+							holder_scope = {
+								OR = {
+									character = ROOT
+									NOT = { religion_group = christian }
+								}
+							}
+						}
+					}
+
+					e_britannia = {
+						trigger_if = {
+							limit = { has_holder = yes }
+
+							holder_scope = {
+								OR = {
+									character = ROOT
+									NOT = { religion_group = christian }
+								}
+							}
+						}
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { ai = no }
+
+				religion_head = {
+					opinion = {
+						who = ROOT
+						value >= 25
+					}
+				}
+
+				scaled_wealth = 2
+			}
+		}
+
+		effect = {
+			set_global_flag = charlemagne_hre
+
+			hidden_effect = {
+				activate_title = {
+					title = e_hre
+					status = yes
+				}
+			}
+
+			religion_head = {
+				save_event_target_as = the_pope
+			}
+
+			if = {
+				limit = { ai = no }
+				scaled_wealth = -2
+			}
+
+			if = {
+				limit = { has_nickname = no }
+				give_nickname = nick_the_great
+			}
+
+			# Create Electors, depending on capital location:
+			princely_elective_apply_elector_setup_effect = yes
+
+			primary_title = {
+				show_scope_change = no
+
+				e_hre = {
+					show_scope_change = no
+
+					grant_title = ROOT
+					copy_title_laws = PREV
+					set_coa = PREV
+					add_law = succ_hre_elective
+				}
+			}
+
+			any_demesne_title = {
+				show_scope_change = no
+
+				if = {
+					limit = { real_tier = KING }
+
+					de_jure_liege = e_hre
+					destroy_landed_title = THIS
+				}
+				else_if = {
+					limit = {
+						real_tier = EMPEROR
+						NOT = { title = e_hre }
+					}
+
+					any_direct_de_jure_vassal_title = {
+						show_scope_change = no
+
+						de_jure_liege = e_hre
+					}
+
+					destroy_landed_title = THIS
+
+					hidden_effect = {
+						activate_title = {
+							title = THIS
+							status = no
+						}
+					}
+				}
+			}
+
+			# Give lands to the Pope
+			any_title_under = {
+				show_scope_change = no
+
+				limit = {
+					OR = {
+						title = c_roma
+						title = c_ravenna
+						title = c_ferrara
+						title = c_urbino
+						title = c_perugia
+					}
+
+					holder_scope = {
+						trigger_if = {
+							limit = { ai = no }
+							num_of_count_titles > 1
+						}
+					}
+				}
+
+				grant_title = event_target:the_pope
+			}
+
+			e_byzantium = {
+				show_scope_change = no
+
+				holder_scope = {
+					show_scope_change = no
+
+					opinion = {
+						name = opinion_unhappy
+						who = ROOT
+						years = 100
+					}
+
+					opinion = {
+						name = opinion_unhappy
+						who = event_target:the_pope
+						years = 100
+					}
+				}
+			}
+
+			if = {
+				limit = {
+					has_character_flag = is_charlemagne
+					NOT = { has_character_flag = charlemagne_coronation }
+				}
+
+				narrative_event = { id = CM.1500 } # Charlemagne coronation
+			}
+			else = {
+				add_artifact = crown_hre
+				narrative_event = { id = CM.510 } # Spread the news
+			}
+
+			if = {
+				limit = {
+					ai = no
+					is_ironman = yes
+				}
+
+				set_character_flag = achievement_holy_and_roman
+			}
+
+			chronicle = {
+				entry = CHRONICLE_FOUNDED_HRE
+				picture = GFX_evt_coronation
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	form_new_kingdom = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			real_tier = DUKE
+
+			trigger_if = {
+				limit = { is_alternate_start = yes }
+
+				has_alternate_start_parameter = {
+					key = dejure_kingdoms
+					value = none
+				}
+			}
+			trigger_else = {
+				has_dlc = "Charlemagne"
+			}
+
+			holy_order = no
+
+			NOT = {
+				has_game_rule = {
+					name = dynamic_realms
+					value = off
+				}
+			}
+			
+			primary_title = {
+				controls_religion = no # Avoids silly "Kingdom of the Sunni Caliphate" scenarios
+			}
+		}
+
+		allow = {
+			independent = yes
+			is_adult = yes
+			prisoner = no
+			is_actually_incapable_trigger = no
+
+			trigger_if = {
+				limit = {
+					is_alternate_start = yes
+
+					has_alternate_start_parameter = {
+						key = dejure_kingdoms
+						value = none
+					}
+				}
+
+				prestige >= 250
+				wealth   >=  50
+			}
+			trigger_else = {
+				prestige >= 1000
+				wealth   >=  300
+			}
+
+			OR = {
+				realm_size >= 35
+
+				custom_tooltip = {
+					text = form_new_kingdom_requirement_tooltip
+
+					num_of_duke_titles >= 3
+				}
+			}
+		}
+
+		effect = {
+			primary_title = {
+				show_scope_change = no
+
+				create_title = {
+					tier = KING
+					landless = no
+					temporary = no
+					custom_created = yes
+					culture = ROOT
+					holder = ROOT
+					base_title = THIS
+					copy_title_laws = yes
+				}
+
+				new_title = {
+					copy_title_history = PREV
+					save_event_target_as = new_kingdom
+				}
+
+				hidden_effect = {
+					# New kingdom becomes part of de jure empire of capital duchy
+					empire = {
+						event_target:new_kingdom = {
+							de_jure_liege = PREV
+						}
+					}
+
+					ROOT = {
+						# All held duchies of uncreated kingdoms become de jure part of the new kingdom
+						any_title_under = {
+							limit = {
+								real_tier = DUKE
+
+								kingdom = {
+									has_holder = no
+								}
+							}
+
+							de_jure_liege = event_target:new_kingdom
+						}
+
+						if = {
+							limit = {
+								has_alternate_start_parameter = {
+									key = dejure_kingdoms
+									value = none
+								}
+							}
+
+							any_title_under = {
+								limit = { real_tier = DUKE }
+								de_jure_liege = event_target:new_kingdom
+							}
+						}
+
+						# All fully controlled, unheld duchy titles of uncreated kingdoms become de jure part of the new kingdom
+						any_title_under = {
+							limit = {
+								real_tier = COUNT
+
+								dejure_liege_title = {
+									kingdom = {
+										has_holder = no
+									}
+
+									NOT = { de_jure_liege_or_above = event_target:new_kingdom }
+
+									ROOT = {
+										completely_controls = PREV # Duchy
+									}
+								}
+							}
+
+							dejure_liege_title = {
+								de_jure_liege = event_target:new_kingdom
+							}
+						}
+
+						if = {
+							limit = {
+								has_alternate_start_parameter = {
+									key = dejure_kingdoms
+									value = none
+								}
+							}
+
+							any_title_under = {
+								limit = {
+									real_tier = COUNT
+
+									dejure_liege_title = {
+										NOT = { de_jure_liege_or_above = event_target:new_kingdom }
+
+										ROOT = {
+											completely_controls = PREV
+										}
+									}
+								}
+
+								dejure_liege_title = {
+									de_jure_liege = event_target:new_kingdom
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if = {
+				limit = {
+					is_alternate_start = yes
+
+					has_alternate_start_parameter = {
+						key = dejure_kingdoms
+						value = none
+					}
+				}
+
+				wealth = -50
+			}
+
+			else = {
+				wealth = -300
+			}
+
+			custom_tooltip = { text = form_new_kingdom_tooltip }
+
+			chronicle = {
+				entry = CHRONICLE_FOUNDED_NEW_KINGDOM_OR_EMPIRE
+				portrait = [Root.GetID]
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+
+			trigger = {
+				trigger_if = {
+					limit = { is_alternate_start = yes }
+
+					has_alternate_start_parameter = {
+						key = dejure_kingdoms
+						value = none
+					}
+				}
+
+				trigger_else_if = {
+					limit = {
+						OR = {
+							trait = proud
+							trait = ambitious
+						}
+
+						prestige >= 5000
+					}
+				}
+				trigger_else = {
+					OR = {
+						prestige >= 15000
+
+						AND = {
+							realm_size >= 70
+							num_of_duke_titles >= 4
+						}
+					}
+				}
+			}
+		}
+	}
+
+	form_new_empire = {
+		ai_check_interval = 24
+
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			real_tier = KING
+
+			trigger_if = {
+				limit = { is_alternate_start = yes }
+
+				OR = {
+					has_alternate_start_parameter = {
+						key = dejure_kingdoms
+						value = none
+					}
+
+					has_alternate_start_parameter = {
+						key = dejure_empires
+						value = none
+					}
+				}
+			}
+			trigger_else = {
+				has_dlc = "Charlemagne"
+			}
+
+			holy_order = no
+
+			NOT = {
+				has_game_rule = {
+					name = dynamic_realms
+					value = off
+				}
+			}
+			
+			NOT = {
+				religion = shinto
+				controls_religion = yes
+			}
+			NOT = {
+				religion = hellenic_pagan_reformed
+				controls_religion = yes
+			}
+		}
+
+		allow = {
+			independent = yes
+			is_adult = yes
+			prisoner = no
+			is_actually_incapable_trigger = no
+
+			trigger_if = {
+				limit = {
+					is_alternate_start = yes
+
+					has_alternate_start_parameter = {
+						key = dejure_empires
+						value = none
+					}
+				}
+
+				prestige >= 2000
+				wealth   >=  200
+			}
+
+			trigger_else = {
+				prestige >= 8000
+				wealth   >= 1000
+			}
+
+			OR = {
+				realm_size >= 180
+
+				custom_tooltip = {
+					text = form_new_empire_requirement_tooltip
+
+					num_of_king_titles >= 3
+				}
+			}
+		}
+
+		effect = {
+			primary_title = {
+				create_title = {
+					tier = EMPEROR
+					landless = no
+					temporary = no
+					custom_created = yes
+					culture = ROOT
+					holder = ROOT
+					base_title = THIS
+					copy_title_laws = yes
+				}
+
+				new_title = {
+					copy_title_history = PREV
+					save_event_target_as = new_empire
+				}
+
+				hidden_effect = {
+					ROOT = {
+						# All held kingdoms of uncreated empires become de jure part of the new empire
+						any_title_under = {
+							limit = {
+								real_tier = KING
+
+								empire = {
+									has_holder = no
+								}
+							}
+
+							de_jure_liege = event_target:new_empire
+						}
+
+						# All fully controlled, unheld kingdoms of uncreated empires become de jure part of the new empire
+						any_title_under = {
+							limit = {
+								real_tier = DUKE
+
+								kingdom = {
+									empire = {
+										has_holder = no
+									}
+
+									NOT = { de_jure_liege_or_above = event_target:new_empire }
+
+									ROOT = {
+										completely_controls = PREV
+									}
+								}
+							}
+
+							kingdom = {
+								de_jure_liege = event_target:new_empire
+							}
+						}
+					}
+				}
+			}
+
+			if = {
+				limit = {
+					is_alternate_start = yes
+					has_alternate_start_parameter = {
+						key = dejure_empires
+						value = none
+					}
+				}
+
+				wealth = -200
+			}
+			else = {
+				wealth = -1000
+			}
+
+			custom_tooltip = { text = form_new_empire_tooltip }
+
+			chronicle = {
+				entry = CHRONICLE_FOUNDED_NEW_KINGDOM_OR_EMPIRE
+				portrait = [Root.GetID]
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+
+			trigger = {
+				trigger_if = {
+					limit = { is_alternate_start = yes }
+
+					OR = {
+						has_alternate_start_parameter = {
+							key = dejure_kingdoms
+							value = none
+						}
+						has_alternate_start_parameter = {
+							key = dejure_empires
+							value = none
+						}
+					}
+				}
+				trigger_else_if = {
+					limit = {
+						OR = {
+							trait = proud
+							trait = ambitious
+						}
+					}
+					prestige >= 40000
+				}
+				trigger_else = {
+					prestige >= 120000
+				}
+			}
+		}
+	}
+
+	# Hold Wargames - for nomads
+	hold_nomad_wargames = {
+		ai_check_interval = 4
+
+		only_playable = yes
+
+		potential = {
+			is_nomadic = yes
+
+			NOR = {
+				has_character_modifier = holding_nomad_wargames
+				has_character_modifier = held_nomad_wargames
+			}
+		}
+
+		allow = {
+			wealth >= 20
+			prestige >= 100
+			war = no
+			is_adult = yes
+			prisoner = no
+			is_actually_incapable_trigger = no
+			is_inaccessible_trigger = no
+
+			trigger_if = {
+				limit = {
+					NOT = {
+						any_demesne_title = {
+							lower_real_tier_than = DUKE
+							is_occupied = no
+						}
+					}
+				}
+
+				custom_tooltip = {
+					text = UNOCCUPIED_DEMESNE_TITLE
+					always = no
+				}
+			}
+		}
+
+		effect = {
+			wealth = -30
+
+			add_character_modifier = {
+				name = holding_nomad_wargames
+				duration = -1
+			}
+
+			set_character_flag = recent_minor_decision
+			set_character_flag = do_not_disturb
+			character_event = { id = HL.7000 }
+		}
+
+		ai_will_do = {
+			factor = 0.4
+
+			trigger = {
+				wealth >= 200
+
+				trigger_if = {
+					limit = { has_character_flag = recent_minor_decision }
+
+					had_character_flag = {
+						flag = recent_minor_decision
+						years >= 2
+					}
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+
+				current_heir = {
+					dynasty = ROOT
+					combat_rating >= 70
+				}
+			}
+
+			mult_modifier = {
+				factor = 0.5
+				martial < 10
+			}
+		}
+	}
+
+	convert_to_feudalism_indep = {
+		ai_check_interval = 12
+
+		is_high_prio = yes
+
+		only_independent = yes
+
+		potential = {
+			independent = yes
+			is_tribal = yes
+		}
+
+		allow = {
+			war = no
+			# TODO: Civilized pagans?
+			is_not_unreformed_pagan_trigger = yes
+			has_law = tribal_organization_4
+
+			capital_holding = {
+				OR = {
+					holding_type = castle
+
+					AND = {
+						holding_type = tribal
+						has_building = tb_hillfort_4
+					}
+				}
+			}
+		}
+
+		effect = {
+			if = {
+				limit = {
+					ai = no
+					is_ironman = yes
+				}
+
+				set_character_flag = achievement_not_a_tribe
+			}
+			
+			# TODO: Correct governments
+			# TODO: CI dynasty if relevant
+
+			if = {
+				limit = { is_government_potential = muslim_government}
+
+				set_government_type = muslim_government
+
+				if = {
+					limit = { ai = no }
+
+					chronicle = {
+						entry = CHRONICLE_ADOPTED_IQTA
+						picture = GFX_evt_castle_construction
+					}
+				}
+			}
+			else_if = {
+				limit = { is_government_potential = theocratic_feudal_government }
+
+				set_government_type = theocratic_feudal_government
+
+
+				if = {
+					limit = { ai = no }
+
+					chronicle = {
+						entry = CHRONICLE_ADOPTED_FEUDALISM
+						picture = GFX_evt_castle_construction
+					}
+				}
+			}
+			else = {
+				set_government_type = feudal_government
+
+				if = {
+					limit = { ai = no }
+
+					chronicle = {
+						entry = CHRONICLE_ADOPTED_FEUDALISM
+						picture = GFX_evt_castle_construction
+					}
+				}
+			}
+
+			if = {
+				limit = {
+					higher_tier_than = KING
+					NOT = { has_dlc = "Conclave" }
+				}
+
+				primary_title = {
+					add_law = feudal_administration
+				}
+			}
+
+			hidden_effect = {
+				any_demesne_title = {
+					limit = {
+						tier = BARON
+						holding_type = tribal
+					}
+
+					convert_to = castle
+					refill_holding_levy = yes
+
+					location = { # Clear Tribal Great Pillars
+						clr_province_flag = flag_great_pillar_norse
+						clr_province_flag = flag_great_pillar_tengri
+						clr_province_flag = flag_great_pillar_slavic
+						clr_province_flag = flag_great_pillar_baltic
+						clr_province_flag = flag_great_pillar_finnish
+						clr_province_flag = flag_great_pillar_west_african
+						clr_province_flag = flag_great_pillar_aztec
+						clr_province_flag = flag_great_pillar_bon
+						clr_province_flag = flag_great_pillar_zun
+						clr_province_flag = flag_great_pillar_hellenic
+						clr_province_flag = flag_great_pillar_ainu
+						clr_province_flag = flag_great_pillar_andamanese
+						clr_province_flag = flag_great_pillar_bai
+						clr_province_flag = flag_great_pillar_bamar
+						clr_province_flag = flag_great_pillar_batak
+						clr_province_flag = flag_great_pillar_chinese
+						clr_province_flag = flag_great_pillar_dayak
+						clr_province_flag = flag_great_pillar_dusun
+						clr_province_flag = flag_great_pillar_inca
+						clr_province_flag = flag_great_pillar_jurchen
+						clr_province_flag = flag_great_pillar_korean
+						clr_province_flag = flag_great_pillar_maian
+						clr_province_flag = flag_great_pillar_melanesian
+						clr_province_flag = flag_great_pillar_miao
+						clr_province_flag = flag_great_pillar_minahasan
+						clr_province_flag = flag_great_pillar_minangkabau
+						clr_province_flag = flag_great_pillar_nivkh
+						clr_province_flag = flag_great_pillar_ryukyuan
+						clr_province_flag = flag_great_pillar_sanamahi
+						clr_province_flag = flag_great_pillar_sundanese
+						clr_province_flag = flag_great_pillar_tai
+						clr_province_flag = flag_great_pillar_taiwanese
+						clr_province_flag = flag_great_pillar_viet
+						clr_province_flag = flag_great_pillar_yi
+						clr_province_flag = flag_great_pillar_zhuang
+					}
+
+					if = {
+						limit = {
+							dejure_liege_title = {
+								holder = ROOT
+
+								location = {
+									has_city = no
+									num_of_empty_holdings >= 2
+								}
+							}
+						}
+
+						location = {
+							build_holding = {
+								type = city
+							}
+						}
+					}
+
+					if = {
+						limit = {
+							dejure_liege_title = {
+								holder = ROOT
+
+								location = {
+									has_temple = no
+									num_of_empty_holdings >= 2
+								}
+							}
+						}
+
+						location = {
+							build_holding = {
+								type = temple
+							}
+						}
+					}
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	convert_to_feudalism_vassal = {
+		ai_check_interval = 12
+
+		is_high_prio = yes
+
+		only_playable = yes
+
+		potential = {
+			is_tribal = yes
+			independent = no
+		}
+
+		allow = {
+			war = no
+			is_not_unreformed_pagan_trigger = yes
+			# TODO: Civilized pagans?
+
+			liege = {
+				OR = {
+					is_feudal = yes
+					is_republic = yes
+
+					AND = {
+						is_theocracy = yes
+						is_not_unreformed_pagan_trigger = yes
+					}
+				}
+			}
+
+			OR = {
+				capital_holding = {
+					OR = {
+						holding_type = castle
+
+						AND = {
+							holding_type = tribal
+							has_building = tb_hillfort_4
+						}
+					}
+				}
+
+				capital_scope = {
+					any_province_holding = {
+						holding_type = castle
+
+						holder_scope = {
+							OR = {
+								character = ROOT
+								is_liege_or_above = ROOT
+							}
+						}
+					}
+				}
+			}
+		}
+
+		effect = {
+			if = {
+				limit = {
+					ai = no
+					is_ironman = yes
+				}
+
+				set_character_flag = achievement_not_a_tribe
+			}
+			
+			# TODO: Proper governments
+
+			if = {
+				limit = { is_government_potential = muslim_government}
+
+				set_government_type = muslim_government
+
+				if = {
+					limit = { ai = no }
+
+					chronicle = {
+						entry = CHRONICLE_ADOPTED_IQTA
+						picture = GFX_evt_castle_construction
+					}
+				}
+			}
+			else_if = {
+				limit = { is_government_potential = theocratic_feudal_government }
+
+				set_government_type = theocratic_feudal_government
+
+
+				if = {
+					limit = { ai = no }
+
+					chronicle = {
+						entry = CHRONICLE_ADOPTED_FEUDALISM
+						picture = GFX_evt_castle_construction
+					}
+				}
+			}
+			else = {
+				set_government_type = feudal_government
+
+				if = {
+					limit = { ai = no }
+
+					chronicle = {
+						entry = CHRONICLE_ADOPTED_FEUDALISM
+						picture = GFX_evt_castle_construction
+					}
+				}
+			}
+
+			hidden_effect = {
+				if = {
+					limit = {
+						capital_holding = {
+							holding_type = tribal
+							ROOT = { NOT = { tier = BARON } }
+						}
+
+						capital_scope = {
+							any_province_holding = {
+								holding_type = castle
+
+								holder_scope = {
+									OR = {
+										character = ROOT
+										is_liege_or_above = ROOT
+									}
+								}
+							}
+						}
+					}
+
+					capital_scope = {
+						random_province_holding = {
+							limit = {
+								holding_type = castle
+
+								holder_scope = {
+									OR = {
+										character = ROOT
+										is_liege_or_above = ROOT
+									}
+								}
+							}
+
+							if = {
+								limit = {
+									NOT = { holder = ROOT }
+								}
+								usurp_title = ROOT
+							}
+
+							make_capital_holding = yes
+
+							ROOT = {
+								set_character_flag = feudalize_handled_capital
+							}
+						}
+					}
+				}
+
+				any_demesne_title = {
+					limit = {
+						tier = BARON
+						holding_type = tribal
+
+						location = {
+							capital_holding = {
+								NOT = { holding_type = castle }
+							}
+						}
+					}
+
+					convert_to = castle
+					refill_holding_levy = yes
+
+					location = { # Clear Tribal Great Pillars
+						clr_province_flag = flag_great_pillar_norse
+						clr_province_flag = flag_great_pillar_tengri
+						clr_province_flag = flag_great_pillar_slavic
+						clr_province_flag = flag_great_pillar_baltic
+						clr_province_flag = flag_great_pillar_finnish
+						clr_province_flag = flag_great_pillar_west_african
+						clr_province_flag = flag_great_pillar_aztec
+						clr_province_flag = flag_great_pillar_bon
+						clr_province_flag = flag_great_pillar_zun
+						clr_province_flag = flag_great_pillar_hellenic
+						clr_province_flag = flag_great_pillar_ainu
+						clr_province_flag = flag_great_pillar_andamanese
+						clr_province_flag = flag_great_pillar_bai
+						clr_province_flag = flag_great_pillar_bamar
+						clr_province_flag = flag_great_pillar_batak
+						clr_province_flag = flag_great_pillar_chinese
+						clr_province_flag = flag_great_pillar_dayak
+						clr_province_flag = flag_great_pillar_dusun
+						clr_province_flag = flag_great_pillar_inca
+						clr_province_flag = flag_great_pillar_jurchen
+						clr_province_flag = flag_great_pillar_korean
+						clr_province_flag = flag_great_pillar_maian
+						clr_province_flag = flag_great_pillar_melanesian
+						clr_province_flag = flag_great_pillar_miao
+						clr_province_flag = flag_great_pillar_minahasan
+						clr_province_flag = flag_great_pillar_minangkabau
+						clr_province_flag = flag_great_pillar_nivkh
+						clr_province_flag = flag_great_pillar_ryukyuan
+						clr_province_flag = flag_great_pillar_sanamahi
+						clr_province_flag = flag_great_pillar_sundanese
+						clr_province_flag = flag_great_pillar_tai
+						clr_province_flag = flag_great_pillar_taiwanese
+						clr_province_flag = flag_great_pillar_viet
+						clr_province_flag = flag_great_pillar_yi
+						clr_province_flag = flag_great_pillar_zhuang
+					}
+
+					if = {
+						limit = {
+							dejure_liege_title = {
+								holder = ROOT
+
+								location = {
+									has_city = no
+									num_of_empty_holdings >= 2
+								}
+							}
+						}
+
+						location = {
+							build_holding = {
+								type = city
+							}
+						}
+					}
+
+					if = {
+						limit = {
+							dejure_liege_title = {
+								holder = ROOT
+
+								location = {
+									has_temple = no
+									num_of_empty_holdings >= 2
+								}
+							}
+						}
+
+						location = {
+							build_holding = {
+								type = temple
+							}
+						}
+					}
+				}
+
+				liege = {
+					character_event = { id = 55100 } # Notify Liege
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+
+			mult_modifier = {
+				factor = 0.01
+
+				liege = {
+					trigger_if = {
+						limit = { religion_group = ROOT }
+
+						religion_group = pagan_group
+						NOT = { religion = ROOT }
+					}
+				}
+			}
+
+			mult_modifier = {
+				factor = 0.1
+				NOT = { culture_group = liege }
+			}
+
+			mult_modifier = {
+				factor = 0.1
+
+				liege = {
+					religion_group = ROOT
+
+					NOR = {
+						religion_group = pagan_group
+						religion = ROOT
+					}
+				}
+			}
+		}
+	}
+
+	convert_to_republic_indep = {
+		is_high_prio = yes
+
+		ai = no
+
+		potential = {
+			independent = yes
+			is_tribal = yes
+			has_dlc = "The Republic"
+		}
+
+		allow = {
+			higher_real_tier_than = COUNT
+			is_not_unreformed_pagan_trigger = yes
+			has_law = tribal_organization_4
+			is_female = no
+			war = no
+
+			capital_scope = {
+				is_coastal = yes
+			}
+
+			capital_holding = {
+				OR = {
+					holding_type = city
+
+					AND = {
+						holding_type = tribal
+						has_building = tb_market_town_4
+					}
+				}
+			}
+			NAND = { # The Chrysanthemum Throne should never belong to a republic!
+				religion = shinto
+				controls_religion = yes
+			}
+			NAND = { # The knockoff is a knockoff!
+				religion = ryukyuan_pagan_reformed
+				controls_religion = yes
+				can_have_divine_imperial_trigger = yes
+			}
+		}
+
+		effect = {
+			create_family_palace = yes
+
+			set_government_type = merchant_republic_government
+
+			hidden_effect = {
+				if = {
+					limit = {
+						num_of_government_vassals = {
+							government = merchant_republic_government
+							value < 1
+						}
+					}
+
+					# Gives random vassals a family palace
+					any_unique_dynasty_vassal = {
+						count = 4
+
+						limit = {
+							OR = {
+								is_republic = yes
+								is_tribal = yes
+							}
+
+							is_female = no
+							is_patrician = no
+							prisoner = no
+							is_actually_incapable_trigger = no
+							is_adult = yes
+							is_lowborn = no
+							NAND = { # The Chrysanthemum Throne should never belong to a republic!
+								religion = shinto
+								controls_religion = yes
+							}
+							NAND = { # The knockoff is a knockoff!
+								religion = ryukyuan_pagan_reformed
+								controls_religion = yes
+								can_have_divine_imperial_trigger = yes
+							}
+						}
+
+						if = {
+							limit = { is_tribal = yes }
+
+							any_demesne_title = {
+								limit = {
+									tier = BARON
+									holding_type = tribal
+								}
+
+								convert_to = city
+								refill_holding_levy = yes
+
+								location = { # Clear Tribal Great Pillars
+									clr_province_flag = flag_great_pillar_norse
+									clr_province_flag = flag_great_pillar_tengri
+									clr_province_flag = flag_great_pillar_slavic
+									clr_province_flag = flag_great_pillar_baltic
+									clr_province_flag = flag_great_pillar_finnish
+									clr_province_flag = flag_great_pillar_west_african
+									clr_province_flag = flag_great_pillar_aztec
+									clr_province_flag = flag_great_pillar_bon
+									clr_province_flag = flag_great_pillar_zun
+									clr_province_flag = flag_great_pillar_hellenic
+									clr_province_flag = flag_great_pillar_ainu
+									clr_province_flag = flag_great_pillar_andamanese
+									clr_province_flag = flag_great_pillar_bai
+									clr_province_flag = flag_great_pillar_bamar
+									clr_province_flag = flag_great_pillar_batak
+									clr_province_flag = flag_great_pillar_chinese
+									clr_province_flag = flag_great_pillar_dayak
+									clr_province_flag = flag_great_pillar_dusun
+									clr_province_flag = flag_great_pillar_inca
+									clr_province_flag = flag_great_pillar_jurchen
+									clr_province_flag = flag_great_pillar_korean
+									clr_province_flag = flag_great_pillar_maian
+									clr_province_flag = flag_great_pillar_melanesian
+									clr_province_flag = flag_great_pillar_miao
+									clr_province_flag = flag_great_pillar_minahasan
+									clr_province_flag = flag_great_pillar_minangkabau
+									clr_province_flag = flag_great_pillar_nivkh
+									clr_province_flag = flag_great_pillar_ryukyuan
+									clr_province_flag = flag_great_pillar_sanamahi
+									clr_province_flag = flag_great_pillar_sundanese
+									clr_province_flag = flag_great_pillar_tai
+									clr_province_flag = flag_great_pillar_taiwanese
+									clr_province_flag = flag_great_pillar_viet
+									clr_province_flag = flag_great_pillar_yi
+									clr_province_flag = flag_great_pillar_zhuang
+								}
+
+								if = {
+									limit = {
+										dejure_liege_title = {
+											holder = PREVPREV
+
+											location = {
+												has_castle = no
+												num_of_empty_holdings >= 2
+											}
+										}
+									}
+
+									location = {
+										build_holding = {
+											type = castle
+										}
+									}
+								}
+
+								if = {
+									limit = {
+										dejure_liege_title = {
+											holder = PREVPREV
+
+											location = {
+												has_temple = no
+												num_of_empty_holdings >= 2
+											}
+										}
+									}
+
+									location = {
+										build_holding = {
+											type = temple
+										}
+									}
+								}
+							}
+						}
+
+						create_family_palace = yes
+
+						set_government_type = merchant_republic_government
+					}
+				}
+
+				any_demesne_title = {
+					limit = {
+						tier = BARON
+						holding_type = tribal
+					}
+
+					convert_to = city
+					refill_holding_levy = yes
+
+					location = { # Clear Tribal Great Pillars
+						clr_province_flag = flag_great_pillar_norse
+						clr_province_flag = flag_great_pillar_tengri
+						clr_province_flag = flag_great_pillar_slavic
+						clr_province_flag = flag_great_pillar_baltic
+						clr_province_flag = flag_great_pillar_finnish
+						clr_province_flag = flag_great_pillar_west_african
+						clr_province_flag = flag_great_pillar_aztec
+						clr_province_flag = flag_great_pillar_bon
+						clr_province_flag = flag_great_pillar_zun
+						clr_province_flag = flag_great_pillar_hellenic
+						clr_province_flag = flag_great_pillar_ainu
+						clr_province_flag = flag_great_pillar_andamanese
+						clr_province_flag = flag_great_pillar_bai
+						clr_province_flag = flag_great_pillar_bamar
+						clr_province_flag = flag_great_pillar_batak
+						clr_province_flag = flag_great_pillar_chinese
+						clr_province_flag = flag_great_pillar_dayak
+						clr_province_flag = flag_great_pillar_dusun
+						clr_province_flag = flag_great_pillar_inca
+						clr_province_flag = flag_great_pillar_jurchen
+						clr_province_flag = flag_great_pillar_korean
+						clr_province_flag = flag_great_pillar_maian
+						clr_province_flag = flag_great_pillar_melanesian
+						clr_province_flag = flag_great_pillar_miao
+						clr_province_flag = flag_great_pillar_minahasan
+						clr_province_flag = flag_great_pillar_minangkabau
+						clr_province_flag = flag_great_pillar_nivkh
+						clr_province_flag = flag_great_pillar_ryukyuan
+						clr_province_flag = flag_great_pillar_sanamahi
+						clr_province_flag = flag_great_pillar_sundanese
+						clr_province_flag = flag_great_pillar_tai
+						clr_province_flag = flag_great_pillar_taiwanese
+						clr_province_flag = flag_great_pillar_viet
+						clr_province_flag = flag_great_pillar_yi
+						clr_province_flag = flag_great_pillar_zhuang
+					}
+
+					if = {
+						limit = {
+							dejure_liege_title = {
+								holder = ROOT
+
+								location = {
+									has_castle = no
+									num_of_empty_holdings >= 2
+								}
+							}
+						}
+
+						location = {
+							build_holding = {
+								type = castle
+							}
+						}
+					}
+
+					if = {
+						limit = {
+							dejure_liege_title = {
+								holder = ROOT
+
+								location = {
+									has_temple = no
+									num_of_empty_holdings >= 2
+								}
+							}
+						}
+
+						location = {
+							build_holding = {
+								type = temple
+							}
+						}
+					}
+				}
+			}
+
+			if = {
+				limit = {
+					ai = no
+					is_ironman = yes
+				}
+
+				set_character_flag = achievement_res_publica
+			}
+
+			if = {
+				limit = { ai = no }
+
+				chronicle = {
+					entry = CHRONICLE_FOUNDED_MERCHANT_REPUBLIC
+					picture = GFX_evt_busy_trading_dock_republic
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+}
+
+targeted_decisions = {
+	embrace_mutazila = {
+		filter = self
+		ai_target_filter = self
+		ai_check_interval = 60
+
+		only_playable = yes
+
+		potential = {
+			has_dlc = "Sons of Abraham"
+			religion = sunni
+
+			NOR = {
+				trait = mutazilite
+				trait = ashari
+			}
+
+			is_adult = yes
+			prisoner = no
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+
+		allow = {
+			piety >= 50
+		}
+
+		effect = {
+			add_trait = mutazilite
+
+			character_event = {
+				id = SoA.600
+				tooltip = EVTTOOLTIP_SoA_600
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.5
+
+			trigger = {
+				NOT = { trait = zealous }
+			}
+
+			mult_modifier = {
+				factor = 1.2
+				trait = cynical
+			}
+
+			mult_modifier = {
+				factor = 1.2
+				liege = { trait = mutazilite }
+			}
+		}
+	}
+
+	embrace_ashari = {
+		filter = self
+		ai_target_filter = self
+		ai_check_interval = 60
+
+		only_playable = yes
+
+		potential = {
+			has_dlc = "Sons of Abraham"
+			religion = sunni
+
+			NOR = {
+				trait = mutazilite
+				trait = ashari
+			}
+
+			is_adult = yes
+			prisoner = no
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+
+		allow = {
+			piety >= 50
+		}
+
+		effect = {
+			add_trait = ashari
+
+			character_event = {
+				id = SoA.601
+				tooltip = EVTTOOLTIP_SoA_601
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.5
+
+			trigger = {
+				NOT = { trait = cynical }
+			}
+
+			mult_modifier = {
+				factor = 1.2
+				trait = zealous
+			}
+
+			mult_modifier = {
+				factor = 1.2
+				liege = { trait = ashari }
+			}
+
+			mult_modifier = {
+				factor = 1.2
+				decadence >= 40
+			}
+
+			mult_modifier = {
+				factor = 1.2
+				decadence >= 60
+			}
+
+			mult_modifier = {
+				factor = 1.2
+				decadence >= 80
+			}
+		}
+	}
+
+}

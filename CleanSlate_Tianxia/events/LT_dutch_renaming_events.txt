@@ -1,0 +1,572 @@
+# Rename West-Frisian lands
+character_event = {
+	id = LT.41000
+	desc = EVTDESC_LT_41000
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes # on_decade_pulse
+
+	only_playable = yes
+	culture = dutch
+
+	trigger = {
+		is_alternate_start = no
+		has_landed_title = d_holland
+		has_landed_title = c_holland
+		NOT = { has_global_flag = west_frisia_renamed }
+
+		d_holland = {
+			NOT = {
+				any_direct_de_jure_vassal_title = {
+					location = {
+						NOT = { culture = dutch }
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		set_global_flag = west_frisia_renamed
+	}
+
+	option = { # Rename
+		name = EVTOPTA_LT_41000
+
+		prestige = 50
+
+		d_holland = {
+			show_scope_change = no
+			set_name = "DUCHY_HOLLAND"
+			adjective = "DUCHY_HOLLAND_ADJ"
+		}
+
+		c_holland = {
+			show_scope_change = no
+			set_name = "COUNTY_HOLLAND"
+			adjective = "COUNTY_HOLLAND_ADJ"
+		}
+
+		c_westfriesland = {
+			show_scope_change = no
+			set_name = "COUNTY_WESTFRIESLAND"
+			adjective = "COUNTY_WESTFRIESLAND_ADJ"
+		}
+
+		any_realm_lord = {
+			limit = {
+				NOR = {
+					has_landed_title = c_westfriesland
+					has_landed_title = c_zeeland
+				}
+			}
+
+			narrative_event = { id = LT.41001 }
+		}
+
+		if = {
+			limit = {
+				NOT = { has_landed_title = c_zeeland }
+			}
+
+			c_zeeland = {
+				holder_scope = {
+					narrative_event = { id = LT.41001 }
+				}
+			}
+		}
+
+		if = {
+			limit = {
+				NOT = { has_landed_title = c_westfriesland }
+			}
+
+			c_westfriesland = {
+				holder_scope = {
+					narrative_event = { id = LT.41001 }
+				}
+			}
+		}
+	}
+
+	option = { # Do not rename
+		name = EVTOPTB_LT_41000
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+narrative_event = {
+	id = LT.41001
+	title = EVTTITLE_LT_41001
+	desc = EVTDESC_LT_41001
+	picture = GFX_evt_throne_room
+	border = GFX_event_narrative_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_LT_41001 # How bad!
+
+		trigger = { culture = frisian }
+
+		prestige = -50
+	}
+
+	option = {
+		name = EVTOPTB_LT_41001 # Good for us!
+
+		trigger = { culture = dutch }
+
+		prestige = 50
+	}
+
+	option = {
+		name = {
+			text = EVTOPTC_LT_41001 # Good for them!
+			trigger = {
+				opinion = {
+					who = FROM
+					value >= 0
+				}
+			}
+		}
+		name = {
+			text = EVTOPTD_LT_41001 # A weed by any other name...
+			trigger = {
+				opinion = {
+					who = FROM
+					value < 0
+				}
+			}
+		}
+
+		trigger = {
+			NOR = {
+				culture = frisian
+				culture = dutch
+			}
+		}
+	}
+}
+
+# Rename Hamaland
+# on_war_ended_defeat: FROM is attacker, ROOT is defender
+character_event = {
+	id = LT.41002
+	desc = EVTDESC_LT_41002
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes # on_war_ended_defeat
+
+	only_playable = yes
+
+	trigger = {
+		is_alternate_start = no
+		higher_real_tier_than = DUKE
+
+		FROM = { # The defeated guy
+			has_landed_title = c_gelre # holds Gelre (named Hamaland)
+			NOT = { has_landed_title = b_geldern } # but not Geldern
+
+			liege_before_war = {
+				character = ROOT # and was attacking their liege, ergo, he revolted.
+			}
+
+			trigger_if = {
+				limit = { ai = no } # Either it's not a player
+				demesne_size >= 2 # or it's not their only county-level title.
+			}
+		}
+
+		d_gelre = {
+			trigger_if = {
+				limit = { has_holder = yes }
+				holder = FROM
+			}
+		}
+
+		b_geldern = { # Geldern
+			holder_scope = { # exists
+				tier = baron # is ruled by a baron
+				is_vassal_or_below_of = ROOT # and is in the same realm.
+			}
+		}
+
+		NOT = { has_global_flag = hamaland_renamed } # This hasn't happened yet.
+	}
+
+	immediate = {
+		FROM = {
+			save_event_target_as = failed_revolter
+		}
+
+		set_global_flag = hamaland_renamed
+
+		b_geldern = {
+			holder_scope = {
+				save_event_target_as = geldern_holder
+
+				add_weak_claim = c_gelre
+
+				add_trait = content # Make sure they're desirable vassals,
+				add_trait = humble
+				add_trait = quick
+				clear_education_trait = yes
+				add_trait = midas_touched
+				culture = ROOT
+				religion = ROOT
+
+				any_child_even_if_dead = { # as well as their children,
+					if = {
+						limit = {
+							is_playable = no
+						}
+						remove_trait = ambitious
+						culture = ROOT
+						religion = ROOT
+					}
+
+					any_child_even_if_dead = { # and theirs.
+						if = {
+							limit = {
+								is_playable = no
+							}
+							culture = ROOT
+							religion = ROOT
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = { # Give c_gelre (and d_gelre) to b_geldern
+		name = EVTOPTA_LT_41002
+
+		event_target:geldern_holder = {
+			show_scope_change = no
+			grant_title = c_gelre
+			reverse_add_favor = ROOT
+
+			if = {
+				limit = {
+					event_target:failed_revolter = {
+						has_landed_title = d_gelre # If d_gelre is held by the defeated revolter
+					}
+				}
+
+				grant_title = d_gelre # it also goes to Geldern.
+			}
+
+			hidden_effect = { # To fix independence issue.
+				set_defacto_liege = ROOT
+			}
+		}
+
+		c_gelre = {
+			show_scope_change = no
+			set_name = "COUNTY_GELRE"
+			adjective = "COUNTY_GELRE_ADJ"
+		}
+
+		# The duchy is renamed regardless, as Geldern should clearly have all the things.
+		d_gelre = {
+			show_scope_change = no
+			set_name = "DUCHY_GELRE"
+			adjective = "DUCHY_GELRE_ADJ"
+		}
+
+		any_player = {
+			limit = {
+				same_realm = ROOT
+
+				NOR = {
+					character = event_target:failed_revolter
+					character = ROOT
+				}
+			}
+
+			narrative_event = { id = LT.41003 }
+		}
+
+		event_target:failed_revolter = {
+			narrative_event = { id = LT.41003 }
+		}
+		
+		ai_chance = {
+			factor = 1
+			mult_modifier = {
+				factor = 0
+				b_geldern = {
+					holder_scope = {
+						is_rival = ROOT
+					}
+				}
+			}
+		}
+	}
+
+	option = { # Do not rename
+		name = EVTOPTB_LT_41002
+
+		prestige = 50
+
+		ai_chance = {
+			factor = 1
+			mult_modifier = {
+				factor = 0
+				b_geldern = {
+					holder_scope = {
+						NOT = {
+							is_rival = ROOT
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+narrative_event = {
+	id = LT.41003
+	title = EVTTITLE_LT_41001
+	desc = EVTDESC_LT_41003
+	picture = GFX_evt_throne_room
+	border = GFX_event_narrative_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = {
+			text = EVTOPTA_LT_41003 # Wise decision
+			trigger = {
+				opinion = {
+					who = FROM
+					value >= 0
+				}
+			}
+		}
+		name = {
+			text = EVTOPTB_LT_41003 # Short-sightedness abound!
+			trigger = {
+				opinion = {
+					who = FROM
+					value < 0
+				}
+			}
+		}
+
+		trigger = {
+			NOT = { character = event_target:failed_revolter }
+		}
+	}
+
+	option = {
+		name = EVTOPTC_LT_41003 # That traitor! Those are my lands!
+
+		trigger = { character = event_target:failed_revolter }
+
+		add_pressed_claim = c_gelre
+
+		if = {
+			limit = {
+				event_target:geldern_holder = {
+					has_landed_title = d_gelre
+				}
+			}
+
+			add_pressed_claim = d_gelre
+		}
+	}
+}
+
+# Rename Toxandria
+character_event = {
+	id = LT.41004
+	desc = EVTDESC_LT_41004
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes # on_holding_building_start
+
+	only_playable = yes
+
+	trigger = {
+		is_alternate_start = no
+		has_landed_title = c_breda
+		NOT = { has_global_flag = toxandria_renamed }
+
+		FROM = {
+			title = b_breda
+			yearly_income >= 10 # Well-sized city
+		}
+	}
+
+	immediate = {
+		set_global_flag = toxandria_renamed
+	}
+
+	option = { # Rename
+		name = EVTOPTA_LT_41004
+
+		c_breda = {
+			show_scope_change = no
+			set_name = "COUNTY_BREDA"
+			adjective = "COUNTY_BREDA_ADJ"
+		}
+
+		add_character_modifier = {
+			name = burghers_appeased
+			years = 10
+		}
+
+		any_player = {
+			limit = {
+				capital_scope = {
+					distance = {
+						where = 92 # Breda
+						value < 100 # Reasonably close
+					}
+				}
+
+				NOT = { character = ROOT }
+			}
+
+			narrative_event = { id = LT.41005 }
+		}
+	}
+
+	option = { # Do not rename
+		name = EVTOPTB_LT_41004
+
+		prestige = 50
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+narrative_event = {
+	id = LT.41005
+	title = EVTTITLE_LT_41001
+	desc = EVTDESC_LT_41005
+	picture = GFX_evt_throne_room
+	border = GFX_event_narrative_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = {
+			text = EVTOPTA_LT_41005 # Good for them!
+			trigger = {
+				opinion = {
+					who = FROM
+					value >= 0
+				}
+			}
+		}
+		name = {
+			text = EVTOPTB_LT_41005 # A weed by any other name...
+			trigger = {
+				opinion = {
+					who = FROM
+					value < 0
+				}
+			}
+		}
+	}
+}
+
+# Rename Hattuaria
+character_event = {
+	id = LT.41006
+	desc = EVTDESC_LT_41006
+	picture = GFX_evt_throne_room
+
+	is_triggered_only = yes # on_holding_building_start
+
+	only_playable = yes
+
+	trigger = {
+		is_alternate_start = no
+		has_landed_title = c_kleve
+		NOT = { has_global_flag = hattuaria_renamed }
+
+		FROM = {
+			title = b_kleve
+			yearly_income >= 10 # Well-sized city
+		}
+	}
+
+	immediate = {
+		set_global_flag = hattuaria_renamed
+	}
+
+	option = { # Rename
+		name = EVTOPTA_LT_41006
+
+		c_kleve = {
+			show_scope_change = no
+			set_name = "COUNTY_KLEVE"
+			adjective = "COUNTY_KLEVE_ADJ"
+		}
+
+		add_character_modifier = {
+			name = burghers_appeased
+			years = 10
+		}
+
+		any_player = {
+			limit = {
+				capital_scope = {
+					distance = {
+						where = 89 # Kleve
+						value < 100 # Reasonably close
+					}
+				}
+
+				NOT = { character = ROOT }
+			}
+
+			narrative_event = { id = LT.41007 }
+		}
+	}
+
+	option = { # Do not rename
+		name = EVTOPTB_LT_41006
+
+		prestige = 50
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+narrative_event = {
+	id = LT.41007
+	title = EVTTITLE_LT_41001
+	desc = EVTDESC_LT_41007
+	picture = GFX_evt_throne_room
+	border = GFX_event_narrative_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = {
+			text = EVTOPTA_LT_41007 # Good for them!
+			trigger = {
+				opinion = {
+					who = FROM
+					value >= 0
+				}
+			}
+		}
+		name = {
+			text = EVTOPTB_LT_41007 # A weed by any other name...
+			trigger = {
+				opinion = {
+					who = FROM
+					value < 0
+				}
+			}
+		}
+	}
+}
