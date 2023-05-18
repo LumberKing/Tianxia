@@ -1,0 +1,2290 @@
+###########################################
+#                                         #
+# ZE Ambition Events                      #
+# ID ZE.6000-ZE.6999                      #
+#                                         #
+###########################################
+
+#Written by Markus Olsen
+
+namespace = ZE
+
+# Liege recieves vassals request for council position
+character_event = {
+	id = ZE.6001
+	desc = EVTDESC_ZE_6001
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes # request_council_position, ze_ambition_decisions.txt
+
+	has_dlc = "Conclave"
+
+	immediate = {
+		save_event_target_as = target_liege
+		FROMFROM = { save_event_target_as = aspiring_councillor }
+	}
+
+	option = {
+		name = EVTOPTA_ZE_6001 # I'll see what I can do
+
+		event_target:aspiring_councillor = {
+			show_scope_change = no
+
+			set_character_flag = council_membership_requested
+
+			character_event = {
+				id = ZE.6004
+				days = 1
+				tooltip = EVTTOOLTIPZE_6004
+			}
+		}
+
+		ai_chance = {
+			factor = 30
+
+			trigger = {
+				NOT = { is_rival = event_target:aspiring_councillor }
+			}
+
+			mult_modifier = {
+				factor = 3
+
+				OR = {
+					opinion = {
+						who = event_target:aspiring_councillor
+						value >= 75
+					}
+
+					is_friend = event_target:aspiring_councillor
+				}
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_ZE_6001 # We don't need you
+
+		event_target:aspiring_councillor = {
+			show_scope_change = no
+
+			set_character_flag = council_membership_denied
+
+			opinion = {
+				name = opinion_very_disappointed
+				who = ROOT
+				years = 5
+			}
+
+			character_event = {
+				id = ZE.6005
+				days = 1
+				tooltip = EVTTOOLTIPZE_6005
+			}
+		}
+
+		ai_chance = {
+			factor = 30
+
+			trigger = {
+				diplomacy < 15
+				NOT = { is_friend = event_target:aspiring_councillor }
+
+				opinion = {
+					who = event_target:aspiring_councillor
+					value < 75
+				}
+			}
+
+			mult_modifier = {
+				factor = 3
+				is_rival = event_target:aspiring_councillor
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTC_ZE_6001 # I would not bother you with such petty assignments
+		tooltip_info = diplomacy
+
+		trigger = { diplomacy >= 15 }
+
+		event_target:aspiring_councillor = {
+			show_scope_change = no
+
+			set_character_flag = council_membership_denied
+
+			opinion = {
+				name = opinion_flattered
+				who = ROOT
+				years = 2
+			}
+
+			character_event = {
+				id = ZE.6006
+				days = 1
+				tooltip = EVTTOOLTIPZE_6006
+			}
+		}
+
+		ai_chance = {
+			factor = 30
+
+			trigger = {
+				NOT = { is_friend = event_target:aspiring_councillor }
+
+				opinion = {
+					who = event_target:aspiring_councillor
+					value < 75
+				}
+			}
+
+			mult_modifier = {
+				factor = 3
+				is_rival = event_target:aspiring_councillor
+			}
+		}
+	}
+}
+
+# Vassal may ask for council seat again
+character_event = {
+	id = ZE.6002
+	desc = EVTDESC_ZE_6002
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	has_character_flag = council_membership_requested
+	has_dlc = "Conclave"
+	prisoner = no
+	#only_capable = yes
+
+	trigger = {
+		has_ambition = obj_become_council_member
+		NOT = { has_character_flag = council_membership_denied }
+		is_inaccessible_trigger = no
+		is_actually_incapable_trigger = no
+	}
+
+	immediate = {
+		# If there are no open spots on the council ROOT could take
+		liege = {
+			if = {
+				limit = {
+					NOR = {
+						AND = {
+							NOT = { job_chancellor = { always = yes } }
+							ROOT = { can_hold_title = job_chancellor }
+						}
+
+						AND = {
+							NOT = { job_marshal = { always = yes } }
+							ROOT = { can_hold_title = job_marshal }
+						}
+
+						AND = {
+							NOT = { job_treasurer = { always = yes } }
+							ROOT = { can_hold_title = job_treasurer }
+						}
+
+						AND = {
+							NOT = { job_spymaster = { always = yes } }
+							ROOT = { can_hold_title = job_spymaster }
+						}
+
+						AND = {
+							NOT = { job_spiritual = { always = yes } }
+							ROOT = { can_hold_title = job_spiritual }
+						}
+					}
+				}
+
+				# Select a suitable councillor whose spot ROOT could take instead
+				random_voter = {
+					limit = {
+						NOR = {
+							i_am_appropriate_regent_trigger = yes
+							has_minor_title = title_grand_chancellor
+						}
+						trigger_if = {
+							limit = { has_job_title = job_chancellor }
+							ROOT = { can_hold_title = job_chancellor }
+						}
+						trigger_else_if = {
+							limit = { has_job_title = job_marshal }
+							ROOT = { can_hold_title = job_marshal }
+						}
+						trigger_else_if = {
+							limit = { has_job_title = job_treasurer }
+							ROOT = { can_hold_title = job_treasurer }
+						}
+						trigger_else_if = {
+							limit = { has_job_title = job_spymaster }
+							ROOT = { can_hold_title = job_spymaster }
+						}
+						trigger_else = {
+							has_job_title = job_spiritual
+							ROOT = { can_hold_title = job_spiritual }
+						}
+					}
+
+					preferred_limit = {
+						is_rival = ROOT
+					}
+
+					preferred_limit = {
+						opinion = {
+							who = ROOT
+							value < 0
+						}
+					}
+
+					preferred_limit = {
+						NOT = { among_most_powerful_vassals = 5 }
+					}
+
+					save_event_target_as = councillor_target
+				}
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTA_ZE_6002
+
+		liege = {
+			show_scope_change = no
+
+			character_event = {
+				id = ZE.6003
+				days = 3
+				tooltip = EVTTOOLTIPZE_6003
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_ZE_6002
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+# Liege recieves vassals demand for council position
+character_event = {
+	id = ZE.6003
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_normal_frame_diplomacy
+
+	desc = {
+		text = EVTDESCA_ZE_6003 # If we have a councillor in mind
+		trigger = {
+			event_target:councillor_target = { always = yes }
+		}
+	}
+	desc = {
+		text = EVTDESCB_ZE_6003 # If there is an open spot
+		trigger = {
+			NOT = {
+				event_target:councillor_target = { always = yes }
+			}
+		}
+	}
+
+	is_triggered_only = yes
+
+	has_dlc = "Conclave"
+	prisoner = no
+	#only_capable = yes
+
+	trigger = {
+		is_inaccessible_trigger = no
+		is_actually_incapable_trigger = no
+	}
+
+	# We fire the current councillor and replace with new
+	option = {
+		name = EVTOPTA_ZE_6003
+
+		trigger = {
+			event_target:councillor_target = { always = yes }
+		}
+
+		event_target:councillor_target = {
+			show_scope_change = no
+
+			opinion = {
+				name = opinion_fired_from_council
+				who = ROOT
+				years = 5
+			}
+
+			trigger_switch = {
+				on_trigger = has_job_title
+
+				job_chancellor = {
+					remove_title = job_chancellor
+
+					event_target:aspiring_councillor = {
+						show_scope_change = no
+
+						clr_character_flag = council_membership_requested
+						give_job_title = job_chancellor
+					}
+				}
+
+				job_treasurer = {
+					remove_title = job_treasurer
+
+					event_target:aspiring_councillor = {
+						show_scope_change = no
+
+						clr_character_flag = council_membership_requested
+						give_job_title = job_treasurer
+					}
+				}
+
+				job_spiritual = {
+					remove_title = job_spiritual
+
+					event_target:aspiring_councillor = {
+						show_scope_change = no
+
+						clr_character_flag = council_membership_requested
+						give_job_title = job_spiritual
+					}
+				}
+
+				job_spymaster = {
+					remove_title = job_spymaster
+
+					event_target:aspiring_councillor = {
+						show_scope_change = no
+
+						clr_character_flag = council_membership_requested
+						give_job_title = job_spymaster
+					}
+				}
+
+				job_marshal = {
+					remove_title = job_marshal
+
+					event_target:aspiring_councillor = {
+						show_scope_change = no
+
+						clr_character_flag = council_membership_requested
+						give_job_title = job_marshal
+					}
+				}
+			}
+		}
+
+		ai_chance = {
+			factor = 30
+
+			trigger = {
+				NOT = { is_rival = event_target:aspiring_councillor }
+			}
+
+			mult_modifier = {
+				factor = 3
+
+				OR = {
+					is_friend = event_target:aspiring_councillor
+
+					opinion = {
+						who = event_target:aspiring_councillor
+						value >= 75
+					}
+				}
+			}
+		}
+	}
+
+	# We have an open spot and approve the request
+	option = {
+		name = EVTOPTB_ZE_6003
+
+		trigger = {
+			NOT = {
+				event_target:councillor_target = { always = yes }
+			}
+		}
+
+		if = {
+			limit = {
+				NOT = { job_chancellor = { always = yes } }
+				event_target:aspiring_councillor = { can_hold_title = job_chancellor }
+			}
+
+			event_target:aspiring_councillor = {
+				show_scope_change = no
+
+				clr_character_flag = council_membership_requested
+				give_job_title = job_chancellor
+			}
+		}
+		else_if = {
+			limit = {
+				NOT = { job_treasurer = { always = yes } }
+				event_target:aspiring_councillor = { can_hold_title = job_treasurer }
+			}
+
+			event_target:aspiring_councillor = {
+				show_scope_change = no
+
+				clr_character_flag = council_membership_requested
+				give_job_title = job_treasurer
+			}
+		}
+		else_if = {
+			limit = {
+				NOT = { job_spiritual = { always = yes } }
+				event_target:aspiring_councillor = { can_hold_title = job_spiritual }
+			}
+
+			event_target:aspiring_councillor = {
+				show_scope_change = no
+
+				clr_character_flag = council_membership_requested
+				give_job_title = job_spiritual
+			}
+		}
+		else_if = {
+			limit = {
+				NOT = { job_spymaster = { always = yes } }
+				event_target:aspiring_councillor = { can_hold_title = job_spymaster }
+			}
+
+			event_target:aspiring_councillor = {
+				show_scope_change = no
+
+				clr_character_flag = council_membership_requested
+				give_job_title = job_spymaster
+			}
+		}
+		else_if = {
+			limit = {
+				NOT = { job_marshal = { always = yes } }
+				event_target:aspiring_councillor = { can_hold_title = job_marshal }
+			}
+
+			event_target:aspiring_councillor = {
+				show_scope_change = no
+
+				clr_character_flag = council_membership_requested
+				give_job_title = job_marshal
+			}
+		}
+
+		ai_chance = {
+			factor = 30
+
+			trigger = {
+				NOT = { is_rival = event_target:aspiring_councillor }
+			}
+
+			mult_modifier = {
+				factor = 3
+
+				OR = {
+					is_friend = event_target:aspiring_councillor
+
+					opinion = {
+						who = event_target:aspiring_councillor
+						value >= 75
+					}
+				}
+			}
+		}
+	}
+
+	# We decline the request
+	option = {
+		name = EVTOPTC_ZE_6003
+
+		event_target:aspiring_councillor = {
+			show_scope_change = no
+
+			set_character_flag = council_membership_denied
+
+			opinion = {
+				name = opinion_very_disappointed
+				who = ROOT
+				years = 5
+			}
+
+			character_event = {
+				id = ZE.6005
+				days = 1
+			}
+		}
+
+		ai_chance = {
+			factor = 70
+
+			trigger = {
+				intrigue < 15
+				NOT = { is_friend = event_target:aspiring_councillor }
+
+				opinion = {
+					who = event_target:aspiring_councillor
+					value < 75
+				}
+			}
+
+			mult_modifier = {
+				factor = 3
+				is_rival = event_target:aspiring_councillor
+			}
+		}
+	}
+
+	# We play them against each other
+	option = {
+		name = EVTOPTD_ZE_6003
+		tooltip_info = intrigue
+
+		trigger = {
+			event_target:councillor_target = { always = yes }
+			intrigue >= 15
+		}
+
+		event_target:aspiring_councillor = {
+			show_scope_change = no
+
+			set_character_flag = council_membership_denied
+
+			character_event = {
+				id = ZE.6007
+				days = 1
+				tooltip = EVTTOOLTIPZE_6007
+			}
+		}
+
+		ai_chance = {
+			factor = 50
+
+			trigger = {
+				NOT = { is_friend = event_target:aspiring_councillor }
+
+				opinion = {
+					who = event_target:aspiring_councillor
+					value < 75
+				}
+			}
+
+			mult_modifier = {
+				factor = 3
+				is_rival = event_target:aspiring_councillor
+			}
+		}
+	}
+}
+
+# Liege will think about council position
+character_event = {
+	id = ZE.6004
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_normal_frame_diplomacy
+	desc = EVTDESC_ZE_6004
+
+	is_triggered_only = yes
+
+	# Alright
+	option = {
+		name = EVTOPTA_ZE_6004
+
+		character_event = {
+			id = ZE.6002
+			months = 3
+		}
+	}
+}
+
+# Liege declined council request
+character_event = {
+	id = ZE.6005
+	desc = EVTDESC_ZE_6005
+	picture = GFX_evt_bad_news
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	ai = no
+
+	# Oh
+	option = {
+		name = EVTOPTA_ZE_6005
+	}
+}
+
+# Liege explains we are too good for the council
+character_event = {
+	id = ZE.6006
+	desc = EVTDESC_ZE_6006
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	ai = no
+
+	# Blush
+	option = {
+		name = EVTOPTA_ZE_6006
+	}
+}
+
+# Liege tells me another councillor has been slandering me
+character_event = {
+	id = ZE.6007
+	picture = GFX_evt_whispers
+	border = GFX_event_normal_frame_intrigue
+	desc = EVTDESC_ZE_6007
+
+	is_triggered_only = yes
+
+	# You gain a rival
+	option = {
+		name = EVTOPTA_ZE_6007
+
+		add_rival = event_target:councillor_target
+	}
+}
+
+# Checking for land_for_son/daughter ambition
+character_event = {
+	id = ZE.6010
+
+	is_triggered_only = yes # on_new_holder
+	hide_window = yes
+
+	#only_capable = yes
+
+	trigger = {
+		is_heir = no
+		is_actually_incapable_trigger = no
+
+		# Wasn't made a mercenary
+		FROM = { mercenary = no }
+	}
+
+	immediate = {
+		if = {
+			limit = { is_female = no }
+
+			father = {
+				if = {
+					limit = { has_ambition = obj_land_for_son }
+
+					set_character_flag = land_for_son_successful
+
+					opinion = {
+						name = opinion_ambition_fulfilled
+						who = FROMFROM
+						years = 5
+					}
+				}
+			}
+
+			mother = {
+				if = {
+					limit = { has_ambition = obj_land_for_son }
+
+					set_character_flag = land_for_son_successful
+
+					opinion = {
+						name = opinion_ambition_fulfilled
+						who = FROMFROM
+						years = 5
+					}
+				}
+			}
+		}
+		else = {
+			father = {
+				if = {
+					limit = { has_ambition = obj_land_for_daughter }
+
+					set_character_flag = land_for_daughter_successful
+
+					opinion = {
+						name = opinion_ambition_fulfilled
+						who = FROMFROM
+						years = 5
+					}
+				}
+			}
+
+			mother = {
+				if = {
+					limit = { has_ambition = obj_land_for_daughter }
+
+					set_character_flag = land_for_daughter_successful
+
+					opinion = {
+						name = opinion_ambition_fulfilled
+						who = FROMFROM
+						years = 5
+					}
+				}
+			}
+		}
+	}
+}
+
+# Asking liege to give land to son
+character_event = {
+	id = ZE.6012
+	border = GFX_event_normal_frame_diplomacy
+
+	desc = {
+		text = EVTDESC_ZE_6012
+		picture = GFX_evt_son_asking_father
+		trigger = {
+			FROMFROM = {
+				has_ambition = obj_land_for_son
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_ZE_6012_B
+		picture = GFX_evt_daughter_asking_mother
+		trigger = {
+			FROMFROM = {
+				has_ambition = obj_land_for_daughter
+			}
+		}
+	}
+
+	is_triggered_only = yes # ask_for_land, ze_ambition_decisions.txt
+
+	immediate = {
+		# The Shogun can pick a title from the Tenno or the Tenno's PR
+		if = {
+			limit = {
+				tier = emperor
+				has_japanese_government_trigger = yes
+				controls_religion = no
+				any_vassal = {
+					is_the_tenno_trigger = yes
+					OR = {
+						any_demesne_title = {
+							tier = count
+							can_be_given_away = yes
+							count = 2
+							NOT = {
+								title = c_yamashiro
+							}
+						}
+						any_vassal = {
+							i_am_appropriate_regent_trigger = yes
+							any_demesne_title = {
+								tier = count
+								can_be_given_away = yes
+								count = 2
+							}
+						}
+					}
+				}
+			}
+			if = {
+				limit = {
+					any_vassal = {
+						is_the_tenno_trigger = yes
+						any_vassal = {
+							i_am_appropriate_regent_trigger = yes
+							any_demesne_title = {
+								tier = count
+								can_be_given_away = yes
+								count = 2
+							}
+						}
+					}
+				}
+				any_vassal = {
+					limit = {
+						is_the_tenno_trigger = yes
+					}
+					any_vassal = {
+						limit = {
+							i_am_appropriate_regent_trigger = yes
+						}
+						random_demesne_title = {
+							limit = {
+								tier = count
+								can_be_given_away = yes
+								
+								location = {
+									is_capital = no
+								}
+							}
+							save_event_target_as = requested_province
+						}
+					}
+				}
+			}
+			else = {
+				any_vassal = {
+					limit = {
+						is_the_tenno_trigger = yes
+					}
+					random_demesne_title = {
+						limit = {
+							tier = count
+							can_be_given_away = yes
+							NOT = {
+								title = c_yamashiro
+							}
+							
+							location = {
+								is_capital = no
+							}
+						}
+						save_event_target_as = requested_province
+					}
+				}
+			}
+		}
+		# The Shogun's PR can pick a title from the Shogun, the Tenno, or the Tenno's PR
+		else_if = {
+			limit = {
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					tier = emperor
+					has_japanese_government_trigger = yes
+					trait = under_regency2
+				}
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					OR = {
+						any_demesne_title = {
+							tier = count
+							can_be_given_away = yes
+							count = 2
+						}
+						any_vassal = {
+							is_the_tenno_trigger = yes
+							OR = {
+								any_demesne_title = {
+									tier = count
+									can_be_given_away = yes
+									count = 2
+									NOT = {
+										title = c_yamashiro
+									}
+								}
+								any_vassal = {
+									limit = {
+										i_am_appropriate_regent_trigger = yes
+									}
+									any_demesne_title = {
+										tier = count
+										can_be_given_away = yes
+										count = 2
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			if = {
+				limit = {
+					liege = {
+						any_demesne_title = {
+							tier = count
+							can_be_given_away = yes
+							count = 2
+						}
+					}
+					liege = {
+						random_demesne_title = {
+							limit = {
+								tier = count
+								can_be_given_away = yes
+								
+								location = {
+									is_capital = no
+								}
+							}
+							save_event_target_as = requested_province
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					liege = {
+						any_vassal = {
+							is_the_tenno_trigger = yes
+							any_demesne_title = {
+								tier = count
+								can_be_given_away = yes
+								count = 2
+								NOT = {
+									title = c_yamashiro
+								}
+							}
+						}
+					}
+				}
+				liege = {
+					any_vassal = {
+						limit = {
+							is_the_tenno_trigger = yes
+						}
+						random_demesne_title = {
+							limit = {
+								tier = count
+								can_be_given_away = yes
+								NOT = {
+									title = c_yamashiro
+								}
+								
+								location = {
+									is_capital = no
+								}
+							}
+							save_event_target_as = requested_province
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					liege = {
+						any_vassal = {
+							is_the_tenno_trigger = yes
+							any_vassal = {
+								i_am_appropriate_regent_trigger = yes
+								any_demesne_title = {
+									tier = count
+									can_be_given_away = yes
+									count = 2
+								}
+							}
+						}
+					}
+				}
+				liege = {
+					any_vassal = {
+						limit = {
+							is_the_tenno_trigger = yes
+						}
+						any_vassal = {
+							limit = {
+								i_am_appropriate_regent_trigger = yes
+							}
+							random_demesne_title = {
+								limit = {
+									tier = count
+									can_be_given_away = yes
+									
+									location = {
+										is_capital = no
+									}
+								}
+								save_event_target_as = requested_province
+							}
+						}
+					}
+				}
+			}
+		}
+		# The Tenno's PR can pick a title from the Tenno
+		else_if = {
+			limit = {
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					is_the_tenno_trigger = yes
+					any_demesne_title = {
+						tier = count
+						can_be_given_away = yes
+						count = 2
+						NOT = {
+							title = c_yamashiro
+						}
+					}
+				}
+			}
+			liege = {
+				random_demesne_title = {
+					limit = {
+						tier = count
+						can_be_given_away = yes
+						NOT = {
+							title = c_yamashiro
+						}
+						
+						location = {
+							is_capital = no
+						}
+					}
+					save_event_target_as = requested_province
+				}
+			}
+		}
+		# The Ryukyuan knockoff's PR can pick a title from the knockoff
+		else_if = {
+			limit = {
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					is_ryukyuan_tenno_trigger = yes
+					any_demesne_title = {
+						tier = count
+						can_be_given_away = yes
+						count = 2
+						NOT = {
+							title = c_yamashiro
+						}
+					}
+				}
+			}
+			liege = {
+				random_demesne_title = {
+					limit = {
+						tier = count
+						can_be_given_away = yes
+						
+						location = {
+							is_capital = no
+						}
+					}
+					save_event_target_as = requested_province
+				}
+			}
+		}
+		# Else pick one of your counties
+		else = {
+			random_demesne_title = {
+				limit = {
+					real_tier = COUNT
+					can_be_given_away = yes
+
+					location = {
+						is_capital = no
+					}
+				}
+
+				save_event_target_as = requested_province
+			}
+		}
+
+		FROMFROM = {
+			if = {
+				limit = { has_ambition = obj_land_for_son }
+
+				random_child = {
+					limit = {
+						is_female = no
+						is_landed = no
+						is_adult = yes
+						is_heir = no
+						prisoner = no
+						is_incapable = no # Works here
+						has_inheritance_blocker = no
+						vassal_of = PREV
+						OR = {
+							is_adult = yes
+							ROOT = {
+								AND = {
+									has_chinese_government_trigger = no
+									has_japanese_government_trigger = no
+								}
+							}
+						}
+					}
+
+					save_event_target_as = chosen_child
+				}
+			}
+
+			else = {
+				random_child = {
+					limit = {
+						is_female = yes
+						is_landed = no
+						is_adult = yes
+						is_heir = no
+						prisoner = no
+						is_incapable = no # Works here
+						has_inheritance_blocker = no
+						vassal_of = PREV
+						OR = {
+							is_adult = yes
+							ROOT = {
+								AND = {
+									has_chinese_government_trigger = no
+									has_japanese_government_trigger = no
+								}
+							}
+						}
+					}
+
+					save_event_target_as = chosen_child
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_ZE_6012
+			trigger = {
+				FROMFROM = { has_ambition = obj_land_for_son }
+			}
+		}
+		name = {
+			text = EVTOPTA_ZE_6012_B
+			trigger = {
+				FROMFROM = { has_ambition = obj_land_for_daughter }
+			}
+		}
+
+		wealth = 200
+
+		event_target:chosen_child = {
+			show_scope_change = no
+
+			grant_title = event_target:requested_province
+		}
+
+		FROMFROM = {
+			character_event = { id = ZE.6013 }
+		}
+
+		ai_chance = { factor = 20 }
+	}
+
+	option = {
+		name = EVTOPTB_ZE_6012
+
+		FROMFROM = {
+			character_event = { id = ZE.6014 }
+		}
+
+		ai_chance = { factor = 80 }
+	}
+
+	option = {
+		name = EVTOPTC_ZE_6012
+
+		trigger = {
+			FROMFROM = {
+				NOT = { owes_favor_to = ROOT }
+			}
+		}
+
+		event_target:chosen_child = {
+			show_scope_change = no
+
+			grant_title = event_target:requested_province
+		}
+
+		add_favor = FROMFROM
+
+		FROMFROM = {
+			character_event = { id = ZE.6015 }
+		}
+
+		ai_chance = { factor = 20 }
+	}
+}
+
+# Land granted from request
+character_event = {
+	id = ZE.6013
+	border = GFX_event_normal_frame_diplomacy
+
+	desc = {
+		text = EVTDESC_ZE_6013
+		picture = GFX_evt_son_asking_father
+		trigger = { has_ambition = obj_land_for_son }
+	}
+	desc = {
+		text = EVTDESC_ZE_6013_B
+		picture = GFX_evt_daughter_asking_mother
+		trigger = { has_ambition = obj_land_for_daughter }
+	}
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_ZE_6013
+	}
+}
+
+# Denied land
+character_event = {
+	id = ZE.6014
+	picture = GFX_evt_recieve_letter
+	border = GFX_event_normal_frame_diplomacy
+
+	desc = {
+		text = EVTDESC_ZE_6014
+		trigger = { has_ambition = obj_land_for_son }
+	}
+	desc = {
+		text = EVTDESC_ZE_6014_B
+		trigger = { has_ambition = obj_land_for_daughter }
+	}
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_ZE_6014
+	}
+}
+
+# Got land! But now owes favor
+character_event = {
+	id = ZE.6015
+	picture = GFX_evt_recieve_letter
+	border = GFX_event_normal_frame_diplomacy
+
+	desc = {
+		text = EVTDESC_ZE_6015
+		trigger = { has_ambition = obj_land_for_son }
+	}
+	desc = {
+		text = EVTDESC_ZE_6015_B
+		trigger = { has_ambition = obj_land_for_daughter }
+	}
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_ZE_6015
+	}
+}
+
+
+###########################################################################################################
+# CHANGE COUNCIL POSITION																				  #
+###########################################################################################################
+
+# Targeted decision pick new council job event, brace yourself
+character_event = {
+	id = ZE.6021
+	desc = EVTDESC_ZE_6021
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes # change_council_job, ze_decisions.txt
+
+	immediate = {
+		# First, we set a char modifier and check what job the councillor has now
+		set_character_flag = swapping_councillors
+
+		add_character_modifier = {
+			name = councillors_changed_jobs
+			years = 1
+			hidden = yes
+		}
+
+		# Check how many options we display
+		if = {
+			limit = {
+				event_target:moving_councillor = {
+					NOT = { has_job_title = job_chancellor }
+					can_be_chancellor_trigger = yes
+				}
+
+				trigger_if = {
+					limit = {
+						job_chancellor = { always = yes }
+					}
+
+					job_chancellor = {
+						OR = {
+							can_swap_job_title = event_target:moving_councillor
+
+							trigger_if = {
+								limit = {
+									event_target:moving_councillor = {
+										has_minor_title = title_councilmember_king
+									}
+								}
+
+								can_be_councilmember_king_trigger = yes
+							}
+							trigger_else = {
+								event_target:moving_councillor = {
+									has_minor_title = title_councilmember_emperor
+								}
+
+								can_be_councilmember_emperor_trigger = yes
+							}
+						}
+					}
+				}
+			}
+
+			set_character_flag = option_1_displayed
+		}
+
+		if = {
+			limit = {
+				event_target:moving_councillor = {
+					NOT = { has_job_title = job_marshal }
+					can_be_marshal_trigger = yes
+				}
+
+				trigger_if = {
+					limit = {
+						job_marshal = { always = yes }
+					}
+
+					job_marshal = {
+						OR = {
+							can_swap_job_title = event_target:moving_councillor
+
+							trigger_if = {
+								limit = {
+									event_target:moving_councillor = {
+										has_minor_title = title_councilmember_king
+									}
+								}
+
+								can_be_councilmember_king_trigger = yes
+							}
+							trigger_else = {
+								event_target:moving_councillor = {
+									has_minor_title = title_councilmember_emperor
+								}
+
+								can_be_councilmember_emperor_trigger = yes
+							}
+						}
+					}
+				}
+			}
+
+			set_character_flag = option_2_displayed
+		}
+
+		if = {
+			limit = {
+				event_target:moving_councillor = {
+					NOT = { has_job_title = job_treasurer }
+					can_be_treasurer_trigger = yes
+				}
+
+				trigger_if = {
+					limit = {
+						job_treasurer = { always = yes }
+					}
+
+					job_treasurer = {
+						OR = {
+							can_swap_job_title = event_target:moving_councillor
+
+							trigger_if = {
+								limit = {
+									event_target:moving_councillor = {
+										has_minor_title = title_councilmember_king
+									}
+								}
+
+								can_be_councilmember_king_trigger = yes
+							}
+							trigger_else = {
+								event_target:moving_councillor = {
+									has_minor_title = title_councilmember_emperor
+								}
+
+								can_be_councilmember_emperor_trigger = yes
+							}
+						}
+					}
+				}
+			}
+
+			set_character_flag = option_3_displayed
+		}
+
+		if = {
+			limit = {
+				event_target:moving_councillor = {
+					NOT = { has_job_title = job_spymaster }
+					can_be_spymaster_trigger = yes
+				}
+
+				trigger_if = {
+					limit = {
+						job_spymaster = { always = yes }
+					}
+
+					job_spymaster = {
+						OR = {
+							can_swap_job_title = event_target:moving_councillor
+
+							trigger_if = {
+								limit = {
+									event_target:moving_councillor = {
+										has_minor_title = title_councilmember_king
+									}
+								}
+
+								can_be_councilmember_king_trigger = yes
+							}
+							trigger_else = {
+								event_target:moving_councillor = {
+									has_minor_title = title_councilmember_emperor
+								}
+
+								can_be_councilmember_emperor_trigger = yes
+							}
+						}
+					}
+				}
+			}
+
+			set_character_flag = option_4_displayed
+		}
+
+		if = {
+			limit = {
+				event_target:moving_councillor = {
+					NOT = { has_job_title = job_spiritual }
+					can_be_spiritual_trigger = yes
+				}
+
+				trigger_if = {
+					limit = {
+						job_spiritual = { always = yes }
+					}
+
+					job_spiritual = {
+						OR = {
+							trigger_if = {
+								limit = { can_swap_job_title = event_target:moving_councillor }
+
+								trigger_if = {
+									limit = {
+										NOT = { religion = ROOT }
+									}
+
+									NOT = { religion_group = muslim }
+								}
+							}
+
+							trigger_if = {
+								limit = {
+									event_target:moving_councillor = {
+										has_minor_title = title_councilmember_king
+									}
+								}
+
+								can_be_councilmember_king_trigger = yes
+							}
+							trigger_else = {
+								event_target:moving_councillor = {
+									has_minor_title = title_councilmember_emperor
+								}
+
+								can_be_councilmember_emperor_trigger = yes
+							}
+						}
+					}
+				}
+			}
+
+			set_character_flag = option_5_displayed
+		}
+
+		if = {
+			limit = {
+				event_target:moving_councillor = {
+					OR = {
+						can_be_councilmember_king_trigger = yes
+						can_be_councilmember_emperor_trigger = yes
+					}
+
+					NOR = {
+						has_minor_title = title_councilmember_king
+						has_minor_title = title_councilmember_emperor
+					}
+				}
+
+				any_voter = {
+					OR = {
+						has_minor_title = title_councilmember_king
+						has_minor_title = title_councilmember_emperor
+					}
+
+					trigger_if = {
+						limit = { event_target:moving_councillor = { has_job_title = job_chancellor } }
+						can_be_chancellor_trigger = yes
+					}
+					trigger_else_if = {
+						limit = { event_target:moving_councillor = { has_job_title = job_marshal } }
+						can_be_marshal_trigger = yes
+					}
+					trigger_else_if = {
+						limit = { event_target:moving_councillor = { has_job_title = job_treasurer } }
+						can_be_treasurer_trigger = yes
+					}
+					trigger_else_if = {
+						limit = { event_target:moving_councillor = { has_job_title = job_spymaster } }
+						can_be_spymaster_trigger = yes
+					}
+					trigger_else = {
+						event_target:moving_councillor = { has_job_title = job_spiritual }
+						can_be_spiritual_trigger = yes
+					}
+				}
+			}
+
+			set_character_flag = option_6_displayed
+
+			if = {
+				limit = {
+					has_assigned_minor_title = title_councilmember_king
+
+					any_voter = {
+						has_minor_title = title_councilmember_king
+
+						trigger_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_chancellor } }
+							can_be_chancellor_trigger = yes
+						}
+						trigger_else_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_marshal } }
+							can_be_marshal_trigger = yes
+						}
+						trigger_else_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_treasurer } }
+							can_be_treasurer_trigger = yes
+						}
+						trigger_else_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_spymaster } }
+							can_hold_title = job_spymaster
+						}
+						trigger_else = {
+							event_target:moving_councillor = { has_job_title = job_spiritual }
+							can_be_spiritual_trigger = yes
+						}
+					}
+				}
+
+				random_voter = {
+					limit = {
+						has_minor_title = title_councilmember_king
+
+						trigger_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_chancellor } }
+							can_be_chancellor_trigger = yes
+						}
+						trigger_else_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_marshal } }
+							can_be_marshal_trigger = yes
+						}
+						trigger_else_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_treasurer } }
+							can_be_treasurer_trigger = yes
+						}
+						trigger_else_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_spymaster } }
+							can_be_spymaster_trigger = yes
+						}
+						trigger_else = {
+							event_target:moving_councillor = { has_job_title = job_spiritual }
+							can_be_spiritual_trigger = yes
+						}
+					}
+
+					save_event_target_as = advisor_target
+
+					ROOT = {
+						set_character_flag = option_6_king
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					has_assigned_minor_title = title_councilmember_emperor
+
+					any_voter = {
+						has_minor_title = title_councilmember_emperor
+
+						trigger_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_chancellor } }
+							can_be_chancellor_trigger = yes
+						}
+						trigger_else_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_marshal } }
+							can_be_marshal_trigger = yes
+						}
+						trigger_else_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_treasurer } }
+							can_be_treasurer_trigger = yes
+						}
+						trigger_else_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_spymaster } }
+							can_be_spymaster_trigger = yes
+						}
+						trigger_else = {
+							event_target:moving_councillor = { has_job_title = job_spiritual }
+							can_be_spiritual_trigger = yes
+						}
+					}
+				}
+
+				random_voter = {
+					limit = {
+						has_minor_title = title_councilmember_emperor
+
+						trigger_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_chancellor } }
+							can_be_chancellor_trigger = yes
+						}
+						trigger_else_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_marshal } }
+							can_be_marshal_trigger = yes
+						}
+						trigger_else_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_treasurer } }
+							can_be_treasurer_trigger = yes
+						}
+						trigger_else_if = {
+							limit = { event_target:moving_councillor = { has_job_title = job_spymaster } }
+							can_be_spymaster_trigger = yes
+						}
+						trigger_else = {
+							event_target:moving_councillor = { has_job_title = job_spiritual }
+							can_be_spiritual_trigger = yes
+						}
+					}
+
+					save_event_target_as = advisor_target
+
+					ROOT = {
+						set_character_flag = option_6_emperor
+					}
+				}
+			}
+		}
+	}
+
+	option = { # Is chancellor a possible swap
+		name = EVTOPTA_ZE_6021
+
+		trigger = { has_character_flag = option_1_displayed }
+
+		if = {
+			limit = {
+				job_chancellor = { always = yes }
+			}
+
+			job_chancellor = {
+				show_scope_change = no
+
+				hidden_effect = {
+					remove_title = job_chancellor
+				}
+
+				event_target:moving_councillor = {
+					show_scope_change = no
+
+					trigger_switch = {
+						on_trigger = has_job_title
+
+						job_marshal = { PREV = { show_scope_change = no give_job_title = job_marshal } }
+						job_treasurer = { PREV = { show_scope_change = no give_job_title = job_treasurer } }
+						job_spymaster = { PREV = { show_scope_change = no give_job_title = job_spymaster } }
+						job_spiritual = { PREV = { show_scope_change = no give_job_title = job_spiritual } }
+
+						fallback = {
+							if = {
+								limit = { has_minor_title = title_councilmember_king }
+
+								hidden_effect = {
+									remove_title = title_councilmember_king
+								}
+
+								PREV = {
+									show_scope_change = no
+
+									give_minor_title = title_councilmember_king
+								}
+							}
+							else_if = {
+								limit = { has_minor_title = title_councilmember_emperor }
+
+								hidden_effect = {
+									remove_title = title_councilmember_emperor
+								}
+
+								PREV = {
+									show_scope_change = no
+
+									give_minor_title = title_councilmember_emperor
+								}
+							}
+						}
+					}
+				}
+			}
+
+			event_target:moving_councillor = {
+				show_scope_change = no
+
+				give_job_title = job_chancellor
+			}
+		}
+		else = {
+			event_target:moving_councillor = {
+				show_scope_change = no
+
+				trigger_switch = {
+					on_trigger = has_job_title
+
+					job_marshal = { remove_title = job_marshal }
+					job_treasurer = { remove_title = job_treasurer }
+					job_spymaster = { remove_title = job_spymaster }
+					job_spiritual = { remove_title = job_spiritual }
+
+					fallback = {
+						if = {
+							limit = { has_minor_title = title_councilmember_king }
+							remove_title = title_councilmember_king
+						}
+						else_if = {
+							limit = { has_minor_title = title_councilmember_emperor }
+							remove_title = title_councilmember_emperor
+						}
+					}
+				}
+
+				give_job_title = job_chancellor
+			}
+		}
+	}
+
+	option = { # Is marshal a possible swap
+		name = EVTOPTB_ZE_6021
+
+		trigger = { has_character_flag = option_2_displayed }
+
+		if = {
+			limit = {
+				job_marshal = { always = yes }
+			}
+
+			job_marshal = {
+				show_scope_change = no
+
+				hidden_effect = {
+					remove_title = job_marshal
+				}
+
+				event_target:moving_councillor = {
+					show_scope_change = no
+
+					trigger_switch = {
+						on_trigger = has_job_title
+
+						job_chancellor = { PREV = { show_scope_change = no give_job_title = job_chancellor } }
+						job_treasurer = { PREV = { show_scope_change = no give_job_title = job_treasurer } }
+						job_spymaster = { PREV = { show_scope_change = no give_job_title = job_spymaster } }
+						job_spiritual = { PREV = { show_scope_change = no give_job_title = job_spiritual } }
+
+						fallback = {
+							if = {
+								limit = { has_minor_title = title_councilmember_king }
+
+								hidden_effect = {
+									remove_title = title_councilmember_king
+								}
+
+								PREV = {
+									show_scope_change = no
+
+									give_minor_title = title_councilmember_king
+								}
+							}
+							else_if = {
+								limit = { has_minor_title = title_councilmember_emperor }
+
+								hidden_effect = {
+									remove_title = title_councilmember_emperor
+								}
+
+								PREV = {
+									show_scope_change = no
+
+									give_minor_title = title_councilmember_emperor
+								}
+							}
+						}
+					}
+				}
+			}
+
+			event_target:moving_councillor = {
+				show_scope_change = no
+
+				give_job_title = job_marshal
+			}
+		}
+		else = {
+			event_target:moving_councillor = {
+				show_scope_change = no
+
+				trigger_switch = {
+					on_trigger = has_job_title
+
+					job_chancellor = { remove_title = job_chancellor }
+					job_treasurer = { remove_title = job_treasurer }
+					job_spymaster = { remove_title = job_spymaster }
+					job_spiritual = { remove_title = job_spiritual }
+
+					fallback = {
+						if = {
+							limit = { has_minor_title = title_councilmember_king }
+							remove_title = title_councilmember_king
+						}
+						else_if = {
+							limit = { has_minor_title = title_councilmember_emperor }
+							remove_title = title_councilmember_emperor
+						}
+					}
+				}
+
+				give_job_title = job_marshal
+			}
+		}
+	}
+
+	option = { # Is treasurer a possible swap
+		name = EVTOPTC_ZE_6021
+
+		trigger = { has_character_flag = option_3_displayed }
+
+		if = {
+			limit = {
+				job_treasurer = { always = yes }
+			}
+
+			job_treasurer = {
+				show_scope_change = no
+
+				hidden_effect = {
+					remove_title = job_treasurer
+				}
+
+				event_target:moving_councillor = {
+					show_scope_change = no
+
+					trigger_switch = {
+						on_trigger = has_job_title
+
+						job_chancellor = { PREV = { show_scope_change = no give_job_title = job_chancellor } }
+						job_marshal = { PREV = { show_scope_change = no give_job_title = job_marshal } }
+						job_spymaster = { PREV = { show_scope_change = no give_job_title = job_spymaster } }
+						job_spiritual = { PREV = { show_scope_change = no give_job_title = job_spiritual } }
+
+						fallback = {
+							if = {
+								limit = { has_minor_title = title_councilmember_king }
+
+								hidden_effect = {
+									remove_title = title_councilmember_king
+								}
+
+								PREV = {
+									show_scope_change = no
+
+									give_minor_title = title_councilmember_king
+								}
+							}
+							else_if = {
+								limit = { has_minor_title = title_councilmember_emperor }
+
+								hidden_effect = {
+									remove_title = title_councilmember_emperor
+								}
+
+								PREV = {
+									show_scope_change = no
+
+									give_minor_title = title_councilmember_emperor
+								}
+							}
+						}
+					}
+				}
+			}
+
+			event_target:moving_councillor = {
+				show_scope_change = no
+
+				give_job_title = job_treasurer
+			}
+		}
+		else = {
+			event_target:moving_councillor = {
+				show_scope_change = no
+
+				trigger_switch = {
+					on_trigger = has_job_title
+
+					job_chancellor = { remove_title = job_chancellor }
+					job_marshal = { remove_title = job_marshal }
+					job_spymaster = { remove_title = job_spymaster }
+					job_spiritual = { remove_title = job_spiritual }
+
+					fallback = {
+						if = {
+							limit = { has_minor_title = title_councilmember_king }
+							remove_title = title_councilmember_king
+						}
+						else_if = {
+							limit = { has_minor_title = title_councilmember_emperor }
+							remove_title = title_councilmember_emperor
+						}
+					}
+				}
+
+				give_job_title = job_treasurer
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTX_ZE_6021
+
+		trigger = {
+			OR = {
+				has_character_flag = option_4_displayed
+				has_character_flag = option_5_displayed
+				has_character_flag = option_6_displayed
+			}
+		}
+
+		set_character_flag = dont_clear_flag
+		character_event = { id = ZE.6022 }
+	}
+
+	option = {
+		name = EVTOPTF_ZE_6021
+
+		remove_character_modifier = councillors_changed_jobs
+	}
+
+	after = {
+		if = {
+			limit = { has_character_flag = dont_clear_flag }
+			clr_character_flag = dont_clear_flag
+		}
+		else = {
+			clr_character_flag = swapping_councillors
+			clr_character_flag = option_1_displayed
+			clr_character_flag = option_2_displayed
+			clr_character_flag = option_3_displayed
+			clr_character_flag = option_4_displayed
+			clr_character_flag = option_5_displayed
+			clr_character_flag = option_6_displayed
+			clr_character_flag = option_6_king
+			clr_character_flag = option_6_emperor
+		}
+	}
+}
+
+character_event = {
+	id = ZE.6022
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_normal_frame_diplomacy
+	desc = EVTDESC_ZE_6021
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_character_flag = swapping_councillors
+	}
+
+	option = { # Is spymaster a possible swap
+		name = EVTOPTD_ZE_6021
+
+		trigger = { has_character_flag = option_4_displayed }
+
+		if = {
+			limit = {
+				job_spymaster = { always = yes }
+			}
+
+			job_spymaster = {
+				show_scope_change = no
+
+				hidden_effect = {
+					remove_title = job_spymaster
+				}
+
+				event_target:moving_councillor = {
+					show_scope_change = no
+
+					trigger_switch = {
+						on_trigger = has_job_title
+
+						job_chancellor = { PREV = { show_scope_change = no give_job_title = job_chancellor } }
+						job_marshal = { PREV = { show_scope_change = no give_job_title = job_marshal } }
+						job_treasurer = { PREV = { show_scope_change = no give_job_title = job_treasurer } }
+						job_spiritual = { PREV = { show_scope_change = no give_job_title = job_spiritual } }
+
+						fallback = {
+							if = {
+								limit = { has_minor_title = title_councilmember_king }
+
+								hidden_effect = {
+									remove_title = title_councilmember_king
+								}
+
+								PREV = {
+									show_scope_change = no
+
+									give_minor_title = title_councilmember_king
+								}
+							}
+							else_if = {
+								limit = { has_minor_title = title_councilmember_emperor }
+
+								hidden_effect = {
+									remove_title = title_councilmember_emperor
+								}
+
+								PREV = {
+									show_scope_change = no
+
+									give_minor_title = title_councilmember_emperor
+								}
+							}
+						}
+					}
+				}
+			}
+
+			event_target:moving_councillor = {
+				show_scope_change = no
+
+				give_job_title = job_spymaster
+			}
+		}
+		else = {
+			event_target:moving_councillor = {
+				show_scope_change = no
+
+				trigger_switch = {
+					on_trigger = has_job_title
+
+					job_chancellor = { remove_title = job_chancellor }
+					job_marshal = { remove_title = job_marshal }
+					job_treasurer = { remove_title = job_treasurer }
+					job_spiritual = { remove_title = job_spiritual }
+
+					fallback = {
+						if = {
+							limit = { has_minor_title = title_councilmember_king }
+							remove_title = title_councilmember_king
+						}
+						else_if = {
+							limit = { has_minor_title = title_councilmember_emperor }
+							remove_title = title_councilmember_emperor
+						}
+					}
+				}
+
+				give_job_title = job_spymaster
+			}
+		}
+	}
+
+	option = { # Is spiritual a possible swap
+		name = EVTOPTE_ZE_6021
+
+		trigger = { has_character_flag = option_5_displayed }
+
+		if = {
+			limit = {
+				job_spiritual = { always = yes }
+			}
+
+			job_spiritual = {
+				show_scope_change = no
+
+				hidden_effect = {
+					remove_title = job_spiritual
+				}
+
+				event_target:moving_councillor = {
+					show_scope_change = no
+
+					trigger_switch = {
+						on_trigger = has_job_title
+
+						job_chancellor = { PREV = { show_scope_change = no give_job_title = job_chancellor } }
+						job_marshal = { PREV = { show_scope_change = no give_job_title = job_marshal } }
+						job_treasurer = { PREV = { show_scope_change = no give_job_title = job_treasurer } }
+						job_spymaster = { PREV = { show_scope_change = no give_job_title = job_spymaster } }
+
+						fallback = {
+							if = {
+								limit = { has_minor_title = title_councilmember_king }
+
+								hidden_effect = {
+									remove_title = title_councilmember_king
+								}
+
+								PREV = {
+									show_scope_change = no
+
+									give_minor_title = title_councilmember_king
+								}
+							}
+							else_if = {
+								limit = { has_minor_title = title_councilmember_emperor }
+
+								hidden_effect = {
+									remove_title = title_councilmember_emperor
+								}
+
+								PREV = {
+									show_scope_change = no
+
+									give_minor_title = title_councilmember_emperor
+								}
+							}
+						}
+					}
+				}
+			}
+
+			event_target:moving_councillor = {
+				show_scope_change = no
+
+				give_job_title = job_spiritual
+			}
+		}
+		else = {
+			event_target:moving_councillor = {
+				show_scope_change = no
+
+				trigger_switch = {
+					on_trigger = has_job_title
+
+					job_chancellor = { remove_title = job_chancellor }
+					job_marshal = { remove_title = job_marshal }
+					job_treasurer = { remove_title = job_treasurer }
+					job_spymaster = { remove_title = job_spymaster }
+
+					fallback = {
+						if = {
+							limit = { has_minor_title = title_councilmember_king }
+							remove_title = title_councilmember_king
+						}
+						else_if = {
+							limit = { has_minor_title = title_councilmember_emperor }
+							remove_title = title_councilmember_emperor
+						}
+					}
+				}
+
+				give_job_title = job_spiritual
+			}
+		}
+	}
+
+	option = { # Is being an advisor a new career path
+		name = EVTOPTY_ZE_6021
+
+		trigger = {
+			has_character_flag = option_6_displayed
+			has_law = law_voting_power_1
+		}
+
+		event_target:advisor_target = {
+			show_scope_change = no
+
+			# First check for and remove the correct advisor title
+			trigger_switch = {
+				on_trigger = has_minor_title
+
+				title_councilmember_king = { remove_title = title_councilmember_king }
+				title_councilmember_emperor = { remove_title = title_councilmember_emperor }
+			}
+
+			# Now lets see where our mover was
+			event_target:moving_councillor = {
+				show_scope_change = no
+
+				trigger_switch = {
+					on_trigger = has_job_title
+
+					job_chancellor = { PREV = { show_scope_change = no give_job_title = job_chancellor } }
+					job_marshal = { PREV = { show_scope_change = no give_job_title = job_marshal } }
+					job_treasurer = { PREV = { show_scope_change = no give_job_title = job_treasurer } }
+					job_spymaster = { PREV = { show_scope_change = no give_job_title = job_spymaster } }
+					job_spiritual = { PREV = { show_scope_change = no give_job_title = job_spiritual } }
+				}
+
+				if = {
+					limit = {
+						ROOT = { has_character_flag = option_6_king }
+					}
+
+					give_minor_title = title_councilmember_king
+				}
+				else = {
+					give_minor_title = title_councilmember_emperor
+				}
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTX_ZE_6021
+
+		trigger = {
+			OR = {
+				has_character_flag = option_1_displayed
+				has_character_flag = option_2_displayed
+				has_character_flag = option_3_displayed
+			}
+		}
+
+		set_character_flag = dont_clear_flag
+		character_event = { id = ZE.6021 }
+	}
+
+	option = {
+		name = EVTOPTF_ZE_6021
+	}
+
+	after = {
+		if = {
+			limit = { has_character_flag = dont_clear_flag }
+			clr_character_flag = dont_clear_flag
+		}
+		else = {
+			clr_character_flag = swapping_councillors
+			clr_character_flag = option_1_displayed
+			clr_character_flag = option_2_displayed
+			clr_character_flag = option_3_displayed
+			clr_character_flag = option_4_displayed
+			clr_character_flag = option_5_displayed
+			clr_character_flag = option_6_displayed
+			clr_character_flag = option_6_king
+			clr_character_flag = option_6_emperor
+		}
+	}
+}
