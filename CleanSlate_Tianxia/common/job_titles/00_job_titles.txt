@@ -1,0 +1,787 @@
+##########################################
+# COUNCILLOR TITLES
+##########################################
+
+#	attribute: This attribute is added to the ruler's for governance purposes
+#	viceroy: This is the Viceroy title for de jure Kingdoms
+#	allow: conditions for the character to hold the title
+#	gain_effect: fires when the title is granted
+#	lose_effect: fires when a title is lost through most causes
+#	retire_effect: fires when a title is lost due to the character stepping down, or getting a different liege
+#	death_effect: fires when a title is lost due to the character dying
+#	The other fields are all character modifiers
+
+#	ROOT is councillor
+#	FROM is liege
+
+job_chancellor = {
+	is_chancellor = yes
+	is_voter = yes
+	lift_fow = yes
+
+	attribute = diplomacy
+	dignity = 0.33
+	opinion_effect = 10
+
+	monthly_salary = 0.1
+	monthly_prestige = 0.75
+
+	action = action_statecraft			# Offmap, Monks and Mystics
+	action = action_improve_relations
+	action = action_fabricate_claims
+	action = action_clan_sentiment		# Replaces Fabricate Claims for Nomads
+	action = action_sow_dissent
+
+	allow = {
+		can_be_chancellor_trigger = yes
+	}
+
+	dismiss_trigger = {
+		show_only_failed_conditions = yes
+
+		FROM = {
+			show_scope_change = no
+
+			# Powerful vassals can't be fired from the council under Full Council Authority
+			OR = {
+				NOT = { has_law = succession_voting_power_1 }
+
+				ROOT = {
+					show_scope_change = no
+
+					is_powerful_vassal = no
+				}
+			}
+
+			custom_tooltip = {
+				text = not_swapping_tt
+				NOT = { has_character_flag = swapping_councillors }
+			}
+		}
+		
+		can_fire_grand_chancellor_trigger = yes
+		
+		i_am_appropriate_regent_trigger = no
+		
+		can_fire_chinese_councillor_trigger = yes
+		
+		can_fire_japanese_councillor_trigger = yes
+	}
+
+	gain_effect = {
+		if = {
+			limit = {
+				FROM = {
+					can_grant_title = title_grand_chancellor
+					
+					NOT = {
+						any_voter = {
+							has_minor_title = title_grand_chancellor
+						}
+					}
+				}
+				
+				can_hold_title = title_grand_chancellor
+			}
+			
+			give_minor_title = title_grand_chancellor
+		}
+	}
+
+	lose_effect = {
+		if = {
+			limit = {
+				FROM = {
+					NOT = { has_character_flag = swapping_councillors }
+				}
+
+				can_be_chancellor_trigger = yes
+				
+				FROM = {
+					any_courtier_or_vassal = {
+						character = ROOT
+					}
+				}
+				
+				NOT = {
+					FROM = {
+						regent = {
+							reverse_has_opinion_modifier = {
+								who = ROOT
+								modifier = japanese_regent_fired_me
+							}
+						}
+					}
+				}
+			}
+
+			opinion = { who = FROM name = opinion_fired_from_council }
+			opinion = { who = FROM name = opinion_recently_fired }
+		}
+
+		if = {
+			limit = { has_character_flag = relic_hunter }
+			character_event = { id = MNM.9034 } # Artifact hunter councllior fired/retires ping
+		}
+	}
+
+	retire_effect = {
+		if = {
+			limit = { has_character_flag = relic_hunter }
+			character_event = { id = MNM.9034 } # Artifact hunter councllior fired/retires ping
+		}
+
+		if = {
+			limit = {
+				practical_age < 65
+				health >= 3
+				is_sick_or_injured_trigger = no
+				can_be_councilmember_king_trigger = yes
+			}
+
+			FROM = {
+				opinion = {
+					name = opinion_resigned_from_council
+					who = ROOT
+				}
+			}
+		}
+	}
+}
+
+job_marshal = {
+	is_marshal = yes
+	is_voter = yes
+	lift_fow = yes
+
+	attribute = martial
+	dignity = 0.33
+	opinion_effect = 10
+
+	monthly_salary = 0.1
+	monthly_prestige = 0.75
+
+	action = action_organize_army			# Offmap, Monks and Mystics
+	action = action_assist_arrest
+	action = action_train_troops
+	action = action_train_troops_nomadic
+	action = action_advance_mil_tech
+	action = action_organize_raid			# Replaces action_advance_mil_tech for Tribes
+
+	allow = {
+		can_be_marshal_trigger = yes
+	}
+
+	dismiss_trigger = {
+		show_only_failed_conditions = yes
+
+		FROM = {
+			show_scope_change = no
+
+			# Powerful vassals can't be fired from the council under Full Council Authority
+			OR = {
+				NOT = { has_law = succession_voting_power_1 }
+
+				ROOT = {
+					show_scope_change = no
+
+					is_powerful_vassal = no
+				}
+			}
+
+			custom_tooltip = {
+				text = not_swapping_tt
+				NOT = { has_character_flag = swapping_councillors }
+			}
+		}
+		
+		can_fire_grand_chancellor_trigger = yes
+		
+		i_am_appropriate_regent_trigger = no
+		
+		can_fire_chinese_councillor_trigger = yes
+		
+		can_fire_japanese_councillor_trigger = yes
+	}
+
+	gain_effect = {
+		if = {
+			limit = {
+				FROM = {
+					government = roman_imperial_government
+
+					any_courtier_or_vassal = {
+						# Check if any other vassal or courtier has higher martial than current character
+						attribute_diff = {
+							character = ROOT
+							attribute = martial
+							value > 5
+						}
+
+						# Check that said vassal or courtier would be a viable marshal
+						can_be_marshal_trigger = yes
+					}
+				}
+			}
+
+			if = {
+				limit = { martial < 2 }
+
+				FROM = {
+					change_variable = {
+						which = byzantine_credibility_appointed_sycophant
+						value = -10
+					}
+				}
+			}
+			else_if = {
+				limit = { martial < 4 }
+
+				FROM = {
+					change_variable = {
+						which = byzantine_credibility_appointed_sycophant
+						value = -5
+					}
+				}
+			}
+			else_if = {
+				limit = { martial < 6 }
+
+				FROM = {
+					change_variable = {
+						which = byzantine_credibility_appointed_sycophant
+						value = -4
+					}
+				}
+			}
+			else_if = {
+				limit = { martial < 8 }
+
+				FROM = {
+					change_variable = {
+						which = byzantine_credibility_appointed_sycophant
+						value = -3
+					}
+				}
+			}
+			else_if = {
+				limit = { martial < 10 }
+
+				FROM = {
+					change_variable = {
+						which = byzantine_credibility_appointed_sycophant
+						value = -2
+					}
+				}
+			}
+			else_if = {
+				limit = { martial < 12 }
+
+				FROM = {
+					change_variable = {
+						which = byzantine_credibility_appointed_sycophant
+						value = -1
+					}
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				FROM = {
+					can_grant_title = title_grand_chancellor
+					
+					NOT = {
+						any_voter = {
+							has_minor_title = title_grand_chancellor
+						}
+					}
+				}
+				
+				can_hold_title = title_grand_chancellor
+			}
+			
+			give_minor_title = title_grand_chancellor
+		}
+	}
+
+	lose_effect = {
+		if = {
+			limit = {
+				FROM = {
+					NOT = { has_character_flag = swapping_councillors }
+				}
+
+				can_be_marshal_trigger = yes
+				
+				FROM = {
+					any_courtier_or_vassal = {
+						character = ROOT
+					}
+				}
+				
+				NOT = {
+					FROM = {
+						regent = {
+							reverse_has_opinion_modifier = {
+								who = ROOT
+								modifier = japanese_regent_fired_me
+							}
+						}
+					}
+				}
+			}
+
+			opinion = { who = FROM name = opinion_fired_from_council }
+			opinion = { who = FROM name = opinion_recently_fired }
+
+			character_event = {
+				id = HFP.20806 # Good Byzantine Marshal was discharged
+				days = 1
+			}
+		}
+
+		if = {
+			limit = { has_character_flag = relic_hunter }
+			character_event = { id = MNM.9034 } # Artifact hunter councllior fired/retires ping
+		}
+	}
+
+	retire_effect = {
+		if = {
+			limit = { has_character_flag = relic_hunter }
+			character_event = { id = MNM.9034 } # Artifact hunter councllior fired/retires ping
+		}
+
+		if = {
+			limit = {
+				practical_age < 65
+				health >= 3
+				is_sick_or_injured_trigger = no
+				can_be_councilmember_king_trigger = yes
+			}
+
+			FROM = {
+				opinion = {
+					name = opinion_resigned_from_council
+					who = ROOT
+				}
+			}
+		}
+	}
+}
+
+job_treasurer = {
+	is_treasurer = yes
+	is_voter = yes
+	lift_fow = yes
+
+	attribute = stewardship
+	dignity = 0.2
+	opinion_effect = 10
+
+	monthly_salary = 0.1
+	monthly_prestige = 0.75
+
+	action = action_administer_realm
+	action = action_squeeze_peasants
+	action = action_collect_tribute			# Replaces action_squeeze_peasants for Nomads
+	action = action_settle_tribe			# Replaces action_squeeze_peasants for Tribes
+	action = action_oversee_construction
+	action = action_advance_eco_tech
+	action = action_build_legend			# Replaces action_advance_eco_tech for Tribes
+
+	allow = {
+		can_be_treasurer_trigger = yes
+	}
+
+	dismiss_trigger = {
+		show_only_failed_conditions = yes
+
+		FROM = {
+			show_scope_change = no
+
+			# Powerful vassals can't be fired from the council under Full Council Authority
+			OR = {
+				NOT = { has_law = succession_voting_power_1 }
+
+				ROOT = {
+					show_scope_change = no
+
+					is_powerful_vassal = no
+				}
+			}
+
+			custom_tooltip = {
+				text = not_swapping_tt
+				NOT = { has_character_flag = swapping_councillors }
+			}
+		}
+		
+		can_fire_grand_chancellor_trigger = yes
+		
+		i_am_appropriate_regent_trigger = no
+		
+		can_fire_chinese_councillor_trigger = yes
+		
+		can_fire_japanese_councillor_trigger = yes
+	}
+
+	gain_effect = {
+		if = {
+			limit = {
+				FROM = {
+					can_grant_title = title_grand_chancellor
+					
+					NOT = {
+						any_voter = {
+							has_minor_title = title_grand_chancellor
+						}
+					}
+				}
+				
+				can_hold_title = title_grand_chancellor
+			}
+			
+			give_minor_title = title_grand_chancellor
+		}
+	}
+
+	lose_effect = {
+		if = {
+			limit = {
+				FROM = {
+					NOT = { has_character_flag = swapping_councillors }
+				}
+
+				can_be_treasurer_trigger = yes
+				
+				FROM = {
+					any_courtier_or_vassal = {
+						character = ROOT
+					}
+				}
+				
+				NOT = {
+					FROM = {
+						regent = {
+							reverse_has_opinion_modifier = {
+								who = ROOT
+								modifier = japanese_regent_fired_me
+							}
+						}
+					}
+				}
+			}
+
+			opinion = { who = FROM name = opinion_fired_from_council }
+			opinion = { who = FROM name = opinion_recently_fired }
+		}
+
+
+		if = {
+			limit = { has_character_flag = relic_hunter }
+			character_event = { id = MNM.9034 } # Artifact hunter councllior fired/retires ping
+		}
+	}
+
+	retire_effect = {
+		if = {
+			limit = { has_character_flag = relic_hunter }
+			character_event = { id = MNM.9034 } # Artifact hunter councllior fired/retires ping
+		}
+
+		if = {
+			limit = {
+				practical_age < 65
+				health >= 3
+				is_sick_or_injured_trigger = no
+				can_be_councilmember_king_trigger = yes
+			}
+
+			FROM = {
+				opinion = {
+					name = opinion_resigned_from_council
+					who = ROOT
+				}
+			}
+		}
+	}
+}
+
+job_spymaster = {
+	is_spymaster = yes
+	is_voter = yes
+	lift_neighbor_fow = yes
+
+	attribute = intrigue
+	dignity = 0.1
+	opinion_effect = 10
+
+	monthly_salary = 0.1
+
+	action = action_uncover_plots
+	action = action_uncover_plots_offmap	# Replaces action_uncover_plots if mystics is activated.
+	action = action_sabotage_province
+	action = action_organize_spies
+	action = action_organize_spies_mystics
+	action = action_study_technology
+
+	allow = {
+		can_be_spymaster_trigger = yes
+	}
+
+	dismiss_trigger = {
+		show_only_failed_conditions = yes
+
+		FROM = {
+			show_scope_change = no
+
+			# Powerful vassals can't be fired from the council under Full Council Authority
+			OR = {
+				NOT = { has_law = succession_voting_power_1 }
+
+				ROOT = {
+					show_scope_change = no
+
+					is_powerful_vassal = no
+				}
+			}
+
+			custom_tooltip = {
+				text = not_swapping_tt
+				NOT = { has_character_flag = swapping_councillors }
+			}
+		}
+		
+		can_fire_grand_chancellor_trigger = yes
+		
+		i_am_appropriate_regent_trigger = no
+		
+		can_fire_chinese_councillor_trigger = yes
+		
+		can_fire_japanese_councillor_trigger = yes
+	}
+
+	gain_effect = {
+		if = {
+			limit = {
+				FROM = {
+					can_grant_title = title_grand_chancellor
+					
+					NOT = {
+						any_voter = {
+							has_minor_title = title_grand_chancellor
+						}
+					}
+				}
+				
+				can_hold_title = title_grand_chancellor
+			}
+			
+			give_minor_title = title_grand_chancellor
+		}
+	}
+
+	lose_effect = {
+		if = {
+			limit = {
+				FROM = {
+					NOT = { has_character_flag = swapping_councillors }
+				}
+
+				can_be_spymaster_trigger = yes
+				
+				FROM = {
+					any_courtier_or_vassal = {
+						character = ROOT
+					}
+				}
+				
+				NOT = {
+					FROM = {
+						regent = {
+							reverse_has_opinion_modifier = {
+								who = ROOT
+								modifier = japanese_regent_fired_me
+							}
+						}
+					}
+				}
+			}
+
+			opinion = { who = FROM name = opinion_fired_from_council }
+			opinion = { who = FROM name = opinion_recently_fired }
+		}
+
+		if = {
+			limit = { has_character_flag = relic_hunter }
+			character_event = { id = MNM.9034 } # Artifact hunter councllior fired/retires ping
+		}
+	}
+
+	retire_effect = {
+		if = {
+			limit = { has_character_flag = relic_hunter }
+			character_event = { id = MNM.9034 } # Artifact hunter councllior fired/retires ping
+		}
+
+		if = {
+			limit = {
+				practical_age < 65
+				health >= 3
+				is_sick_or_injured_trigger = no
+				can_be_councilmember_king_trigger = yes
+			}
+
+			FROM = {
+				opinion = {
+					name = opinion_resigned_from_council
+					who = ROOT
+				}
+			}
+		}
+	}
+}
+
+job_spiritual = {
+	is_spiritual = yes
+	is_voter = yes
+	lift_fow = yes
+
+	attribute = learning
+	dignity = 0.15
+	opinion_effect = 10
+
+	monthly_salary = 0.1
+	monthly_piety = 0.5
+
+	action = action_hunt_heretics			# Offmap, Monks and Mystics
+	action = action_inquisition
+	action = action_advance_cul_tech
+	action = action_improve_rel_relations
+	action = action_charity
+	action = action_build_zeal				# Tribal replacement for 'action_advance_cul_tech'
+
+	allow = {
+		can_be_spiritual_trigger = yes
+	}
+
+	dismiss_trigger = {
+		show_only_failed_conditions = yes
+
+		FROM = {
+			show_scope_change = no
+
+			# Muslims can't fire Court Imams sharing their religion
+			NAND = {
+				religion_group = muslim
+				religion = ROOT
+			}
+
+			# Powerful vassals can't be fired from the council under Full Council Authority
+			OR = {
+				NOT = { has_law = succession_voting_power_1 }
+
+				ROOT = {
+					show_scope_change = no
+
+					is_powerful_vassal = no
+				}
+			}
+
+			custom_tooltip = {
+				text = not_swapping_tt
+				NOT = { has_character_flag = swapping_councillors }
+			}
+		}
+		
+		can_fire_grand_chancellor_trigger = yes
+		
+		i_am_appropriate_regent_trigger = no
+		
+		can_fire_chinese_councillor_trigger = yes
+		
+		can_fire_japanese_councillor_trigger = yes
+	}
+
+	gain_effect = {
+		if = {
+			limit = {
+				FROM = {
+					can_grant_title = title_grand_chancellor
+					
+					NOT = {
+						any_voter = {
+							has_minor_title = title_grand_chancellor
+						}
+					}
+				}
+				
+				can_hold_title = title_grand_chancellor
+			}
+			
+			give_minor_title = title_grand_chancellor
+		}
+	}
+
+	lose_effect = {
+		if = {
+			limit = {
+				FROM = {
+					NOT = { has_character_flag = swapping_councillors }
+				}
+
+				can_be_spymaster_trigger = yes
+				
+				FROM = {
+					any_courtier_or_vassal = {
+						character = ROOT
+					}
+				}
+				
+				NOT = {
+					FROM = {
+						regent = {
+							reverse_has_opinion_modifier = {
+								who = ROOT
+								modifier = japanese_regent_fired_me
+							}
+						}
+					}
+				}
+			}
+
+			opinion = { who = FROM name = opinion_fired_from_council }
+			opinion = { who = FROM name = opinion_recently_fired }
+		}
+
+		if = {
+			limit = { has_character_flag = relic_hunter }
+			character_event = { id = MNM.9034 } # Artifact hunter councllior fired/retires ping
+		}
+	}
+
+	retire_effect = {
+		if = {
+			limit = { has_character_flag = relic_hunter }
+			character_event = { id = MNM.9034 } # Artifact hunter councllior fired/retires ping
+		}
+
+		if = {
+			limit = {
+				practical_age < 65
+				health >= 3
+				is_sick_or_injured_trigger = no
+				can_be_councilmember_king_trigger = yes
+			}
+
+			FROM = {
+				opinion = {
+					name = opinion_resigned_from_council
+					who = ROOT
+				}
+			}
+		}
+	}
+}

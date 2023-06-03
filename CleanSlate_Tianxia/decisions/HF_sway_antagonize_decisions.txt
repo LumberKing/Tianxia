@@ -1,0 +1,220 @@
+targeted_decisions = {
+	start_sway = {
+		ai_target_filter = none
+
+		hide_in_decisions_list = yes
+
+		ai = no
+
+		potential = {
+			has_dlc = "Holy Fury"
+			is_alive = yes
+			NOT = { character = FROM } # CleanSlate: Inexplicably required here
+		}
+
+		allow = {
+			show_only_failed_conditions = yes
+
+			custom_tooltip = {
+				text = tooltip_cannot_antagonize_sway_same_time
+
+				FROM = {
+					NOT = { # Can't appease and antagonize at the same time
+						persistent_event_target:antagonize_target = {
+							character = ROOT
+						}
+					}
+				}
+			}
+
+			ROOT = {
+				is_adult = yes
+				prisoner = no
+				is_actually_incapable_trigger = no
+				in_seclusion = no
+				NOT = { trait = in_hiding }
+
+				custom_tooltip = {
+					text = tooltip_rebuked_apology
+
+					NOT = {
+						has_opinion_modifier = {
+							name = opinion_rebuked_swayer_cooldown
+							who = FROM
+						}
+					}
+				}
+
+				OR = {
+					NOT = { is_rival = FROM }
+					FROM = { trait = arbitrary }
+				}
+			}
+
+			FROM = {
+				is_adult = yes
+				is_actually_incapable_trigger = no
+				is_inaccessible_trigger = no
+				is_within_diplo_range = ROOT
+				NOT = { rightful_religious_head = ROOT }
+			}
+		}
+
+		effect = {
+			set_character_flag = flag_character_being_swayed # Only used for AI weights
+
+			FROM = {
+				clr_character_flag = flag_tired_of_gifts
+
+				if = {
+					limit = { persistent_event_target:sway_target = { always = yes } }
+
+					persistent_event_target:sway_target = {
+						clr_character_flag = flag_character_being_swayed
+					}
+
+					remove_special_interest = persistent_event_target:sway_target
+				}
+
+				save_persistent_event_target = {
+					name = sway_target
+					scope = ROOT
+				}
+
+				add_special_interest = {
+					who = ROOT
+					key = swaying_target_key
+				}
+			}
+		}
+	}
+
+	stop_sway = {
+		hide_in_decisions_list = yes
+
+		ai = no
+
+		potential = {
+			FROM = {
+				persistent_event_target:sway_target = {
+					character = ROOT
+				}
+			}
+		}
+
+		allow = {
+		}
+
+		effect = {
+			clr_character_flag = flag_character_being_swayed # Only used for AI weights
+
+			FROM = {
+				clr_character_flag = flag_tired_of_gifts
+				remove_special_interest = persistent_event_target:sway_target
+				clear_persistent_event_target = sway_target
+			}
+		}
+	}
+
+	start_antagonize = {
+		ai_target_filter = none
+
+		hide_in_decisions_list = yes
+
+		ai = no
+
+		potential = {
+			has_dlc = "Holy Fury"
+			is_alive = yes
+			NOT = { character = FROM } # CleanSlate: Inexplicably required here
+		}
+
+		allow = {
+			show_only_failed_conditions = yes
+
+			custom_tooltip = {
+				text = tooltip_cannot_antagonize_sway_same_time
+
+				FROM = {
+					NOT = { # Can't appease and antagonize at the same time
+						persistent_event_target:sway_target = {
+							character = ROOT
+						}
+					}
+				}
+			}
+
+			ROOT = {
+				is_adult = yes
+				prisoner = no
+				is_actually_incapable_trigger = no
+				in_seclusion = no
+
+				NOR = {
+					is_friend = FROM
+					is_lover = FROM
+					trait = in_hiding
+				}
+			}
+
+			FROM = {
+				is_adult = yes
+				is_actually_incapable_trigger = no
+				is_inaccessible_trigger = no
+				is_within_diplo_range = ROOT
+			}
+		}
+
+		effect = {
+			set_character_flag = flag_character_being_antagonized
+
+			FROM = {
+				if = {
+					limit = { persistent_event_target:antagonize_target = { always = yes } }
+
+					persistent_event_target:antagonize_target = {
+						clr_character_flag = flag_character_being_antagonized
+					}
+
+					remove_special_interest = persistent_event_target:antagonize_target
+				}
+
+				save_persistent_event_target = {
+					name = antagonize_target
+					scope = ROOT
+				}
+
+				add_special_interest = {
+					who = ROOT
+					key = antagonizing_target_key
+				}
+			}
+		}
+	}
+
+	stop_antagonize = {
+		hide_in_decisions_list = yes
+
+		ai = no
+
+		potential = {
+			FROM = {
+				persistent_event_target:antagonize_target = {
+					character = ROOT
+				}
+			}
+		}
+
+		allow = {
+		}
+
+		effect = {
+			clr_character_flag = flag_character_being_antagonized
+
+			FROM = {
+				remove_special_interest = persistent_event_target:antagonize_target
+				clear_persistent_event_target = antagonize_target
+			}
+		}
+	}
+}
