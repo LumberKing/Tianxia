@@ -1,0 +1,2416 @@
+# Assorted Hwarang powers events
+# by Silverswee(e)per
+
+namespace = soh
+
+# soh.2101-2200 reserved
+
+##### Powers events
+
+### Cash out
+
+# Confirmation event - AI always confirms
+character_event = {
+	id = soh.2101
+	desc = EVTDESC_SOH_2101
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes # cash_out decision; TODO
+	
+	immediate = {
+		set_variable = {
+			which = hwarang_cash_out
+			value = 0
+		}
+		
+		export_to_variable = {
+			which = hwarang_cash_out
+			value = society_currency
+			who = ROOT
+		}
+		
+		multiply_variable = {
+			which = hwarang_cash_out
+			value = 0.25
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_2101 # Yes, I want to cash out!
+		
+		any_player = {
+			limit = {
+				society_member_of = hwarang
+				NOT = {
+					character = ROOT
+				}
+			}
+			
+			character_event = { id = soh.2102 } # Inform players
+		}
+
+		custom_tooltip = {
+			text = hwarang_cash_out_reward
+			hwarang_cash_out_effect = yes
+		}
+		
+		if = {
+			limit = {
+				ai = yes
+			}
+			set_character_flag = hwarang_ai_leave
+		}
+		
+		else = {
+			set_character_flag = hwarang_player_leave
+		}
+		
+		leave_society = yes
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_2101 # No, I don't think so
+		
+		ai_chance = {
+			factor = 0 # The AI always confirms
+		}
+	}
+	
+	after = {
+		set_variable = {
+			which = hwarang_cash_out
+			value = 0
+		}
+	}
+}
+
+# Inform non-AI members
+character_event = {
+	id = soh.2102
+	desc = EVTDESC_SOH_2102
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2102 # I see...
+	}
+}
+
+
+
+### Inspire Loyalty
+
+# FROMFROM inspired loyalty in ROOT - does anything further happen?
+character_event = {
+	id = soh.2103
+	hide_window = yes
+	
+	is_triggered_only = yes # inspire_loyalty targeted_decision; TODO
+	
+	immediate = {
+		# Clear flags
+		clr_character_flag = inspire_loyalty_friendship
+		clr_character_flag = inspire_loyalty_end_rivalry
+		clr_character_flag = inspire_loyalty_less_ambitious
+		clr_character_flag = inspire_loyalty_abandon_claim
+		clr_character_flag = inspire_loyalty_virtue_chaste
+		clr_character_flag = inspire_loyalty_virtue_temperate
+		clr_character_flag = inspire_loyalty_virtue_charitable
+		clr_character_flag = inspire_loyalty_virtue_patient
+		clr_character_flag = inspire_loyalty_virtue_kind
+		clr_character_flag = inspire_loyalty_virtue_humble
+		clr_character_flag = inspire_loyalty_zealous
+		clr_character_flag = inspire_loyalty_just
+		
+		# See if anything further can happen
+		random_list = {
+			10 = {
+				trigger = {
+					NOR = {
+						any_rival = {
+							character = FROMFROM
+						}
+						
+						any_friend = {
+							character = FROMFROM
+						}
+					}
+					
+					opinion = {
+						who = FROMFROM
+						value >= 0
+					}
+				}
+				
+				# Possible friendship
+				set_character_flag = inspire_loyalty_friendship
+			}
+			
+			10 = {
+				trigger = {
+					any_rival = {
+						character = FROMFROM
+					}
+					
+					opinion = {
+						who = FROMFROM
+						value >= -50
+					}
+				}
+				
+				# Possible end to rivalry
+				set_character_flag = inspire_loyalty_end_rivalry
+			}
+			
+			10 = {
+				trigger = {
+					NOT = {
+						trait = content
+					}
+				}
+				
+				# Possibly less ambitious
+				set_character_flag = inspire_loyalty_less_ambitious
+			}
+			
+			10 = {
+				trigger = {
+					FROMFROM = {
+						any_demesne_title = {
+							lower_tier_than = PREV
+							claimed_by = ROOT
+							
+							NOT = {
+								higher_tier_than = ROOT
+							}
+							
+							controls_religion = no
+						}
+					}
+				}
+				
+				# Might abandon claim
+				set_character_flag = inspire_loyalty_abandon_claim
+			}
+			
+			5 = {
+				trigger = {
+					NOT = {
+						trait = chaste
+					}
+					
+					NAND = {
+						trait = lustful
+						FROMFROM = {
+							trait = lustful
+						}
+					}
+					
+					OR = {
+						trait = lustful
+						FROMFROM = {
+							trait = chaste
+						}
+					}
+				}
+				
+				# Picked up virtue - chaste
+				set_character_flag = inspire_loyalty_virtue_chaste
+			}
+			
+			5 = {
+				trigger = {
+					NOT = {
+						trait = temperate
+					}
+					
+					NAND = {
+						trait = gluttonous
+						FROMFROM = {
+							trait = gluttonous
+						}
+					}
+					
+					OR = {
+						trait = gluttonous
+						FROMFROM = {
+							trait = temperate
+						}
+					}
+				}
+				
+				# Picked up virtue - temperate
+				set_character_flag = inspire_loyalty_virtue_temperate
+			}
+			
+			5 = {
+				trigger = {
+					NOT = {
+						trait = charitable
+					}
+					
+					NAND = {
+						trait = greedy
+						FROMFROM = {
+							trait = greedy
+						}
+					}
+					
+					OR = {
+						trait = greedy
+						FROMFROM = {
+							trait = charitable
+						}
+					}
+				}
+				
+				# Picked up virtue - charitable
+				set_character_flag = inspire_loyalty_virtue_charitable
+			}
+			
+			5 = {
+				trigger = {
+					NOT = {
+						trait = diligent
+					}
+					
+					NAND = {
+						trait = slothful
+						FROMFROM = {
+							trait = slothful
+						}
+					}
+					
+					OR = {
+						trait = slothful
+						FROMFROM = {
+							trait = diligent
+						}
+					}
+				}
+				
+				# Picked up virtue - diligent 
+				set_character_flag = inspire_loyalty_virtue_diligent 
+			}
+			
+			5 = {
+				trigger = {
+					NOT = {
+						trait = patient
+					}
+					
+					NAND = {
+						trait = wroth
+						FROMFROM = {
+							trait = wroth
+						}
+					}
+					
+					OR = {
+						trait = wroth
+						FROMFROM = {
+							trait = patient
+						}
+					}
+				}
+				
+				# Picked up virtue - patient
+				set_character_flag = inspire_loyalty_virtue_patient
+			}
+			
+			5 = {
+				trigger = {
+					NOT = {
+						trait = kind
+					}
+					
+					NAND = {
+						trait = envious
+						FROMFROM = {
+							trait = envious
+						}
+					}
+					
+					NAND = {
+						trait = cruel
+						FROMFROM = {
+							trait = cruel
+						}
+					}
+					
+					OR = {
+						trait = envious
+						trait = cruel
+						FROMFROM = {
+							trait = kind
+						}
+					}
+				}
+				
+				# Picked up virtue - kind
+				set_character_flag = inspire_loyalty_virtue_kind
+			}
+			
+			5 = {
+				trigger = {
+					NOT = {
+						trait = humble
+					}
+					
+					NAND = {
+						trait = proud
+						FROMFROM = {
+							trait = proud
+						}
+					}
+					
+					OR = {
+						trait = proud
+						FROMFROM = {
+							trait = humble
+						}
+					}
+				}
+				
+				# Picked up virtue - humble
+				set_character_flag = inspire_loyalty_virtue_humble
+			}
+			
+			5 = {
+				trigger = {
+					religion = FROMFROM
+					
+					NOT = {
+						trait = zealous
+					}
+					
+					NAND = {
+						trait = cynical
+						FROMFROM = {
+							trait = cynical
+						}
+					}
+					
+					OR = {
+						trait = cynical
+						FROMFROM = {
+							trait = zealous
+						}
+					}
+				}
+				
+				# Became more zealous if it makes sense
+				set_character_flag = inspire_loyalty_zealous
+			}
+			
+			5 = {
+				trigger = {
+					NOT = {
+						trait = just
+					}
+					
+					NAND = {
+						trait = arbitrary
+						FROMFROM = {
+							trait = arbitrary
+						}
+					}
+					
+					OR = {
+						trait = arbitrary
+						FROMFROM = {
+							trait = just
+						}
+					}
+				}
+				
+				# Became more just
+				set_character_flag = inspire_loyalty_just
+			}
+			
+			50 = {
+				# Nothing
+			}
+		}
+		
+		character_event = { id = soh.2104 } # Inform ROOT
+	}
+}
+
+# ROOT informed, might have an idea to do more
+character_event = {
+	id = soh.2104
+	desc = EVTDESC_SOH_2104
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				has_character_flag = inspire_loyalty_abandon_claim
+			}
+			
+			FROMFROMFROM = {
+				random_demesne_title = {
+					limit = {
+						lower_tier_than = PREV
+						claimed_by = ROOT
+						NOT = {
+							higher_tier_than = ROOT
+						}
+						
+						controls_religion = no
+					}
+					save_event_target_as = claim_to_abandon
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_friendship
+		}
+		
+		name = EVTOPTA_SOH_2104 # Maybe we should be friends?
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2105 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					NOT = {
+						religion = FROMFROMFROM
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = paranoid
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = shy
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_end_rivalry
+		}
+		
+		name = EVTOPTB_SOH_2104 # Maybe we should stop being rivals?
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2108 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					NOT = {
+						religion = FROMFROMFROM
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = wroth
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = cruel
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_less_ambitious
+		}
+		
+		name = EVTOPTC_SOH_2104 # Maybe I shouldn't be so ambitious...
+		
+		add_trait_partially_content_effect = yes
+		
+		if = {
+			limit = {
+				trait = content
+				has_quest = quest_hwarang_content
+			}
+			clr_quest = quest_hwarang_content
+			add_society_currency_medium_effect = yes
+		}
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2111 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = envious
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_abandon_claim
+		}
+		
+		name = EVTOPTD_SOH_2104 # Maybe I should give up that claim...
+		
+		event_target:claim_to_abandon = {
+			remove_claim = ROOT
+		}
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2112 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = ambitious
+					is_rival = FROMFROMFROM
+				}
+				
+				NAND = {
+					trait = zealous
+					NOT = {
+						religion = FROMFROMFROM
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = content
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = envious
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_virtue_chaste
+		}
+		
+		name = EVTOPTE_SOH_2104 # My liege has inspired me to be more chaste!
+		
+		add_trait_partially_chaste_effect = yes
+		
+		if = {
+			limit = {
+				trait = chaste
+				has_quest = quest_hwarang_chaste
+			}
+			clr_quest = quest_hwarang_chaste
+			add_society_currency_medium_effect = yes
+		}
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2113 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				FROMFROMFROM = {
+					NOT = {
+						trait = chaste
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = lustful
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_virtue_temperate
+		}
+		
+		name = EVTOPTF_SOH_2104 # My liege has inspired me to be more temperate!
+		
+		add_trait_partially_temperate_effect = yes
+		
+		if = {
+			limit = {
+				trait = temperate
+				has_quest = quest_hwarang_temperate
+			}
+			clr_quest = quest_hwarang_temperate
+			add_society_currency_medium_effect = yes
+		}
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2114 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				FROMFROMFROM = {
+					NOT = {
+						trait = temperate
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = gluttonous
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_virtue_charitable
+		}
+		
+		name = EVTOPTG_SOH_2104 # My liege has inspired me to be more charitable!
+		
+		add_trait_partially_charitable_effect = yes
+		
+		if = {
+			limit = {
+				trait = charitable
+				has_quest = quest_hwarang_charitable
+			}
+			clr_quest = quest_hwarang_charitable
+			add_society_currency_medium_effect = yes
+		}
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2115 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				FROMFROMFROM = {
+					NOT = {
+						trait = charitable
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = greedy
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_virtue_diligent
+		}
+		
+		name = EVTOPTH_SOH_2104 # My liege has inspired me to be more diligent!
+		
+		add_trait_partially_diligent_effect = yes
+		
+		if = {
+			limit = {
+				trait = diligent
+				has_quest = quest_hwarang_diligent
+			}
+			clr_quest = quest_hwarang_diligent
+			add_society_currency_medium_effect = yes
+		}
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2116 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				FROMFROMFROM = {
+					NOT = {
+						trait = diligent
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = slothful
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_virtue_patient
+		}
+		
+		name = EVTOPTI_SOH_2104 # My liege has inspired me to be more patient!
+		
+		add_trait_partially_patient_effect = yes
+		
+		if = {
+			limit = {
+				trait = patient
+				has_quest = quest_hwarang_patient
+			}
+			clr_quest = quest_hwarang_patient
+			add_society_currency_medium_effect = yes
+		}
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2117 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				FROMFROMFROM = {
+					NOT = {
+						trait = patient
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = wroth
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_virtue_kind
+		}
+		
+		name = EVTOPTJ_SOH_2104 # My liege has inspired me to be more kind!
+		
+		if = {
+			limit = {
+				OR = {
+					trait = envious
+					trait = cruel
+				}
+			}
+			
+			random_list = {
+				50 = {
+					trigger = {
+						trait = envious
+					}
+					
+					remove_trait_envious_effect = yes
+				}
+				
+				50 = {
+					trigger = {
+						trait = cruel
+					}
+					
+					remove_trait_cruel_effect = yes
+				}
+			}
+		}
+		
+		else = {
+			add_trait_kind_effect = yes
+
+			if = {
+				limit = {
+					has_quest = quest_hwarang_kind
+				}
+				clr_quest = quest_hwarang_kind
+				add_society_currency_medium_effect = yes
+			}
+		}
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2118 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				FROMFROMFROM = {
+					NOT = {
+						trait = kind
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = cruel
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = envious
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_virtue_humble
+		}
+		
+		name = EVTOPTK_SOH_2104 # My liege has inspired me to be more humble!
+		
+		add_trait_partially_humble_effect = yes
+		
+		if = {
+			limit = {
+				trait = humble
+				has_quest = quest_hwarang_humble
+			}
+			clr_quest = quest_hwarang_humble
+			add_society_currency_medium_effect = yes
+		}
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2119 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				FROMFROMFROM = {
+					NOT = {
+						trait = humble
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_zealous
+		}
+		
+		name = EVTOPTL_SOH_2104 # My liege has inspired me to be more zealous!
+		
+		add_trait_partially_zealous_effect = yes
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2120 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				FROMFROMFROM = {
+					NOT = {
+						trait = zealous
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = inspire_loyalty_just
+		}
+		
+		name = EVTOPTM_SOH_2104 # My liege has inspired me to be more just!
+		
+		add_trait_partially_just_effect = yes
+		
+		if = {
+			limit = {
+				trait = just
+				has_quest = quest_hwarang_just
+			}
+			clr_quest = quest_hwarang_just
+			add_society_currency_medium_effect = yes
+		}
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2121 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				FROMFROMFROM = {
+					NOT = {
+						trait = just
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = arbitrary
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTN_SOH_2104 # I don't feel like doing anything...
+		
+		if = {
+			limit = {
+				religion = FROMFROMFROM
+			}
+			piety = -50
+		}
+		
+		else = {
+			prestige = -100
+		}
+		
+		FROMFROMFROM = {
+			character_event = { id = soh.2122 days = 2 random = 2 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				any_friend = {
+					character = FROMFROMFROM
+				}
+			}
+		}
+	}
+}
+
+# Friendship offered
+character_event = {
+	id = soh.2105
+	desc = EVTDESC_SOH_2105
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2105 # Sure!
+		
+		add_friend = FROM
+		
+		FROM = {
+			character_event = { id = soh.2106 } # Inform FROM
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					NOT = {
+						religion = FROM
+					}
+				}
+				
+				opinion = {
+					who = FROM
+					value >= 0
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = paranoid
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_2105 # I don't think so...
+		
+		prestige = -25
+		
+		FROM = {
+			character_event = { id = soh.2107 } # Inform FROM
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = kind
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = trusting
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				opinion = {
+					who = FROM
+					value >= 50
+				}
+			}
+		}
+	}
+}
+
+# Friendship accepted
+character_event = {
+	id = soh.2106
+	desc = EVTDESC_SOH_2106
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2106 # Great!
+	}
+}
+
+# Friendship refused
+character_event = {
+	id = soh.2107
+	desc = EVTDESC_SOH_2107
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2107 # I see...
+	}
+}
+
+# End to rivalry offered
+character_event = {
+	id = soh.2108
+	desc = EVTDESC_SOH_2108
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2108 # Sure!
+		
+		remove_rival = FROM
+		
+		FROM = {
+			character_event = { id = soh.2109 } # Inform FROM
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					NOT = {
+						religion = FROM
+					}
+				}
+				
+				opinion = {
+					who = FROM
+					value >= -50
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				trait = stubborn
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = paranoid
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_2108 # I don't think so...
+		
+		prestige = -25
+		
+		FROM = {
+			character_event = { id = soh.2110 } # Inform FROM
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					OR = {
+						religion = FROM
+						NOT = {
+							trait = zealous
+						}
+					}
+					
+					opinion = {
+						who = FROM
+						value >= 0
+					}
+				}
+			}			
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = kind
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = trusting
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+		}
+	}
+}
+
+# End to rivalry accepted
+character_event = {
+	id = soh.2109
+	desc = EVTDESC_SOH_2109
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2109 # Great!
+	}
+}
+
+# End to rivalry refused
+character_event = {
+	id = soh.2110
+	desc = EVTDESC_SOH_2110
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2110 # I see...
+	}
+}
+
+# Vassal became less ambitious
+character_event = {
+	id = soh.2111
+	desc = EVTDESC_SOH_2111
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2111 # Great!
+	}
+}
+
+# Vassal gave up claim
+character_event = {
+	id = soh.2112
+	desc = EVTDESC_SOH_2112
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2112 # Great!
+	}
+}
+
+# Vassal became more virtuous if liege is more virtuous - chaste
+character_event = {
+	id = soh.2113
+	desc = EVTDESC_SOH_2113
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2113 # Great!
+	}
+}
+
+# Vassal became more virtuous if liege is more virtuous - temperate
+character_event = {
+	id = soh.2114
+	desc = EVTDESC_SOH_2114
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2114 # Great!
+	}
+}
+
+# Vassal became more virtuous if liege is more virtuous - charitable
+character_event = {
+	id = soh.2115
+	desc = EVTDESC_SOH_2115
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2115 # Great!
+	}
+}
+
+# Vassal became more virtuous if liege is more virtuous - diligent
+character_event = {
+	id = soh.2116
+	desc = EVTDESC_SOH_2116
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2116 # Great!
+	}
+}
+
+# Vassal became more virtuous if liege is more virtuous - patient
+character_event = {
+	id = soh.2117
+	desc = EVTDESC_SOH_2117
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2117 # Great!
+	}
+}
+
+# Vassal became more virtuous if liege is more virtuous - kind
+character_event = {
+	id = soh.2118
+	desc = EVTDESC_SOH_2118
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2118 # Great!
+	}
+}
+
+# Vassal became more virtuous if liege is more virtuous - humble
+character_event = {
+	id = soh.2119
+	desc = EVTDESC_SOH_2119
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2119 # Great!
+	}
+}
+
+# Vassal became more zealous if liege is more zealous and shares religion
+character_event = {
+	id = soh.2120
+	desc = EVTDESC_SOH_2120
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2120 # Great!
+	}
+}
+
+# Vassal became more just if liege is more just
+character_event = {
+	id = soh.2121
+	desc = EVTDESC_SOH_2121
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2121 # Great!
+	}
+}
+
+# Nothing special - inform liege
+character_event = {
+	id = soh.2122
+	desc = EVTDESC_SOH_2122
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2122 # I see...
+	}
+}
+
+
+
+### Hwarang lifestyle selection
+
+# AI lifestyle selection
+character_event = {
+	id = soh.2123
+	hide_window = yes
+	
+	is_triggered_only = yes # select_hwarang_lifestyle decision; TODO
+	
+	immediate = {
+		# Weighted random
+		random_list = {
+			10 = {
+				mult_modifier = {
+					factor = 0.5
+					is_dumb_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 2
+					has_education_stewardship_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 1.5
+					has_education_diplomacy_trigger = yes
+				}
+				add_trait = administrator
+			}
+			
+			5 = {
+				mult_modifier = {
+					factor = 0.5
+					is_dumb_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 2
+					has_education_stewardship_trigger = yes
+				}
+				
+				add_trait = architect
+			}
+			
+			5 = {
+				mult_modifier = {
+					factor = 2
+					is_strong_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 0.5
+					is_weak_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 2
+					has_education_martial_trigger = yes
+				}
+				
+				add_trait = duelist
+			}
+			
+			10 = {
+				mult_modifier = {
+					factor = 2
+					trait = gregarious
+				}
+				
+				mult_modifier = {
+					factor = 0.5
+					trait = shy
+				}
+				
+				mult_modifier = {
+					factor = 0.5
+					is_dumb_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 1.5
+					has_education_martial_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 2
+					has_education_diplomacy_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 1.5
+					has_education_intrigue_trigger = yes
+				}
+				
+				add_trait = game_master
+			}
+			
+			5 = {
+				mult_modifier = {
+					factor = 2
+					is_strong_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 0.5
+					is_weak_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 2
+					has_education_martial_trigger = yes
+				}
+				
+				add_trait = hunter
+			}
+			
+			10 = {
+				mult_modifier = {
+					factor = 0.5
+					is_dumb_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 2
+					is_smart_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 2
+					has_education_learning_trigger = yes
+				}
+				
+				add_trait = scholar
+			}
+			
+			10 = {
+				mult_modifier = {
+					factor = 2
+					trait = gregarious
+				}
+				
+				mult_modifier = {
+					factor = 0.5
+					trait = shy
+				}
+				
+				mult_modifier = {
+					factor = 2
+					has_education_diplomacy_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 1.5
+					has_education_intrigue_trigger = yes
+				}
+				
+				add_trait = socializer
+			}
+			
+			10 = {
+				mult_modifier = {
+					factor = 2
+					is_strong_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 0.5
+					is_weak_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 2
+					has_education_martial_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 1.5
+					has_education_intrigue_trigger = yes
+				}
+				
+				add_trait = strategist
+			}
+			
+			10 = {
+				mult_modifier = {
+					factor = 2
+					trait = zealous
+				}
+				
+				mult_modifier = {
+					factor = 0.5
+					trait = cynical
+				}
+				
+				mult_modifier = {
+					factor = 0.5
+					is_dumb_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 2
+					has_education_learning_trigger = yes
+				}
+				
+				add_trait = theologian
+			}
+		}
+	}
+}
+
+# Player lifestyle selection - diplomacy
+character_event = {
+	id = soh.2124
+	desc = EVTDESC_SOH_2124
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2124 # Socializer
+		
+		add_trait = socializer
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_2124 # Game Master
+		
+		add_trait = game_master
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_2124 # Something else
+		
+		character_event = { id = soh.2125 }
+	}
+}
+
+# Player lifestyle selection - martial
+character_event = {
+	id = soh.2125
+	desc = EVTDESC_SOH_2125
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2125 # Duelist
+		
+		add_trait = duelist
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_2125 # Hunter
+		
+		add_trait = hunter
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_2125 # Strategist
+		
+		add_trait = strategist
+	}
+	
+	option = {
+		name = EVTOPTD_SOH_2125 # Something else
+		
+		character_event = { id = soh.2126 }
+	}
+}
+
+# Player lifestyle selection - stewardship
+character_event = {
+	id = soh.2126
+	desc = EVTDESC_SOH_2126
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_economy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2126 # Administrator
+		
+		add_trait = administrator
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_2126 # Architect
+		
+		add_trait = architect
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_2126 # Something else
+		
+		character_event = { id = soh.2127 }
+	}
+}
+
+# Player lifestyle selection - learning
+character_event = {
+	id = soh.2127
+	desc = EVTDESC_SOH_2127
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2127 # Scholar
+		
+		add_trait = scholar
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_2127 # Theologian
+		
+		add_trait = theologian
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_2127 # Something else
+		
+		character_event = { id = soh.2124 }
+	}
+	
+	option = {
+		name = EVTOPTD_SOH_2127 # Actually, never mind
+		
+		clr_character_flag = hwarang_lifestyle_selection
+		
+		add_society_currency_minor_effect = yes
+	}
+}
+
+
+
+### NAP
+
+# Hwarang suggests NAP
+character_event = {
+	id = soh.2128
+	desc = EVTDESC_SOH_2128
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes # hwarang_nap targeted_decision; TODO
+	
+	option = {
+		name = EVTOPTA_SOH_2128 # Sure!
+		
+		FROMFROM = {
+			character_event = { id = soh.2129 } # Inform FROMFROM
+		}
+		
+		opinion = {
+			who = FROMFROM
+			modifier = in_non_aggression_pact
+			months = 120
+			origin_description = hwarang_nap_modifier_desc
+		}
+		
+		reverse_opinion = {
+			who = FROMFROM
+			modifier = in_non_aggression_pact
+			months = 120
+			origin_description = hwarang_nap_modifier_desc
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				opinion = {
+					who = FROMFROM
+					value >= -50
+				}
+				
+				FROMFROM = {
+					NOR = {
+						has_character_modifier = truce_breaker
+						has_character_modifier = alliance_breaker
+						has_character_modifier = broken_non_aggression_pact_char_modifier
+					}
+				}
+				
+				NOT = {
+					is_rival = FROMFROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				opinion = {
+					who = FROMFROM
+					value >= -25
+				}
+			}
+			
+			modifier = {
+				factor = 0.1
+				trait = zealous
+				NOT = {
+					religion = FROMFROM
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_2128 # Not happening!
+		
+		FROMFROM = {
+			character_event = { id = soh.2130 } # Inform FROMFROM
+		}
+		
+		# Penalize if Hwarang and it would be unreasonable to refuse
+		
+		if = {
+			limit = {
+				society_member_of = hwarang
+				
+				FROMFROM = {
+					NOR = {
+						has_character_modifier = truce_breaker
+						has_character_modifier = alliance_breaker
+						has_character_modifier = broken_non_aggression_pact_char_modifier
+						is_rival = ROOT
+					}
+				}
+			}
+			
+			if = {
+				limit = {
+					FROMFROM = {
+						tier = count
+					}
+				}
+				
+				detract_society_currency_tiny_effect = yes
+			}
+			
+			else_if = {
+				limit = {
+					FROMFROM = {
+						tier = duke
+						controls_religion = no
+					}
+				}
+				
+				detract_society_currency_minor_effect = yes
+			}
+			
+			else = {
+				detract_society_currency_medium_effect = yes
+			}
+		}
+		
+		opinion = {
+			who = FROMFROM
+			modifier = opinion_hwarang_refused_nap
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				OR = {
+					is_rival = FROMFROM
+					NOT = {
+						opinion = {
+							who = FROMFROM
+							value >= 50
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				opinion = {
+					who = FROMFROM
+					value = 25
+				}
+			}
+		}
+	}
+}
+
+# NAP accepted
+character_event = {
+	id = soh.2129
+	desc = EVTDESC_SOH_2129
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2129 # Great!
+		
+		opinion = {
+			who = FROM
+			modifier = in_non_aggression_pact
+			months = 120
+			origin_description = hwarang_nap_modifier_desc
+		}
+		
+		reverse_opinion = {
+			who = FROM
+			modifier = in_non_aggression_pact
+			months = 120
+			origin_description = hwarang_nap_modifier_desc
+		}
+	}
+}
+
+# NAP refused
+character_event = {
+	id = soh.2130
+	desc = EVTDESC_SOH_2130
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2130 # I see...
+		
+		# Partial refund
+		if = {
+			limit = {
+				FROM = {
+					tier = count
+				}
+			}
+			
+			add_society_currency_tiny_effect = yes
+		}
+		
+		else_if = {
+			limit = {
+				FROM = {
+					tier = duke
+					controls_religion = no
+				}
+			}
+			
+			add_society_currency_minor_effect = yes
+		}
+		
+		else = {
+			add_society_currency_medium_effect = yes
+		}
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_hwarang_refused_nap
+		}
+	}
+}
+
+
+
+### Demand Leadership
+
+# You received a demand for leadership
+character_event = {
+	id = soh.2131
+	desc = EVTDESC_SOH_2131
+	picture = GFX_evt_poke_king_in_chest
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes # hwarang_demand_leadership decision; TODO
+	
+	option = {
+		name = EVTOPTA_SOH_2131 # Sure!
+		
+		
+		custom_tooltip = {
+			text = hwarang_leader_will_be_demoted
+		}
+		
+		FROM = {
+			character_event = { id = soh.2132 } # Inform FROM
+		}
+		
+		if = {
+			limit = {
+				ai = yes
+			}
+			
+			set_character_flag = left_hwarang
+			character_event = { id = soh.2101 } # Cash out
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					society_currency >= 1000
+					
+					OR = {
+						is_rival = FROM
+						
+						opinion = {
+							who = FROM
+							value < 25
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = humble
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = content
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			society_currency < 1000
+		}
+		
+		name = EVTOPTB_SOH_2131 # I have no choice, but I'm going to remember this!
+		
+		if = {
+			limit = {
+				NOT = {
+					any_rival = {
+						character = FROM
+					}
+				}
+			}
+			add_rival = FROM
+		}
+		
+		custom_tooltip = {
+			text = hwarang_leader_will_be_demoted
+		}
+		
+		# AI does not cash out in this case
+		
+		FROM = {
+			character_event = { id = soh.2132 } # Inform FROM
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 10
+				trait = wroth
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = stubborn
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = kind
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = content
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			society_currency >= 1000
+			NOT = {
+				is_rival = FROM
+			}
+		}
+		
+		name = EVTOPTC_SOH_2131 # How dare you!
+		
+		add_rival = FROM
+		
+		change_society_currency = -1000
+		prestige = -500
+		piety = -500
+		
+		FROM = {
+			character_event = { id = soh.2133 } # Inform FROM
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 10
+				trait = wroth
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = stubborn
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = kind
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = content
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			society_currency >= 1000
+			is_rival = FROM
+		}
+		
+		name = EVTOPTD_SOH_2131 # How dare you!
+		
+		change_society_currency = -1000
+		prestige = -500
+		piety = -500
+		
+		FROM = {
+			character_event = { id = soh.2133 } # Inform FROM
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = wroth
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = stubborn
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = kind
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = content
+			}
+		}
+	}
+}
+
+# Leader stepped aside
+character_event = {
+	id = soh.2132
+	desc = EVTDESC_SOH_2132
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2132 # Great!
+		
+		set_society_grandmaster = yes
+		
+		hidden_tooltip = {
+			FROM = {
+				if = {
+					limit = {
+						NOT = {
+							has_character_flag = left_hwarang
+						}
+					}
+				}
+				
+				# Handle potential weirdness
+				if = {
+					limit = {
+						society_rank == 4
+					}
+					
+					society_rank_down = 1
+				}
+				
+				else_if = {
+					limit = {
+						society_rank == 2
+					}
+					
+					society_rank_up = 1
+				}
+				
+				else_if = {
+					limit = {
+						society_rank == 1
+					}
+					
+					society_rank_up = 2
+				}
+			}
+		}
+	}
+}
+
+# Leader used society influence to stay in charge
+character_event = {
+	id = soh.2133
+	desc = EVTDESC_SOH_2133
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_2133 # I see...
+	}
+}
