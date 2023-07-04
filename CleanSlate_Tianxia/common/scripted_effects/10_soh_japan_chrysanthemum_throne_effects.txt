@@ -1,0 +1,680 @@
+# You DO NOT take the Chrysanthemum Throne if you are not part of the Imperial Family!
+avoid_chrysanthemum_throne_usurpation_effect = {
+	hidden_tooltip = {
+		# Flag the Tenno to ensure he keeps his government and that he isn't renamed
+		set_character_flag = temporarily_japanese_imperial
+
+		# Flag the Tenno to track regency laws
+		copy_regency_setup_effect = yes
+		
+		# Set up opinion modifiers to track vassals
+		any_vassal = {
+			limit = {
+				NOT = {
+					tier = king
+				}
+			}
+			
+			set_character_flag = i_am_ct_vassal
+			
+			log = "[This.GetBestName] should be a CT vassal!"
+		}
+		
+		# Set up opinion modifier to track Permanent Regent and destroy any kingdoms belonging to the PR
+		if = {
+			limit = {
+				trait = under_regency
+			}
+			
+			any_vassal = {
+				limit = {
+					trait = japanese_regent
+				}
+				
+				save_event_target_as = permanent_regent
+				
+				if = {
+					limit = {
+						tier = king
+					}
+					
+					any_demesne_title = {
+						limit = {
+							tier = king
+						}
+						
+						unsafe_destroy_landed_title = THIS
+					}
+					
+					set_character_flag = i_am_ct_vassal
+				}
+			}
+		}
+		
+		# Destroy k_chrysanthemum_throne
+		if = {
+			limit = {
+				primary_title = {
+					has_law = agnatic_succession
+				}
+			}
+			
+			set_character_flag = agnatic_succession
+		}
+		
+		else = {
+			set_character_flag = true_cognatic_succession
+		}
+		
+		k_chrysanthemum_throne = {
+			unsafe_destroy_landed_title = THIS
+		}
+	}
+}
+
+# Undoes the temporary destruction of the Chrysanthemum Throne title and restores lower tier vassals and the PR
+restore_chrysanthemum_throne_regent_and_vassals_effect = {
+	hidden_tooltip = {
+		# Recreate k_chrysanthemum_throne
+		grant_title = k_chrysanthemum_throne
+		
+		# Ensure k_chrysanthemum_throne is the primary
+		k_chrysanthemum_throne = {
+			make_primary_title = yes
+		}
+		
+		# Gender law
+		if = {
+			limit = {
+				has_character_flag = agnatic_succession
+			}
+			
+			primary_title = {
+				add_law = agnatic_succession
+			}
+			
+			clr_character_flag = agnatic_succession
+		}
+		
+		else = {
+			primary_title = {
+				add_law = true_cognatic_succession
+			}
+			
+			clr_character_flag = true_cognatic_succession
+		}
+		
+		# Restore regency laws
+		paste_regency_setup_effect = yes
+		
+		# Restore vassals
+		any_playable_ruler = {
+			limit = {
+				has_character_flag = i_am_ct_vassal
+			}
+			
+			set_defacto_liege = k_chrysanthemum_throne
+			log = "[This.GetBestName] is now a CT vassal!"
+			clr_character_flag = i_am_ct_vassal
+		}
+		
+		# Restore the Permanent Regent
+		event_target:permanent_regent = {
+			set_defacto_liege = k_chrysanthemum_throne
+		}
+			
+		k_chrysanthemum_throne = {
+			holder_scope = {
+				regent = {
+					if = {
+						limit = {
+							NOT = {
+								character = event_target:permanent_regent
+							}
+						}
+					}
+					
+					remove_title = title_regent
+					
+					remove_title = title_appointed_regent
+				}
+				
+				event_target:permanent_regent = {
+					give_minor_title = title_regent # Fires japan.56 automatically
+					
+					give_minor_title = title_appointed_regent
+				}
+			}
+		}
+		
+		# Un-flag the Tenno
+		clr_character_flag = temporarily_japanese_imperial
+	}
+}
+
+# Same as above, in case of a shogunate that takes the vassals
+restore_chrysanthemum_throne_and_regent_effect = {
+	hidden_tooltip = {
+		# Recreate k_chrysanthemum_throne
+		grant_title = k_chrysanthemum_throne
+		
+		# Ensure k_chrysanthemum_throne is the primary
+		k_chrysanthemum_throne = {
+			make_primary_title = yes
+		}
+		
+		# Restore regency laws
+		paste_regency_setup_effect = yes
+		
+		# Restore the Permanent Regent
+		event_target:permanent_regent = {
+			set_defacto_liege = k_chrysanthemum_throne
+		}
+			
+		k_chrysanthemum_throne = {
+			holder_scope = {
+				regent = {
+					if = {
+						limit = {
+							NOT = {
+								character = event_target:permanent_regent
+							}
+						}
+					}
+					
+					remove_title = title_regent
+					
+					remove_title = title_appointed_regent
+				}
+				
+				event_target:permanent_regent = {
+					give_minor_title = title_regent # Fires japan.56 automatically
+					
+					give_minor_title = title_appointed_regent
+				}
+			}
+		}
+		
+		# Un-flag the Tenno
+		clr_character_flag = temporarily_japanese_imperial
+	}
+}
+
+# Handles abdication for the Tenno since we need to ensure it's a someone from the right dynasty
+abdicate_to_opinion_target_or_most_liked_relative = {
+	# If we're a possible candidate, we should obviously get the Chrysanthemum Throne!
+	if = {
+		limit = {
+			event_target:picking_new_tenno = {
+				is_possible_tenno_trigger = yes
+			}
+		}
+		
+		event_target:picking_new_tenno = {
+			save_event_target_as = new_tenno
+		}
+		
+		k_chrysanthemum_throne = {
+			holder_scope = {
+				if = {
+					limit = {
+						trait = under_regency
+					}
+					
+					event_target:new_tenno = {
+						add_trait = under_regency
+					}
+				}
+				
+				abdicate_to = event_target:new_tenno
+				
+				add_trait = retired_emperor
+			}
+		}
+	}
+	
+	# If we are supporting someone specific, they get k_chrysanthemum_throne
+	else_if = {
+		limit = {
+			any_opinion_modifier_target = {
+				reverse_has_opinion_modifier = {
+					who = event_target:picking_new_tenno
+					modifier = supporting_as_new_tenno
+				}
+				
+				is_possible_tenno_trigger = yes
+			}
+		}
+		
+		any_opinion_modifier_target = {
+			limit = {
+				reverse_has_opinion_modifier = {
+					who = event_target:picking_new_tenno
+					modifier = supporting_as_new_tenno
+				}
+			}
+			
+			save_event_target_as = new_tenno
+		}
+		
+		k_chrysanthemum_throne = {
+			holder_scope = {
+				if = {
+					limit = {
+						trait = under_regency
+					}
+					event_target:new_tenno = {
+						add_trait = under_regency
+					}
+				}
+				abdicate_to = event_target:new_tenno
+			}
+		}
+	}
+	
+	# Otherwise, find the best option
+	else = {
+		custom_tooltip = {
+			text = most_liked_becomes_new_tenno
+			k_chrysanthemum_throne = {
+				holder_scope = {
+					random_dynasty_member = {
+						limit = {
+							is_possible_tenno_trigger = yes
+							NOT = {
+								character = PREV
+							}
+						}
+						
+						# Checks every 5 points for performance reasons
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value == 100
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 95
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 90
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 85
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 80
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 75
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 70
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 65
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 60
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 55
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 50
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 45
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 40
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 35
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 30
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 25
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 20
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 15
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 10
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 5
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= 0
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -5
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -10
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -15
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -20
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -25
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -30
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -35
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -40
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -45
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -50
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -55
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -60
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -65
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -70
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -75
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -80
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -85
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -90
+							}
+						}
+						
+						preferred_limit = {
+							reverse_opinion = {
+								who = event_target:picking_new_tenno
+								value >= -95
+							}
+						}
+						
+						save_event_target_as = new_tenno
+					}
+				}
+				
+				k_chrysanthemum_throne = {
+					holder_scope = {
+						if = {
+							limit = {
+								trait = under_regency
+							}
+							
+							event_target:new_tenno = {
+								add_trait = under_regency
+							}
+						}
+						
+						abdicate_to = event_target:new_tenno
+					}
+				}
+			}
+		}
+	}
+	
+	hidden_tooltip = {
+		k_chrysanthemum_throne = {
+			holder_scope = {
+				reverse_remove_opinion = {
+					who = event_target:picking_new_tenno
+					modifier = supporting_as_new_tenno
+				}
+				
+				opinion = {
+					modifier = opinion_very_grateful
+					who = event_target:picking_new_tenno
+					years = 10
+				}
+				
+				reverse_opinion = {
+					modifier = opinion_fought_for_claimant
+					who = event_target:picking_new_tenno
+					years = 20
+				}
+			}
+		}
+	}
+}
+
+# Stuff that happens when k_chrysanthemum_throne gets a new holder
+new_tenno_effect = {
+	if = {
+		limit = {
+			is_female = yes # Women on the Chrysanthemum Throne should not marry... particularly as the AI would commit sacrilege...
+		}
+		
+		set_character_flag = ai_flag_refuse_concubinage
+		
+		set_character_flag = ai_flag_refuse_marriage
+	}
+	
+	if = {
+		limit = {
+			is_female = yes
+			is_married = yes
+			is_married_matrilineally = no
+			spouse = {
+				NOT = {
+					dynasty = ROOT
+				}
+			}
+		}
+		
+		spouse = {
+			save_event_target_as = my_spouse
+		}
+		
+		remove_spouse = event_target:my_spouse
+		
+		add_spouse_matrilineal = event_target:my_spouse
+	}
+	
+	if = {
+		limit = {
+			is_female = no
+			is_married = yes
+			is_married_matrilineally = yes
+			spouse = {
+				NOT = {
+					dynasty = ROOT
+				}
+			}
+		}
+		
+		spouse = {
+			save_event_target_as = my_spouse
+		}
+		
+		remove_spouse = event_target:my_spouse
+		
+		add_spouse = event_target:my_spouse
+	}
+	
+	any_consort = {
+		limit = {
+			is_senior_consort_party = yes
+		}
+		
+		remove_consort = ROOT
+	}
+	
+	propagate_imperial_family_effect = yes
+}

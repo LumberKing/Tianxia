@@ -1,17 +1,51 @@
 # patrilineal_ancestors_qualify_trigger
+# forefathers_are_dead_or_dynastic_trigger
 # has_actual_regency_trigger
 # i_am_appropriate_regent_trigger
+# is_under_regency_trigger
+# is_possible_tenno_trigger
+# is_possible_tenno_not_shinto_trigger
+# could_be_restored_to_imperial_family_ai_qualifier
+# could_be_restored_to_imperial_family_allow_trigger
+# could_be_restored_to_imperial_family_potential_trigger
 
 patrilineal_ancestors_qualify_trigger = {
-	father_even_if_dead = {
-		OR = {
-			AND = {
-				character = c_1000012949 # Jimmu
-				dynasty = PREV
+	custom_tooltip = {
+		text = unbroken_patrilineal_descent_from_jimmu # TIANXIATODO
+		NOT = {
+			trait = bastard
+		}
+		
+		father_even_if_dead = {
+			OR = {
+				AND = {
+					character = c_1000012949 # Jimmu
+					dynasty = PREV
+				}
+				AND = {
+					dynasty = PREV
+					patrilineal_ancestors_qualify_trigger = yes
+				}
 			}
-			AND = {
-				dynasty = PREV
-				patrilineal_ancestors_qualify_trigger = yes
+		}
+	}
+}
+
+forefathers_are_dead_or_dynastic_trigger = {
+	custom_tooltip = {
+		text = forfathers_are_dead_or_dynastic # TIANXIATODO
+		
+		father_even_if_dead = {
+			NOT = {
+				trait = bastard
+			}
+			OR = {
+				is_alive = no
+				dynasty = 1000027000 # Imperial Family
+			}
+			OR = {
+				character = c_1000012949 # Jimmu
+				forefathers_are_dead_or_dynastic_trigger = yes
 			}
 		}
 	}
@@ -98,5 +132,405 @@ i_am_appropriate_regent_trigger = {
 	
 	trigger_else = {
 		always = no
+	}
+}
+
+is_under_regency_trigger = {
+	custom_tooltip = {
+		text = has_a_permanent_regency # TIANXIATODO
+	
+		trigger_if = {
+			limit = {
+				is_the_tenno_trigger = yes
+			}
+			
+			trait = under_regency
+		}
+		
+		trigger_else_if = {
+			limit = {
+				has_japanese_government_trigger = yes
+				is_the_tenno_trigger = no
+				is_ryukyuan_tenno_trigger = no
+			}
+			
+			trait = under_regency2
+		}
+		
+		trigger_else_if = {
+			limit = {
+				is_ryukyuan_tenno_trigger = yes
+			}
+			
+			trait = under_regency3
+		}
+		
+		trigger_else = {
+			always = no
+		}
+	}
+}
+
+is_possible_tenno_trigger = {
+	k_chrysanthemum_throne = {
+		holder_scope = {
+			dynasty = PREVPREV # Must be checked!
+		}
+	}
+	
+	OR = {
+		k_chrysanthemum_throne = {
+			has_law = true_cognatic_succession
+		}
+		is_female = no
+	}
+	
+	religion = shinto
+	
+	OR = {
+		is_landed = no
+		is_feudal = yes
+	}
+	
+	OR = { #Candidate should not be a landless Courtier that is about to inherit a Theocracy or Republic
+		AND = {
+			is_ruler = yes
+			is_landed = yes
+			is_republic = no
+			is_merchant_republic = no
+			#is_theocracy = no
+		}
+		NOR = {
+			any_heir_title = {
+				is_republic = yes
+			}
+			any_heir_title = {
+				is_merchant_republic = yes
+			}
+			#any_heir_title = {
+			#	is_theocracy = yes
+			#}
+		}
+	}
+	
+	NOR = {
+		trait = cat
+		trait = disinherited
+		trait = horse
+		trait = bear
+		trait = eunuch
+		trait = bastard
+		AND = { 
+			trait = bastard 
+			is_ruler = no
+		}
+		is_ascetic_trigger = yes
+		#is_theocracy = yes
+		is_republic = yes
+		is_merchant_republic = yes
+		trait = sent_to_china
+		#trait = retired_emperor # Actually fine here!
+		trait = dragon_bride_unmarried
+		trait = dragon_bride_married
+	}
+	
+	trait = amaterasu_descendant # Should be irrelevant, but...
+	
+	any_owned_bloodline = {
+		has_bloodline_flag = imperial_family
+		bloodline_is_active_for = PREV # Only agnates!
+	}
+	
+	trigger_if = {
+		limit = {
+			dynasty = 1000027000 # Imperial Family
+		}
+		patrilineal_ancestors_qualify_trigger = yes
+	}
+	
+	trigger_if = {
+		limit = {
+			is_married = yes
+		}
+		
+		trigger_if = {
+			limit = {
+				is_female = no
+			}
+			OR = {
+				is_married_matrilineally = no
+				spouse = {
+					dynasty = PREV
+				}
+			}
+		}
+		
+		trigger_else = {
+			spouse = {
+				dynasty = PREV
+			}
+		}
+	}
+	
+	trigger_if = {
+		limit = {
+			is_consort = yes
+		}
+		
+		trigger_if = {
+			limit = {
+				is_female = no
+			}
+			is_senior_consort_party = yes
+		}
+		
+		trigger_else = {
+			consort = {
+				dynasty = PREV
+			}
+		}
+	}
+}
+
+is_possible_tenno_not_shinto_trigger = {
+	k_chrysanthemum_throne = {
+		holder_scope = {
+			dynasty = PREVPREV # Must be checked!
+		}
+	}
+	
+	OR = {
+		k_chrysanthemum_throne = {
+			has_law = true_cognatic_succession
+		}
+		is_female = no
+	}
+	
+	NOT = {
+		religion = shinto
+	}
+	
+	OR = {
+		is_landed = no
+		is_feudal = yes
+	}
+	
+	OR = { #Candidate should not be a landless Courtier that is about to inherit a Theocracy or Republic
+		AND = {
+			is_ruler = yes
+			is_landed = yes
+			is_republic = no
+			is_merchant_republic = no
+			#is_theocracy = no
+		}
+		NOR = {
+			any_heir_title = {
+				is_republic = yes
+			}
+			any_heir_title = {
+				is_merchant_republic = yes
+			}
+			#any_heir_title = {
+			#	is_theocracy = yes
+			#}
+		}
+	}
+	
+	NOR = {
+		trait = cat
+		trait = disinherited
+		trait = horse
+		trait = bear
+		trait = eunuch
+		trait = bastard
+		AND = { 
+			trait = bastard 
+			is_ruler = no
+		}
+		is_ascetic_trigger = yes
+		#is_theocracy = yes
+		is_republic = yes
+		is_merchant_republic = yes
+		trait = sent_to_china
+		#trait = retired_emperor # Actually fine here!
+		trait = dragon_bride_unmarried
+		trait = dragon_bride_married
+	}
+	
+	trait = amaterasu_descendant # Should be irrelevant, but...
+	
+	any_owned_bloodline = {
+		has_bloodline_flag = imperial_family
+		bloodline_is_active_for = PREV # Only agnates!
+	}
+	
+	trigger_if = {
+		limit = {
+			dynasty = 1000027000 # Imperial Family
+		}
+		patrilineal_ancestors_qualify_trigger = yes
+	}
+	
+	trigger_if = {
+		limit = {
+			is_married = yes
+		}
+		
+		trigger_if = {
+			limit = {
+				is_female = no
+			}
+			OR = {
+				is_married_matrilineally = no
+				spouse = {
+					dynasty = PREV
+				}
+			}
+		}
+		
+		trigger_else = {
+			spouse = {
+				dynasty = PREV
+			}
+		}
+	}
+	
+	trigger_if = {
+		limit = {
+			is_consort = yes
+		}
+		
+		trigger_if = {
+			limit = {
+				is_female = no
+			}
+			is_senior_consort_party = yes
+		}
+		
+		trigger_else = {
+			consort = {
+				dynasty = PREV
+			}
+		}
+	}
+}
+
+# For usurpation checks and abdication logic
+could_be_restored_to_imperial_family_potential_trigger = {
+	NOT = {
+		dynasty = 1000027000 # Imperial Family
+	}
+	
+	trait = amaterasu_descendant # Should be irrelevant, but...
+	
+	any_owned_bloodline = {
+		has_bloodline_flag = imperial_family
+		bloodline_is_active_for = PREV # Only agnates!
+	}
+	
+	OR = {
+		is_landed = no
+		is_feudal = yes
+	}
+	
+	NOR = {
+		trait = bastard
+		trait = cat
+		trait = disinherited
+		trait = horse
+		trait = eunuch
+		is_ascetic_trigger = yes
+		#is_theocracy = yes
+		is_republic = yes
+		is_merchant_republic = yes
+		trait = sent_to_china
+		#trait = retired_emperor # Actually fine here!
+		trait = dragon_bride_unmarried
+		trait = dragon_bride_married
+	}
+}
+
+could_be_restored_to_imperial_family_allow_trigger = {
+	is_ruler = no # Don't mess with rulers!
+	
+	NOR = {
+		any_heir_title = {
+			is_republic = yes
+		}
+		any_heir_title = {
+			is_merchant_republic = yes
+		}
+		#any_heir_title = {
+		#	is_theocracy = yes
+		#}
+	}
+	
+	OR = {
+		is_landed = no
+		is_feudal = yes
+	}
+	
+	NOT = {
+		any_heir_title = {
+			holder_scope = {
+				dynasty = PREVPREV # Don't steal someone's dynastic heir!
+			}
+		}
+	}
+	
+	forefathers_are_dead_or_dynastic_trigger = yes # Patrilineal descent from Jimmu, ignoring dynasty but not bastardry
+}
+
+could_be_restored_to_imperial_family_ai_qualifier = { # To ensure that people that couldn't inherit aren't restored
+	trigger_if = {
+		limit = {
+			is_married = yes
+		}
+		
+		trigger_if = {
+			limit = {
+				is_female = no
+			}
+			OR = {
+				is_married_matrilineally = no
+				spouse = {
+					dynasty = PREV
+				}
+			}
+		}
+		
+		trigger_else = {
+			spouse = {
+				dynasty = PREV
+			}
+		}
+	}
+	
+	trigger_if = {
+		limit = {
+			is_consort = yes
+		}
+		
+		trigger_if = {
+			limit = {
+				is_female = no
+			}
+			is_senior_consort_party = yes
+		}
+		
+		trigger_else = {
+			consort = {
+				dynasty = PREV
+			}
+		}
+	}
+	
+	# Gender law check
+	OR = {
+		is_female = no
+		
+		k_chrysanthemum_throne = {
+			has_law = true_cognatic_succession
+		}
 	}
 }

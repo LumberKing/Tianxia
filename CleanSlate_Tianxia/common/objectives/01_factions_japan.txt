@@ -1,0 +1,6423 @@
+# A powerful vassal or councillor can attempt to become the regent - mostly based on faction_claimant
+faction_regent = {
+	type = liege_titles
+	cancel_on_leader_death = yes # The faction members might not approve of the new leader, so let's have them start over...
+
+	warning_level = 0.70
+
+	# Plotter scope
+	potential = {
+		is_landed = yes
+		higher_real_tier_than = BARON
+		is_adult = yes
+		independent = no
+		prisoner = no
+		is_incapable = no # Works fine here
+		holy_order = no
+		is_feudal = yes
+		mercenary = no
+		
+		has_japanese_government_trigger = yes
+		
+		is_ryukyuan_tenno_trigger = no
+
+		NOR = {
+			has_character_modifier = faction_regent_timer
+			
+			has_opinion_modifier = {
+				name = opinion_coerced_into_leaving_faction
+				who = liege
+			}
+			
+			trait = treasure_fleet_preparation
+			trait = treasure_fleet_voyage
+			
+			any_dynasty_member = {
+				is_playable = yes
+				is_ryukyuan_tenno_trigger = yes
+			}
+		}
+
+		liege = {
+			is_the_tenno_trigger = yes
+			
+			NOR = {
+				any_demesne_title = {
+					temporary = yes
+				}
+				
+				trait = under_regency
+				
+				dynasty = ROOT
+				
+				top_liege = {
+					has_japanese_government_trigger = yes
+					dynasty = ROOT
+				}
+			}
+		}
+		
+		trigger_if = {
+			limit = {
+				# If affected by a Crown Law title not held by my liege
+				NOT = {
+					has_dlc = "Conclave"
+				}
+				crownlaw_title = {
+					holder_scope = {
+						NOT = { is_liege_of = ROOT }
+					}
+				}
+			}
+
+			crownlaw_title = {
+				# The Crown Law title allows vassal infighting
+				NOR = {
+					has_law = crown_authority_2
+					has_law = crown_authority_3
+					has_law = crown_authority_4
+				}
+			}
+		}
+	}
+
+	# Target scope
+	# ROOT is target title
+	# FROM is faction creator
+	allow = {
+		is_primary_holder_title = yes
+		holder_scope = {
+			primary_title = {
+				ROOT = {
+					tier = PREV
+				}
+			}
+		}
+		
+		holder_scope = {
+			NOT = {
+				dynasty = FROM
+			}
+		}
+		
+		NOR = {
+			holder_scope = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_coerced_into_leaving_faction
+				}
+			}
+			
+			FROM = {
+				OR = {
+					in_faction = faction_shogun # Other priorities
+					in_faction = faction_imperial_claimant # Other priorities
+				}
+			}
+		}
+		
+		FROM = {
+			OR = {
+				real_tier = king
+				AND = {
+					real_tier = duke
+					any_owned_bloodline = {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+					}
+				}
+				
+				AND = {
+					real_tier = duke
+					prestige >= 1000
+				}
+				
+				liege = {
+					has_regent = yes
+				}
+				
+				leads_faction = faction_regent
+			}
+		}
+	}
+
+	# Faction member scope
+	# ROOT is joiner
+	# FROM is target
+	allow_join = {
+		ROOT = {
+			is_landed = yes
+			is_adult = yes
+			independent = no
+			prisoner = no
+			is_incapable = no # Works fine here
+		
+			is_ryukyuan_tenno_trigger = no
+			
+			liege = {
+				NOR = {
+					dynasty = ROOT
+					top_liege = {
+						has_japanese_government_trigger = yes
+						dynasty = ROOT
+					}
+				}
+			}
+
+			NOR = {
+				has_character_modifier = faction_regent_timer
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_leaving_faction
+					who = liege
+				}
+			
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			
+				any_dynasty_member = {
+					is_playable = yes
+					is_ryukyuan_tenno_trigger = yes
+				}
+			}
+		}
+	}
+
+	# AI creation weight
+	# FROM is faction creator
+	# ROOT is title scope
+	chance = {
+		factor = 1
+
+		trigger = {
+			FROM = {
+				in_seclusion = no
+				preparing_invasion = no
+				NOT = { is_married = liege }
+				liege = {
+					NOT = {
+						dynasty = FROM
+					}
+				}
+
+				# To keep leading the faction
+				trigger_if = {
+					limit = { leads_faction = faction_regent }
+
+					opinion = {
+						who = liege
+						value < 75
+					}
+				}
+				# To start the faction
+				trigger_else = {
+					opinion = {
+						who = liege
+						value < 100
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				NOT = {
+					any_owned_bloodline = {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			holder_scope = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { pacifist = yes }
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < 25
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < 0
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -25
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -50
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -75
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			holder_scope = {
+				dynasty_realm_power >= 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			holder_scope = {
+				dynasty_realm_power >= 0.4
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			FROM = { trait = content }
+		}
+
+		mult_modifier = {
+			factor = 0.01
+			FROM = { trait = imbecile }
+		}
+
+		mult_modifier = {
+			factor = 0.1
+			FROM = { trait = inbred }
+		}
+
+		mult_modifier = {
+			factor = 0.1
+			FROM = { trait = craven }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { is_dumb_trigger = yes }
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			FROM = { trait = brave }
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			FROM = { trait = ambitious }
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			FROM = {
+				OR = {
+					has_opinion_modifier = {
+						name = opinion_evil_tyrant
+						who = liege
+					}
+
+					has_opinion_modifier = {
+						name = opinion_tyrant
+						who = liege
+					}
+				}
+			}
+		}
+	}
+
+	# AI membership weight
+	# ROOT is the prospective member
+	# FROM is the faction leader
+	# FROMFROM is the target title or character
+	membership = {
+		factor = 1
+
+		trigger = {
+			in_seclusion = no
+			preparing_invasion = no
+			liege = {
+				NOT = {
+					dynasty = ROOT
+				}
+			}
+			
+			OR = {
+				AND = {
+					# To keep being in the faction
+					trigger_if = {
+						limit = { in_faction = faction_regent }
+
+						opinion = {
+							who = liege
+							value < 75
+						}
+					}
+					
+					# To join the faction
+					trigger_else = {
+						opinion = {
+							who = liege
+							value < 100
+						}
+					}
+				}
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.8
+			NOT = {
+				has_global_flag = japanese_regency # We don't know it's a great idea yet...
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.8
+			FROMFROM = {
+				holder_scope = {
+					has_regent = no
+				}
+			}
+		}
+		
+		# I should be the PR instead...
+		mult_modifier = {
+			factor = 0.1
+			any_owned_bloodline = {
+				has_bloodline_flag = regency_bloodline
+				bloodline_is_active_for = PREV
+			}
+			NOT = {
+				dynasty = FROM
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			liege = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			pacifist = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1000
+
+			has_opinion_modifier = {
+				name = opinion_coerced_into_joining_faction
+				who = FROM
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 0
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 10
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 25
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.25
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.40
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.40
+			}
+		}
+		
+		# This is some weird foreign stuff...
+		mult_modifier = {
+			factor = 0.1
+			could_have_japanese_government_trigger = no
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			trait = imbecile
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = inbred
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = craven
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			is_dumb_trigger = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = proud
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = brave
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = arbitrary
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = envious
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = greedy
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = impaler
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = deceitful
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			trait = ambitious
+		}
+
+		mult_modifier = {
+			factor = 5
+			FROM = { same_society_as = ROOT }
+			NOT = {
+				liege = { same_society_as = ROOT }
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 25
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 0
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			opinion = {
+				who = liege
+				value < -25
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			opinion = {
+				who = liege
+				value < -50
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			opinion = {
+				who = liege
+				value < -75
+			}
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			OR = {
+				has_opinion_modifier = {
+					name = opinion_evil_tyrant
+					who = liege
+				}
+
+				has_opinion_modifier = {
+					name = opinion_tyrant
+					who = liege
+				}
+			}
+		}
+	}
+
+	success = {
+		always = no
+	}
+
+	abort = {
+		always = no	# Factions will abort if the Potential or Allow trigger is no longer valid
+	}
+}
+
+# A powerful vassal or councillor can attempt to become the regent - mostly based on faction_claimant
+faction_regent2 = {
+	type = liege_titles
+	cancel_on_leader_death = yes # The faction members might not approve of the new leader, so let's have them start over...
+
+	warning_level = 0.70
+
+	# Plotter scope
+	potential = {
+		is_landed = yes
+		higher_real_tier_than = BARON
+		is_adult = yes
+		independent = no
+		prisoner = no
+		is_incapable = no # Works fine here
+		holy_order = no
+		is_feudal = yes
+		mercenary = no
+		
+		has_japanese_government_trigger = yes
+		
+		is_the_tenno_trigger = no
+		is_ryukyuan_tenno_trigger = no
+
+		NOR = {
+			has_character_modifier = faction_regent_timer
+			
+			has_opinion_modifier = {
+				name = opinion_coerced_into_leaving_faction
+				who = liege
+			}
+			
+			trait = treasure_fleet_preparation
+			trait = treasure_fleet_voyage
+			
+			any_dynasty_member = {
+				is_playable = yes
+				OR = {
+					is_the_tenno_trigger = yes
+					is_ryukyuan_tenno_trigger = yes
+				}
+			}
+		}
+
+		liege = {
+			real_tier = emperor
+			has_japanese_government_trigger = yes
+			
+			NOR = {
+				any_demesne_title = {
+					temporary = yes
+				}
+				
+				trait = under_regency2
+				
+				dynasty = ROOT
+				
+				is_the_tenno_trigger = yes
+				is_ryukyuan_tenno_trigger = yes
+			}
+		}
+	}
+
+	# Target scope
+	# ROOT is target title
+	# FROM is faction creator
+	allow = {
+		is_primary_holder_title = yes
+		holder_scope = {
+			primary_title = {
+				ROOT = {
+					tier = PREV
+				}
+			}
+		}
+		
+		holder_scope = {
+			NOT = {
+				dynasty = FROM
+			}
+		}
+		
+		NOT = {
+			holder_scope = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_coerced_into_leaving_faction
+				}
+			}
+		}
+		
+		FROM = {
+			OR = {
+				real_tier = king
+				AND = {
+					real_tier = duke
+					any_owned_bloodline = {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+					}
+				}
+				
+				AND = {
+					real_tier = duke
+					prestige >= 1000
+				}
+				
+				liege = {
+					has_regent = yes
+				}
+				
+				leads_faction = faction_regent2
+			}
+		}
+	}
+
+	# Faction member scope
+	# ROOT is joiner
+	# FROM is target
+	allow_join = {
+		ROOT = {
+			is_landed = yes
+			is_adult = yes
+			independent = no
+			prisoner = no
+			is_incapable = no # Works fine here
+		
+			is_the_tenno_trigger = no
+			is_ryukyuan_tenno_trigger = no
+			
+			liege = {
+				NOR = {
+					dynasty = ROOT
+				}
+			}
+
+			NOR = {
+				has_character_modifier = faction_regent_timer
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_leaving_faction
+					who = liege
+				}
+			
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			
+				any_dynasty_member = {
+					is_playable = yes
+					OR = {
+						is_the_tenno_trigger = yes
+						is_ryukyuan_tenno_trigger = yes
+					}
+				}
+			}
+		}
+	}
+
+	# AI creation weight
+	# FROM is faction creator
+	# ROOT is title scope
+	chance = {
+		factor = 1
+
+		trigger = {
+			FROM = {
+				in_seclusion = no
+				preparing_invasion = no
+				NOT = { is_married = liege }
+				liege = {
+					NOT = {
+						dynasty = FROM
+					}
+				}
+
+				# To keep leading the faction
+				trigger_if = {
+					limit = { leads_faction = faction_regent2 }
+
+					opinion = {
+						who = liege
+						value < 75
+					}
+				}
+				# To start the faction
+				trigger_else = {
+					opinion = {
+						who = liege
+						value < 100
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				NOT = {
+					any_owned_bloodline = {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			holder_scope = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { pacifist = yes }
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < 25
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < 0
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -25
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -50
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -75
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			holder_scope = {
+				dynasty_realm_power >= 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			holder_scope = {
+				dynasty_realm_power >= 0.4
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			FROM = { trait = content }
+		}
+
+		mult_modifier = {
+			factor = 0.01
+			FROM = { trait = imbecile }
+		}
+
+		mult_modifier = {
+			factor = 0.1
+			FROM = { trait = inbred }
+		}
+
+		mult_modifier = {
+			factor = 0.1
+			FROM = { trait = craven }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { is_dumb_trigger = yes }
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			FROM = { trait = brave }
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			FROM = { trait = ambitious }
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			FROM = {
+				OR = {
+					has_opinion_modifier = {
+						name = opinion_evil_tyrant
+						who = liege
+					}
+
+					has_opinion_modifier = {
+						name = opinion_tyrant
+						who = liege
+					}
+				}
+			}
+		}
+	}
+
+	# AI membership weight
+	# ROOT is the prospective member
+	# FROM is the faction leader
+	# FROMFROM is the target title or character
+	membership = {
+		factor = 1
+
+		trigger = {
+			in_seclusion = no
+			preparing_invasion = no
+			liege = {
+				NOT = {
+					dynasty = ROOT
+				}
+			}
+			
+			OR = {
+				AND = {
+					# To keep being in the faction
+					trigger_if = {
+						limit = { in_faction = faction_regent }
+
+						opinion = {
+							who = liege
+							value < 75
+						}
+					}
+					
+					# To join the faction
+					trigger_else = {
+						opinion = {
+							who = liege
+							value < 100
+						}
+					}
+				}
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.8
+			NOT = {
+				has_global_flag = japanese_regency # We don't know it's a great idea yet...
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.8
+			FROMFROM = {
+				holder_scope = {
+					has_regent = no
+				}
+			}
+		}
+		
+		# I should be the PR instead...
+		mult_modifier = {
+			factor = 0.1
+			any_owned_bloodline = {
+				has_bloodline_flag = regency_bloodline
+				bloodline_is_active_for = PREV
+			}
+			NOT = {
+				dynasty = FROM
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			liege = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			pacifist = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1000
+
+			has_opinion_modifier = {
+				name = opinion_coerced_into_joining_faction
+				who = FROM
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 0
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 10
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 25
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.25
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.40
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.40
+			}
+		}
+		
+		# This is some weird foreign stuff...
+		mult_modifier = {
+			factor = 0.1
+			could_have_japanese_government_trigger = no
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			trait = imbecile
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = inbred
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = craven
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			is_dumb_trigger = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = proud
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = brave
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = arbitrary
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = envious
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = greedy
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = impaler
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = deceitful
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			trait = ambitious
+		}
+
+		mult_modifier = {
+			factor = 5
+			FROM = { same_society_as = ROOT }
+			NOT = {
+				liege = { same_society_as = ROOT }
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 25
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 0
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			opinion = {
+				who = liege
+				value < -25
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			opinion = {
+				who = liege
+				value < -50
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			opinion = {
+				who = liege
+				value < -75
+			}
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			OR = {
+				has_opinion_modifier = {
+					name = opinion_evil_tyrant
+					who = liege
+				}
+
+				has_opinion_modifier = {
+					name = opinion_tyrant
+					who = liege
+				}
+			}
+		}
+	}
+
+	success = {
+		always = no
+	}
+
+	abort = {
+		always = no	# Factions will abort if the Potential or Allow trigger is no longer valid
+	}
+}
+
+# A powerful vassal or councillor can attempt to become the regent - mostly based on faction_claimant
+faction_regent3 = {
+	type = liege_titles
+	cancel_on_leader_death = yes # The faction members might not approve of the new leader, so let's have them start over...
+
+	warning_level = 0.70
+
+	# Plotter scope
+	potential = {
+		is_landed = yes
+		higher_real_tier_than = BARON
+		is_adult = yes
+		independent = no
+		prisoner = no
+		is_incapable = no # Works fine here
+		holy_order = no
+		is_feudal = yes
+		mercenary = no
+		
+		has_japanese_government_trigger = yes
+		
+		is_the_tenno_trigger = no
+
+		NOR = {
+			has_character_modifier = faction_regent_timer
+			
+			has_opinion_modifier = {
+				name = opinion_coerced_into_leaving_faction
+				who = liege
+			}
+			
+			trait = treasure_fleet_preparation
+			trait = treasure_fleet_voyage
+			
+			any_dynasty_member = {
+				is_playable = yes
+				is_the_tenno_trigger = yes
+			}
+		}
+
+		liege = {
+			is_ryukyuan_tenno_trigger = yes
+			
+			NOR = {
+				any_demesne_title = {
+					temporary = yes
+				}
+				
+				trait = under_regency3
+				
+				dynasty = ROOT
+				
+				any_liege = {
+					has_japanese_government_trigger = yes
+					dynasty = ROOT
+				}
+			}
+		}
+		
+		trigger_if = {
+			limit = {
+				# If affected by a Crown Law title not held by my liege
+				NOT = {
+					has_dlc = "Conclave"
+				}
+				crownlaw_title = {
+					holder_scope = {
+						NOT = { is_liege_of = ROOT }
+					}
+				}
+			}
+
+			crownlaw_title = {
+				# The Crown Law title allows vassal infighting
+				NOR = {
+					has_law = crown_authority_2
+					has_law = crown_authority_3
+					has_law = crown_authority_4
+				}
+			}
+		}
+	}
+
+	# Target scope
+	# ROOT is target title
+	# FROM is faction creator
+	allow = {
+		is_primary_holder_title = yes
+		holder_scope = {
+			primary_title = {
+				ROOT = {
+					tier = PREV
+				}
+			}
+		}
+		
+		holder_scope = {
+			NOT = {
+				dynasty = FROM
+			}
+		}
+		
+		NOT = {
+			holder_scope = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_coerced_into_leaving_faction
+				}
+			}
+		}
+		
+		FROM = {
+			OR = {
+				real_tier = king
+				AND = {
+					real_tier = duke
+					any_owned_bloodline = {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+					}
+				}
+				
+				AND = {
+					real_tier = duke
+					prestige >= 1000
+				}
+				
+				liege = {
+					has_regent = yes
+				}
+				
+				leads_faction = faction_regent3
+			}
+		}
+	}
+
+	# Faction member scope
+	# ROOT is joiner
+	# FROM is target
+	allow_join = {
+		ROOT = {
+			is_landed = yes
+			is_adult = yes
+			independent = no
+			prisoner = no
+			is_incapable = no # Works fine here
+		
+			is_the_tenno_trigger = no
+			
+			liege = {
+				NOR = {
+					dynasty = ROOT
+					any_liege = {
+						has_japanese_government_trigger = yes
+						dynasty = ROOT
+					}
+				}
+			}
+
+			NOR = {
+				has_character_modifier = faction_regent_timer
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_leaving_faction
+					who = liege
+				}
+			
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			
+				any_dynasty_member = {
+					is_playable = yes
+					is_the_tenno_trigger = yes
+				}
+			}
+		}
+	}
+
+	# AI creation weight
+	# FROM is faction creator
+	# ROOT is title scope
+	chance = {
+		factor = 1
+
+		trigger = {
+			FROM = {
+				in_seclusion = no
+				preparing_invasion = no
+				NOT = { is_married = liege }
+				liege = {
+					NOT = {
+						dynasty = FROM
+					}
+				}
+
+				# To keep leading the faction
+				trigger_if = {
+					limit = { leads_faction = faction_regent3 }
+
+					opinion = {
+						who = liege
+						value < 75
+					}
+				}
+				# To start the faction
+				trigger_else = {
+					opinion = {
+						who = liege
+						value < 100
+					}
+				}
+				
+				NAND = {
+					has_claim = ROOT
+					any_owned_bloodline = {
+						has_bloodline_flag = divine_ancestry_bloodline_ryukyuan
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				NOT = {
+					any_owned_bloodline = {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			holder_scope = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { pacifist = yes }
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < 25
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < 0
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -25
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -50
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -75
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			holder_scope = {
+				dynasty_realm_power >= 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			holder_scope = {
+				dynasty_realm_power >= 0.4
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			FROM = { trait = content }
+		}
+
+		mult_modifier = {
+			factor = 0.01
+			FROM = { trait = imbecile }
+		}
+
+		mult_modifier = {
+			factor = 0.1
+			FROM = { trait = inbred }
+		}
+
+		mult_modifier = {
+			factor = 0.1
+			FROM = { trait = craven }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { is_dumb_trigger = yes }
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			FROM = { trait = brave }
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			FROM = { trait = ambitious }
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			FROM = {
+				OR = {
+					has_opinion_modifier = {
+						name = opinion_evil_tyrant
+						who = liege
+					}
+
+					has_opinion_modifier = {
+						name = opinion_tyrant
+						who = liege
+					}
+				}
+			}
+		}
+	}
+
+	# AI membership weight
+	# ROOT is the prospective member
+	# FROM is the faction leader
+	# FROMFROM is the target title or character
+	membership = {
+		factor = 1
+
+		trigger = {
+			in_seclusion = no
+			preparing_invasion = no
+			liege = {
+				NOT = {
+					dynasty = ROOT
+				}
+			}
+				
+			NAND = {
+				has_claim = ROOT
+				any_owned_bloodline = {
+					has_bloodline_flag = divine_ancestry_bloodline_ryukyuan
+				}
+			}
+			
+			OR = {
+				AND = {
+					# To keep being in the faction
+					trigger_if = {
+						limit = { in_faction = faction_regent3 }
+
+						opinion = {
+							who = liege
+							value < 75
+						}
+					}
+					
+					# To join the faction
+					trigger_else = {
+						opinion = {
+							who = liege
+							value < 100
+						}
+					}
+				}
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.8
+			NOT = {
+				has_global_flag = japanese_regency # We don't know it's a great idea yet...
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.8
+			FROMFROM = {
+				holder_scope = {
+					has_regent = no
+				}
+			}
+		}
+		
+		# I should be the PR instead...
+		mult_modifier = {
+			factor = 0.1
+			any_owned_bloodline = {
+				has_bloodline_flag = regency_bloodline
+				bloodline_is_active_for = PREV
+			}
+			NOT = {
+				dynasty = FROM
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			liege = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			pacifist = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1000
+
+			has_opinion_modifier = {
+				name = opinion_coerced_into_joining_faction
+				who = FROM
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 0
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 10
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 25
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.25
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.40
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.40
+			}
+		}
+		
+		# This is some weird foreign stuff...
+		mult_modifier = {
+			factor = 0.1
+			could_have_japanese_government_trigger = no
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			trait = imbecile
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = inbred
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = craven
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			is_dumb_trigger = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = proud
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = brave
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = arbitrary
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = envious
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = greedy
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = impaler
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = deceitful
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			trait = ambitious
+		}
+
+		mult_modifier = {
+			factor = 5
+			FROM = { same_society_as = ROOT }
+			NOT = {
+				liege = { same_society_as = ROOT }
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 25
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 0
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			opinion = {
+				who = liege
+				value < -25
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			opinion = {
+				who = liege
+				value < -50
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			opinion = {
+				who = liege
+				value < -75
+			}
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			OR = {
+				has_opinion_modifier = {
+					name = opinion_evil_tyrant
+					who = liege
+				}
+
+				has_opinion_modifier = {
+					name = opinion_tyrant
+					who = liege
+				}
+			}
+		}
+	}
+
+	success = {
+		always = no
+	}
+
+	abort = {
+		always = no	# Factions will abort if the Potential or Allow trigger is no longer valid
+	}
+}
+
+# The Permanent Regent will be backed by this faction if you attempt to depose them by war; the faction will otherwise not do anything
+faction_regency_loyalists = {
+	type = liege_titles
+	cancel_on_leader_death = yes # The faction members might not approve of the new leader, so let's have them start over...
+
+	warning_level = 0.70
+
+	# Plotter scope
+	potential = {
+		is_landed = yes
+		higher_real_tier_than = BARON
+		is_adult = yes
+		independent = no
+		prisoner = no
+		is_incapable = no # Works fine here
+		holy_order = no
+		is_feudal = yes
+		mercenary = no
+		trait = japanese_regent
+		liege = {
+			regent = {
+				character = ROOT
+			}
+		}
+		
+		has_japanese_government_trigger = yes
+		
+		is_ryukyuan_tenno_trigger = no
+
+		NOT = {
+			any_dynasty_member = {
+				is_playable = yes
+				is_ryukyuan_tenno_trigger = yes
+			}
+		}
+
+		liege = {
+			is_the_tenno_trigger = yes
+			trait = under_regency
+			
+			NOR = {
+				any_demesne_title = {
+					temporary = yes
+				}
+				
+				dynasty = ROOT
+				
+				top_liege = {
+					has_japanese_government_trigger = yes
+					dynasty = ROOT
+				}
+			}
+		}
+	}
+
+	# Target scope
+	# ROOT is target title
+	# FROM is faction creator
+	allow = {
+		is_primary_holder_title = yes
+		holder_scope = {
+			primary_title = {
+				ROOT = {
+					tier = PREV
+				}
+			}
+			
+			NOT = {
+				dynasty = FROM
+			}
+		}
+	}
+
+	# Faction member scope
+	# ROOT is joiner
+	# FROM is target
+	allow_join = {
+		ROOT = {
+			is_landed = yes
+			is_adult = yes
+			independent = no
+			prisoner = no
+			is_incapable = no # Works fine here
+		
+			is_ryukyuan_tenno_trigger = no
+			
+			liege = {
+				NOT = {
+					dynasty = ROOT
+				}
+			}
+
+			NOR = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_leaving_faction
+					who = liege
+				}
+			
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+				
+				in_faction = faction_shogun # Other priorities
+				in_faction = faction_imperial_claimant # Other priorities
+			}
+		}
+	}
+
+	# AI creation weight
+	# FROM is faction creator
+	# ROOT is title scope
+	chance = {
+		factor = 1000
+	}
+
+	# AI membership weight
+	# ROOT is the prospective member
+	# FROM is the faction leader
+	# FROMFROM is the target title or character
+	membership = {
+		factor = 1
+
+		trigger = {
+			in_seclusion = no
+			preparing_invasion = no
+			liege = {
+				NOT = {
+					dynasty = ROOT
+				}
+			}
+			
+			OR = {
+				AND = {
+					# To keep being in the faction
+					trigger_if = {
+						limit = { in_faction = faction_regency_loyalists }
+
+						opinion = {
+							who = liege
+							value < 50
+						}
+					}
+					
+					# To join the faction
+					trigger_else = {
+						opinion = {
+							who = liege
+							value < 75
+						}
+					}
+					
+					# To keep being in the faction
+					trigger_if = {
+						limit = { in_faction = faction_regency_loyalists }
+
+						opinion_diff = {
+							first = FROM
+							second = liege
+							value >= -25
+							as_if_liege = yes
+						}
+					}
+					
+					# To join the faction
+					trigger_else = {
+						opinion_diff = {
+							first = FROM
+							second = liege
+							value >= 0
+							as_if_liege = yes
+						}
+					}
+					
+					# Maybe consider going for a Shogunate instead...
+					trigger_if = {
+						limit = {
+							in_faction = faction_regency_loyalists
+							liege = {
+								any_vassal = {
+									leads_faction = faction_shogun
+								}
+							}
+						}
+						
+						liege = {
+							any_vassal = {
+								leads_faction = faction_shogun
+								ROOT = {
+									opinion_diff = {
+										first = FROM
+										second = PREV
+										value >= -25
+										as_if_liege = yes
+									}
+								}
+							}
+						}
+					}
+					
+					trigger_else_if = {
+						limit = {
+							liege = {
+								any_vassal = {
+									leads_faction = faction_shogun
+								}
+							}
+						}
+						
+						liege = {
+							any_vassal = {
+								leads_faction = faction_shogun
+								ROOT = {
+									opinion_diff = {
+										first = FROM
+										second = PREV
+										value >= 0
+										as_if_liege = yes
+									}
+								}
+							}
+						}
+					}
+					
+					# Maybe I should be the Shogun instead...
+					trigger_if = {
+						limit = {
+							liege = {
+								real_tier = emperor
+								regent = {
+									NOT = {
+										dynasty = ROOT
+									}
+								}
+							}
+							
+							has_japanese_government_trigger = yes
+							
+							OR = {
+								real_tier = king
+								
+								AND = {
+									real_tier = duke
+									any_owned_bloodline = {
+										has_bloodline_flag = shogunate_bloodline
+										bloodline_is_active_for = PREV
+									}
+									prestige >= 1000
+								}
+								
+								AND = {
+									real_tier = duke
+									prestige >= 5000
+								}
+							}
+						}
+						
+						NOR = {
+							trait = ambitious
+							trait = proud
+							trait = envious
+						}
+					}
+				}
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+		
+		# A more powerful regent should be harder to overthrow
+		mult_modifier = {
+			factor = 1.2
+			FROMFROM = {
+				has_law = regency_power_law_1
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			FROMFROM = {
+				has_law = regency_power_law_2
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.8
+			FROMFROM = {
+				has_law = regency_power_law_3
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2
+			FROMFROM = {
+				has_law = regency_power_law_4
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.2
+			FROMFROM = {
+				has_law = regency_power_law_5
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.5
+			FROMFROM = {
+				has_law = regency_power_law_6
+			}
+		}
+		
+		# I should be the PR instead...
+		mult_modifier = {
+			factor = 0.1
+			any_owned_bloodline = {
+				has_bloodline_flag = regency_bloodline
+				bloodline_is_active_for = PREV
+				NOT = { # The Five Regent Houses should stick together...
+					any_bloodline_member = {
+						character = FROM
+					}
+				}
+			}
+			NOT = {
+				dynasty = FROM
+			}
+		}
+		
+		mult_modifier = {
+			factor = 10
+			dynasty = FROM
+			opinion = {
+				who = FROM
+				value >= 0
+			}
+			NOT = {
+				is_rival = FROM
+			}
+		}
+		
+		# People that installed the Regent in the first place will back the Regent most of the time
+		mult_modifier = {
+			factor = 5
+			OR = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_fought_for_regent
+				}
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_supported_as_regent
+				}
+			}
+			opinion = {
+				who = FROM
+				value >= 0
+			}
+			NOT = {
+				is_rival = FROM
+			}
+		}
+		
+		# If the Regent has a Regency bloodline they'll be a bit more popular
+		mult_modifier = {
+			factor = 2.5
+			FROM = {
+				any_owned_bloodline = {
+					has_bloodline_flag = regency_bloodline
+					bloodline_is_active_for = PREV
+				}
+			}
+			OR = {
+				dynasty = FROM
+				NOT = {
+					any_owned_bloodline = {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+						NOT = { # The Five Regent Houses should stick together...
+							any_bloodline_member = {
+								character = FROM
+							}
+						}
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			liege = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			pacifist = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1000
+
+			has_opinion_modifier = {
+				name = opinion_coerced_into_joining_faction
+				who = FROM
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 0
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 10
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 25
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.25
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.40
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.40
+			}
+		}
+		
+		# This is some weird foreign stuff...
+		mult_modifier = {
+			factor = 0.1
+			could_have_japanese_government_trigger = no
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			trait = imbecile
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = inbred
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = craven
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			is_dumb_trigger = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = proud
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = brave
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = arbitrary
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = envious
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = greedy
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = impaler
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = deceitful
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			trait = ambitious
+		}
+
+		mult_modifier = {
+			factor = 5
+			FROM = { same_society_as = ROOT }
+			NOT = {
+				liege = { same_society_as = ROOT }
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 25
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 0
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			opinion = {
+				who = liege
+				value < -25
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			opinion = {
+				who = liege
+				value < -50
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			opinion = {
+				who = liege
+				value < -75
+			}
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			OR = {
+				has_opinion_modifier = {
+					name = opinion_evil_tyrant
+					who = liege
+				}
+
+				has_opinion_modifier = {
+					name = opinion_tyrant
+					who = liege
+				}
+			}
+		}
+	}
+
+	success = {
+		always = no
+	}
+
+	abort = {
+		always = no	# Factions will abort if the Potential or Allow trigger is no longer valid
+	}
+}
+
+# The Permanent Regent will be backed by this faction if you attempt to depose them by war; the faction will otherwise not do anything
+faction_regency_loyalists2 = {
+	type = liege_titles
+	cancel_on_leader_death = yes # The faction members might not approve of the new leader, so let's have them start over...
+
+	warning_level = 0.70
+
+	# Plotter scope
+	potential = {
+		is_landed = yes
+		higher_real_tier_than = BARON
+		is_adult = yes
+		independent = no
+		prisoner = no
+		is_incapable = no # Works fine here
+		holy_order = no
+		is_feudal = yes
+		mercenary = no
+		trait = japanese_regent2
+		liege = {
+			regent = {
+				character = ROOT
+			}
+		}
+		
+		has_japanese_government_trigger = yes
+		
+		is_ryukyuan_tenno_trigger = no
+		is_the_tenno_trigger = no
+
+		NOT = {
+			any_dynasty_member = {
+				is_playable = yes
+				OR = {
+					is_the_tenno_trigger = yes
+					is_ryukyuan_tenno_trigger = yes
+				}
+			}
+		}
+
+		liege = {
+			real_tier = emperor
+			has_japanese_government_trigger = yes
+			is_the_tenno_trigger = no
+			is_ryukyuan_tenno_trigger = no
+			trait = under_regency2
+			
+			NOR = {
+				any_demesne_title = {
+					temporary = yes
+				}
+				
+				dynasty = ROOT
+			}
+		}
+	}
+
+	# Target scope
+	# ROOT is target title
+	# FROM is faction creator
+	allow = {
+		is_primary_holder_title = yes
+		holder_scope = {
+			primary_title = {
+				ROOT = {
+					tier = PREV
+				}
+			}
+			
+			NOT = {
+				dynasty = FROM
+			}
+		}
+	}
+
+	# Faction member scope
+	# ROOT is joiner
+	# FROM is target
+	allow_join = {
+		ROOT = {
+			is_landed = yes
+			is_adult = yes
+			independent = no
+			prisoner = no
+			is_incapable = no # Works fine here
+		
+			is_the_tenno_trigger = no
+			is_ryukyuan_tenno_trigger = no
+			
+			liege = {
+				NOT = {
+					dynasty = ROOT
+				}
+			}
+
+			NOR = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_leaving_faction
+					who = liege
+				}
+			
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+				
+				in_faction = faction_oust_shogun # Other priorities
+				
+				any_dynasty_member = {
+					is_playable = yes
+					OR = {
+						is_the_tenno_trigger = yes
+						is_ryukyuan_tenno_trigger = yes
+					}
+				}
+			}
+		}
+	}
+
+	# AI creation weight
+	# FROM is faction creator
+	# ROOT is title scope
+	chance = {
+		factor = 1000
+	}
+
+	# AI membership weight
+	# ROOT is the prospective member
+	# FROM is the faction leader
+	# FROMFROM is the target title or character
+	membership = {
+		factor = 1
+
+		trigger = {
+			in_seclusion = no
+			preparing_invasion = no
+			liege = {
+				NOT = {
+					dynasty = ROOT
+				}
+			}
+			
+			OR = {
+				AND = {
+					# To keep being in the faction
+					trigger_if = {
+						limit = { in_faction = faction_regency_loyalists2 }
+
+						opinion = {
+							who = liege
+							value < 50
+						}
+					}
+					
+					# To join the faction
+					trigger_else = {
+						opinion = {
+							who = liege
+							value < 75
+						}
+					}
+					
+					# To keep being in the faction
+					trigger_if = {
+						limit = { in_faction = faction_regency_loyalists2 }
+
+						opinion_diff = {
+							first = FROM
+							second = liege
+							value >= -25
+							as_if_liege = yes
+						}
+					}
+					
+					# To join the faction
+					trigger_else = {
+						opinion_diff = {
+							first = FROM
+							second = liege
+							value >= 0
+							as_if_liege = yes
+						}
+					}
+					
+					trigger_if = {
+						limit = {
+							in_faction = faction_regency_loyalists2
+							k_chrysanthemum_throne = {
+								holder_scope = {
+									is_the_tenno_trigger = yes
+								}
+							}
+						}
+						
+						k_chrysanthemum_throne = {
+							holder_scope = {
+								ROOT = {
+									opinion_diff = {
+										first = FROM
+										second = PREV
+										value >= -25
+										as_if_liege = yes
+									}
+								}
+							}
+						}
+					}
+					
+					trigger_else_if = {
+						limit = {
+							k_chrysanthemum_throne = {
+								holder_scope = {
+									is_the_tenno_trigger = yes
+								}
+							}
+						}
+						
+						k_chrysanthemum_throne = {
+							holder_scope = {
+								ROOT = {
+									opinion_diff = {
+										first = FROM
+										second = PREV
+										value >= 0
+										as_if_liege = yes
+									}
+								}
+							}
+						}
+					}
+				}
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+		
+		# A more powerful regent should be harder to overthrow
+		mult_modifier = {
+			factor = 1.2
+			FROMFROM = {
+				has_law = regency_power_law_1
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			FROMFROM = {
+				has_law = regency_power_law_2
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.8
+			FROMFROM = {
+				has_law = regency_power_law_3
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2
+			FROMFROM = {
+				has_law = regency_power_law_4
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.2
+			FROMFROM = {
+				has_law = regency_power_law_5
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.5
+			FROMFROM = {
+				has_law = regency_power_law_6
+			}
+		}
+		
+		# I should be the PR instead...
+		mult_modifier = {
+			factor = 0.1
+			any_owned_bloodline = {
+				has_bloodline_flag = regency_bloodline
+				bloodline_is_active_for = PREV
+				NOT = { # The Five Regent Houses should stick together...
+					any_bloodline_member = {
+						character = FROM
+					}
+				}
+			}
+			NOT = {
+				dynasty = FROM
+			}
+		}
+		
+		mult_modifier = {
+			factor = 10
+			dynasty = FROM
+			opinion = {
+				who = FROM
+				value >= 0
+			}
+			NOT = {
+				is_rival = FROM
+			}
+		}
+		
+		# People that installed the Regent in the first place will back the Regent most of the time
+		mult_modifier = {
+			factor = 5
+			OR = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_fought_for_regent
+				}
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_supported_as_regent
+				}
+			}
+			opinion = {
+				who = FROM
+				value >= 0
+			}
+			NOT = {
+				is_rival = FROM
+			}
+		}
+		
+		# If the Regent has a Regency bloodline they'll be a bit more popular
+		mult_modifier = {
+			factor = 2.5
+			FROM = {
+				any_owned_bloodline = {
+					has_bloodline_flag = regency_bloodline
+					bloodline_is_active_for = PREV
+				}
+			}
+			OR = {
+				dynasty = FROM
+				NOT = {
+					any_owned_bloodline = {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+						NOT = { # The Five Regent Houses should stick together...
+							any_bloodline_member = {
+								character = FROM
+							}
+						}
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			liege = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			pacifist = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1000
+
+			has_opinion_modifier = {
+				name = opinion_coerced_into_joining_faction
+				who = FROM
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 0
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 10
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 25
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.25
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.40
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.40
+			}
+		}
+		
+		# This is some weird foreign stuff...
+		mult_modifier = {
+			factor = 0.1
+			could_have_japanese_government_trigger = no
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			trait = imbecile
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = inbred
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = craven
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			is_dumb_trigger = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = proud
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = brave
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = arbitrary
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = envious
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = greedy
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = impaler
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = deceitful
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			trait = ambitious
+		}
+
+		mult_modifier = {
+			factor = 5
+			FROM = { same_society_as = ROOT }
+			NOT = {
+				liege = { same_society_as = ROOT }
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 25
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 0
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			opinion = {
+				who = liege
+				value < -25
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			opinion = {
+				who = liege
+				value < -50
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			opinion = {
+				who = liege
+				value < -75
+			}
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			OR = {
+				has_opinion_modifier = {
+					name = opinion_evil_tyrant
+					who = liege
+				}
+
+				has_opinion_modifier = {
+					name = opinion_tyrant
+					who = liege
+				}
+			}
+		}
+	}
+
+	success = {
+		always = no
+	}
+
+	abort = {
+		always = no	# Factions will abort if the Potential or Allow trigger is no longer valid
+	}
+}
+
+# The Permanent Regent will be backed by this faction if you attempt to depose them by war; the faction will otherwise not do anything
+faction_regency_loyalists3 = {
+	type = liege_titles
+	cancel_on_leader_death = yes # The faction members might not approve of the new leader, so let's have them start over...
+
+	warning_level = 0.70
+
+	# Plotter scope
+	potential = {
+		is_landed = yes
+		higher_real_tier_than = BARON
+		is_adult = yes
+		independent = no
+		prisoner = no
+		is_incapable = no # Works fine here
+		holy_order = no
+		is_feudal = yes
+		mercenary = no
+		trait = japanese_regent3
+		liege = {
+			regent = {
+				character = ROOT
+			}
+		}
+		
+		has_japanese_government_trigger = yes
+		
+		is_the_tenno_trigger = no
+
+		NOT = {
+			any_dynasty_member = {
+				is_playable = yes
+				is_the_tenno_trigger = yes
+			}
+		}
+
+		liege = {
+			is_ryukyuan_tenno_trigger = yes
+			trait = under_regency3
+			
+			NOR = {
+				any_demesne_title = {
+					temporary = yes
+				}
+				
+				dynasty = ROOT
+				
+				top_liege = {
+					has_japanese_government_trigger = yes
+					dynasty = ROOT
+				}
+			}
+		}
+	}
+
+	# Target scope
+	# ROOT is target title
+	# FROM is faction creator
+	allow = {
+		is_primary_holder_title = yes
+		holder_scope = {
+			primary_title = {
+				ROOT = {
+					tier = PREV
+				}
+			}
+			
+			NOT = {
+				dynasty = FROM
+			}
+		}
+	}
+
+	# Faction member scope
+	# ROOT is joiner
+	# FROM is target
+	allow_join = {
+		ROOT = {
+			is_landed = yes
+			is_adult = yes
+			independent = no
+			prisoner = no
+			is_incapable = no # Works fine here
+		
+			is_the_tenno_trigger = no
+			
+			liege = {
+				NOT = {
+					dynasty = ROOT
+				}
+			}
+
+			NOR = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_leaving_faction
+					who = liege
+				}
+			
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
+		}
+	}
+
+	# AI creation weight
+	# FROM is faction creator
+	# ROOT is title scope
+	chance = {
+		factor = 1000
+	}
+
+	# AI membership weight
+	# ROOT is the prospective member
+	# FROM is the faction leader
+	# FROMFROM is the target title or character
+	membership = {
+		factor = 1
+
+		trigger = {
+			in_seclusion = no
+			preparing_invasion = no
+			liege = {
+				NOT = {
+					dynasty = ROOT
+				}
+			}
+			
+			OR = {
+				AND = {
+					# To keep being in the faction
+					trigger_if = {
+						limit = { in_faction = faction_regency_loyalists3 }
+
+						opinion = {
+							who = liege
+							value < 50
+						}
+					}
+					
+					# To join the faction
+					trigger_else = {
+						opinion = {
+							who = liege
+							value < 75
+						}
+					}
+					
+					# To keep being in the faction
+					trigger_if = {
+						limit = { in_faction = faction_regency_loyalists3 }
+
+						opinion_diff = {
+							first = FROM
+							second = liege
+							value >= -25
+							as_if_liege = yes
+						}
+					}
+					
+					# To join the faction
+					trigger_else = {
+						opinion_diff = {
+							first = FROM
+							second = liege
+							value >= 0
+							as_if_liege = yes
+						}
+					}
+				}
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+		
+		# A more powerful regent should be harder to overthrow
+		mult_modifier = {
+			factor = 1.2
+			FROMFROM = {
+				has_law = regency_power_law_1
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			FROMFROM = {
+				has_law = regency_power_law_2
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.8
+			FROMFROM = {
+				has_law = regency_power_law_3
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2
+			FROMFROM = {
+				has_law = regency_power_law_4
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.2
+			FROMFROM = {
+				has_law = regency_power_law_5
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.5
+			FROMFROM = {
+				has_law = regency_power_law_6
+			}
+		}
+		
+		# I should be the PR instead...
+		mult_modifier = {
+			factor = 0.1
+			any_owned_bloodline = {
+				has_bloodline_flag = regency_bloodline
+				bloodline_is_active_for = PREV
+				NOT = { # The Five Regent Houses should stick together...
+					any_bloodline_member = {
+						character = FROM
+					}
+				}
+			}
+			NOT = {
+				dynasty = FROM
+			}
+		}
+		
+		mult_modifier = {
+			factor = 10
+			dynasty = FROM
+			opinion = {
+				who = FROM
+				value >= 0
+			}
+			NOT = {
+				is_rival = FROM
+			}
+		}
+		
+		# People that installed the Regent in the first place will back the Regent most of the time
+		mult_modifier = {
+			factor = 5
+			OR = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_fought_for_regent
+				}
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_supported_as_regent
+				}
+			}
+			opinion = {
+				who = FROM
+				value >= 0
+			}
+			NOT = {
+				is_rival = FROM
+			}
+		}
+		
+		# If the Regent has a Regency bloodline they'll be a bit more popular
+		mult_modifier = {
+			factor = 2.5
+			FROM = {
+				any_owned_bloodline = {
+					has_bloodline_flag = regency_bloodline
+					bloodline_is_active_for = PREV
+				}
+			}
+			OR = {
+				dynasty = FROM
+				NOT = {
+					any_owned_bloodline = {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+						NOT = { # The Five Regent Houses should stick together...
+							any_bloodline_member = {
+								character = FROM
+							}
+						}
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			liege = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			pacifist = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1000
+
+			has_opinion_modifier = {
+				name = opinion_coerced_into_joining_faction
+				who = FROM
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 0
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 10
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 25
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.25
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.40
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.40
+			}
+		}
+		
+		# This is some weird foreign stuff...
+		mult_modifier = {
+			factor = 0.1
+			could_have_japanese_government_trigger = no
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			trait = imbecile
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = inbred
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = craven
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			is_dumb_trigger = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = proud
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = brave
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = arbitrary
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = envious
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = greedy
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = impaler
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = deceitful
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			trait = ambitious
+		}
+
+		mult_modifier = {
+			factor = 5
+			FROM = { same_society_as = ROOT }
+			NOT = {
+				liege = { same_society_as = ROOT }
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 25
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 0
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			opinion = {
+				who = liege
+				value < -25
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			opinion = {
+				who = liege
+				value < -50
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			opinion = {
+				who = liege
+				value < -75
+			}
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			OR = {
+				has_opinion_modifier = {
+					name = opinion_evil_tyrant
+					who = liege
+				}
+
+				has_opinion_modifier = {
+					name = opinion_tyrant
+					who = liege
+				}
+			}
+		}
+	}
+
+	success = {
+		always = no
+	}
+
+	abort = {
+		always = no	# Factions will abort if the Potential or Allow trigger is no longer valid
+	}
+}
+
+# Powerful vassal that isn't the Permanent Regent can attempt to create a Shogunate; similar to both faction_claimant and faction_powerful_vassal_takeover
+faction_shogun = {
+	type = liege_titles
+	cancel_on_leader_death = yes # The faction members might not approve of the new leader, so let's have them start over...
+
+	warning_level = 0.70
+
+	# Plotter scope
+	potential = {
+		is_landed = yes
+		higher_real_tier_than = BARON
+		is_adult = yes
+		independent = no
+		prisoner = no
+		is_incapable = no # Works fine here
+		holy_order = no
+		is_feudal = yes
+		mercenary = no
+		
+		has_japanese_government_trigger = yes
+		
+		is_ryukyuan_tenno_trigger = no
+
+		NOR = {
+			has_character_modifier = faction_shogun_timer
+			
+			has_opinion_modifier = {
+				name = opinion_coerced_into_leaving_faction
+				who = liege
+			}
+			
+			trait = treasure_fleet_preparation
+			trait = treasure_fleet_voyage
+			
+			any_dynasty_member = {
+				is_playable = yes
+				is_ryukyuan_tenno_trigger = yes
+			}
+		}
+
+		liege = {
+			real_tier = emperor
+			is_the_tenno_trigger = yes
+			
+			OR = { # ONLY if theres's a Permanent Regency, you're part of a Shogunate bloodline (Hachimantaro's descendants count), or there's been a Shogunate before
+				trait = under_regency
+				
+				ROOT = {
+					any_owned_bloodline = {
+						bloodline_is_active_for = PREV
+						has_bloodline_flag = shogunate_bloodline
+					}
+				}
+				
+				has_global_flag = first_shogunate # If there's already been a Shogunate, we know that it's a great idea!
+			}
+			
+			NOR = {
+				any_demesne_title = {
+					temporary = yes
+				}
+				
+				dynasty = ROOT
+				
+				any_vassal = {
+					dynasty = ROOT
+					trait = japanese_regent
+				}
+			}
+		}
+	}
+
+	# Target scope
+	# ROOT is target title
+	# FROM is faction creator
+	allow = {
+		is_primary_holder_title = yes
+		holder_scope = {
+			primary_title = {
+				ROOT = {
+					tier = PREV
+				}
+			}
+		}
+		
+		holder_scope = {
+			NOT = {
+				dynasty = FROM
+			}
+		}
+		
+		NOR = {
+			holder_scope = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_coerced_into_leaving_faction
+				}
+			}
+			
+			FROM = {
+				OR = {
+					in_faction = faction_regent # Other priorities
+					in_faction = faction_regency_loyalists # Other priorities
+					in_faction = faction_imperial_claimant # Other priorities
+				}
+			}
+		}
+		
+		FROM = {
+			OR = {
+				real_tier = king
+				
+				AND = {
+					real_tier = duke
+					any_owned_bloodline = {
+						has_bloodline_flag = shogunate_bloodline
+						bloodline_is_active_for = PREV
+					}
+					prestige >= 1000
+				}
+				
+				AND = {
+					real_tier = duke
+					prestige >= 5000
+				}
+			}
+		}
+	}
+
+	# Faction member scope
+	# ROOT is joiner
+	# FROM is target
+	allow_join = {
+		ROOT = {
+			is_landed = yes
+			is_adult = yes
+			independent = no
+			prisoner = no
+			is_incapable = no # Works fine here
+		
+			is_ryukyuan_tenno_trigger = no
+			
+			liege = {
+				NOR = {
+					dynasty = ROOT
+				
+					any_vassal = {
+						dynasty = ROOT
+						trait = japanese_regent
+					}
+				}
+			}
+
+			NOR = {
+				has_character_modifier = faction_shogun_timer
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_leaving_faction
+					who = liege
+				}
+			
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			
+				any_dynasty_member = {
+					is_playable = yes
+					is_ryukyuan_tenno_trigger = yes
+				}
+			}
+		}
+	}
+
+	# AI creation weight
+	# FROM is faction creator
+	# ROOT is title scope
+	chance = {
+		factor = 1
+
+		trigger = {
+			FROM = {
+				in_seclusion = no
+				preparing_invasion = no
+				NOT = { is_married = liege }
+				liege = {
+					NOT = {
+						dynasty = FROM
+					}
+				}
+
+				# To keep leading the faction
+				trigger_if = {
+					limit = { leads_faction = faction_shogun }
+
+					opinion = {
+						who = liege
+						value < 50
+					}
+				}
+				
+				# To start the faction
+				trigger_else = {
+					opinion = {
+						who = liege
+						value < 75
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2
+			ROOT = {
+				claimed_by = FROM
+			}
+		}
+		
+		mult_modifier = {
+			factor = 5
+			FROM = {
+				any_owned_bloodline = {
+					has_bloodline_flag = shogunate_bloodline
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			holder_scope = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { pacifist = yes }
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < 25
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < 0
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -25
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -50
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -75
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			holder_scope = {
+				dynasty_realm_power >= 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			holder_scope = {
+				dynasty_realm_power >= 0.4
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			FROM = { trait = content }
+		}
+
+		mult_modifier = {
+			factor = 0.01
+			FROM = { trait = imbecile }
+		}
+
+		mult_modifier = {
+			factor = 0.1
+			FROM = { trait = inbred }
+		}
+
+		mult_modifier = {
+			factor = 0.1
+			FROM = { trait = craven }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { is_dumb_trigger = yes }
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			FROM = { trait = brave }
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			FROM = { trait = ambitious }
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			FROM = {
+				OR = {
+					has_opinion_modifier = {
+						name = opinion_evil_tyrant
+						who = liege
+					}
+
+					has_opinion_modifier = {
+						name = opinion_tyrant
+						who = liege
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.2
+			FROM = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 1
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			FROM = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 2
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2
+			FROM = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 3
+			}
+		}
+		
+		mult_modifier = {
+			factor = 5
+			FROM = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 4
+			}
+		}
+	}
+
+	# AI membership weight
+	# ROOT is the prospective member
+	# FROM is the faction leader
+	# FROMFROM is the target title or character
+	membership = {
+		factor = 1
+
+		trigger = {
+			in_seclusion = no
+			preparing_invasion = no
+			liege = {
+				NOR = {
+					dynasty = ROOT
+					any_vassal = {
+						dynasty = ROOT
+						trait = japanese_regent
+					}
+				}
+			}
+			
+			OR = {
+				AND = {
+					# To keep being in the faction
+					trigger_if = {
+						limit = { in_faction = faction_shogun }
+						
+						opinion_diff = {
+							first = FROM
+							second = liege
+							value >= -25
+							as_if_liege = yes
+						}
+					}
+					
+					# To join the faction
+					trigger_else = {
+						opinion_diff = {
+							first = FROM
+							second = liege
+							value >= 0
+							as_if_liege = yes
+						}
+					}
+				}
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0
+			FROMFROM = {
+				claimed_by = ROOT
+			}
+			
+			NOR = {
+				trait = content
+				trait = humble
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.8
+			NOT = {
+				has_global_flag = japanese_regency # We don't know it's a great idea yet...
+			}
+		}
+		
+		# I should be the Shogun instead...
+		mult_modifier = {
+			factor = 0.1
+			any_owned_bloodline = {
+				has_bloodline_flag = shogunate_bloodline
+				bloodline_is_active_for = PREV
+			}
+			NOT = {
+				dynasty = FROM
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			liege = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			pacifist = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1000
+
+			has_opinion_modifier = {
+				name = opinion_coerced_into_joining_faction
+				who = FROM
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 10
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 25
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			ROOT = {
+				opinion_diff = {
+					first = FROM
+					second = liege
+					value >= 40
+					as_if_liege = yes
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.25
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.40
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.40
+			}
+		}
+		
+		# This is some weird foreign stuff...
+		mult_modifier = {
+			factor = 0.1
+			could_have_japanese_government_trigger = no
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			trait = imbecile
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = inbred
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = craven
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			is_dumb_trigger = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = proud
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = brave
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = arbitrary
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = envious
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = greedy
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = impaler
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = deceitful
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			trait = ambitious
+		}
+
+		mult_modifier = {
+			factor = 5
+			FROM = { same_society_as = ROOT }
+			NOT = {
+				liege = { same_society_as = ROOT }
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 25
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 0
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			opinion = {
+				who = liege
+				value < -25
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			opinion = {
+				who = liege
+				value < -50
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			opinion = {
+				who = liege
+				value < -75
+			}
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			OR = {
+				has_opinion_modifier = {
+					name = opinion_evil_tyrant
+					who = liege
+				}
+
+				has_opinion_modifier = {
+					name = opinion_tyrant
+					who = liege
+				}
+			}
+		}
+		
+		# A family that's controlled the Shogunate has an easier time getting support
+		mult_modifier = {
+			factor = 2
+			NOT = {
+				any_owned_bloodline = {
+					has_bloodline_flag = shogunate_bloodline
+					bloodline_is_active_for = PREV
+				}
+			}
+			FROM = {
+				any_owned_bloodline = {
+					has_bloodline_flag = shogunate_bloodline
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.2
+			ROOT = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 1
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			ROOT = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 2
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2
+			ROOT = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 3
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.1 # If I'm not going to be the Shogun, why would I do this?
+			ROOT = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 4
+			}
+		}
+	}
+
+	success = {
+		always = no
+	}
+
+	abort = {
+		always = no	# Factions will abort if the Potential or Allow trigger is no longer valid
+	}
+}
+
+faction_oust_shogun = {
+	type = liege_titles
+	# Does not cancel on death; the leader is irrelevant!
+
+	warning_level = 0.70
+
+	# Plotter scope
+	potential = {
+		is_landed = yes
+		higher_real_tier_than = BARON
+		is_adult = yes
+		independent = no
+		prisoner = no
+		is_incapable = no # Works fine here
+		holy_order = no
+		is_feudal = yes
+		mercenary = no
+		
+		has_japanese_government_trigger = yes
+		
+		is_ryukyuan_tenno_trigger = no
+
+		NOR = {
+			has_character_modifier = faction_oust_shogun_timer
+			
+			has_opinion_modifier = {
+				name = opinion_coerced_into_leaving_faction
+				who = liege
+			}
+			
+			trait = treasure_fleet_preparation
+			trait = treasure_fleet_voyage
+		}
+
+		liege = {
+			real_tier = emperor
+			is_the_tenno_trigger = no
+			is_ryukyuan_tenno_trigger = no
+			has_japanese_government_trigger = yes
+			
+			any_vassal = {
+				is_the_tenno_trigger = yes
+			}
+			
+			NOR = {
+				any_demesne_title = {
+					temporary = yes
+				}
+				
+				any_vassal = {
+					dynasty = ROOT
+					trait = japanese_regent2
+				}
+			}
+			
+			OR = {
+				NOT = {
+					dynasty = ROOT
+				}
+				k_chrysanthemum_throne = {
+					holder_scope = {
+						dynasty = PREVPREV
+					}
+				}
+			}
+		}
+	}
+
+	# Target scope
+	# ROOT is target title
+	# FROM is faction creator
+	allow = {
+		is_primary_holder_title = yes
+		holder_scope = {
+			primary_title = {
+				ROOT = {
+					tier = PREV
+				}
+			}
+		}
+		
+		holder_scope = {
+			OR = {
+				NOT = {
+					dynasty = FROM
+				}
+				k_chrysanthemum_throne = {
+					holder_scope = {
+						dynasty = PREVPREV
+					}
+				}
+			}
+		}
+		
+		OR = {
+			NOR = {
+				holder_scope = {
+					reverse_has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_coerced_into_leaving_faction
+					}
+				}
+				
+				FROM = {
+					in_faction = faction_regency_loyalists2 # Other priorities
+				}
+			}
+			
+			FROM = {
+				is_the_tenno_trigger = yes
+			}
+		}
+	}
+
+	# Faction member scope
+	# ROOT is joiner
+	# FROM is target
+	allow_join = {
+		ROOT = {
+			is_landed = yes
+			is_adult = yes
+			independent = no
+			prisoner = no
+			is_incapable = no # Works fine here
+		
+			is_ryukyuan_tenno_trigger = no
+			
+			liege = {
+				NOR = {
+					any_vassal = {
+						dynasty = ROOT
+						trait = japanese_regent2
+					}
+				}
+				
+				OR = {
+					NOT = {
+						dynasty = ROOT
+					}
+					k_chrysanthemum_throne = {
+						holder_scope = {
+							dynasty = PREVPREV
+						}
+					}
+				}
+			}
+			
+			OR = {
+				NOR = {
+					has_character_modifier = faction_oust_shogun_timer
+
+					has_opinion_modifier = {
+						name = opinion_coerced_into_leaving_faction
+						who = liege
+					}
+				
+					trait = treasure_fleet_preparation
+					trait = treasure_fleet_voyage
+				}
+				
+				is_the_tenno_trigger = yes
+			}
+		}
+	}
+
+	# AI creation weight
+	# FROM is faction creator
+	# ROOT is title scope
+	chance = {
+		factor = 1
+
+		trigger = {
+			FROM = {
+				in_seclusion = no
+				preparing_invasion = no
+				NOT = { is_married = liege }
+				liege = {
+					OR = {
+						NOT = {
+							dynasty = FROM
+						}
+						k_chrysanthemum_throne = {
+							holder_scope = {
+								dynasty = PREVPREV
+							}
+						}
+					}
+				}
+
+				# To keep leading the faction
+				trigger_if = {
+					limit = { leads_faction = faction_oust_shogun }
+					
+					OR = {
+						is_the_tenno_trigger = yes
+						k_chrysanthemum_throne = {
+							holder_scope = {
+								FROM = {
+									opinion_diff = {
+										first = liege
+										second = PREV
+										value >= 0
+										as_if_liege = yes
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				# To start the faction
+				trigger_else = {
+					k_chrysanthemum_throne = {
+						holder_scope = {
+							FROM = {
+								opinion_diff = {
+									first = liege
+									second = PREV
+									value >= 25
+									as_if_liege = yes
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1000
+			FROM = {
+				is_the_tenno_trigger = yes
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.1
+			FROM = {
+				any_owned_bloodline = {
+					has_bloodline_flag = shogunate_bloodline
+					bloodline_is_active_for = PREV
+				}
+				
+				NOR = {
+					is_the_tenno_trigger = yes
+					any_dynasty_member = {
+						is_the_tenno_trigger = yes
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			holder_scope = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { pacifist = yes }
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < 25
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < 0
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -25
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -50
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -75
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			holder_scope = {
+				dynasty_realm_power >= 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			holder_scope = {
+				dynasty_realm_power >= 0.4
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			FROM = { trait = content }
+		}
+
+		mult_modifier = {
+			factor = 0.01
+			FROM = { trait = imbecile }
+		}
+
+		mult_modifier = {
+			factor = 0.1
+			FROM = { trait = inbred }
+		}
+
+		mult_modifier = {
+			factor = 0.1
+			FROM = { trait = craven }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { is_dumb_trigger = yes }
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			FROM = { trait = brave }
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			FROM = { trait = ambitious }
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			FROM = {
+				OR = {
+					has_opinion_modifier = {
+						name = opinion_evil_tyrant
+						who = liege
+					}
+
+					has_opinion_modifier = {
+						name = opinion_tyrant
+						who = liege
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.8
+			FROM = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 1
+				
+				NOR = {
+					is_the_tenno_trigger = yes
+					any_dynasty_member = {
+						is_the_tenno_trigger = yes
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.6
+			FROM = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 2
+				
+				NOR = {
+					is_the_tenno_trigger = yes
+					any_dynasty_member = {
+						is_the_tenno_trigger = yes
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.5
+			FROM = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 3
+				
+				NOR = {
+					is_the_tenno_trigger = yes
+					any_dynasty_member = {
+						is_the_tenno_trigger = yes
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2  # If I'm not the Shogun, maybe *this* Shogunate isn't for me...
+			FROM = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 4
+			}
+		}
+	}
+
+	# AI membership weight
+	# ROOT is the prospective member
+	# FROM is the faction leader
+	# FROMFROM is the target title or character
+	membership = {
+		factor = 1
+
+		trigger = {
+			in_seclusion = no
+			preparing_invasion = no
+			liege = {
+				NOR = {
+					dynasty = ROOT
+					any_vassal = {
+						dynasty = ROOT
+						trait = japanese_regent
+					}
+				}
+			}
+			
+			OR = {
+				# To keep being in the faction
+				trigger_if = {
+					limit = { in_faction = faction_oust_shogun }
+					
+					OR = {
+						is_the_tenno_trigger = yes
+						k_chrysanthemum_throne = {
+							holder_scope = {
+								ROOT = {
+									opinion_diff = {
+										first = liege
+										second = PREV
+										value >= 0
+										as_if_liege = yes
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				# To join the faction
+				trigger_else = {
+					k_chrysanthemum_throne = {
+						holder_scope = {
+							ROOT = {
+								opinion_diff = {
+									first = liege
+									second = PREV
+									value >= 25
+									as_if_liege = yes
+								}
+							}
+						}
+					}
+				}
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1000
+			is_the_tenno_trigger = yes
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			liege = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			pacifist = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1000
+
+			has_opinion_modifier = {
+				name = opinion_coerced_into_joining_faction
+				who = FROM
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			
+			k_chrysanthemum_throne = {
+				holder_scope = {
+					ROOT = {
+						opinion_diff = {
+							first = liege
+							second = PREV
+							value >= 10
+							as_if_liege = yes
+						}
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			
+			k_chrysanthemum_throne = {
+				holder_scope = {
+					ROOT = {
+						opinion_diff = {
+							first = liege
+							second = PREV
+							value >= 25
+							as_if_liege = yes
+						}
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			
+			k_chrysanthemum_throne = {
+				holder_scope = {
+					ROOT = {
+						opinion_diff = {
+							first = liege
+							second = PREV
+							value >= 40
+							as_if_liege = yes
+						}
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.25
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.25
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			liege = {
+				dynasty_realm_power >= 0.40
+			}
+
+			FROM = {
+				dynasty_realm_power < 0.40
+			}
+		}
+		
+		# This is some weird foreign stuff...
+		mult_modifier = {
+			factor = 0.1
+			could_have_japanese_government_trigger = no
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			trait = imbecile
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = inbred
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = craven
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			is_dumb_trigger = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = proud
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = brave
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = arbitrary
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = envious
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = greedy
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = impaler
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = deceitful
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			trait = ambitious
+		}
+
+		mult_modifier = {
+			factor = 5
+			FROM = { same_society_as = ROOT }
+			NOT = {
+				liege = { same_society_as = ROOT }
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 25
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 0
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			opinion = {
+				who = liege
+				value < -25
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			opinion = {
+				who = liege
+				value < -50
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			opinion = {
+				who = liege
+				value < -75
+			}
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			OR = {
+				has_opinion_modifier = {
+					name = opinion_evil_tyrant
+					who = liege
+				}
+
+				has_opinion_modifier = {
+					name = opinion_tyrant
+					who = liege
+				}
+			}
+		}
+		
+		# A family that's controlled the Shogunate has an easier time getting support
+		mult_modifier = {
+			factor = 0.5
+			NOR = {
+				any_owned_bloodline = {
+					has_bloodline_flag = shogunate_bloodline
+					bloodline_is_active_for = PREV
+				}
+				is_the_tenno_trigger = yes
+			}
+			liege = {
+				any_owned_bloodline = {
+					has_bloodline_flag = shogunate_bloodline
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.8
+			FROM = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 1
+				
+				NOR = {
+					is_the_tenno_trigger = yes
+					any_dynasty_member = {
+						is_the_tenno_trigger = yes
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.6
+			ROOT = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 2
+				
+				NOR = {
+					is_the_tenno_trigger = yes
+					any_dynasty_member = {
+						is_the_tenno_trigger = yes
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.5
+			ROOT = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 3
+				
+				NOR = {
+					is_the_tenno_trigger = yes
+					any_dynasty_member = {
+						is_the_tenno_trigger = yes
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2  # If I'm not the Shogun, maybe *this* Shogunate isn't for me...
+			ROOT = {
+				society_member_of = warriors_of_the_rising_sun
+				society_rank == 4
+			}
+		}
+	}
+
+	success = {
+		always = no
+	}
+
+	abort = {
+		always = no	# Factions will abort if the Potential or Allow trigger is no longer valid
+	}
+}
+
+# Special pseudo-claimant faction agains the Tenno
+
+faction_imperial_claimant = {
+	type = liege_titles # 'new_character' is a Claimant, or, if the title is Elective, anyone eligible for election
+	# The leader is irrelevant
+	
+	warning_level = 0.7 # At this level of faction power we give player an alert. Set to 0 for no alerts.
+	
+	# Plotter scope
+	potential = {
+		is_landed = yes
+		higher_real_tier_than = BARON
+		is_adult = yes
+		independent = no
+		prisoner = no
+		is_incapable = no # Works fine here
+		holy_order = no
+		is_feudal = yes
+		mercenary = no
+		
+		liege = {
+			is_the_tenno_trigger = yes
+			NOT = {
+				any_demesne_title = {
+					temporary = yes
+				}
+			}
+		}
+		
+		primary_title = { higher_tier_than = BARON }
+		
+		OR = {
+			# Is not affected by a Crown Law title
+			NOT = {
+				crownlaw_title = {
+					always = yes
+				}
+			}
+			
+			# The Crown Law title holder is my liege
+			crownlaw_title = {
+				holder_scope = {
+					ROOT = {
+						liege = {
+							character = PREVPREV
+						}
+					}
+				}
+			}
+			
+			# The Crown Law title allows vassal infighting
+			crownlaw_title = {
+				NOT = {
+					OR = {
+						has_law = crown_authority_2
+						has_law = crown_authority_3
+						has_law = crown_authority_4
+					}
+				}
+			}
+		}
+		
+		NOT = { has_character_modifier = faction_imperial_claimant_timer }
+	}
+	
+	# Target scope
+	allow = {
+		is_primary_holder_title = yes
+		FROM = {
+			NOR = {
+				in_faction = faction_shogun # Different goals...
+				#in_faction = faction_regent # I suppose putting a weak ruler on the throne ahead of this works...
+				in_faction = faction_regency_loyalists # One puppet is as good as any other...
+				trait = japanese_regent # One puppet is as good as any other...
+			}
+		}
+		
+		holder_scope = {
+			any_dynasty_member = {
+				is_possible_tenno_trigger = yes
+				NOR = {
+					tier = emperor
+					character = PREV
+				}
+			}
+		}
+	}
+	
+	# Faction member scope (ROOT = joiner, FROM = target)
+	allow_join = {
+		ROOT = {
+			is_landed = yes
+			is_adult = yes
+			independent = no
+			prisoner = no
+			is_incapable = no # Works fine here
+
+			trigger_if = {
+				limit = { has_dlc = "Conclave" }
+
+				OR = {
+					is_voter = no
+
+					liege = {
+						OR = {
+							is_council_content = no
+							NOT = { has_law = war_voting_power_1 }
+							is_under_regency_trigger = yes
+						}
+					}
+				}
+			}
+
+			NOR = {
+				has_character_modifier = faction_imperial_claimant_timer
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_leaving_faction
+					who = liege
+				}
+			
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			
+				any_dynasty_member = {
+					is_playable = yes
+					is_ryukyuan_tenno_trigger = yes
+				}
+				
+				in_faction = faction_shogun # Different goals...
+				#in_faction = faction_regent # I suppose putting a weak ruler on the throne ahead of this works...
+				in_faction = faction_regency_loyalists # One puppet is as good as any other...
+				trait = japanese_regent # One puppet is as good as any other...
+			}
+		}
+	}
+
+	# AI creation weight
+	# FROM is faction creator
+	# ROOT is title scope
+	chance = {
+		factor = 1
+
+		trigger = {
+			FROM = {
+				in_seclusion = no
+				preparing_invasion = no
+				NOT = { is_married = liege }
+
+				# To keep leading the faction
+				trigger_if = {
+					limit = { leads_faction = faction_imperial_claimant }
+
+					opinion = {
+						who = liege
+						value < 60
+					}
+				}
+				# To start the faction
+				trigger_else = {
+					opinion = {
+						who = liege
+						value < 80
+					}
+				}
+				
+				# A bit clunky since the claimant isn't a specific character
+				trigger_if = {
+					limit = {
+						is_possible_tenno_trigger = no
+						leads_faction = faction_imperial_claimant
+					}
+					
+					liege = {
+						any_dynasty_member = {
+							is_possible_tenno_trigger = yes
+							NOT = {
+								character = PREV
+							}
+							FROM = {
+								opinion_diff = {
+									first = PREV
+									second = liege
+									value >= -25
+									as_if_liege = yes
+								}
+							}
+						}
+					}
+				}
+				trigger_else_if = {
+					limit = {
+						is_possible_tenno_trigger = no
+					}
+					
+					liege = {
+						any_dynasty_member = {
+							is_possible_tenno_trigger = yes
+							NOT = {
+								character = PREV
+							}
+							FROM = {
+								opinion_diff = {
+									first = PREV
+									second = liege
+									value >= 0
+									as_if_liege = yes
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			holder_scope = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.1
+			holder_scope = {
+				trait = under_regency # Not much change...
+			}
+			FROM = {
+				is_possible_tenno_trigger = no
+			}
+		}
+		
+		modifier = {
+			factor = 0.01 # Why bother?
+			holder_scope = {
+				trait = under_regency
+				regent = {
+					trait = japanese_regent
+					dynasty = FROM
+				}
+				NOT = {
+					is_rival = FROM
+				}
+			}
+			FROM = {
+				is_possible_tenno_trigger = no
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { pacifist = yes }
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < 25
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < 0
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -25
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -50
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -75
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			FROM = { trait = content }
+		}
+
+		mult_modifier = {
+			factor = 0.01
+			FROM = { trait = imbecile }
+		}
+
+		mult_modifier = {
+			factor = 0.1
+			FROM = { trait = inbred }
+		}
+
+		mult_modifier = {
+			factor = 0.1
+			FROM = { trait = craven }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { is_dumb_trigger = yes }
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			FROM = { trait = brave }
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			FROM = { trait = ambitious }
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			FROM = {
+				OR = {
+					has_opinion_modifier = {
+						name = opinion_evil_tyrant
+						who = liege
+					}
+
+					has_opinion_modifier = {
+						name = opinion_tyrant
+						who = liege
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2
+			ROOT = {
+				claimed_by = FROM
+				holder_scope = {
+					dynasty = FROM
+				}
+			}
+		}
+	}
+
+	# AI membership weight
+	# ROOT is the prospective member
+	# FROM is the faction leader
+	# FROMFROM is the target title or character
+	membership = {
+		factor = 1
+
+		trigger = {
+			in_seclusion = no
+			preparing_invasion = no
+			
+			OR = {
+				AND = {
+					# To keep being in the faction
+					trigger_if = {
+						limit = { in_faction = faction_imperial_claimant }
+
+						opinion = {
+							who = liege
+							value < 60
+						}
+					}
+					
+					# To join the faction
+					trigger_else = {
+						opinion = {
+							who = liege
+							value < 60
+						}
+					}
+
+					# To keep leading the faction
+					trigger_if = {
+						limit = { leads_faction = faction_imperial_claimant }
+
+						opinion = {
+							who = liege
+							value < 60
+						}
+					}
+					# To start the faction
+					trigger_else = {
+						opinion = {
+							who = liege
+							value < 80
+						}
+					}
+					
+					# A bit clunky since the claimant isn't a specific character
+					trigger_if = {
+						limit = {
+							is_possible_tenno_trigger = no
+							in_faction = faction_imperial_claimant
+						}
+						
+						liege = {
+							any_dynasty_member = {
+								is_possible_tenno_trigger = yes
+								NOT = {
+									character = PREV
+								}
+								ROOT = {
+									opinion_diff = {
+										first = PREV
+										second = liege
+										value >= -25
+										as_if_liege = yes
+									}
+								}
+							}
+						}
+					}
+					
+					trigger_else_if = {
+						limit = {
+							is_possible_tenno_trigger = no
+						}
+						
+						liege = {
+							any_dynasty_member = {
+								is_possible_tenno_trigger = yes
+								NOT = {
+									character = PREV
+								}
+								ROOT = {
+									opinion_diff = {
+										first = PREV
+										second = liege
+										value >= 0
+										as_if_liege = yes
+									}
+								}
+							}
+						}
+					}
+					
+					trigger_if = {
+						limit = {
+							FROM = {
+								is_possible_tenno_trigger = yes
+							}
+							in_faction = faction_imperial_claimant
+						}
+						
+						opinion_diff = {
+							first = FROM
+							second = liege
+							value >= 0
+							as_if_liege = yes
+						}
+					}
+					
+					trigger_else_if = {
+						limit = {
+							FROM = {
+								is_possible_tenno_trigger = yes
+							}
+						}
+						
+						opinion_diff = {
+							first = FROM
+							second = liege
+							value >= 25
+							as_if_liege = yes
+						}
+					}
+				}
+
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.1
+			liege = {
+				trait = under_regency # Not much change...
+				NOR = {
+					is_rival = ROOT
+					is_possible_tenno_trigger = yes
+				}
+			}
+		}
+		
+		modifier = {
+			factor = 0.01 # Why bother?
+			liege = {
+				trait = under_regency
+				regent = {
+					trait = japanese_regent
+					dynasty = ROOT
+				}
+				NOT = {
+					is_rival = ROOT
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			liege = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_less_factions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			pacifist = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1000
+
+			has_opinion_modifier = {
+				name = opinion_coerced_into_joining_faction
+				who = FROM
+			}
+		}
+		
+		# This is some weird foreign stuff...
+		mult_modifier = {
+			factor = 0.1
+			could_have_japanese_government_trigger = no
+		}
+
+		mult_modifier = {
+			factor = 0.01
+
+			trait = imbecile
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = inbred
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.1
+
+			trait = craven
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			is_dumb_trigger = yes
+
+			NOT = {
+				has_opinion_modifier = {
+					name = opinion_coerced_into_joining_faction
+					who = FROM
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = proud
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = brave
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			trait = arbitrary
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = envious
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = greedy
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = impaler
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			trait = deceitful
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			trait = ambitious
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 25
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			opinion = {
+				who = liege
+				value < 0
+			}
+		}
+
+		mult_modifier = {
+			factor = 2.0
+
+			opinion = {
+				who = liege
+				value < -25
+			}
+		}
+
+		mult_modifier = {
+			factor = 4.0
+
+			opinion = {
+				who = liege
+				value < -50
+			}
+		}
+
+		mult_modifier = {
+			factor = 5.0
+
+			opinion = {
+				who = liege
+				value < -75
+			}
+		}
+
+		mult_modifier = {
+			factor = 2
+
+			OR = {
+				has_opinion_modifier = {
+					name = opinion_evil_tyrant
+					who = liege
+				}
+
+				has_opinion_modifier = {
+					name = opinion_tyrant
+					who = liege
+				}
+			}
+		}
+	}
+	
+	success = {
+		always = no
+	}
+	
+	abort = {
+		always = no		# Factions will abort if the Potential or Allow triggers are no longer valid
+	}
+	
+	abort_effect = {
+	}
+	
+	effect = {
+	}
+}
