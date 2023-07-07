@@ -1,0 +1,1426 @@
+# Japanese regency stuff
+plot_replace_permanent_regent = {
+	type = realm_characters
+	intrigue_plot = yes
+	
+	potential = {
+		is_feudal = yes
+		is_playable = yes
+		
+		has_japanese_government_trigger = yes
+		controls_religion = no
+		independent = no
+		
+		liege = {
+			is_the_tenno_trigger = yes
+			trait = under_regency
+			NOT = {
+				dynasty = PREV
+			}
+		}
+		
+		is_incapable = no
+		has_regent = no
+		
+		NOT = {
+			any_dynasty_member = {
+				is_ryukyuan_tenno_trigger = yes
+			}
+		}
+	}
+	
+	target_potential = {
+		trait = japanese_regent
+		has_regent = yes
+	}
+	
+	allow = {
+		NOT = {
+			has_non_aggression_pact_with = FROM # If we have an NAP, we should break that first!
+		}
+		
+		OR = { # Either the current regent doesn't have the bloodline, or we are part of the bloodline
+			NOT = {
+				any_owned_bloodline= {
+					has_bloodline_flag = regency_bloodline
+					bloodline_is_active_for = PREV
+				}
+			}
+			
+			any_owned_bloodline= {
+				has_bloodline_flag = regency_bloodline
+				bloodline_is_active_for = PREV
+				
+				any_bloodline_member = {
+					character = FROM
+				}
+			}
+		}
+	}
+	
+	allow_join = {
+		liege = {
+			OR = {
+				trait = under_regency
+				trait = japanese_regent
+			}
+		}
+		
+		# AI vassals won't join the plot unless they like the presumptive regent quite a bit more or if they are envious
+		OR = {
+			FROM = {
+				ai = no
+			}
+			opinion_diff = {
+				first = FROM
+				second = FROMFROM
+				value >= 25
+			}
+			trait = envious
+		}
+		
+		# Dynasty members of the regent will only overthrow the regent if they also share the presumptive regent's dynasty
+		OR = {
+			FROM = {
+				ai = no
+			}
+			dynasty = FROMFROM
+			NOT = {
+				dynasty = ROOT
+			}
+		}
+		
+		# NAPs block joining, and being a friend or lover of the target while not being one of the presumptive regent also blocks it
+		NOR = {
+			has_non_aggression_pact_with = FROM # If we have an NAP, we should break that first!
+			character = FROM # Don't plot against outselves!
+			AND = {
+				OR = {
+					is_friend = FROM
+					is_lover = FROM
+				}
+				FROM = {
+					NOR = {
+						is_friend = FROMFROM
+						is_lover = FROMFROM
+					}
+				}
+			}
+		}
+	}
+	
+	success = {
+		FROM = {
+			trait = japanese_regent
+		}
+	}
+	
+	abort = {
+		OR = {
+			FROM = {
+				NAND = {
+					is_feudal = yes
+					is_playable = yes
+					
+					has_japanese_government_trigger = yes
+					controls_religion = no
+					independent = no
+					
+					liege = {
+						is_the_tenno_trigger = yes
+						trait = under_regency
+						NOT = {
+							dynasty = PREV
+						}
+					}
+					
+					is_incapable = no
+					has_regent = no
+		
+					NOT = {
+						any_dynasty_member = {
+							is_the_tenno_trigger = yes
+						}
+					}
+				}
+			}
+			
+			NAND = {
+				trait = japanese_regent
+				has_regent = yes
+				NOT = {
+					has_non_aggression_pact_with = FROM # If we have an NAP, we should break that first!
+				}
+				
+				OR = { # Either the current regent doesn't have the bloodline, or we are part of the bloodline
+					NOT = {
+						any_owned_bloodline= {
+							has_bloodline_flag = regency_bloodline
+							bloodline_is_active_for = PREV
+						}
+					}
+					
+					any_owned_bloodline= {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+						
+						any_bloodline_member = {
+							character = FROM
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	effect = {
+		FROM = {
+			if = {
+				limit = {
+					NOT = { diplomacy >= 10 }
+				}
+				
+				change_diplomacy = 1
+			}
+			
+			any_plot_backer = {
+				reverse_opinion = {
+					modifier = opinion_grateful
+					who = FROM
+					years = 5
+				}
+			}
+			
+			# Clear flags
+			hidden_tooltip = {
+				clr_character_flag = plot_replace_permanent_regent_taken
+			}
+		}
+	}
+	
+	chance = {
+		factor = 50
+		
+		trigger = {
+			NOR = {
+				FROM = {
+					OR = {
+						trait = kind
+						trait = content
+						trait = humble
+						opinion = {
+							who = ROOT
+							value >= 25
+						}
+					}
+					NOR = {
+						trait = ambitious
+						trait = proud
+						trait = envious
+						is_rival = ROOT
+					}
+				}
+				
+				FROM = {
+					war = yes
+				}
+				
+				FROM = {
+					opinion = {
+						who = ROOT
+						value >= 50
+					}
+					OR = {
+						trait = envious
+						trait = deceitful
+						trait = ambitious
+						is_rival = ROOT
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.01
+			FROM = {
+				trait = content
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				is_dumb_trigger = yes
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				trait = kind
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				opinion = {
+					who = ROOT
+					value >= 0
+				}
+				NOR = {
+					trait = envious
+					trait = deceitful
+					trait = ambitious
+					is_rival = ROOT
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				opinion = {
+					who = ROOT
+					value >= 25
+				}
+				OR = {
+					trait = envious
+					trait = deceitful
+					trait = ambitious
+					is_rival = ROOT
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			reverse_opinion = {
+				who = FROM
+				value < -50
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			reverse_opinion = {
+				who = FROM
+				value < -75
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			FROM = {
+				is_smart_trigger = yes
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.0
+			FROM = {
+				trait = envious
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.0
+			FROM = {
+				trait = deceitful
+			}
+		}
+		
+		mult_modifier = {
+			factor = 4.0
+			FROM = {
+				trait = ambitious
+			}
+		}
+		
+		# If the regent is low tier, make us more likely to act
+		modifier = {
+			factor = 2.0
+			NOT = {
+				real_tier = king
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.0
+			NOR = {
+				higher_real_tier_than = count
+			}
+		}
+		
+		# If we're a king, make us more likely to act
+		mult_modifier = {
+			factor = 2
+			FROM = {
+				tier = king
+			}
+		}
+	}
+}
+
+plot_replace_permanent_regent2 = {
+	type = realm_characters
+	intrigue_plot = yes
+	
+	potential = {
+		is_feudal = yes
+		is_playable = yes
+		
+		has_japanese_government_trigger = yes
+		controls_religion = no
+		independent = no
+		
+		liege = {
+			real_tier = emperor
+			has_japanese_government_trigger = yes
+			controls_religion = no
+			trait = under_regency2
+			NOT = {
+				dynasty = PREV
+			}
+		}
+		
+		is_incapable = no
+		has_regent = no
+		
+		NOT = {
+			any_dynasty_member = {
+				OR = {
+					is_the_tenno_trigger = yes
+					is_ryukyuan_tenno_trigger = yes
+				}
+			}
+		}
+	}
+	
+	target_potential = {
+		trait = japanese_regent2
+		has_regent = yes
+	}
+	
+	allow = {
+		NOT = {
+			has_non_aggression_pact_with = FROM # If we have an NAP, we should break that first!
+		}
+		
+		OR = { # Either the current regent doesn't have the bloodline, or we are part of the bloodline
+			NOT = {
+				any_owned_bloodline= {
+					has_bloodline_flag = regency_bloodline
+					bloodline_is_active_for = PREV
+				}
+			}
+			
+			any_owned_bloodline= {
+				has_bloodline_flag = regency_bloodline
+				bloodline_is_active_for = PREV
+				
+				any_bloodline_member = {
+					character = FROM
+				}
+			}
+		}
+	}
+	
+	allow_join = {
+		liege = {
+			OR = {
+				trait = under_regency2
+				trait = japanese_regent2
+			}
+		}
+		
+		# AI vassals won't join the plot unless they like the presumptive regent quite a bit more or if they are envious
+		OR = {
+			FROM = {
+				ai = no
+			}
+			opinion_diff = {
+				first = FROM
+				second = FROMFROM
+				value >= 25
+			}
+			trait = envious
+		}
+		
+		# Dynasty members of the regent will only overthrow the regent if they also share the presumptive regent's dynasty
+		OR = {
+			FROM = {
+				ai = no
+			}
+			dynasty = FROMFROM
+			NOT = {
+				dynasty = ROOT
+			}
+		}
+		
+		# NAPs block joining, and being a friend or lover of the target while not being one of the presumptive regent also blocks it
+		NOR = {
+			has_non_aggression_pact_with = FROM # If we have an NAP, we should break that first!
+			character = FROM # Don't plot against outselves!
+			AND = {
+				OR = {
+					is_friend = FROM
+					is_lover = FROM
+				}
+				FROM = {
+					NOR = {
+						is_friend = FROMFROM
+						is_lover = FROMFROM
+					}
+				}
+			}
+		}
+	}
+	
+	success = {
+		FROM = {
+			trait = japanese_regent2
+		}
+	}
+	
+	abort = {
+		OR = {
+			FROM = {
+				NAND = {
+					is_feudal = yes
+					is_playable = yes
+					
+					has_japanese_government_trigger = yes
+					controls_religion = no
+					independent = no
+					
+					liege = {
+						real_tier = emperor
+						has_japanese_government_trigger = yes
+						controls_religion = no
+						trait = under_regency2
+						NOT = {
+							dynasty = PREV
+						}
+					}
+					
+					is_incapable = no
+					has_regent = no
+		
+					NOT = {
+						any_dynasty_member = {
+							OR = {
+								is_the_tenno_trigger = yes
+								is_ryukyuan_tenno_trigger = yes
+							}
+						}
+					}
+				}
+			}
+			
+			NAND = {
+				trait = japanese_regent2
+				has_regent = yes
+				NOT = {
+					has_non_aggression_pact_with = FROM # If we have an NAP, we should break that first!
+				}
+				
+				OR = { # Either the current regent doesn't have the bloodline, or we are part of the bloodline
+					NOT = {
+						any_owned_bloodline= {
+							has_bloodline_flag = regency_bloodline
+							bloodline_is_active_for = PREV
+						}
+					}
+					
+					any_owned_bloodline= {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+						
+						any_bloodline_member = {
+							character = FROM
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	effect = {
+		FROM = {
+			if = {
+				limit = {
+					NOT = { diplomacy >= 10 }
+				}
+				
+				change_diplomacy = 1
+			}
+			
+			any_plot_backer = {
+				reverse_opinion = {
+					modifier = opinion_grateful
+					who = FROM
+					years = 5
+				}
+			}
+			
+			# Clear flags
+			hidden_tooltip = {
+				clr_character_flag = plot_replace_permanent_regent_taken
+			}
+		}
+	}
+	
+	chance = {
+		factor = 50
+		
+		trigger = {
+			NOR = {
+				FROM = {
+					OR = {
+						trait = kind
+						trait = content
+						trait = humble
+						opinion = {
+							who = ROOT
+							value >= 25
+						}
+					}
+					NOR = {
+						trait = ambitious
+						trait = proud
+						trait = envious
+						is_rival = ROOT
+					}
+				}
+				
+				FROM = {
+					war = yes
+				}
+				
+				FROM = {
+					opinion = {
+						who = ROOT
+						value >= 50
+					}
+					OR = {
+						trait = envious
+						trait = deceitful
+						trait = ambitious
+						is_rival = ROOT
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.01
+			FROM = {
+				trait = content
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				is_dumb_trigger = yes
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				trait = kind
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				opinion = {
+					who = ROOT
+					value >= 0
+				}
+				NOR = {
+					trait = envious
+					trait = deceitful
+					trait = ambitious
+					is_rival = ROOT
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				opinion = {
+					who = ROOT
+					value >= 25
+				}
+				OR = {
+					trait = envious
+					trait = deceitful
+					trait = ambitious
+					is_rival = ROOT
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			reverse_opinion = {
+				who = FROM
+				value < -50
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			reverse_opinion = {
+				who = FROM
+				value < -75
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			FROM = {
+				is_smart_trigger = yes
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.0
+			FROM = {
+				trait = envious
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.0
+			FROM = {
+				trait = deceitful
+			}
+		}
+		
+		mult_modifier = {
+			factor = 4.0
+			FROM = {
+				trait = ambitious
+			}
+		}
+		
+		# If the regent is low tier, make us more likely to act
+		modifier = {
+			factor = 2.0
+			NOT = {
+				real_tier = king
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.0
+			NOR = {
+				higher_real_tier_than = count
+			}
+		}
+		
+		# If we're a king, make us more likely to act
+		mult_modifier = {
+			factor = 2
+			FROM = {
+				tier = king
+			}
+		}
+	}
+}
+
+plot_replace_permanent_regent3 = {
+	type = realm_characters
+	intrigue_plot = yes
+	
+	potential = {
+		is_feudal = yes
+		is_playable = yes
+		
+		has_japanese_government_trigger = yes
+		controls_religion = no
+		independent = no
+		
+		liege = {
+			is_the_tenno_trigger = yes
+			trait = under_regency3
+			NOT = {
+				dynasty = PREV
+			}
+		}
+		
+		is_incapable = no
+		has_regent = no
+		
+		NOT = {
+			any_dynasty_member = {
+				is_the_tenno_trigger = yes
+			}
+		}
+	}
+	
+	target_potential = {
+		trait = japanese_regent3
+		has_regent = yes
+	}
+	
+	allow = {
+		NOT = {
+			has_non_aggression_pact_with = FROM # If we have an NAP, we should break that first!
+		}
+		
+		OR = { # Either the current regent doesn't have the bloodline, or we are part of the bloodline
+			NOT = {
+				any_owned_bloodline= {
+					has_bloodline_flag = regency_bloodline
+					bloodline_is_active_for = PREV
+				}
+			}
+			
+			any_owned_bloodline= {
+				has_bloodline_flag = regency_bloodline
+				bloodline_is_active_for = PREV
+				
+				any_bloodline_member = {
+					character = FROM
+				}
+			}
+		}
+	}
+	
+	allow_join = {
+		liege = {
+			OR = {
+				trait = under_regency3
+				trait = japanese_regent3
+			}
+		}
+		
+		# AI vassals won't join the plot unless they like the presumptive regent quite a bit more or if they are envious
+		OR = {
+			FROM = {
+				ai = no
+			}
+			opinion_diff = {
+				first = FROM
+				second = FROMFROM
+				value >= 25
+			}
+			trait = envious
+		}
+		
+		# Dynasty members of the regent will only overthrow the regent if they also share the presumptive regent's dynasty
+		OR = {
+			FROM = {
+				ai = no
+			}
+			dynasty = FROMFROM
+			NOT = {
+				dynasty = ROOT
+			}
+		}
+		
+		# NAPs block joining, and being a friend or lover of the target while not being one of the presumptive regent also blocks it
+		NOR = {
+			has_non_aggression_pact_with = FROM # If we have an NAP, we should break that first!
+			character = FROM # Don't plot against outselves!
+			AND = {
+				OR = {
+					is_friend = FROM
+					is_lover = FROM
+				}
+				FROM = {
+					NOR = {
+						is_friend = FROMFROM
+						is_lover = FROMFROM
+					}
+				}
+			}
+		}
+	}
+	
+	success = {
+		FROM = {
+			trait = japanese_regent
+		}
+	}
+	
+	abort = {
+		OR = {
+			FROM = {
+				NAND = {
+					is_feudal = yes
+					is_playable = yes
+					
+					has_japanese_government_trigger = yes
+					controls_religion = no
+					independent = no
+					
+					liege = {
+						is_ryukyuan_tenno_trigger = yes
+						trait = under_regency3
+						NOT = {
+							dynasty = PREV
+						}
+					}
+					
+					is_incapable = no
+					has_regent = no
+		
+					NOT = {
+						any_dynasty_member = {
+							is_the_tenno_trigger = yes
+						}
+					}
+				}
+			}
+			
+			NAND = {
+				trait = japanese_regent3
+				has_regent = yes
+				NOT = {
+					has_non_aggression_pact_with = FROM # If we have an NAP, we should break that first!
+				}
+				
+				OR = { # Either the current regent doesn't have the bloodline, or we are part of the bloodline
+					NOT = {
+						any_owned_bloodline= {
+							has_bloodline_flag = regency_bloodline
+							bloodline_is_active_for = PREV
+						}
+					}
+					
+					any_owned_bloodline= {
+						has_bloodline_flag = regency_bloodline
+						bloodline_is_active_for = PREV
+						
+						any_bloodline_member = {
+							character = FROM
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	effect = {
+		FROM = {
+			if = {
+				limit = {
+					NOT = { diplomacy >= 10 }
+				}
+				
+				change_diplomacy = 1
+			}
+			
+			any_plot_backer = {
+				reverse_opinion = {
+					modifier = opinion_grateful
+					who = FROM
+					years = 5
+				}
+			}
+			
+			# Clear flags
+			hidden_tooltip = {
+				clr_character_flag = plot_replace_permanent_regent_taken
+			}
+		}
+	}
+	
+	chance = {
+		factor = 50
+		
+		trigger = {
+			NOR = {
+				FROM = {
+					OR = {
+						trait = kind
+						trait = content
+						trait = humble
+						opinion = {
+							who = ROOT
+							value >= 25
+						}
+					}
+					NOR = {
+						trait = ambitious
+						trait = proud
+						trait = envious
+						is_rival = ROOT
+					}
+				}
+				
+				FROM = {
+					war = yes
+				}
+				
+				FROM = {
+					opinion = {
+						who = ROOT
+						value >= 50
+					}
+					OR = {
+						trait = envious
+						trait = deceitful
+						trait = ambitious
+						is_rival = ROOT
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.01
+			FROM = {
+				trait = content
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				is_dumb_trigger = yes
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				trait = kind
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				opinion = {
+					who = ROOT
+					value >= 0
+				}
+				NOR = {
+					trait = envious
+					trait = deceitful
+					trait = ambitious
+					is_rival = ROOT
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				opinion = {
+					who = ROOT
+					value >= 25
+				}
+				OR = {
+					trait = envious
+					trait = deceitful
+					trait = ambitious
+					is_rival = ROOT
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			reverse_opinion = {
+				who = FROM
+				value < -50
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			reverse_opinion = {
+				who = FROM
+				value < -75
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			FROM = {
+				is_smart_trigger = yes
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.0
+			FROM = {
+				trait = envious
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.0
+			FROM = {
+				trait = deceitful
+			}
+		}
+		
+		mult_modifier = {
+			factor = 4.0
+			FROM = {
+				trait = ambitious
+			}
+		}
+		
+		# If the regent is low tier, make us more likely to act
+		modifier = {
+			factor = 2.0
+			NOT = {
+				real_tier = king
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.0
+			NOR = {
+				higher_real_tier_than = count
+			}
+		}
+		
+		# If we're a king, make us more likely to act
+		mult_modifier = {
+			factor = 2
+			FROM = {
+				tier = king
+			}
+		}
+	}
+}
+
+# Chinese stuff
+plot_claim_chinese_imperial_title = {
+	type = liege_titles
+	vassal_intrigue_plot = yes
+	
+	# Plotter scope
+	potential = {
+		is_feudal = yes
+		is_playable = yes
+		can_have_chinese_imperial_trigger = yes
+		
+		prisoner = no
+		age >= 16
+		independent = no
+		mercenary = no
+		holy_order = no
+		controls_religion = no
+		
+		NOR = {
+			is_incapable = yes
+			trait = imbecile
+		}
+		
+		top_liege = {
+			real_tier = emperor
+			government = chinese_imperial_government
+			NOR = {
+				is_father = ROOT
+				is_mother = ROOT
+			}
+		}
+	}
+	
+	target_potential = {
+		tier = emperor
+		holder_scope = {
+			any_realm_lord = {
+				character = FROM
+			}
+		}
+	}
+	
+	# Target scope
+	allow = {
+		holder_scope = {
+			government = chinese_imperial_government
+			
+			OR = { # Poor or Lost Mandate
+				has_character_modifier = mandate_of_heaven_2
+				has_character_modifier = mandate_of_heaven_1
+				
+				AND = {
+					has_character_modifier = mandate_of_heaven_3
+					FROM = { # Members of CI or pretender dynasties have an easier time, as do kings and Grand Chancellors
+						OR = {
+							custom_tooltip = {
+								text = has_ci_bloodline_or_is_a_king_or_gc # TODO
+								OR = {
+									any_owned_bloodline = {
+										OR = {
+											has_bloodline_flag = real_chinese_imperial_bloodline
+											has_bloodline_flag = pretender_chinese_imperial_bloodline
+										}
+									}
+									
+									real_tier = king
+									
+									has_minor_title = title_grand_chancellor
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		NOR = {
+			claimed_by = FROM
+			current_heir = {
+				character = FROM
+			}
+		}
+	}
+	
+	chance = {
+		factor = 1 # Must always be an integer
+		
+		trigger = {
+			holder_scope = {
+				NOR = {
+					FROM = {
+						OR = {
+							trait = kind
+							trait = content
+							trait = humble
+							opinion = {
+								who = PREV
+								value >= 25
+							}
+						}
+						NOR = {
+							trait = ambitious
+							trait = proud
+							trait = envious
+							is_rival = PREV
+						}
+					}
+					
+					FROM = {
+						war = yes
+					}
+					
+					FROM = {
+						opinion = {
+							who = PREV
+							value >= 50
+						}
+						OR = {
+							trait = envious
+							trait = deceitful
+							trait = ambitious
+							is_rival = PREV
+						}
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.01
+			FROM = {
+				trait = content
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				is_dumb_trigger = yes
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			FROM = {
+				trait = kind
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			holder_scope = {
+				FROM = {
+					opinion = {
+						who = PREV
+						value >= 0
+					}
+					NOR = {
+						trait = envious
+						trait = deceitful
+						trait = ambitious
+						is_rival = PREV
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.2
+			holder_scope = {
+				FROM = {
+					opinion = {
+						who = PREV
+						value >= 25
+					}
+					NOR = {
+						trait = envious
+						trait = deceitful
+						trait = ambitious
+						is_rival = PREV
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			holder_scope = {
+				reverse_opinion = {
+					who = FROM
+					value < -50
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			holder_scope = {
+				reverse_opinion = {
+					who = FROM
+					value < -75
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 1.5
+			FROM = {
+				is_smart_trigger = yes
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.0
+			FROM = {
+				trait = envious
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2.0
+			FROM = {
+				trait = deceitful
+			}
+		}
+		
+		mult_modifier = {
+			factor = 4.0
+			FROM = {
+				trait = ambitious
+			}
+		}
+		
+		mult_modifier = {
+			# Subtle balance against nepotism
+			factor = 2.0
+			holder_scope = {
+				NOT = {
+					dynasty = FROM
+				}
+				dynasty_realm_power >= 0.25
+			}
+		}
+		
+		mult_modifier = {
+			# Subtle balance against nepotism
+			factor = 4.0
+			holder_scope = {
+				NOT = {
+					dynasty = FROM
+				}
+				dynasty_realm_power >= 0.25
+			}
+		}
+		
+		modifier = {
+			factor = 2.0
+			FROM = {
+				has_minor_title = title_grand_chancellor
+			}
+		}
+		
+		modifier = {
+			factor = 2.0
+			FROM = {
+				real_tier = king
+			}
+		}
+	}
+	
+	success = {
+		claimed_by = FROM
+	}
+	
+	abort = {
+		OR = {
+			has_holder = no
+			holder_scope = {
+				OR = {
+					character = FROM
+					NAND = {
+						any_realm_lord = {
+							character = FROM
+						}
+						government = chinese_imperial_government
+					}
+				}
+			}
+			
+			FROM = {
+				OR = {
+					is_feudal = no
+					can_have_chinese_imperial_trigger = no
+					is_incapable = yes
+					independent = yes
+				}
+			}
+		}
+	}
+	
+	abort_effect = {
+		FROM = {
+			# Clear flags
+			hidden_tooltip = {
+				clr_character_flag = plot_claim_chinese_imperial_title_decision_taken
+			}
+		}
+	}
+	
+	effect = {
+		FROM = {
+			any_plot_backer = {
+				reverse_opinion = {
+					modifier = opinion_grateful
+					who = FROM
+					years = 5
+				}
+			}
+			
+			# Clear flags
+			hidden_tooltip = {
+				clr_character_flag = plot_claim_chinese_imperial_title_decision_taken
+			}
+		}
+	}
+}
