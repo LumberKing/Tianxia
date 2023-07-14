@@ -63,9 +63,59 @@ province_event = {
 
 				has_dlc = "The Old Gods"
 			}
-
-			# Heretic revolts have the highest priority
+			
+			# MoH
 			if = {
+				limit = {
+					could_have_chinese_government_province_trigger = yes
+		
+					county = {
+						OR = {
+							region = world_china
+							owner = {
+								top_liege = {
+									primary_title = {
+										de_jure_vassal_or_below = PREVPREV
+									}
+								}
+							}
+						}
+					}
+					
+					top_liege = {
+						government = chinese_imperial_government
+						
+						OR = {
+							AND = {
+								is_chinese_emperor_trigger = yes
+								has_character_modifier = mandate_of_heaven_2
+							}
+							has_character_modifier = mandate_of_heaven_1
+						}
+					}
+				}
+
+				if = {
+					limit = {
+						# There is already an ongoing MoH revolt for the same kingdom
+						top_liege = {
+							any_war = {
+								using_cb = mandate_of_heaven_uprising
+								defender = { character = PREVPREV }
+								ROOT = { de_jure_liege_or_above = thirdparty_title_scope }
+							}
+						}
+					}
+
+					province_event = { id = soh.5904 } # Reinforce ongoing revolt
+				}
+				else = {
+					province_event = { id = soh.5901 } # Start new revolt
+				}
+			}
+
+			# Heretic revolts have the highest priority after MoH rebels
+			else_if = {
 				limit = {
 					is_heresy_of = top_liege
 
@@ -97,6 +147,7 @@ province_event = {
 								defender = { character = PREVPREV }
 								using_cb = heretic_revolt
 								attacker = { religion = ROOT }
+								ROOT = { de_jure_liege_or_above = thirdparty_title_scope }
 							}
 						}
 					}
@@ -190,6 +241,7 @@ province_event = {
 								using_cb = religious_revolt
 								defender = { character = PREVPREV }
 								attacker = { religion = ROOT }
+								ROOT = { de_jure_liege_or_above = thirdparty_title_scope }
 							}
 						}
 					}
