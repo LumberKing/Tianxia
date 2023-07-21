@@ -1,0 +1,3587 @@
+# This file borrows heavily from the vanilla jd_grace_decisions.txt file when it comes to AI logic and requirements on people being sent to China
+# All Grace decisions MUST be DLC-locked to JD to avoid conflict with modding rule 7, even though we cannot use the offmap mechanics
+# Important scripted triggers are located in the tianxia_grace_triggers.txt file in the /common/scripted_triggers directory
+
+# ONLY the EoC will be using the Grace system, regardless of whether someone else has the Chinese Imperial government type
+# A fully dynamic system is not possible due to the need to name the variables, but it should be possible to implement the same (or similar) decisions for specific titles, if desired
+
+# The AI does all of this using offset on_x_pulse events
+
+targeted_decisions = {
+	kow_tow_china = {
+		ai = no # The AI uses a regular decision
+		only_playable = yes
+		filter = independent_rulers
+		
+		from_potential = { # TIANXIATODO: Improve
+			ai = no
+			is_new_world_invader_or_vassal_trigger = no
+			has_dlc = "Jade Dragon"
+			independent = yes
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			is_chinese_emperor_trigger = no
+			NOT = {
+				government = chinese_imperial_government
+			}
+			suzerain = {
+				NAND = {
+					is_chinese_emperor_trigger = no
+					government = chinese_imperial_government
+				}
+			}
+			NOR = {
+				any_dynasty_member = {
+					religion = shinto
+					controls_religion = yes
+				}
+				any_dynasty_member = {
+					religion = ryukyuan_pagan_reformed
+					controls_religion = yes
+					government = divine_imperial_government
+				}
+			}
+			controls_religion = no
+		}
+		
+		potential = {
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			FROM = {
+				NAND = { # The Shogun does not bow!
+					could_have_japanese_government_trigger = yes
+					any_realm_lord = {
+						OR = {
+							is_the_tenno_trigger = yes
+							is_ryukyuan_tenno_trigger = yes
+						}
+					}
+				}
+				show_scope_change = no
+				war = no
+				NOT = {
+					block_general_event_trigger = yes
+					custom_tooltip = {
+						text = kow_tow_tooltip_already_went
+						hidden_tooltip = {
+							has_character_flag = went_on_kow_tow_pilgrimage
+						}
+					}
+				}
+				custom_tooltip = {
+					text = health_travel_condition
+					is_healthy_for_travel_trigger = yes
+				}
+				higher_real_tier_than = COUNT
+				conditional_tooltip = {
+					trigger = {
+						OR = {
+							real_tier = DUKE
+							is_nomadic = yes
+						}
+					}
+					prestige = 250
+				}
+				conditional_tooltip = {
+					trigger = {
+						real_tier = KING
+						NOT = { is_nomadic = yes }
+					}
+					prestige = 500
+				}
+				conditional_tooltip = {
+					trigger = {
+						real_tier = EMPEROR
+						NOT = { is_nomadic = yes }
+					}
+					prestige = 1000
+				}
+				custom_tooltip = {
+					text = is_not_busy_trigger_tooltip
+					hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
+				}
+				is_inaccessible_or_incapable_trigger = no
+				has_regent = no
+				is_under_regency_trigger = no
+			}
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			# TODO: Create new kowtow events that involve the EoC and others in China a bit more
+			FROM = {
+				save_event_target_as = kow_tow_traveler
+				set_character_flag = went_on_kow_tow_pilgrimage
+				set_character_flag = do_not_disturb
+				character_event = {
+					id = JD.32000
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	send_gift_china = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			OR = {
+				independent = yes
+				real_tier = king
+				has_minor_title = title_grand_chancellor
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					independent = yes
+				}
+			}
+			
+			top_liege = {
+				NOT = {
+					government = chinese_imperial_government # Either under a pretender or a vassal of China
+				}
+			}
+		}
+		
+		potential = {
+			is_chinese_emperor_trigger = yes
+		}
+	
+		allow = {
+			show_only_failed_conditions = yes
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_gold_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				NOR = {
+					any_war = {
+						any_attacker = {
+							character = FROM
+						}
+						any_defender = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+					
+					any_war = {
+						any_attacker = {
+							is_chinese_emperor_trigger = yes
+						}
+						any_defender = {
+							character = FROM
+						}
+					}
+				}
+				
+				scaled_wealth = {
+					value = 1
+					min = 500
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = soh.6002 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	send_gift_china_vassal = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+		}
+		
+		potential = {
+			is_chinese_emperor_trigger = yes
+		}
+	
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_gold_tribute
+				}
+			}
+			
+			FROM = {
+				has_regent = no
+				is_inaccessible_or_incapable_trigger = no
+				scaled_wealth = {
+					value = 1
+					min = 500
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = soh.6008 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	become_tributary_china = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			top_liege = {
+				NOT = {
+					government = chinese_imperial_government # Either under a pretender or a vassal of China
+				}
+			}
+			
+			controls_religion = no
+			
+			NAND = {
+				could_have_japanese_government_trigger = yes
+				any_realm_lord = {
+					OR = {
+						government = japanese_imperial_government
+						government = divine_imperial_government
+					}
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOR = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_tributary
+				}
+				
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_decreased_tributary_tier
+				}
+				
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_breakaway_tributary
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				war = no
+				has_regent = no
+				is_tributary = no
+			}
+			
+			war = no
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = soh.6014 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	supply_horses_china = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			has_dlc = "Horse Lords"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			is_nomadic = yes
+			
+			OR = {
+				independent = yes
+				real_tier = king
+				liege = {
+					independent = yes
+				}
+			}
+			
+			NOT = {
+				top_liege = {
+					is_chinese_emperor_trigger = yes
+				}
+			}
+		}
+		
+		potential = {
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_horses_tribute
+				}
+			}
+			
+			FROM = {
+				NOT = {
+					top_liege = {
+						suzerain = {
+							government = chinese_imperial_government
+							NOT = {
+								is_chinese_emperor_trigger = yes
+							}
+						}
+					}
+				}
+				
+				is_inaccessible_or_incapable_trigger = no
+				
+				unused_manpower >= 300
+				
+				war = no
+				has_regent = no
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = soh.6020 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	supply_horses_china_vassal = { # Nothing to see here!
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			has_dlc = "Horse Lords"
+			
+			is_nomadic = yes
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+		}
+		
+		potential = {
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_horses_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				unused_manpower >= 300
+				
+				war = no
+				has_regent = no
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = soh.6026 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	offer_eunuch_china = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		third_party_filter = home_court
+		third_party = FROM
+		show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			OR = {
+				independent = yes
+				real_tier = king
+				has_minor_title = title_grand_chancellor
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					independent = yes
+				}
+			}
+			
+			top_liege = {
+				NOT = {
+					government = chinese_imperial_government # Either under a pretender or a vassal of China
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_eunuch_tribute
+				}
+			}
+
+			FROM = {
+				NOT = {
+					top_liege = {
+						suzerain = {
+							government = chinese_imperial_government
+							NOT = {
+								is_chinese_emperor_trigger = yes
+							}
+						}
+					}
+				}
+				
+				NOR = {
+					any_war = {
+						any_attacker = {
+							character = FROM
+						}
+						any_defender = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+					
+					any_war = {
+						any_attacker = {
+							is_chinese_emperor_trigger = yes
+						}
+						any_defender = {
+							character = FROM
+						}
+					}
+				}
+				
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				show_scope_change = no
+				is_landed = no
+				is_female = no
+				is_adult = yes
+				is_patrician = no
+				is_heir = no
+				
+				host = {
+					character = ROOT_FROM
+				}
+				
+				trigger_if = {
+					limit = {
+						ROOT_FROM = {
+							could_have_japanese_government_trigger = yes
+						}
+					}
+					
+					NOT = {
+						any_dynasty_member = {
+							is_landed = yes
+							OR = {
+								is_the_tenno_trigger = yes
+								is_ryukyuan_tenno_trigger = yes
+							}
+						}
+					}
+				}
+				
+				NOT = {
+					dynasty = ROOT_FROM
+				}
+				
+				trigger_if = {
+					limit = {
+						NAND = {
+							prisoner = yes
+							host = {
+								character = ROOT_FROM
+							}
+						}
+					}
+					
+					is_married = no
+					is_betrothed = no
+				}
+				
+				courtier_from_china_trigger = no
+			}
+		}
+		
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				is_incapable = no
+				is_inaccessible_trigger = no
+				is_maimed_trigger = no
+				is_ill = no
+				
+				NOR = {
+					trait = inbred
+					trait = imbecile
+					trait = wounded
+					trait = severely_injured
+				}
+			}
+		}
+		
+		effect = {
+			# Regardless of whether the EoC accepts the eunuch in the end, they are snipped
+			if = {
+				limit = {
+					FROMFROM = {
+						NOT = {
+							trait = eunuch
+						}
+					}
+				}
+				
+				hidden_tooltip = {
+					FROMFROM = {
+						save_event_target_as = event_target:tribute_character
+					}
+				}
+				
+				event_target:tribute_character = { # Didn't work well in the FROMFROM scope for some reason...
+					add_trait = eunuch
+					
+					hidden_tooltip = {
+						opinion = {
+							who = ROOT_FROM
+							modifier = opinion_castrated_me # The potential eunuch will be a mite upset about the whole "Snipped me off to China" thing, even if the EoC turns him down
+						}
+						
+						any_close_relative = {
+							opinion = {
+								who = ROOT_FROM
+								modifier = opinion_castrated_close_kin
+							}
+						}
+						
+						any_dynasty_member = {
+							opinion = {
+								who = ROOT_FROM
+								modifier = opinion_castrated_family
+							}
+						}
+					}
+				}
+			}
+			
+			hidden_tooltip = {
+				character_event = { id = soh.6032 } # EoC gets event
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	offer_eunuch_china_vassal = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		third_party_filter = home_court
+		third_party = FROM
+		show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_eunuch_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		third_party_potential = {
+		
+			FROMFROM = {
+				show_scope_change = no
+				is_landed = no
+				is_female = no
+				is_adult = yes
+				is_patrician = no
+				is_heir = no
+				
+				host = {
+					character = ROOT_FROM
+				}
+				
+				trigger_if = {
+					limit = {
+						ROOT_FROM = {
+							could_have_japanese_government_trigger = yes
+						}
+					}
+					
+					NOT = {
+						any_dynasty_member = {
+							is_landed = yes
+							OR = {
+								is_the_tenno_trigger = yes
+								is_ryukyuan_tenno_trigger = yes
+							}
+						}
+					}
+				}
+				
+				NOT = {
+					dynasty = ROOT_FROM
+				}
+				
+				trigger_if = {
+					limit = {
+						NAND = {
+							prisoner = yes
+							host = {
+								character = ROOT_FROM
+							}
+						}
+					}
+					
+					is_married = no
+					is_betrothed = no
+				}
+				
+				courtier_from_china_trigger = no
+			}
+		}
+		
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				is_incapable = no
+				is_inaccessible_trigger = no
+				is_maimed_trigger = no
+				is_ill = no
+				
+				NOR = {
+					trait = inbred
+					trait = imbecile
+					trait = wounded
+					trait = severely_injured
+				}
+			}
+		}
+		
+		effect = {
+			# Regardless of whether the EoC accepts the eunuch in the end, they are snipped
+			if = {
+				limit = {
+					FROMFROM = {
+						NOT = {
+							trait = eunuch
+						}
+					}
+				}
+				hidden_tooltip = {
+					FROMFROM = {
+						save_event_target_as = tribute_character
+					}
+				}
+				event_target:tribute_character = { # Didn't work well in the FROMFROM scope for some reason...
+					add_trait = eunuch
+					hidden_tooltip = {
+						opinion = {
+							who = ROOT_FROM
+							modifier = opinion_castrated_me # The potential eunuch will be a mite upset about the whole "Snipped me off to China" thing, even if the EoC turns him down
+						}
+						any_close_relative = {
+							opinion = {
+								who = ROOT_FROM
+								modifier = opinion_castrated_close_kin
+							}
+						}
+						any_dynasty_member = {
+							opinion = {
+								who = ROOT_FROM
+								modifier = opinion_castrated_family
+							}
+						}
+					}
+				}
+			}
+			hidden_tooltip = {
+				character_event = { id = soh.6038 } # EoC gets event
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	offer_concubine_china = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		third_party_filter = home_court
+		third_party = FROM
+		show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			OR = {
+				independent = yes
+				real_tier = king
+				has_minor_title = title_grand_chancellor
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					independent = yes
+				}
+			}
+			
+			top_liege = {
+				NOT = {
+					government = chinese_imperial_government # Either under a pretender or a vassal of China
+				}
+			}
+				
+			NOR = {
+				has_religion_feature = religion_matriarchal # If we're Matriarchial, we shouldn't accept concubinage
+				has_religion_feature = religion_feature_minangkabau # If we're Matriarchial, we shouldn't accept concubinage
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_concubine_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				NOR = {
+					any_war = {
+						any_attacker = {
+							character = FROM
+						}
+						any_defender = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+					
+					any_war = {
+						any_attacker = {
+							is_chinese_emperor_trigger = yes
+						}
+						any_defender = {
+							character = FROM
+						}
+					}
+				}
+			}
+			
+			OR = {
+				AND = {
+					is_adult = yes
+					is_female = no
+					NOR = {
+						trait = celibate
+						trait = eunuch
+					}
+				}
+				
+				any_dynasty_member = {
+					host = {
+						character = ROOT
+					}
+					prisoner = no
+					is_adult = yes
+					is_female = no
+					NOR = {
+						trait = celibate
+						trait = eunuch
+					}
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				is_landed = no
+				is_female = yes
+				is_adult = yes
+				is_patrician = no
+				is_heir = no
+				
+				host = {
+					character = ROOT_FROM
+				}
+				
+				practical_age < 35
+				
+				trigger_if = {
+					limit = {
+						OR = {
+							religion = zoroastrian
+							religion = messalian
+							religion_openly_inca_or_reformed_trigger = yes
+							has_religion_feature = religion_holy_family
+							has_religion_feature = religion_feature_zun
+						}
+					}
+					
+					NOT = {
+						is_close_relative = ROOT_FROM
+					}
+				}
+				
+				trigger_if = {
+					limit = {
+						ROOT_FROM = {
+							could_have_japanese_government_trigger = yes
+						}
+					}
+					
+					NOT = {
+						any_dynasty_member = {
+							is_landed = yes
+							OR = {
+								is_the_tenno_trigger = yes
+								is_ryukyuan_tenno_trigger = yes
+							}
+						}
+					}
+				}
+				
+				NOR = {
+					dynasty = ROOT
+					any_sibling = {
+						character = ROOT
+					}
+					is_descendant_of = ROOT
+					is_ancestor_of = ROOT
+					any_child_even_if_dead = {
+						always = yes
+					}
+				}
+				
+				OR = {
+					is_close_relative = ROOT_FROM
+					dynasty = ROOT_FROM
+					
+					any_close_relative = {
+						OR = {
+							real_tier = king
+							real_tier = emperor
+						}
+					}
+					
+					trait = attractive
+					
+					# Likely to be able to catch someone's attention
+					AND = {
+						trait = master_seductress
+						NOT = {
+							trait = homosexual
+						}
+					}
+				}
+				
+				is_married = no
+				is_betrothed = no
+				is_consort = no
+				
+				courtier_from_china_trigger = no
+			}
+		}
+		
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				is_incapable = no
+				is_inaccessible_trigger = no
+				is_maimed_trigger = no
+				is_ascetic_trigger = no
+				is_ill = no
+				
+				NOR = {
+					trait = inbred
+					trait = imbecile
+					trait = wounded
+					trait = severely_injured
+					trait = celibate
+					has_character_modifier = wont_let_spouse_touch_me
+					trait = pregnant # Known to be pregnant
+					trait = hard_pregnancy # This is missing in vanilla but should probably be here...
+					trait = troubled_pregnancy # This is missing in vanilla but should probably be here...
+					trait = pregnancy_finishing # This is missing in vanilla but should probably be here...
+					is_lover = ROOT
+				}
+				
+				OR = {
+					NOT = { prisoner = yes }
+					host = {
+						character = ROOT
+					}
+				}
+			}
+		}
+		
+		effect = {
+			FROMFROM = {
+				save_event_target_as = tribute_character
+			}
+			
+			character_event = { id = soh.6044 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	offer_concubine_china_vassal = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		third_party_filter = home_court
+		third_party = FROM
+		show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+				
+			NOR = {
+				has_religion_feature = religion_matriarchal # If we're Matriarchial, we shouldn't accept concubinage
+				has_religion_feature = religion_feature_minangkabau # If we're Matriarchial, we shouldn't accept concubinage
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_concubine_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+			}
+			
+			OR = {
+				AND = {
+					is_adult = yes
+					is_female = no
+					NOR = {
+						trait = celibate
+						trait = eunuch
+					}
+				}
+				
+				any_dynasty_member = {
+					host = {
+						character = ROOT
+					}
+					prisoner = no
+					is_adult = yes
+					is_female = no
+					NOR = {
+						trait = celibate
+						trait = eunuch
+					}
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				is_landed = no
+				is_female = yes
+				is_adult = yes
+				is_patrician = no
+				is_heir = no
+				
+				host = {
+					character = ROOT_FROM
+				}
+				
+				practical_age < 35
+				
+				trigger_if = {
+					limit = {
+						OR = {
+							religion = zoroastrian
+							religion = messalian
+							religion_openly_inca_or_reformed_trigger = yes
+							has_religion_feature = religion_holy_family
+							has_religion_feature = religion_feature_zun
+						}
+					}
+					
+					NOT = {
+						is_close_relative = ROOT_FROM
+					}
+				}
+				
+				trigger_if = {
+					limit = {
+						ROOT_FROM = {
+							could_have_japanese_government_trigger = yes
+						}
+					}
+					
+					NOT = {
+						any_dynasty_member = {
+							is_landed = yes
+							OR = {
+								is_the_tenno_trigger = yes
+								is_ryukyuan_tenno_trigger = yes
+							}
+						}
+					}
+				}
+				
+				NOR = {
+					dynasty = ROOT
+					any_sibling = {
+						character = ROOT
+					}
+					is_descendant_of = ROOT
+					is_ancestor_of = ROOT
+					any_child_even_if_dead = {
+						always = yes
+					}
+				}
+				
+				OR = {
+					is_close_relative = ROOT_FROM
+					dynasty = ROOT_FROM
+					
+					any_close_relative = {
+						OR = {
+							real_tier = king
+							real_tier = emperor
+						}
+					}
+					
+					trait = attractive
+					
+					# Likely to be able to catch someone's attention
+					AND = {
+						trait = master_seductress
+						NOT = {
+							trait = homosexual
+						}
+					}
+				}
+				
+				is_married = no
+				is_betrothed = no
+				is_consort = no
+				
+				courtier_from_china_trigger = no
+			}
+		}
+		
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				is_incapable = no
+				is_inaccessible_trigger = no
+				is_maimed_trigger = no
+				is_ascetic_trigger = no
+				is_ill = no
+				
+				NOR = {
+					trait = inbred
+					trait = imbecile
+					trait = wounded
+					trait = severely_injured
+					trait = celibate
+					has_character_modifier = wont_let_spouse_touch_me
+					trait = pregnant # Known to be pregnant
+					trait = hard_pregnancy # This is missing in vanilla but should probably be here...
+					trait = troubled_pregnancy # This is missing in vanilla but should probably be here...
+					trait = pregnancy_finishing # This is missing in vanilla but should probably be here...
+					is_lover = ROOT
+				}
+				
+				OR = {
+					NOT = { prisoner = yes }
+					host = {
+						character = ROOT
+					}
+				}
+			}
+		}
+		
+		effect = {
+			FROMFROM = {
+				save_event_target_as = tribute_character
+			}
+			
+			character_event = { id = soh.6050 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	offer_commander_china = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		third_party_filter = home_court
+		third_party = FROM
+		show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			OR = {
+				independent = yes
+				real_tier = king
+				has_minor_title = title_grand_chancellor
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					independent = yes
+				}
+			}
+			
+			top_liege = {
+				NOT = {
+					government = chinese_imperial_government # Either under a pretender or a vassal of China
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_commander_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				NOR = {
+					any_war = {
+						any_attacker = {
+							character = FROM
+						}
+						any_defender = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+					
+					any_war = {
+						any_attacker = {
+							is_chinese_emperor_trigger = yes
+						}
+						any_defender = {
+							character = FROM
+						}
+					}
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				show_scope_change = no
+				is_adult = yes
+				is_heir = no
+				is_landed = no
+				is_ruler = no
+				is_married = no
+				is_betrothed = no
+				martial >= 12
+				
+				host = {
+					character = ROOT_FROM
+				}
+				
+				courtier_from_china_trigger = no
+				
+				OR = {
+					is_female = no
+					
+					AND = {
+						has_minor_title = title_commander
+						e_china = {
+							gender_equality_trigger = yes
+						}
+					}
+					
+					has_character_flag = special_marshal
+				}
+			}
+		}
+
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				is_inaccessible_or_incapable_trigger = no
+				is_maimed_trigger = no
+				is_ill = no
+				
+				NOR = {
+					trait = inbred
+					trait = imbecile
+					trait = wounded
+					trait = severely_injured
+				}
+			}
+		}
+		
+		effect = {
+			FROMFROM = {
+				save_event_target_as = tribute_character
+			}
+			
+			character_event = { id = soh.6057 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	offer_commander_china_vassal = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		third_party_filter = home_court
+		third_party = FROM
+		show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_commander_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				show_scope_change = no
+				is_adult = yes
+				is_heir = no
+				is_landed = no
+				is_ruler = no
+				is_married = no
+				is_betrothed = no
+				martial >= 12
+				
+				host = {
+					character = ROOT_FROM
+				}
+				
+				courtier_from_china_trigger = no
+				
+				OR = {
+					is_female = no
+					
+					AND = {
+						has_minor_title = title_commander
+						e_china = {
+							gender_equality_trigger = yes
+						}
+					}
+					
+					has_character_flag = special_marshal
+				}
+			}
+		}
+
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				is_inaccessible_or_incapable_trigger = no
+				is_maimed_trigger = no
+				is_ill = no
+				
+				NOR = {
+					trait = inbred
+					trait = imbecile
+					trait = wounded
+					trait = severely_injured
+				}
+			}
+		}
+		
+		effect = {
+			FROMFROM = {
+				save_event_target_as = tribute_character
+			}
+			
+			character_event = { id = soh.6063 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	offer_physician_china = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		third_party_filter = home_court
+		third_party = FROM
+		show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			has_dlc = "Reapers"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			OR = {
+				independent = yes
+				real_tier = king
+				has_minor_title = title_grand_chancellor
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					independent = yes
+				}
+			}
+			
+			top_liege = {
+				NOT = {
+					government = chinese_imperial_government # Either under a pretender or a vassal of China
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_physician_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				NOR = {
+					any_war = {
+						any_attacker = {
+							character = FROM
+						}
+						any_defender = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+					
+					any_war = {
+						any_attacker = {
+							is_chinese_emperor_trigger = yes
+						}
+						any_defender = {
+							character = FROM
+						}
+					}
+				}
+				
+				NOT = {
+					any_realm_province = {
+						has_disease = yes # China would probably not trust you not to send a plague-carrier
+					}
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				is_adult = yes
+				is_heir = no
+				is_landed = no
+				is_ruler = no
+				is_married = no
+				is_betrothed = no
+				
+				host = {
+					character = ROOT_FROM
+				}
+				
+				courtier_from_china_trigger = no
+			}
+		}
+		
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				is_inaccessible_or_incapable_trigger = no
+				is_maimed_trigger = no
+				is_ill = no
+				
+				NOR = {
+					trait = inbred
+					trait = imbecile
+					trait = wounded
+					trait = severely_injured
+				}
+				
+				OR = {
+					trait = physician
+					trait = scholar
+					trait = mystic
+				}
+			}
+		}
+		
+		effect = {
+			FROMFROM = {
+				save_event_target_as = tribute_character
+			}
+			
+			character_event = { id = soh.6070 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	offer_physician_china_vassal = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		third_party_filter = home_court
+		third_party = FROM
+		show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			has_dlc = "Reapers"
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_physician_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				NOT = {
+					any_demesne_province = {
+						has_disease = yes # China would probably not trust you not to send a plague-carrier
+					}
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				is_adult = yes
+				is_heir = no
+				is_landed = no
+				is_ruler = no
+				is_married = no
+				is_betrothed = no
+				
+				host = {
+					character = ROOT_FROM
+				}
+				
+				courtier_from_china_trigger = no
+			}
+		}
+		
+		third_party_allow = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				is_inaccessible_or_incapable_trigger = no
+				is_maimed_trigger = no
+				is_ill = no
+				
+				NOR = {
+					trait = inbred
+					trait = imbecile
+					trait = wounded
+					trait = severely_injured
+				}
+				
+				OR = {
+					trait = physician
+					trait = scholar
+					trait = mystic
+				}
+			}
+		}
+		
+		effect = {
+			FROMFROM = {
+				save_event_target_as = tribute_character
+			}
+			
+			character_event = { id = soh.6076 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	offer_artifact_china = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		third_party_filter = artifacts
+		third_party = FROM
+		show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			OR = {
+				independent = yes
+				real_tier = king
+				has_minor_title = title_grand_chancellor
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					independent = yes
+				}
+			}
+			
+			top_liege = {
+				NOT = {
+					government = chinese_imperial_government # Either under a pretender or a vassal of China
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_artifact_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				NOR = {
+					any_war = {
+						any_attacker = {
+							character = FROM
+						}
+						any_defender = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+					
+					any_war = {
+						any_attacker = {
+							is_chinese_emperor_trigger = yes
+						}
+						any_defender = {
+							character = FROM
+						}
+					}
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				show_scope_change = no
+				NOR = {
+					AND = {
+						artifact_type = heirloom_seal_of_the_realm
+						ROOT_FROM = {
+							has_claim = e_china
+						}
+					}
+					
+					AND = {
+						has_artifact_flag = ingredient # Even compared to the rest of your paltry trinkets, this would be underwhelming
+						e_china = {
+							holder_scope = {
+								society_member_of = hermetics # Or that other one...
+							}
+						}
+					}
+					
+					has_artifact_flag = flag_considering_donation 
+					has_artifact_flag = curse
+					has_artifact_flag = grace # Changed from "chinese" because that flag is useful elsewhere
+					
+					trigger_if = {
+						limit = {
+							has_artifact_flag = imperial_regalia_of_japan
+						}
+						
+						ROOT_FROM = {
+							could_have_japanese_government_trigger = no
+						}
+					}
+					
+					trigger_else_if = {
+						limit = {
+							artifact_type = heirloom_seal_of_the_realm
+						}
+						
+						ROOT_FROM = {
+							NOR = {
+								trait = ambitious
+								trait = proud
+								has_claim = e_china
+							}
+						}
+					}
+					
+					trigger_else_if = {
+						limit = {
+							artifact_type = crown_byzantine
+						}
+						
+						ROOT_FROM = {
+							NOR = {
+								has_landed_title = e_byzantium
+								has_landed_title = e_roman_empire
+							}
+						}
+					}
+					
+					trigger_else_if = {
+						limit = {
+							artifact_type = crown_hre
+						}
+						
+						ROOT_FROM = {
+							NOT = {
+								has_landed_title = e_hre
+							}
+						}
+					}
+				
+					
+					trigger_else_if = {
+						limit = {
+							artifact_type = crown_pahlavi
+						}
+						
+						ROOT_FROM = {
+							NOT = {
+								has_landed_title = e_persia
+							}
+						}
+					}
+					
+					trigger_else_if = {
+						limit = {
+							has_artifact_flag = reformer_artifact # Assorted HF temporal reformer artifacts
+						}
+						
+						is_artifact_active = no
+					}
+					
+					event_target:eoc = {
+						NOT = {
+							has_artifact = PREV
+						}
+					}
+				}
+				
+				ROOT = {
+					NOT = {
+						has_artifact = PREV
+					}
+				}
+			}
+		}
+		
+		third_party_allow = {
+			ROOT = {
+				NOT = {
+					has_artifact = ROOT_FROMFROM # If the EoC already has a certain artifact, you cannot give him a duplicate
+				}
+			}
+		}
+		
+		effect = {
+			FROMFROM = {
+				save_event_target_as = tribute_artifact
+			}
+			
+			character_event = { id = soh.6083 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	offer_artifact_china_vassal = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		third_party_filter = artifacts
+		third_party = FROM
+		show_third_party_potential = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_artifact_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		third_party_potential = {
+			show_only_failed_conditions = yes
+			
+			FROMFROM = {
+				show_scope_change = no
+				NOR = {
+					AND = {
+						artifact_type = heirloom_seal_of_the_realm
+						ROOT_FROM = {
+							has_claim = e_china
+						}
+					}
+					
+					AND = {
+						has_artifact_flag = ingredient # Even compared to the rest of your paltry trinkets, this would be underwhelming
+						e_china = {
+							holder_scope = {
+								society_member_of = hermetics # Or that other one...
+							}
+						}
+					}
+					
+					has_artifact_flag = flag_considering_donation 
+					has_artifact_flag = curse
+					has_artifact_flag = grace # Changed from "chinese" because that flag is useful elsewhere
+					
+					trigger_if = {
+						limit = {
+							has_artifact_flag = imperial_regalia_of_japan
+						}
+						
+						ROOT_FROM = {
+							could_have_japanese_government_trigger = no
+						}
+					}
+					
+					trigger_else_if = {
+						limit = {
+							artifact_type = heirloom_seal_of_the_realm
+						}
+						
+						ROOT_FROM = {
+							NOR = {
+								trait = ambitious
+								trait = proud
+								has_claim = e_china
+							}
+						}
+					}
+					
+					trigger_else_if = {
+						limit = {
+							artifact_type = crown_byzantine
+						}
+						
+						ROOT_FROM = {
+							NOR = {
+								has_landed_title = e_byzantium
+								has_landed_title = e_roman_empire
+							}
+						}
+					}
+					
+					trigger_else_if = {
+						limit = {
+							artifact_type = crown_hre
+						}
+						
+						ROOT_FROM = {
+							NOT = {
+								has_landed_title = e_hre
+							}
+						}
+					}
+				
+					
+					trigger_else_if = {
+						limit = {
+							artifact_type = crown_pahlavi
+						}
+						
+						ROOT_FROM = {
+							NOT = {
+								has_landed_title = e_persia
+							}
+						}
+					}
+					
+					trigger_else_if = {
+						limit = {
+							has_artifact_flag = reformer_artifact # Assorted HF temporal reformer artifacts
+						}
+						
+						is_artifact_active = no
+					}
+					
+					event_target:eoc = {
+						NOT = {
+							has_artifact = PREV
+						}
+					}
+				}
+				
+				ROOT = {
+					NOT = {
+						has_artifact = PREV
+					}
+				}
+			}
+		}
+		
+		third_party_allow = {
+			ROOT = {
+				NOT = {
+					has_artifact = ROOT_FROMFROM # If the EoC already has a certain artifact, you cannot give him a duplicate
+				}
+			}
+		}
+		
+		effect = {
+			FROMFROM = {
+				save_event_target_as = tribute_artifact
+			}
+			
+			character_event = { id = soh.6089 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	renounce_claims_china = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			OR = {
+				independent = yes
+				real_tier = king
+				has_minor_title = title_grand_chancellor
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					independent = yes
+				}
+			}
+			
+			top_liege = {
+				NOT = {
+					government = chinese_imperial_government # Either under a pretender or a vassal of China
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+			
+			any_realm_title = {
+				claimed_by = FROM
+				
+				NOR = {
+					de_jure_vassal_or_below = FROM
+					controls_religion = yes
+				}
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_renounce_claims_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				NOR = {
+					any_war = {
+						any_attacker = {
+							character = FROM
+						}
+						any_defender = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+					
+					any_war = {
+						any_attacker = {
+							is_chinese_emperor_trigger = yes
+						}
+						any_defender = {
+							character = FROM
+						}
+					}
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = soh.6096 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	renounce_claims_china_vassal = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+			
+			any_demesne_title = {
+				claimed_by = FROM
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_renounce_claims_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = soh.6102 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	cancel_favor_on_eoc_china = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			has_dlc = "Conclave"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			OR = {
+				independent = yes
+				real_tier = king
+				has_minor_title = title_grand_chancellor
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					independent = yes
+				}
+			}
+			
+			top_liege = {
+				NOT = {
+					government = chinese_imperial_government # Either under a pretender or a vassal of China
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_cancel_favor_tribute
+				}
+			}
+			
+			owes_favor_to = FROM
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				NOR = {
+					any_war = {
+						any_attacker = {
+							character = FROM
+						}
+						any_defender = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+					
+					any_war = {
+						any_attacker = {
+							is_chinese_emperor_trigger = yes
+						}
+						any_defender = {
+							character = FROM
+						}
+					}
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = soh.6108 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	cancel_favor_on_eoc_china_vassal = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			has_dlc = "Conclave"
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_cancel_favor_tribute
+				}
+			}
+			
+			owes_favor_to = FROM
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = soh.6114 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	transfer_prosperity_china_vassal = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			has_dlc = "Reapers"
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+			
+			any_realm_province = {
+				NOR = {
+					has_province_modifier = prosperity_modifier_3
+					owner = {
+						character = FROM
+					}
+				}
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_transfer_prosperity_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				any_demesne_province = {
+					OR = {
+						has_province_modifier = prosperity_modifier_1
+						has_province_modifier = prosperity_modifier_2
+						has_province_modifier = prosperity_modifier_3
+					}
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			FROM = {
+				random_demesne_province = {
+					preferred_limit = {
+						NOT = {
+							FROM = {
+								capital_scope = {
+									province = PREVPREV
+								}
+							}
+						}
+					}
+					
+					save_event_target_as = tribute_province
+				}
+			}
+			
+			character_event = { id = soh.6120 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	transfer_society_currency_china = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		is_in_society = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			OR = {
+				independent = yes
+				real_tier = king
+				has_minor_title = title_grand_chancellor
+				i_am_appropriate_regent_trigger = yes
+				liege = {
+					independent = yes
+				}
+			}
+			
+			top_liege = {
+				NOT = {
+					government = chinese_imperial_government # Either under a pretender or a vassal of China
+				}
+			}
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+			
+			same_society_as = FROM
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_transfer_society_currency_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				society_currency >= 1000
+				
+				NOR = {
+					any_war = {
+						any_attacker = {
+							character = FROM
+						}
+						any_defender = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+					
+					any_war = {
+						any_attacker = {
+							is_chinese_emperor_trigger = yes
+						}
+						any_defender = {
+							character = FROM
+						}
+					}
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = soh.6127 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	transfer_society_currency_china_vassal = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+		is_in_society = yes
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+		}
+		
+		potential = {
+			# The receiver must be the EoC and the Grace mechanics must be active
+			is_chinese_emperor_trigger = yes
+			
+			same_society_as = FROM
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_transfer_society_currency_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				society_currency >= 1000
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = soh.6133 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	boost_moh_china_vassal = {
+		ai = no
+		only_playable = yes
+		filter = independent_rulers
+
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+		}
+		
+		potential = {
+			is_chinese_emperor_trigger = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_boost_moh_tribute
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				prestige >= 1000
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = soh.6139 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	ask_to_increase_tributary_tier = {
+		ai = no
+		only_independent = yes
+		filter = independent_rulers
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			NOT = {
+				top_liege = {
+					is_chinese_emperor_trigger = yes # Vassals of the EoC do not use Grace!
+				}
+			}
+		}
+		
+		potential = {
+			is_chinese_emperor_trigger = yes
+			
+			any_tributary = {
+				character = FROM
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			NOR = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_increased_tributary_tier
+				}
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_decreased_tributary_tier
+				}
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_grace_china_refused_increase_tributary_tier
+				}
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_china_breakaway_tributary
+				}
+			}
+			
+			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				war = no
+				
+				OR = {
+					NOT = {
+						real_tier = emperor
+					}
+					is_nomadic = yes
+				}
+				
+				controls_religion = no # You're too important for this!
+				
+				NAND = {
+					could_have_japanese_government_trigger = yes # We are better than this!
+					any_realm_lord = {
+						OR = {
+							is_the_tenno_trigger = yes
+							is_ryukyuan_tenno_trigger = yes
+						}
+					}
+				}
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			war = no
+			
+			
+			FROM = {
+				OR = {
+					custom_tooltip = {
+						text = is_nearby_client_state
+						AND = {
+							is_tributary = {
+								type = chinese_client_state
+							}
+							any_realm_province = {
+								any_neighbor_province = {
+									OR = {
+										AND = {
+											has_owner = yes
+											owner = {
+												OR = {
+													character = ROOT
+													top_liege = {
+														character = ROOT
+													}
+												}
+											}
+										}
+										
+										AND = {
+											is_land = no
+											any_neighbor_province = {
+												OR = {
+													AND = {
+														has_owner = yes
+														owner = {
+															OR = {
+																character = ROOT
+																top_liege = {
+																	character = ROOT
+																}
+															}
+														}
+													}
+													
+													AND = {
+														is_land = no
+														any_neighbor_province = {
+															has_owner = yes
+															owner = {
+																OR = {
+																	character = ROOT
+																	top_liege = {
+																		character = ROOT
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							
+							# China isn't interested in integrating tribal or nomadic land
+							NOR = {
+								is_tribal = yes
+								is_nomadic = yes
+							}
+						}
+					}
+					
+					custom_tooltip = {
+						text = is_nearby_protectorate
+						AND = {
+							is_tributary = {
+								type = chinese_protectorate
+							}
+							any_realm_province = {
+								any_neighbor_province = {
+									OR = {
+										AND = {
+											has_owner = yes
+											owner = {
+												OR = {
+													character = ROOT
+													top_liege = {
+														character = ROOT
+													}
+												}
+											}
+										}
+										
+										AND = {
+											is_land = no
+											any_neighbor_province = {
+												OR = {
+													AND = {
+														has_owner = yes
+														owner = {
+															OR = {
+																character = ROOT
+																top_liege = {
+																	character = ROOT
+																}
+															}
+														}
+													}
+													
+													AND = {
+														is_land = no
+														any_neighbor_province = {
+															has_owner = yes
+															owner = {
+																OR = {
+																	character = ROOT
+																	top_liege = {
+																		character = ROOT
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							
+							# China isn't really interested in nomads, and only cares about tribals in China/its de jure
+							NOR = {
+								AND = {
+									is_tribal = yes
+									NOT = {
+										any_realm_province = {
+											OR = {
+												region = world_china
+												county = {
+													de_jure_liege_or_above = e_china
+												}
+											}
+										}
+									}
+								}
+								is_nomadic = yes
+							}
+							controls_religion = no # Rel heads don't want to be closely tied to a heathen
+						}
+					}
+					
+					custom_tooltip = {
+						text = is_nearby_imperial_tributary
+						AND = {
+							is_tributary = {
+								type = chinese_imperial_tributary
+							}
+							
+							any_realm_province = {
+								any_neighbor_province = {
+									OR = {
+										AND = {
+											has_owner = yes
+											owner = {
+												OR = {
+													character = ROOT
+													top_liege = {
+														character = ROOT
+													}
+													is_tributary = {
+														type = chinese_client_state
+													}
+													is_tributary = {
+														type = chinese_protectorate
+													}
+													top_liege = {
+														OR = {
+															is_tributary = {
+																type = chinese_client_state
+															}
+															is_tributary = {
+																type = chinese_protectorate
+															}
+														}
+													}
+												}
+											}
+										}
+										
+										AND = {
+											is_land = no
+											any_neighbor_province = {
+												OR = {
+													AND = {
+														has_owner = yes
+														owner = {
+															OR = {
+																character = ROOT
+																top_liege = {
+																	character = ROOT
+																}
+																is_tributary = {
+																	type = chinese_client_state
+																}
+																is_tributary = {
+																	type = chinese_protectorate
+																}
+																top_liege = {
+																	OR = {
+																		is_tributary = {
+																			type = chinese_client_state
+																		}
+																		is_tributary = {
+																			type = chinese_protectorate
+																		}
+																	}
+																}
+															}
+														}
+													}
+													
+													AND = {
+														is_land = no
+														any_neighbor_province = {
+															has_owner = yes
+															owner = {
+																OR = {
+																	character = ROOT
+																	top_liege = {
+																		character = ROOT
+																	}
+																	is_tributary = {
+																		type = chinese_client_state
+																	}
+																	is_tributary = {
+																		type = chinese_protectorate
+																	}
+																	top_liege = {
+																		OR = {
+																			is_tributary = {
+																				type = chinese_client_state
+																			}
+																			is_tributary = {
+																				type = chinese_protectorate
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							
+							# China doesn't want to get dragged into messy wars in the steppes
+							is_nomadic = no
+						}
+					}
+					
+					custom_tooltip = {
+						text = is_nearby_peripheral_or_misc_tributary
+						AND = {
+							NOR = {
+								is_tributary = {
+									type = chinese_client_state
+								}
+								is_tributary = {
+									type = chinese_protectorate
+								}
+								is_tributary = {
+									type = chinese_imperial_tributary
+								}
+							}
+							
+							any_realm_province = {
+								any_neighbor_province = {
+									OR = {
+										AND = {
+											has_owner = yes
+											owner = {
+												OR = {
+													character = ROOT
+													top_liege = {
+														character = ROOT
+													}
+													AND = {
+														OR = {
+															is_tributary = {
+																type = chinese_client_state
+															}
+															is_tributary = {
+																type = chinese_protectorate
+															}
+															is_tributary = {
+																type = chinese_imperial_tributary
+															}
+														}
+														suzerain = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+													top_liege = {
+														OR = {
+															is_tributary = {
+																type = chinese_client_state
+															}
+															is_tributary = {
+																type = chinese_protectorate
+															}
+															is_tributary = {
+																type = chinese_imperial_tributary
+															}
+														}
+														suzerain = {
+															is_chinese_emperor_trigger = yes
+														}
+													}
+												}
+											}
+										}
+										
+										AND = {
+											is_land = no
+											any_neighbor_province = {
+												OR = {
+													AND = {
+														has_owner = yes
+														owner = {
+															OR = {
+																character = ROOT
+																top_liege = {
+																	character = ROOT
+																}
+																AND = {
+																	OR = {
+																		is_tributary = {
+																			type = chinese_client_state
+																		}
+																		is_tributary = {
+																			type = chinese_protectorate
+																		}
+																		is_tributary = {
+																			type = chinese_imperial_tributary
+																		}
+																	}
+																	suzerain = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+																top_liege = {
+																	OR = {
+																		is_tributary = {
+																			type = chinese_client_state
+																		}
+																		is_tributary = {
+																			type = chinese_protectorate
+																		}
+																		is_tributary = {
+																			type = chinese_imperial_tributary
+																		}
+																	}
+																	suzerain = {
+																		is_chinese_emperor_trigger = yes
+																	}
+																}
+															}
+														}
+													}
+													
+													AND = {
+														is_land = no
+														any_neighbor_province = {
+															has_owner = yes
+															owner = {
+																OR = {
+																	character = ROOT
+																	top_liege = {
+																		character = ROOT
+																	}
+																	AND = {
+																		OR = {
+																			is_tributary = {
+																				type = chinese_client_state
+																			}
+																			is_tributary = {
+																				type = chinese_protectorate
+																			}
+																			is_tributary = {
+																				type = chinese_imperial_tributary
+																			}
+																		}
+																		suzerain = {
+																			is_chinese_emperor_trigger = yes
+																		}
+																	}
+																	top_liege = {
+																		OR = {
+																			is_tributary = {
+																				type = chinese_client_state
+																			}
+																			is_tributary = {
+																				type = chinese_protectorate
+																			}
+																			is_tributary = {
+																				type = chinese_imperial_tributary
+																			}
+																		}
+																		suzerain = {
+																			is_chinese_emperor_trigger = yes
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			character_event = { id = soh.6145 } # EoC gets event
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+}
+
+title_decisions = {
+	hand_over_title_china_vassal = {
+		ai = no
+		only_playable = yes
+		filter = realm_owned
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			
+			any_demesne_title = {
+				count = 2
+				tier = count
+			}
+		}
+		
+		potential = {
+			tier = count
+			
+			holder_scope = {
+				character = FROM
+			}
+		}
+		
+		allow = {
+			FROM = {
+				war = no
+				
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+			}
+			
+			e_china = {
+				holder_scope = {
+					is_inaccessible_or_incapable_trigger = no
+					
+					NOT = {
+						reverse_has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_grace_china_refused_hand_over_title_tribute
+						}
+					}
+				}
+			}
+			
+			NOT = {
+				de_jure_vassal_or_below = FROM
+			}
+		}
+		
+		effect = {
+			ROOT = {
+				save_event_target_as = county_to_hand_over
+			}
+			
+			e_china = {
+				holder_scope = {
+					character_event = { id = soh.6151 } # EoC gets event
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	offer_border_adjustment_china = {
+		ai = no
+		only_independent = yes
+		filter = all
+		
+		from_potential = {
+			has_dlc = "Jade Dragon"
+			
+			is_new_world_invader_or_vassal_trigger = no
+			is_close_to_china_or_along_the_silk_road_trigger = yes
+			
+			is_chinese_emperor_trigger = no # The EoC cannot pay tribute to himself!
+			
+			top_liege = {
+				NOT = {
+					government = chinese_imperial_government # Pretender emperors
+				}
+			}
+			
+			controls_religion = no
+			NAND = {
+				could_have_japanese_government_trigger = yes
+				any_realm_lord = {
+					OR = {
+						is_the_tenno_trigger = yes
+						is_ryukyuan_tenno_trigger = yes
+					}
+				}
+			}
+		}
+		
+		potential = {
+			tier = duke # Individual counties would be too performace-intensive
+			# We either hold the relevant duchy or hold a liege title
+			OR = {
+				holder_scope = {
+					OR = {
+						character = FROM
+						top_liege = {
+							character = FROM
+						}
+					}
+				}
+				
+				any_direct_de_jure_vassal_title = {
+					holder_scope = {
+						OR = {
+							character = FROM
+							top_liege = {
+								character = FROM
+							}
+						}
+					}
+				}
+			}
+			
+			# The title is de jure or de facto part of China
+			OR = {
+				region = world_china
+				de_jure_liege_or_above = e_china
+			}
+		}
+		
+		allow = {
+			FROM = {
+				war = no
+				
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+			}
+			
+			NOT = {
+				de_jure_vassal_or_below = FROM
+			}
+			
+			e_china = {
+				holder_scope = {
+					war = no
+					
+					is_inaccessible_or_incapable_trigger = no
+					
+					NOR = {
+						reverse_has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_grace_china_refused_border_adjustment_tribute
+						}
+						
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_grace_china_refused_border_adjustment_request
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			ROOT = {
+				save_event_target_as = border_adjustment_duchy
+			}
+			
+			e_china = {
+				holder_scope = {
+					character_event = { id = soh.6158 } # EoC gets event
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+}
+
+decisions = {
+	ai_kow_tow_china = {
+		only_independent = yes
+		only_playable = yes
+		ai_check_interval = 180
+		
+		potential = { # TIANXIATODO: Improve
+			ai = yes
+			has_dlc = "Jade Dragon"
+			
+			# Is independent or king tier
+			OR = {
+				independent = yes
+				real_tier = king
+			}
+			
+			OR = {
+				e_china = {
+					holder_scope = {
+						is_within_diplo_range = PREVPREV
+					}
+				}
+				
+				any_realm_province = {
+					trade_route = silk_road
+				}
+			}
+			
+			mercenary = no
+			holy_order = no
+			controls_religion = no
+			is_landed = yes
+			
+			NOT = {
+				top_liege = {
+					is_chinese_emperor_trigger = yes # Either a subject of China, China, a pretender, or a subject of a pretender
+				}
+			}
+			
+			e_china = {
+				holder_scope = {
+					is_chinese_emperor_trigger = yes
+				}
+			}
+			
+			NOT = {
+				any_dynasty_member = {
+					is_landed = yes
+					
+					OR = {
+						is_the_tenno_trigger = yes
+						is_ryukyuan_tenno_trigger = yes
+					}
+				}
+			}
+		}
+		
+		allow = {
+			war = no
+			
+			NOT = {
+				block_general_event_trigger = yes
+				custom_tooltip = {
+					text = kow_tow_tooltip_already_went
+					hidden_tooltip = {
+						has_character_flag = went_on_kow_tow_pilgrimage
+					}
+				}
+			}
+			
+			custom_tooltip = {
+				text = health_travel_condition
+				is_healthy_for_travel_trigger = yes
+			}
+			
+			higher_real_tier_than = COUNT
+			
+			conditional_tooltip = {
+				trigger = {
+					OR = {
+						real_tier = DUKE
+						is_nomadic = yes
+					}
+				}
+				
+				prestige >= 250
+			}
+			
+			conditional_tooltip = {
+				trigger = {
+					real_tier = KING
+					NOT = { is_nomadic = yes }
+				}
+				prestige >= 500
+			}
+			
+			conditional_tooltip = {
+				trigger = {
+					real_tier = EMPEROR
+					NOT = { is_nomadic = yes }
+				}
+				prestige >= 1000
+			}
+			
+			custom_tooltip = {
+				text = is_not_busy_trigger_tooltip
+				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
+			}
+			
+			NOT = {
+				trait = treasure_fleet_preparation
+			}
+		}
+		
+		effect = {
+			save_event_target_as = kow_tow_traveler
+			set_character_flag = went_on_kow_tow_pilgrimage
+			set_character_flag = do_not_disturb
+			character_event = {
+				id = JD.32000
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			trigger = {
+				e_china = {
+					NOT = {
+						claimed_by = ROOT
+					}
+					holder_scope = {
+						is_within_diplo_range = ROOT # If you're far from China, don't bother
+					}
+				}
+				
+				china_hates_root_trigger = no # If the EoC has reason to dislike ROOT, it could be dangerous to go to the EoC's court as he might use that opportunity to act against you...
+				root_hates_china_trigger = yes # Dislikes the EoC enough to not want to appear subservient
+				root_was_refused_any_boon_trigger = yes
+				
+				NAND = {
+					any_owned_bloodline = {
+						has_bloodline_flag = genghis_khan_line
+					}
+					
+					e_china = {
+						holder_scope = {
+							NOT = {
+								any_owned_bloodline = {
+									has_bloodline_flag = genghis_khan_line
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = slothful
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				higher_real_tier_than = duke
+				is_nomadic = no
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				always = yes # Slow down
+			}
+		}
+	}
+}
