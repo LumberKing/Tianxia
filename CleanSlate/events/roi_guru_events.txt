@@ -1,0 +1,1783 @@
+###########################################
+#                                         #
+# Rajas of India feast events             #
+#                                         #
+# ID RoI.3000-RoI.3999                    #
+#                                         #
+###########################################
+
+# Written by Tobias Bodlund
+
+namespace = RoI
+
+###########################################
+# Arrival of guru                         #
+###########################################
+
+# Start looking for guru
+character_event = {
+	id = RoI.3000
+	desc = EVTDESC_RoI_3000
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes # find_guru, minor_decisions.txt
+
+	option = {
+		name = EVTOPTA_RoI_3000
+
+		character_event = {
+			id = RoI.3003
+			months = 1
+			random = 60
+		}
+	}
+}
+
+# Guru is found
+character_event = {
+	id = RoI.3003
+	desc = EVTDESC_RoI_3003
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+	hide_from = yes
+
+	immediate = {
+		clr_character_flag = looking_for_guru
+		set_character_flag = found_guru
+
+		random_list = {
+			15 = { # Finds great guru
+				create_character = {
+					random_traits = no
+					dynasty = none
+					religion = ROOT
+					culture = ROOT
+					female = no
+					age = 50
+					add_trait = genius
+					add_trait = scholar
+					add_trait = patient
+					add_trait = mastermind_theologian
+
+					attributes = {
+						diplomacy = 12
+						stewardship = 10
+						intrigue = 11
+						learning = 14
+					}
+				}
+
+				new_character = {
+					add_character_modifier = {
+						name = guru
+						duration = -1
+					}
+
+					piety = 600
+					prestige = 150
+
+					if = {
+						limit = {
+							OR = {
+								religion = buddhist
+								religion = jain
+							}
+						}
+
+						random_list = {
+							60 = { add_trait = brahmin }
+							25 = { add_trait = vaishya }
+							15 = { } # Casteless
+						}
+					}
+
+					if = {
+						limit = {
+							ROOT = {
+								ai = no
+								religion = hindu
+							}
+
+							religion = hindu
+							year >= 1150
+							year < 1250
+							NOT = { has_global_flag = basava }
+						}
+
+						set_name = "Basava"
+						set_character_flag = is_basava
+						set_global_flag = basava
+						culture = marathi
+						add_trait = shaivist_hindu
+						add_trait = brahmin
+						add_trait = brave
+					}
+					else_if = {
+						limit = {
+							religion = hindu
+							NOT = { has_character_flag = basava }
+						}
+
+						random_list = {
+							85 = { add_trait = brahmin }
+							10 = { add_trait = vaishya }
+							 5 = { } # Casteless
+						}
+					}
+
+					opinion = {
+						name = opinion_loyal_servant
+						who = ROOT
+						years = 100
+					}
+
+					random_list = {  # Small chance of having some unusual memorable trait
+						 1 = { add_trait = blinded }
+						 1 = { add_trait = dwarf }
+						50 = { }
+					}
+				}
+			}
+
+			80 = { # Finds ordinary guru
+				create_character = {
+					random_traits = no
+					dynasty = none
+					religion = ROOT
+					culture = ROOT
+					female = no
+					age = 50
+					add_trait = quick
+					add_trait = scholar
+					add_trait = patient
+					add_trait = mastermind_theologian
+
+					attributes = {
+						diplomacy = 10
+						stewardship = 8
+						intrigue = 9
+						learning = 12
+					}
+				}
+
+				new_character = {
+					add_character_modifier = {
+						name = guru
+						duration = -1
+					}
+
+					piety = 300
+					prestige = 750
+
+					if = {
+						limit = {
+							OR = {
+								religion = buddhist
+								religion = jain
+							}
+						}
+
+						random_list = {
+							60 = { add_trait = brahmin }
+							25 = { add_trait = vaishya }
+							15 = { } # Casteless
+						}
+					}
+					else_if = {
+						limit = { religion = hindu }
+
+						random_list = {
+							85 = { add_trait = brahmin }
+							10 = { add_trait = vaishya }
+							 5 = { } # Casteless
+						}
+					}
+
+					opinion = {
+						name = opinion_loyal_servant
+						who = ROOT
+						years = 100
+					}
+				}
+			}
+
+			5 = { # Finds con artist pretending to be guru - but doesn't know it yet...
+				create_character = {
+					random_traits = no
+					dynasty = none
+					religion = ROOT
+					culture = ROOT
+					female = no
+					age = 40
+					add_trait = quick
+					add_trait = dutiful_cleric
+					add_trait = weak
+
+					attributes = {
+						diplomacy = 12
+						stewardship = 8
+						intrigue = 16
+						learning = 10
+					}
+				}
+
+				new_character = {
+					add_character_modifier = {
+						name = guru
+						duration = -1
+					}
+
+					set_character_flag = fake_guru
+					piety = 100
+					prestige = 50
+					add_trait = brahmin
+
+					opinion = {
+						name = opinion_loyal_servant
+						who = ROOT
+						years = 100
+					}
+				}
+			}
+		}
+	}
+
+
+	option = {
+		name = EXCELLENT
+
+		new_character = {
+			show_scope_change = no
+
+			give_minor_title = title_guru
+		}
+	}
+}
+
+###########################################
+# Guru offers moral advice                #
+###########################################
+
+# Drunkard
+character_event = {
+	id = RoI.3100
+	desc = EVTDESC_RoI_3100
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+
+	trigger = {
+		trait = drunkard
+
+		OR = {
+			has_dharmic_religion_trigger = yes
+			religion_openly_bon_or_reformed_trigger = yes
+		}
+
+		OR = {
+			has_dlc = "Rajas of India"
+			has_dlc = "Jade Dragon"
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_drunkard_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+}
+
+# Hedonist
+character_event = {
+	id = RoI.3101
+	desc = EVTDESC_RoI_3101
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		trait = hedonist
+
+		OR = {
+			has_dlc = "Rajas of India"
+			has_dlc = "Jade Dragon"
+		}
+
+		OR = {
+			religion = buddhist
+			religion = jain
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait = hedonist
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+}
+
+# Impaler
+character_event = {
+	id = RoI.3102
+	desc = EVTDESC_RoI_3102
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		trait = impaler
+
+		OR = {
+			has_dharmic_religion_trigger = yes
+			religion_openly_bon_or_reformed_trigger = yes
+		}
+
+		OR = {
+			has_dlc = "Rajas of India"
+			has_dlc = "Jade Dragon"
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_impaler_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+
+	option = {
+		name = EVTOPTC_RoI_3100
+
+		piety = -50
+		reverse_imprison = event_target:guru
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+
+		custom_tooltip = {
+			text = sacrilege_tooltip
+
+			any_realm_character = {
+				limit = { has_dharmic_religion_trigger = yes }
+
+				opinion = {
+					name = opinion_sacrilege
+					who = ROOT
+					years = 2
+				}
+			}
+
+			any_playable_ruler = {
+				limit = { has_dharmic_religion_trigger = yes }
+
+				opinion = {
+					name = opinion_sacrilege
+					who = ROOT
+					years = 2
+				}
+			}
+		}
+	}
+}
+
+# Lustful
+character_event = {
+	id = RoI.3103
+	desc = EVTDESC_RoI_3103
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	has_dlc = "Rajas of India"
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		trait = lustful
+
+		OR = {
+			religion = buddhist
+			religion = jain
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_lustful_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+}
+
+# Gluttonous
+character_event = {
+	id = RoI.3104
+	desc = EVTDESC_RoI_3104
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	has_dlc = "Rajas of India"
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		trait = gluttonous
+
+		OR = {
+			religion = buddhist
+			religion = jain
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_gluttonous_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+}
+
+# Greedy
+character_event = {
+	id = RoI.3105
+	desc = EVTDESC_RoI_3105
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		trait = greedy
+
+		OR = {
+			has_dharmic_religion_trigger = yes
+			religion_openly_bon_or_reformed_trigger = yes
+		}
+
+		OR = {
+			has_dlc = "Rajas of India"
+			has_dlc = "Jade Dragon"
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_greedy_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+}
+
+# Envious
+character_event = {
+	id = RoI.3106
+	desc = EVTDESC_RoI_3106
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		trait = envious
+
+		OR = {
+			has_dharmic_religion_trigger = yes
+			religion_openly_bon_or_reformed_trigger = yes
+		}
+
+		OR = {
+			has_dlc = "Rajas of India"
+			has_dlc = "Jade Dragon"
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_envious_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+}
+
+# Wroth
+character_event = {
+	id = RoI.3107
+	desc = EVTDESC_RoI_3107
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		trait = wroth
+
+		OR = {
+			has_dharmic_religion_trigger = yes
+			religion_openly_bon_or_reformed_trigger = yes
+		}
+
+		OR = {
+			has_dlc = "Rajas of India"
+			has_dlc = "Jade Dragon"
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_wroth_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+
+	option = {
+		name = EVTOPTC_RoI_3100
+
+		piety = -50
+		reverse_imprison = event_target:guru
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+
+		custom_tooltip = {
+			text = sacrilege_tooltip
+
+			any_realm_character = {
+				limit = { has_dharmic_religion_trigger = yes }
+
+				opinion = {
+					name = opinion_sacrilege
+					who = ROOT
+					years = 2
+				}
+			}
+
+			any_playable_ruler = {
+				limit = { has_dharmic_religion_trigger = yes }
+
+				opinion = {
+					name = opinion_sacrilege
+					who = ROOT
+					years = 2
+				}
+			}
+		}
+	}
+}
+
+# Proud
+character_event = {
+	id = RoI.3108
+	desc = EVTDESC_RoI_3108
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	religion_group = indian_group
+	has_dlc = "Rajas of India"
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+
+	trigger = {
+		trait = proud
+		has_dharmic_religion_trigger = yes
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_proud_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+
+	option = {
+		name = EVTOPTC_RoI_3100
+
+		piety = -50
+		reverse_imprison = event_target:guru
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+
+		custom_tooltip = {
+			text = sacrilege_tooltip
+
+			any_realm_character = {
+				limit = { has_dharmic_religion_trigger = yes }
+
+				opinion = {
+					name = opinion_sacrilege
+					who = ROOT
+					years = 2
+				}
+			}
+
+			any_playable_ruler = {
+				limit = { has_dharmic_religion_trigger = yes }
+
+				opinion = {
+					name = opinion_sacrilege
+					who = ROOT
+					years = 2
+				}
+			}
+		}
+	}
+}
+
+# Arbitrary
+character_event = {
+	id = RoI.3109
+	desc = EVTDESC_RoI_3109
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+
+	trigger = {
+		trait = arbitrary
+
+		OR = {
+			has_dharmic_religion_trigger = yes
+			religion_openly_bon_or_reformed_trigger = yes
+		}
+
+		OR = {
+			has_dlc = "Rajas of India"
+			has_dlc = "Jade Dragon"
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_arbitrary_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+}
+
+# Cynical
+character_event = {
+	id = RoI.3110
+	desc = EVTDESC_RoI_3110
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+
+	trigger = {
+		trait = cynical
+
+		OR = {
+			has_dharmic_religion_trigger = yes
+			religion_openly_bon_or_reformed_trigger = yes
+		}
+
+		OR = {
+			has_dlc = "Rajas of India"
+			has_dlc = "Jade Dragon"
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_cynical_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+}
+
+# Cruel
+character_event = {
+	id = RoI.3111
+	desc = EVTDESC_RoI_3111
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		trait = cruel
+
+		OR = {
+			has_dharmic_religion_trigger = yes
+			religion_openly_bon_or_reformed_trigger  = yes
+		}
+
+		OR = {
+			has_dlc = "Rajas of India"
+			has_dlc = "Jade Dragon"
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_cruel_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+}
+
+
+# Duelist
+character_event = {
+	id = RoI.3112
+	desc = EVTDESC_RoI_3112
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	religion = jain
+	has_dlc = "Rajas of India"
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		trait = duelist
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_duelist_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+}
+
+# Hunter
+character_event = {
+	id = RoI.3113
+	desc = EVTDESC_RoI_3113
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	religion = jain
+	has_dlc = "Rajas of India"
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+
+		OR = {
+			trait = hunter
+			trait = falconer
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_hunter_effect = yes
+		}
+
+		random = {
+			chance = 10
+
+			if = {
+				limit = { trait = falconer }
+				remove_trait = falconer
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+}
+
+# Paranoid
+character_event = {
+	id = RoI.3114
+	desc = EVTDESC_RoI_3114
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		trait = paranoid
+
+		OR = {
+			has_dharmic_religion_trigger = yes
+			religion_openly_bon_or_reformed_trigger = yes
+		}
+
+		OR = {
+			has_dlc = "Rajas of India"
+			has_dlc = "Jade Dragon"
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3100
+
+		prestige = -20
+
+		random = {
+			chance = 10
+			remove_trait_paranoid_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3100
+
+		piety = -20
+
+		reverse_opinion = {
+			name = opinion_unhappy
+			who = event_target:guru
+			years = 1
+		}
+	}
+}
+
+###########################################
+# False guru found out                    #
+###########################################
+
+# False guru?
+character_event = {
+	id = RoI.3150
+	desc = EVTDESC_RoI_3150
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:fake_guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events, fake_guru
+
+	ai = no
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		OR = {
+			has_dlc = "Rajas of India"
+			has_dlc = "Jade Dragon"
+		}
+
+		is_dumb_trigger = no
+
+		NOR = {
+			trait = inbred
+			trait = trusting
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			has_character_flag = fake_guru
+			NOT = { has_character_flag = fake_guru_suspected }
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			limit = {
+				has_minor_title = title_guru
+				has_character_flag = fake_guru
+			}
+
+			add_trait = drunkard
+			set_character_flag = fake_guru_suspected
+			piety = -50
+			save_event_target_as = fake_guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3150
+
+		character_event = {
+			id = RoI.3151
+			days = 15
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3150
+	}
+}
+
+# Guru is obviously false - confront him?
+character_event = {
+	id = RoI.3151
+	desc = EVTDESC_RoI_3151
+	picture = GFX_evt_feast
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+
+	immediate = {
+		event_target:fake_guru = {
+			piety = -100
+			add_trait = arbitrary
+			add_trait = deceitful
+			add_trait = cynical
+
+			add_character_modifier = {
+				name = whoremaster
+				duration = -1
+			}
+
+			add_character_modifier = {
+				name = gambler
+				duration = -1
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3151
+
+		character_event = { id = RoI.3152 }
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3151
+
+		add_friend = event_target:fake_guru
+	}
+}
+
+# Confront false guru, decide what to do
+character_event = {
+	id = RoI.3152
+	desc = EVTDESC_RoI_3152
+	picture = GFX_evt_lunatic
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+
+	immediate = {
+		event_target:fake_guru = {
+			add_trait = arbitrary
+			add_trait = deceitful
+			add_trait = cynical
+
+			add_character_modifier = {
+				name = whoremaster
+				duration = -1
+			}
+
+			add_character_modifier = {
+				name = gambler
+				duration = -1
+			}
+
+			prestige = -100
+			piety = -100
+			remove_trait = brahmin
+			remove_trait = vaishya
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3152
+
+		prestige = -30
+		reverse_imprison = event_target:fake_guru
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3152
+
+		prestige = -30
+
+		event_target:fake_guru = {
+			show_scope_change = no
+
+			remove_title = title_guru
+			banish = yes
+		}
+	}
+
+	after = {
+		event_target:fake_guru = {
+			show_scope_change = no
+
+			remove_character_modifier = guru
+			clr_character_flag = fake_guru
+		}
+	}
+}
+
+###########################################
+# Guru helps with Buddhist ambitions      #
+###########################################
+
+character_event = {
+	id = RoI.3202
+	desc = EVTDESC_RoI_3202
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	religion = buddhist
+	has_dlc = "Rajas of India"
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		OR = {
+			has_ambition = obj_buddhist_stop_drinking
+			has_ambition = obj_buddhist_abstain_sexual_excess
+			has_ambition = obj_buddhist_reject_cruelty
+			has_ambition = obj_buddhist_temperance_food
+			has_ambition = obj_buddhist_reject_greed
+			has_ambition = obj_buddhist_reject_envy
+			has_ambition = obj_buddhist_reject_hate
+			has_ambition = obj_buddhist_reject_pride
+			has_ambition = obj_buddhist_defeat_fear
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+
+		NOT = { has_character_flag = guru_helped_ambition }
+	}
+
+	immediate = {
+		set_character_flag = guru_helped_ambition
+
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+
+		random = {
+			chance = 25
+
+			mult_modifier = {
+				factor = 3
+
+				OR = {
+					trait = zealous
+					trait = ambitious
+					event_target:guru = { trait = genius }
+				}
+			}
+
+			set_character_flag = buddhist_obj_success
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3202
+
+		trigger = {
+			has_character_flag = buddhist_obj_success
+		}
+
+		trigger_switch = {
+			on_trigger = has_ambition
+
+			obj_buddhist_stop_drinking         = { remove_trait = drunkard }
+			obj_buddhist_abstain_sexual_excess = { remove_trait = lustful }
+			obj_buddhist_temperance_food       = { remove_trait_silently_gluttonous_effect = yes }
+			obj_buddhist_reject_greed          = { remove_trait = greedy }
+			obj_buddhist_reject_envy           = { remove_trait = envious }
+			obj_buddhist_reject_hate           = { remove_trait = wroth }
+			obj_buddhist_reject_pride          = { remove_trait = proud }
+
+			obj_buddhist_reject_cruelty = {
+				if = {
+					limit = { trait = impaler }
+					remove_trait = impaler
+				}
+				else_if = {
+					limit = { trait = cruel }
+					remove_trait = cruel
+				}
+			}
+
+			obj_buddhist_defeat_fear = {
+				if = {
+					limit = { trait = paranoid }
+					remove_trait = paranoid
+				}
+				else_if = {
+					limit = { trait = craven }
+					remove_trait = craven
+				}
+			}
+		}
+
+		clr_character_flag = buddhist_obj_success
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3202
+
+		trigger = {
+			NOT = { has_character_flag = buddhist_obj_success }
+		}
+
+		if = {
+			limit = {
+				NOT = { trait = slothful }
+			}
+
+			prestige = -10
+			piety = -10
+
+			random = {
+				chance = 5
+				add_trait_fully_slothful_effect = yes
+			}
+		}
+	}
+}
+
+###########################################
+# Guru criticizes caste system (Basava)   #
+###########################################
+
+# Guru criticizes
+character_event = {
+	id = RoI.3302
+	desc = EVTDESC_RoI_3302
+	picture = GFX_evt_throne_room
+	border = GFX_event_normal_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	ai = no
+	religion = hindu
+	has_dlc = "Rajas of India"
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+
+	trigger = {
+		any_courtier = {
+			has_minor_title = title_guru
+			trait = genius
+		}
+
+		NOT = { has_global_flag = basava_advice }
+		is_inaccessible_trigger = no
+	}
+
+	weight_multiplier = {
+		factor = 1
+
+		mult_modifier = {
+			factor = 0.1
+
+			NOT = {
+				any_courtier = {
+					has_minor_title = title_guru
+					has_character_flag = is_basava
+				}
+			}
+		}
+	}
+
+	immediate = {
+		set_global_flag = basava_advice
+
+		random_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RoI_3302
+
+		prestige = 30
+
+		reverse_opinion = {
+			name = opinion_disappointed
+			who = event_target:guru
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RoI_3302
+
+		piety = 30
+
+		reverse_opinion = {
+			name = opinion_pleased
+			who = event_target:guru
+		}
+	}
+}
+
+###########################################
+# Guru meditation...                      #
+###########################################
+
+# Meditation helps
+narrative_event = {
+	id = RoI.3402
+	title = EVTTITLE_RoI_3402
+	desc = EVTDESC_RoI_3402
+	picture = GFX_evt_bishop
+	border = GFX_event_narrative_frame_religion
+	portrait = event_target:guru
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	religion = buddhist
+	has_dlc = "Rajas of India"
+	only_capable = yes
+	prisoner = no
+	min_age = 16
+
+	trigger = {
+		OR = {
+			trait = stressed
+			trait = depressed
+		}
+
+		any_courtier = {
+			has_minor_title = title_guru
+			NOT = { has_character_flag = fake_guru }
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+
+		mult_modifier = {
+			factor = 0.5
+
+			any_courtier = {
+				has_minor_title = title_guru
+				NOT = { trait = genius } # Doesn't always work
+			}
+		}
+	}
+
+	immediate = {
+		any_courtier = {
+			limit = { has_minor_title = title_guru }
+			save_event_target_as = guru
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_RoI_3402
+			trigger = { religion = hindu }
+		}
+		name = {
+			text = EVTOPTB_RoI_3402
+			trigger = { religion = buddhist }
+		}
+		name = {
+			text = EVTOPTC_RoI_3402
+			trigger = { religion = jain }
+		}
+
+		remove_trait_silently_stressed_effect = yes
+		remove_trait_silently_depressed_effect = yes
+	}
+}

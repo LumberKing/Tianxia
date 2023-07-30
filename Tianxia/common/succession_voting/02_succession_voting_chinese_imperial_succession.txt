@@ -1,0 +1,859 @@
+chinese_imperial_succession = { # Not-quite heir designation, useful to let Grand Chancellors/Council Eunuchs/etc. meddle	
+	elector_vote_strength = {
+		days = 1 # Every elector starts with at least 1 vote
+		
+		chinese_imperial_vote_strength_score = yes
+	}
+	
+	# ROOT is elector
+	# FROMFROM is title
+	elector_selection = {
+		max_amount = 51 # 1 SoH + 1 spouse + 12 Council Eunuchs + 7 councillors (incl. GC) + 1 Duke Yansheng + 18 Pin + 5 Fei + 6 ancestors
+		days = -5 		# If below 0, ROOT is not valid to be an Elector. Any character above 0 will be an elector.
+		
+		chinese_imperial_elector_score = yes
+	}
+	
+	# ROOT = Current Title holder, FROM = Candidate, FROMFROM = Title, FROMFROMFROM = Null
+	candidate_trigger = {
+		NOT = {
+			character = FROM # Not the current ruler...
+		}
+		
+		FROM = {
+			dynasty = ROOT
+			# Either the candidate is in the realm, or is landless, or the title is independent, or the realm of the title does NOT have protected inheritance
+			OR = {
+				same_realm = ROOT
+				is_ruler = no
+
+				ROOT_FROMFROM = {
+					OR = {
+						holder_scope = {
+							independent = yes
+						}
+
+						NOR = {
+							has_law = out_of_realm_inheritance_law_1
+							has_law = crown_authority_3
+							has_law = crown_authority_4
+						}
+					}
+				}
+			}
+
+			# Candidate should not be a landless Courtier who is about to inherit a Theocracy or Republic
+			trigger_if = {
+				limit = {
+					any_heir_title = {
+						OR = {
+							is_republic = yes
+							is_theocracy = yes
+						}
+					}
+				}
+
+				is_landed = yes
+				is_republic = no
+				is_theocracy = no
+			}
+		}
+		
+		FROM = {
+			NOR = {
+				trait = cat
+				trait = disinherited
+				trait = horse
+				trait = eunuch
+				trait = bastard
+				trait = crusader_king
+				trait = crusader_queen
+				character = ROOT # Not the current ruler
+				trait = bear
+				trait = dragon_bride_unmarried
+				trait = dragon_bride_married
+				trait = sent_to_china
+			}
+			
+			# Must be eligible for the correct government type
+			OR = {
+				AND = {
+					ROOT = {
+						government = chinese_imperial_government
+					}
+					can_have_chinese_imperial_trigger = yes
+				}
+				AND = {
+					ROOT = {
+						NOT = {
+							government = chinese_imperial_government
+						}
+					}
+					can_have_confucian_bureaucracy_and_eastern_imperial_trigger = yes
+				}
+			}
+		}
+		
+		FROM = {
+			trigger_if = {
+				limit = {
+					ROOT = {
+						government = chinese_imperial_government
+					}
+				}
+				
+				# Either ROOT is not a descendant of Genghis and the dynasty's founder, or FROM is both a descendant of Genghis and the dynasty's founder
+				OR = {
+					ROOT = {
+						NAND = {
+							any_owned_bloodline = {
+								has_bloodline_flag = genghis_khan_line
+								bloodline_is_active_for = PREV
+							}
+							
+							any_owned_bloodline = {
+								OR = {
+									has_bloodline_flag = real_chinese_imperial_bloodline
+									has_bloodline_flag = pretender_chinese_imperial_bloodline
+								}
+								bloodline_is_active_for = PREV
+							}
+						}
+					}
+					AND = {
+						any_owned_bloodline = {
+							has_bloodline_flag = genghis_khan_line
+							bloodline_is_active_for = PREV
+						}
+						
+						any_owned_bloodline = {
+							OR = {
+								has_bloodline_flag = real_chinese_imperial_bloodline
+								has_bloodline_flag = pretender_chinese_imperial_bloodline
+							}
+							bloodline_is_active_for = PREV
+						}
+					}
+				}
+			}
+		}
+		
+		FROM = {
+			# Limit it to people somewhat closely related to ROOT
+			OR = {
+				# Children of the Son of Heaven
+				is_child_of = ROOT
+				
+				# Grandchildren and great-grandchildren of the Son of Heaven, through an eligible child
+				father_even_if_dead = {
+					dynasty = ROOT
+					is_alive = no
+					
+					NOR = {
+						trait = bastard
+						trait = disinherited
+					}
+					
+					OR = {
+						is_child_of = ROOT
+						
+						father_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							is_child_of = ROOT
+							
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = enatic_succession
+								}
+							}
+						}
+						
+						mother_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							is_child_of = ROOT
+							
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = agnatic_succession
+								}
+							}
+						}
+					}
+							
+					
+					ROOT_FROMFROM = {
+						NOT = {
+							has_law = enatic_succession
+						}
+					}
+				}
+				
+				mother_even_if_dead = {
+					dynasty = ROOT
+					is_alive = no
+					
+					NOR = {
+						trait = bastard
+						trait = disinherited
+					}
+					
+					OR = {
+						is_child_of = ROOT
+						
+						father_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							is_child_of = ROOT
+							
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = enatic_succession
+								}
+							}
+						}
+						
+						mother_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							is_child_of = ROOT
+							
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = agnatic_succession
+								}
+							}
+						}
+					}
+					
+					ROOT_FROMFROM = {
+						NOT = {
+							has_law = agnatic_succession
+						}
+					}
+				}
+				
+				# Siblings of the Son of Heaven, from an eligible dynastic parent
+				any_sibling = {
+					character = ROOT
+					
+					OR = {
+						father_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							any_child = {
+								character = FROM
+							}
+							
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = enatic_succession
+								}
+							}
+						}
+						
+						mother_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							any_child = {
+								character = FROM
+							}
+							
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = agnatic_succession
+								}
+							}
+						}
+					}
+				}
+				
+				# Nieces/nephews of the Son of Heaven, descended from at least one dead eligible parent
+				father_even_if_dead = {
+					dynasty = ROOT
+					is_alive = no
+					
+					NOR = {
+						trait = bastard
+						trait = disinherited
+					}
+					
+					any_sibling = {
+						character = ROOT
+					}
+					
+					OR = {
+						father_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							any_child = {
+								character = FROM
+							}
+							
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = enatic_succession
+								}
+							}
+						}
+						
+						mother_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							any_child = {
+								character = FROM
+							}
+							
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = agnatic_succession
+								}
+							}
+						}
+					}
+					
+					ROOT_FROMFROM = {
+						NOT = {
+							has_law = enatic_succession
+						}
+					}
+				}
+				
+				mother_even_if_dead = {
+					dynasty = ROOT
+					is_alive = no
+					
+					NOR = {
+						trait = bastard
+						trait = disinherited
+					}
+					
+					any_sibling = {
+						character = ROOT
+					}
+					
+					OR = {
+						father_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							any_child = {
+								character = FROM
+							}
+							
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = enatic_succession
+								}
+							}
+						}
+						
+						mother_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							any_child = {
+								character = FROM
+							}
+							
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = agnatic_succession
+								}
+							}
+						}
+					}
+					
+					ROOT_FROMFROM = {
+						NOT = {
+							has_law = agnatic_succession
+						}
+					}
+				}
+				
+				# Cousins of the Son of Heaven, descended from at least one dead eligible parent and grandparent
+				father_even_if_dead = {
+					dynasty = ROOT
+					is_alive = no
+					
+					NOR = {
+						trait = bastard
+						trait = disinherited
+					}
+					
+					OR = {
+						father_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							any_child_even_if_dead = {
+								dynasty = ROOT
+								is_alive = no
+								
+								OR = {
+									AND = {
+										is_female = no
+										ROOT_FROMFROM = {
+											NOT = {
+												has_law = enatic_succession
+											}
+										}
+									}
+									AND = {
+										is_female = yes
+										ROOT_FROMFROM = {
+											NOT = {
+												has_law = agnatic_succession
+											}
+										}
+									}
+								}
+								
+								any_child = {
+									character = ROOT
+								}
+							}
+					
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = enatic_succession
+								}
+							}
+						}
+						
+						mother_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							any_child_even_if_dead = {
+								dynasty = ROOT
+								is_alive = no
+								
+								OR = {
+									AND = {
+										is_female = no
+										ROOT_FROMFROM = {
+											NOT = {
+												has_law = enatic_succession
+											}
+										}
+									}
+									AND = {
+										is_female = yes
+										ROOT_FROMFROM = {
+											NOT = {
+												has_law = agnatic_succession
+											}
+										}
+									}
+								}
+								
+								any_child = {
+									character = ROOT
+								}
+							}
+					
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = agnatic_succession
+								}
+							}
+						}
+					}
+					
+					ROOT_FROMFROM = {
+						NOT = {
+							has_law = enatic_succession
+						}
+					}
+				}
+				
+				mother_even_if_dead = {
+					dynasty = ROOT
+					is_alive = no
+					
+					NOR = {
+						trait = bastard
+						trait = disinherited
+					}
+					
+					OR = {
+						father_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							any_child_even_if_dead = {
+								dynasty = ROOT
+								is_alive = no
+								
+								OR = {
+									AND = {
+										is_female = no
+										ROOT_FROMFROM = {
+											NOT = {
+												has_law = enatic_succession
+											}
+										}
+									}
+									AND = {
+										is_female = yes
+										ROOT_FROMFROM = {
+											NOT = {
+												has_law = agnatic_succession
+											}
+										}
+									}
+								}
+								
+								any_child = {
+									character = ROOT
+								}
+							}
+					
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = enatic_succession
+								}
+							}
+						}
+						
+						mother_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							any_child_even_if_dead = {
+								dynasty = ROOT
+								is_alive = no
+								
+								OR = {
+									AND = {
+										is_female = no
+										ROOT_FROMFROM = {
+											NOT = {
+												has_law = enatic_succession
+											}
+										}
+									}
+									AND = {
+										is_female = yes
+										ROOT_FROMFROM = {
+											NOT = {
+												has_law = agnatic_succession
+											}
+										}
+									}
+								}
+								
+								any_child = {
+									character = ROOT
+								}
+							}
+					
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = agnatic_succession
+								}
+							}
+						}
+					}
+					
+					ROOT_FROMFROM = {
+						NOT = {
+							has_law = agnatic_succession
+						}
+					}
+				}
+				
+				# Aunts and uncles of the Son of Heaven
+				any_sibling_even_if_dead = {
+					dynasty = ROOT
+					is_alive = no
+					
+					NOR = {
+						trait = bastard
+						trait = disinherited
+					}
+					
+					any_child = {
+						character = ROOT
+					}
+					
+					OR = {
+						AND = {
+							is_female = no
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = enatic_succession
+								}
+							}
+						}
+						AND = {
+							is_female = yes
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = agnatic_succession
+								}
+							}
+						}
+					}
+				}
+				
+				# The primogeniture heir
+				ROOT_FROMFROM = {
+					would_be_heir_under_law = {
+						who = FROM
+						law = primogeniture
+					}
+				}
+				
+				# Siblings of the primogeniture heir, if their eligible parent is dead
+				any_sibling = {
+					ROOT_FROMFROM = {
+						would_be_heir_under_law = {
+							who = FROM
+							law = primogeniture
+						}
+					}
+					
+					OR = {
+						father_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = enatic_succession
+								}
+							}
+						}
+						
+						mother_even_if_dead = {
+							dynasty = ROOT
+							is_alive = no
+							
+							NOR = {
+								trait = bastard
+								trait = disinherited
+							}
+							
+							ROOT_FROMFROM = {
+								NOT = {
+									has_law = agnatic_succession
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		FROM = {
+			# Either both FROM and ROOT are members of a CI bloodline, or ROOT is a member of a pretender bloodline and FROM is a member of either, or both are members of a real bloodline, or they are close relatives (Taizong vs. Taizu of Song).
+			OR = {
+				ROOT = {
+					NOT = {
+						any_owned_bloodline = {
+							OR = {
+								has_bloodline_flag = real_chinese_imperial_bloodline
+								has_bloodline_flag = pretender_chinese_imperial_bloodline
+							}
+						}
+					}
+				}
+				
+				AND = {
+					ROOT = {
+						any_owned_bloodline = {
+							has_bloodline_flag = pretender_chinese_imperial_bloodline
+						}
+					}
+					any_owned_bloodline = {
+						OR = {
+							has_bloodline_flag = real_chinese_imperial_bloodline
+							has_bloodline_flag = pretender_chinese_imperial_bloodline
+						}
+					}
+				}
+				
+				AND = {
+					ROOT = {
+						any_owned_bloodline = {
+							has_bloodline_flag = real_chinese_imperial_bloodline
+						}
+					}
+					any_owned_bloodline = {
+						has_bloodline_flag = real_chinese_imperial_bloodline
+					}
+				}
+				
+				is_close_relative = ROOT
+			}
+		}
+	}
+	
+	# ROOT = Elector
+	# FROM = Candidate
+	# FROMFROM = Title
+	# FROMFROMFROM = Null
+	candidate_vote_score = {
+		days = 1
+
+		### Elector voting himself ###
+		elector_self_feudal_vote = yes
+		
+		# Gender bias
+		chinese_imperial_candidate_gender_score = yes
+		
+		# The Son of Heaven prefers an adult heir
+		additive_modifier = {
+			value = 100
+			localisation_key = is_an_adult
+			FROMFROM = {
+				holder = ROOT
+			}
+			
+			FROM = {
+				is_adult = yes
+				is_incapable = no # Works here!
+			}
+		}
+		
+		# Relationship to the Son of Heaven and possibly descent from self if the Son of Heaven or the spouse/consort of the Son of Heaven
+		chinese_imperial_candidate_relation_score = yes
+		
+		# Friends and lovers get a bonus, rivals get a penalty
+		additive_modifier = {
+			value = 200
+			FROM = {
+				is_friend = ROOT
+			}
+		}
+		
+		additive_modifier = {
+			value = 200
+			FROM = {
+				is_lover = ROOT
+			}
+		}
+		
+		additive_modifier = {
+			value = -1000
+			FROM = {
+				is_rival = ROOT
+			}
+		}
+		
+		# Unless it benefits us, don't pick someone that's got a bunch of titles
+		chinese_imperial_candidate_unlanded_bias_score = yes
+		
+		# Culture
+		chinese_imperial_candidate_culture_bias_score = yes
+		
+		# Legitimacy
+		chinese_imperial_candidate_legitimacy_score = yes
+		
+		# Desire for a puppet
+		chinese_imperial_candidate_puppet_score = yes
+		
+		# Desire for a weak or a strong ruler
+		chinese_imperial_candidate_skill_score = yes
+		
+		# Traits
+		elector_candidate_traits_vote = yes
+		elector_candidate_traits_disfigured_vote = yes
+		elector_candidate_traits_feudal_vote = yes
+
+		# Ruler traits
+		elector_ruler_traits_vote = yes
+
+		# Candidate opinion
+		elector_candidate_opinion_vote = yes
+
+		# Ruler opinion
+		elector_ruler_opinion_vote = yes
+	}
+}

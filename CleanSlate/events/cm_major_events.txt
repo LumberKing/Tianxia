@@ -1,0 +1,399 @@
+###########################################
+#										  #
+# Charlemagne Major Events				  #
+#										  #
+# ID CM.500-CM.999						  #
+#										  #
+###########################################
+
+# Written by Tobias Bodlund
+
+namespace = CM
+
+# Fall of the Kingdom of the Avars
+narrative_event = {
+	id = CM.501
+	title = EVTTITLE_CM_501
+	desc = EVTDESC_CM_501
+	picture = GFX_evt_throne_room
+	border = GFX_event_narrative_frame_war
+
+	is_triggered_only = yes # on_new_holder(_inheritance/usurpation)
+	major = yes
+	show_root = yes
+
+	only_playable = yes
+
+	trigger = {
+		has_landed_title = k_hungary
+
+		NOR = {
+			culture = avar
+			culture = hungarian
+			has_global_flag = avar_khaganate_renamed
+		}
+	}
+
+	major_trigger = {
+		ai = no
+
+		capital_scope = {
+			distance = {
+				where = c_pest
+				value < 600 # Same part of the world
+			}
+		}
+	}
+
+	immediate = {
+		set_global_flag = avar_khaganate_renamed
+	}
+
+	option = {
+		name = EVTOPTA_CM_501
+
+		trigger = { has_landed_title = k_hungary }
+
+		k_hungary = {
+			show_scope_change = no
+
+			set_name = KINGDOM_PANNONIA
+			adjective = KINGDOM_PANNONIA_ADJ
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTB_CM_501
+			trigger = { culture = avar }
+		}
+		name = {
+			text = EVTOPTC_CM_501
+			trigger = {
+				NOT = { culture = avar }
+			}
+		}
+
+		trigger = {
+			NOT = { has_landed_title = k_hungary }
+		}
+	}
+}
+
+# Fall of the Kingdom of the Lombards
+narrative_event = {
+	id = CM.502
+	title = EVTTITLE_CM_502
+	desc = EVTDESC_CM_502
+	picture = GFX_evt_book_carolingian_script
+	border = GFX_event_narrative_frame_war
+
+	is_triggered_only = yes # on_new_holder(_inheritance/usurpation), on_character_convert_culture
+	major = yes
+	show_root = yes
+
+	only_playable = yes
+	has_global_flag = game_start_charlemagne
+
+	trigger = {
+		has_landed_title = k_italy
+
+		NOR = {
+			culture = lombard
+			has_global_flag = fall_of_lombard_kingdom
+		}
+	}
+
+	major_trigger = {
+		ai = no
+
+		capital_scope = {
+			distance = {
+				where = c_milano
+				value < 800	# Same part of the world
+			}
+		}
+	}
+
+	immediate = {
+		set_global_flag = fall_of_lombard_kingdom
+
+		k_italy = {
+			show_scope_change = no
+
+			set_name = ""
+			adjective = ""
+			reset_coa = THIS
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_CM_502
+			trigger = { has_landed_title = k_italy }
+		}
+		name = {
+			text = EVTOPTB_CM_502
+			trigger = {
+				culture = lombard
+				NOT = { has_landed_title = k_italy }
+			}
+		}
+		name = {
+			text = EVTOPTC_CM_501
+			trigger = {
+				NOR = {
+					culture = lombard
+					has_landed_title = k_italy
+				}
+			}
+		}
+	}
+}
+
+# Start of the Viking Age
+narrative_event = {
+	id = CM.503
+	title = EVTTITLE_CM_503
+	desc = EVTDESC_CM_503
+	picture = GFX_evt_vikings_arriving_oldgods
+	border = GFX_event_narrative_frame_war
+
+	is_triggered_only = yes # on_yearly_pulse
+	hide_from = yes
+	major = yes
+
+	only_playable = yes
+	has_global_flag = game_start_charlemagne
+
+	trigger = {
+		owns = event_target:pulse_province
+		year >= 800
+		year <  867
+
+		NOR = {
+			has_global_flag = viking_age_started
+
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	immediate = {
+		set_global_flag = viking_age_started
+		enable_prepared_invasion = norse_pagan
+
+		if = {
+			limit = {
+				NOT = { has_dlc = "Holy Fury" }
+			}
+
+			enable_prepared_invasion = norse_pagan_reformed ## Important Viking age effect
+		}
+
+		any_playable_ruler = {
+			limit = {
+				culture = norse
+				vassal_of = THIS # 'independent = yes' and 'any_independent_ruler' exclude revolts
+			}
+
+			any_realm_province = {
+				limit = {
+					culture = norse
+					is_coastal = yes
+					held_under_PREV = yes
+				}
+
+				change_tech = {
+					technology = TECH_NAVAL
+					value = 1
+				}
+			}
+
+			any_title_under = {
+				limit = {
+					real_tier = BARON
+
+					location = {
+						culture = norse
+						is_coastal = yes
+					}
+
+					holder_scope = {
+						culture = norse
+					}
+				}
+
+				if = {
+					limit = {
+						holding_type = castle
+						NOT = { has_building = ca_shipyard_1 }
+					}
+
+					add_building = ca_shipyard_1
+				}
+				else_if = {
+					limit = {
+						holding_type = city
+						NOT = { has_building = ct_shipyard_1 }
+					}
+
+					add_building = ct_shipyard_1
+				}
+				else_if = {
+					limit = {
+						holding_type = temple
+						NOT = { has_building = tp_shipyard_1 }
+					}
+
+					add_building = tp_shipyard_1
+				}
+				else_if = {
+					limit = {
+						holding_type = tribal
+						NOT = { has_building = tb_shipyard_1 }
+					}
+
+					add_building = tb_shipyard_1
+				}
+			}
+		}
+
+		any_player = {
+			limit = {
+				capital_scope = {
+					NOR = {
+						region = world_india
+						region = world_africa_west
+						region = world_africa_central
+						region = world_africa_east
+					}
+				}
+			}
+
+			chronicle = {
+				entry = CHRONICLE_VIKING_AGE_BEGINS
+				picture = GFX_evt_longships_at_sea_oldgods
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_CM_503
+			trigger = {
+				NOT = { culture = norse }
+
+				capital_scope = {
+					NOR = {
+						region = world_india
+						region = world_africa_west
+						region = world_africa_central
+						region = world_africa_east
+					}
+				}
+			}
+		}
+		name = {
+			text = EVTOPTB_CM_503
+			trigger = { culture = norse }
+		}
+		name = {
+			text = EVTOPTC_CM_503
+			trigger = {
+				NOT = { culture = norse }
+
+				capital_scope = {
+					OR = {
+						region = world_india
+						region = world_africa_west
+						region = world_africa_central
+						region = world_africa_east
+					}
+				}
+			}
+		}
+
+		custom_tooltip = { text = viking_age_shipyards_and_tech_tooltip }
+		custom_tooltip = { text = viking_age_cb_tooltip }
+	}
+}
+
+# Notification of founding of the HRE
+narrative_event = {
+	id = CM.510
+	title = EVTTITLE_CM_510
+	desc = EVTDESC_CM_510
+	picture = GFX_evt_found_hre
+
+	is_triggered_only = yes # form_the_hre_early, realm_decisions.txt
+	major = yes
+	show_root = yes
+
+	major_trigger = {
+		ai = no
+
+		capital_scope = {
+			e_hre = {
+				holder_scope = {
+					capital_scope = {
+						distance = {
+							where = PREVPREVPREV
+							distance < 1200
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_CM_510
+			trigger = {
+				OR = {
+					has_landed_title = e_hre
+
+					trigger_if = {
+						limit = { dynasty = ROOT }
+						NOT = { is_rival = ROOT }
+					}
+				}
+			}
+		}
+		name = {
+			text = EVTOPTB_CM_510
+			trigger = {
+				religion = ROOT
+
+				trigger_if = {
+					limit = { dynasty = ROOT }
+					is_rival = ROOT
+				}
+
+				NOR = {
+					has_landed_title = e_hre
+					has_landed_title = e_byzantium
+				}
+			}
+		}
+		name = {
+			text = EVTOPTC_CM_510
+			trigger = {
+				NOR = {
+					religion = ROOT
+					has_landed_title = e_byzantium
+				}
+			}
+		}
+		name = {
+			text = EVTOPTD_CM_510
+			trigger = {
+				has_landed_title = e_byzantium
+				NOT = { has_landed_title = e_hre }
+			}
+		}
+	}
+}

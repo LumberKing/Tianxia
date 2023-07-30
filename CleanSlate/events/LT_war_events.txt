@@ -1,0 +1,253 @@
+# Written by Pedro Santos
+
+namespace = LT
+
+
+#############################################################
+# Time of Anarchy - Stephen usurps the throne of England    #
+#############################################################
+
+# Henry I dies, this is an **on_death** fired event
+character_event = {
+	id = LT.21100
+
+	is_triggered_only = yes # on_death
+	hide_window = yes
+
+	has_character_flag = is_king_henry_I
+	min_age = 16
+	only_independent = yes
+	only_capable = yes
+	prisoner = no
+	religion_group = christian
+
+	trigger = {
+		is_landed = yes
+
+		NOT = {
+			any_child = {
+				is_heir = yes
+				is_female = no
+			}
+		}
+	}
+
+	immediate = {
+	#	save_event_target_as = dead_king_henry
+		c_202991 = { # Matilda
+			add_claim = k_england
+			save_event_target_as = matilda
+		}
+
+		c_205851 = { # Stephen
+			narrative_event = { id = LT.21110 days = 1 }
+		}
+	}
+}
+
+# Stephen must decide either to support Matilda or usurp the Throne
+narrative_event = {
+	id = LT.21110
+	title = EVTTITLE_LT_21110
+	desc = EVTDESC_LT_21110
+	picture = GFX_evt_rival_rulers
+	border = GFX_event_narrative_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_LT_21110 # Support Matilda
+
+		trigger = {
+			FROM = {
+				is_parent_of = event_target:matilda
+			}
+		}
+
+		k_england = {
+			set_title_flag = stephen_supported_matilda
+		}
+
+		event_target:matilda = {
+			narrative_event = { id = LT.21120 days = 1 }
+		}
+
+		ai_chance = { factor = 20 }
+	}
+
+	option = {
+		name = EVTOPTB_LT_21110 # Usurp the throne
+
+		d_normandy = {
+			show_scope_change = no
+
+			if = {
+				limit = { holder = event_target:matilda }
+				usurp_title_plus_barony_if_unlanded_and_vassals = ROOT
+			}
+		}
+
+		d_york = {
+			show_scope_change = no
+
+			if = {
+				limit = { holder = event_target:matilda }
+				usurp_title_plus_barony_if_unlanded_and_vassals = ROOT
+			}
+		}
+
+		d_lancaster = {
+			show_scope_change = no
+
+			if = {
+				limit = { holder = event_target:matilda }
+				usurp_title_plus_barony_if_unlanded_and_vassals = ROOT
+			}
+		}
+
+		vassalize_or_take_under_title = {
+			title = k_england
+			enemy = event_target:matilda
+			# same_religion = yes # Only vassalize rulers of my religion
+			# is_religious = yes
+			type = host
+		}
+
+		usurp_title_plus_barony_if_unlanded_and_vassals = k_england
+
+		capital = c_middlesex
+
+		c_cornwall = {
+			if = {
+				limit = { holder = event_target:matilda }
+				usurp_title_plus_barony_if_unlanded_and_vassals = ROOT
+			}
+		}
+
+		set_name = "Stephen"
+		culture = norman
+
+		hidden_effect = {
+			event_target:matilda = {
+				narrative_event = { id = LT.21130 days = 2 }
+
+				spouse = {
+					narrative_event = { id = LT.21131 days = 2 }
+					save_event_target_as = matilda_spouse
+				}
+			}
+
+		#	k_scotland = {
+		#		holder_scope = {
+		#			save_event_target_as = king_of_scotland
+		#			narrative_event = { id = LT.21132 days = 10 }
+		#		}
+		#	}
+
+		#	any_player = {
+		#		narrative_event = { id = LT.21133 days = 10 }
+		#	}
+		}
+
+		ai_chance = { factor = 80 }
+	}
+}
+
+
+# Matilda receives the news that Stephen and the other nobles support her
+narrative_event = {
+	id = LT.21120
+	title = EVTTITLE_LT_21110
+	desc = EVTDESC_LT_21120
+	picture = GFX_evt_emissary
+	border = GFX_event_narrative_frame_diplomacy
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_LT_21120 # Great!
+
+		opinion = {
+			name = opinion_loyal_vassal
+			who = FROM
+			years = 10
+		}
+
+		hidden_effect = {
+			spouse = { save_event_target_as = matilda_spouse }
+		}
+
+		# Broadcast the news to all players
+		any_player = {
+			narrative_event = { id = LT.21121 days = 1 }
+		}
+	}
+}
+
+# News of Matilde ascension to the throne are broadcast
+narrative_event = {
+	id = LT.21121
+	title = EVTTITLE_LT_21110
+	desc = EVTDESC_LT_21121
+	picture = GFX_evt_emissary
+	border = GFX_event_narrative_frame_diplomacy
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_LT_21121 # interesting
+	}
+}
+
+# Matilda receives news that Stephen usurped her throne
+narrative_event = {
+	id = LT.21130
+	title = EVTTITLE_LT_21110
+	desc = EVTDESC_LT_21130
+	picture = GFX_evt_emissary
+	border = GFX_event_narrative_frame_diplomacy
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_LT_21130 # I will fight
+	}
+}
+
+
+# Matilda's spouse receives news that Stephen usurped her throne
+narrative_event = {
+	id = LT.21131
+	title = EVTTITLE_LT_21110
+	desc = EVTDESC_LT_21131
+	picture = GFX_evt_emissary
+	border = GFX_event_narrative_frame_diplomacy
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_LT_21131 # I will fight
+
+		k_england = {
+			show_scope_change = no
+
+			reverse_unsafe_war = {
+				target = c_202991
+				casus_belli = other_claim
+				thirdparty = ROOT
+			}
+		}
+
+		ai_chance = { factor = 80 }
+	}
+
+	option = {
+		name = EVTOPTB_LT_21131 # Not now
+
+		prestige = -100
+
+		ai_chance = { factor = 20 }
+	}
+}

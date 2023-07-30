@@ -1,0 +1,1329 @@
+# The entry should be named in the same way that the elective succession law is named to define its voter's logic
+# ROOT 			Voter, the character voting in the election
+# FROM			Candidate, character considered for the title
+# FROMFROM		The title the nomination is for
+# FROMFROMFROM	The title owner's candidate
+# The voter will vote for the top score candidate calculated from this script
+
+byzantine_elective = {
+	elector_selection = {
+		days = -5
+
+		trigger = {
+			# The title must currently exist
+			FROMFROM = {
+				has_holder = yes
+			}
+		}
+
+		additive_modifier = { # Emperor is always an Elector
+			value = 30
+
+			has_landed_title = FROMFROM
+		}
+
+		additive_modifier = { # Then the Councilors
+			value = 10
+
+			vassal_of = FROMFROM
+
+			OR = {
+				has_job_title = job_chancellor
+				has_job_title = job_marshal
+				has_job_title = job_treasurer
+				has_job_title = job_spymaster
+				has_job_title = job_spiritual
+				has_minor_title = title_councilmember_king
+				has_minor_title = title_councilmember_emperor
+			}
+		}
+
+		additive_modifier = { # And finally the generals
+			value = 10
+
+			vassal_of = FROMFROM
+			has_minor_title = title_commander
+		}
+	}
+
+	elector_vote_strength = {
+		days = 5 # 1 elector = 5 votes
+
+		additive_modifier = { # The Emperor's word is worth more than anybody else's by far
+			value = 195
+			localisation_key = tooltip_imperial_vote_strength_emperor_influence
+
+			has_landed_title = FROMFROM
+		}
+
+		additive_modifier = { #...Yet it can be reduced in certain circumstances
+			value = -15
+			localisation_key = tooltip_imperial_vote_strength_emperor_unpurpled
+
+			FROMFROM = {
+				title = e_byzantium
+				holder = ROOT
+			}
+
+			NOT = { trait = born_in_the_purple }
+		}
+
+		additive_modifier = { # The Basileios must have an untarnished body
+			value = -50
+			localisation_key = tooltip_imperial_vote_strength_emperor_deformed
+
+			FROMFROM = {
+				title = e_byzantium
+				holder = ROOT
+			}
+
+			is_adult = yes
+
+			OR = {
+				trait = disfigured
+				trait = blinded
+				trait = eunuch
+				trait = dwarf
+				trait = mangled
+				trait = one_eyed
+				trait = one_handed
+				trait = one_legged
+				trait = severely_injured
+				trait = clubfooted
+				trait = harelip
+				trait = inbred
+			}
+		}
+
+		additive_modifier = { # Children are not leaders
+			value = -40
+			localisation_key = tooltip_imperial_vote_strength_emperor_child
+
+			FROMFROM = {
+				title = e_byzantium
+				holder = ROOT
+			}
+
+			is_adult = no
+		}
+
+		additive_modifier = { # Rome is not ruled by children
+			value = -125
+			localisation_key = tooltip_imperial_vote_strength_emperor_child_roman
+
+			FROMFROM = {
+				title = e_roman_empire
+				holder = ROOT
+			}
+
+			is_adult = no
+		}
+
+		additive_modifier = { # Being a good orator
+			value = 10
+			localisation_key = tooltip_imperial_vote_strength_emperor_diplomacy
+
+			has_landed_title = FROMFROM
+			is_adult = yes
+			diplomacy >= 10
+			diplomacy < 15
+		}
+
+		additive_modifier = { # Being a good orator
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_emperor_diplomacy
+
+			has_landed_title = FROMFROM
+			is_adult = yes
+			diplomacy >= 15
+			diplomacy < 20
+		}
+
+		additive_modifier = { # Being a good orator
+			value = 20
+			localisation_key = tooltip_imperial_vote_strength_emperor_diplomacy
+
+			has_landed_title = FROMFROM
+			is_adult = yes
+			diplomacy >= 20
+		}
+
+		additive_modifier = { # Appointing bad commanders
+			value = -20
+			localisation_key = tooltip_imperial_vote_strength_emperor_sycophants
+
+			has_landed_title = FROMFROM
+			is_adult = yes
+
+			check_variable = {
+				which = byzantine_credibility_appointed_sycophant
+				value < -5
+			}
+			check_variable = {
+				which = byzantine_credibility_appointed_sycophant
+				value >= -10
+			}
+		}
+
+		additive_modifier = { # Appointing bad commanders
+			value = -40
+			localisation_key = tooltip_imperial_vote_strength_emperor_sycophants
+
+			has_landed_title = FROMFROM
+			is_adult = yes
+
+			check_variable = {
+				which = byzantine_credibility_appointed_sycophant
+				value < -10
+			}
+
+			check_variable = {
+				which = byzantine_credibility_appointed_sycophant
+				value >= -15
+			}
+		}
+
+		additive_modifier = { # Appointing bad commanders
+			value = -60
+			localisation_key = tooltip_imperial_vote_strength_emperor_sycophants
+
+			has_landed_title = FROMFROM
+			is_adult = yes
+
+			check_variable = {
+				which = byzantine_credibility_appointed_sycophant
+				value < -15
+			}
+
+			check_variable = {
+				which = byzantine_credibility_appointed_sycophant
+				value >= -20
+			}
+		}
+
+		additive_modifier = { # Appointing bad commanders
+			value = -80
+			localisation_key = tooltip_imperial_vote_strength_emperor_sycophants
+
+			has_landed_title = FROMFROM
+			is_adult = yes
+
+			check_variable = {
+				which = byzantine_credibility_appointed_sycophant
+				value < -20
+			}
+		}
+
+		additive_modifier = { # Discharging good commanders
+			value = -20
+			localisation_key = tooltip_imperial_vote_strength_emperor_paranoia
+
+			has_landed_title = FROMFROM
+			is_adult = yes
+
+			check_variable = {
+				which = byzantine_credibility_discharged_hero
+				value < -5
+			}
+
+			check_variable = {
+				which = byzantine_credibility_discharged_hero
+				value >= -10
+			}
+		}
+
+		additive_modifier = { # Discharging good commanders
+			value = -40
+			localisation_key = tooltip_imperial_vote_strength_emperor_paranoia
+
+			has_landed_title = FROMFROM
+			is_adult = yes
+
+			check_variable = {
+				which = byzantine_credibility_discharged_hero
+				value < -10
+			}
+
+			check_variable = {
+				which = byzantine_credibility_discharged_hero
+				value >= -15
+			}
+		}
+
+		additive_modifier = { # Discharging good commanders
+			value = -60
+			localisation_key = tooltip_imperial_vote_strength_emperor_paranoia
+
+			has_landed_title = FROMFROM
+			is_adult = yes
+
+			check_variable = {
+				which = byzantine_credibility_discharged_hero
+				value < -15
+			}
+
+			check_variable = {
+				which = byzantine_credibility_discharged_hero
+				value >= -20
+			}
+		}
+
+		additive_modifier = { # Discharging good commanders
+			value = -80
+			localisation_key = tooltip_imperial_vote_strength_emperor_paranoia
+
+			has_landed_title = FROMFROM
+			is_adult = yes
+
+			check_variable = {
+				which = byzantine_credibility_discharged_hero
+				value < -20
+			}
+		}
+
+		# The Electors: General modifiers
+		additive_modifier = { # Prestigious people hold more sway
+			value = 5
+			localisation_key = tooltip_imperial_vote_strength_elector_prestige
+
+			vassal_of = FROMFROM
+			prestige >= 100
+			prestige < 300
+		}
+
+		additive_modifier = {
+			value = 10
+			localisation_key = tooltip_imperial_vote_strength_elector_prestige
+
+			vassal_of = FROMFROM
+			prestige >= 300
+			prestige < 700
+		}
+
+		additive_modifier = {
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_elector_prestige
+
+			vassal_of = FROMFROM
+			prestige >= 700
+			prestige < 1000
+		}
+
+		additive_modifier = {
+			value = 20
+			localisation_key = tooltip_imperial_vote_strength_elector_prestige
+
+			vassal_of = FROMFROM
+			prestige >= 1000
+			prestige < 1500
+		}
+
+		additive_modifier = {
+			value = 25
+			localisation_key = tooltip_imperial_vote_strength_elector_prestige
+
+			vassal_of = FROMFROM
+			prestige >= 1500
+			prestige < 2000
+		}
+
+		additive_modifier = {
+			value = 30
+			localisation_key = tooltip_imperial_vote_strength_elector_prestige
+
+			vassal_of = FROMFROM
+			prestige >= 2000
+			prestige < 5000
+		}
+
+		additive_modifier = {
+			value = 40
+			localisation_key = tooltip_imperial_vote_strength_elector_prestige
+
+			vassal_of = FROMFROM
+			prestige >= 5000
+		}
+
+		# Powerful people can pull strings
+		additive_modifier = {
+			value = 5
+			localisation_key = tooltip_imperial_vote_strength_elector_tier
+
+			vassal_of = FROMFROM
+			real_tier = COUNT
+		}
+
+		additive_modifier = {
+			value = 10
+			localisation_key = tooltip_imperial_vote_strength_elector_high_tier
+
+			vassal_of = FROMFROM
+			real_tier = DUKE
+		}
+
+		additive_modifier = {
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_elector_high_tier
+
+			vassal_of = FROMFROM
+			real_tier = KING
+		}
+
+		# Byzantine minor titles not so minor after all...
+		additive_modifier = {
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_elector_despot
+
+			has_minor_title = title_despot
+		}
+
+		additive_modifier = {
+			value = 5
+			localisation_key = tooltip_imperial_vote_strength_elector_sebastokrator
+
+			has_minor_title = title_sebastokrator
+		}
+
+		additive_modifier = {
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_elector_caesar
+
+			has_minor_title = title_caesar
+		}
+
+		additive_modifier = {
+			value = 10
+			localisation_key = tooltip_imperial_vote_strength_elector_kouropalates
+
+			has_minor_title = title_kouropalates
+		}
+
+		additive_modifier = {
+			value = 5
+			localisation_key = tooltip_imperial_vote_strength_elector_anthypatos
+
+			has_minor_title = title_anthypatos
+		}
+
+		## Commanders
+		# The fewer commanders you have appointed, the more influential the remaining ones are
+		additive_modifier = {
+			value = 5
+			localisation_key = tooltip_imperial_vote_strength_no_competition
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			liege = {
+				has_assigned_minor_title = {
+					title = title_commander
+					count >= 6
+				}
+
+				has_assigned_minor_title = {
+					title = title_commander
+					count < 8
+				}
+			}
+		}
+
+		additive_modifier = {
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_no_competition
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			liege = {
+				has_assigned_minor_title = {
+					title = title_commander
+					count >= 4
+				}
+
+				has_assigned_minor_title = {
+					title = title_commander
+					count < 6
+				}
+			}
+		}
+
+		additive_modifier = {
+			value = 40
+			localisation_key = tooltip_imperial_vote_strength_no_competition
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			liege = {
+				has_assigned_minor_title = {
+					title = title_commander
+					count >= 2
+				}
+
+				has_assigned_minor_title = {
+					title = title_commander
+					count < 4
+				}
+			}
+		}
+
+		additive_modifier = {
+			value = 90
+			localisation_key = tooltip_imperial_vote_strength_no_competition
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			liege = {
+				has_assigned_minor_title = {
+					title = title_commander
+					count < 2
+				}
+			}
+		}
+
+		# Martial increases a commander's influence
+		additive_modifier = {
+			value = 10
+			localisation_key = tooltip_imperial_vote_strength_commander_martial
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			martial >= 8
+			martial < 10
+		}
+
+		additive_modifier = {
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_commander_martial
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			martial >= 10
+			martial < 12
+		}
+
+		additive_modifier = {
+			value = 20
+			localisation_key = tooltip_imperial_vote_strength_commander_martial
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			martial >= 12
+			martial < 14
+		}
+
+		additive_modifier = {
+			value = 25
+			localisation_key = tooltip_imperial_vote_strength_commander_martial
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			martial >= 14
+			martial < 16
+		}
+
+		additive_modifier = {
+			value = 30
+			localisation_key = tooltip_imperial_vote_strength_commander_martial
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			martial >= 16
+			martial < 18
+		}
+
+		additive_modifier = {
+			value = 35
+			localisation_key = tooltip_imperial_vote_strength_commander_martial
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			martial >= 18
+			martial < 20
+		}
+
+		additive_modifier = {
+			value = 40
+			localisation_key = tooltip_imperial_vote_strength_commander_martial
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			martial >= 20
+			martial < 25
+		}
+
+		additive_modifier = {
+			value = 50
+			localisation_key = tooltip_imperial_vote_strength_commander_martial
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			martial >= 25
+			martial < 30
+		}
+
+		additive_modifier = {
+			value = 65
+			localisation_key = tooltip_imperial_vote_strength_commander_martial
+
+			OR = {
+				has_minor_title = title_commander
+				has_job_title = job_marshal
+			}
+
+			martial >= 30
+		}
+
+		################################################################################
+
+		# Diplomacy increases the Chancellor's influence
+		additive_modifier = {
+			value = 10
+			localisation_key = tooltip_imperial_vote_strength_chancellor_diplomacy
+
+			has_job_title = job_chancellor
+			diplomacy >= 8
+			diplomacy < 10
+		}
+
+		additive_modifier = { #Diplomacy increases the Chancellor's influence
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_chancellor_diplomacy
+
+			has_job_title = job_chancellor
+			diplomacy >= 10
+			diplomacy < 12
+		}
+
+		additive_modifier = { #Diplomacy increases the Chancellor's influence.
+			value = 20
+			localisation_key = tooltip_imperial_vote_strength_chancellor_diplomacy
+
+			has_job_title = job_chancellor
+			diplomacy >= 12
+			diplomacy < 14
+		}
+
+		additive_modifier = { #Diplomacy increases the Chancellor's influence.
+			value = 25
+			localisation_key = tooltip_imperial_vote_strength_chancellor_diplomacy
+
+			has_job_title = job_chancellor
+			diplomacy >= 14
+			diplomacy < 16
+		}
+
+		additive_modifier = { #Diplomacy increases the Chancellor's influence.
+			value = 30
+			localisation_key = tooltip_imperial_vote_strength_chancellor_diplomacy
+
+			has_job_title = job_chancellor
+			diplomacy >= 16
+			diplomacy < 18
+		}
+
+		additive_modifier = { #Diplomacy increases the Chancellor's influence.
+			value = 35
+			localisation_key = tooltip_imperial_vote_strength_chancellor_diplomacy
+
+			has_job_title = job_chancellor
+			diplomacy >= 18
+			diplomacy < 20
+		}
+
+		additive_modifier = { #Diplomacy increases the Chancellor's influence.
+			value = 40
+			localisation_key = tooltip_imperial_vote_strength_chancellor_diplomacy
+
+			has_job_title = job_chancellor
+			diplomacy >= 20
+			diplomacy < 25
+		}
+
+		additive_modifier = { #Diplomacy increases the Chancellor's influence.
+			value = 50
+			localisation_key = tooltip_imperial_vote_strength_chancellor_diplomacy
+
+			has_job_title = job_chancellor
+			diplomacy >= 25
+			diplomacy < 30
+		}
+
+		additive_modifier = { #Diplomacy increases the Chancellor's influence.
+			value = 65
+			localisation_key = tooltip_imperial_vote_strength_chancellor_diplomacy
+
+			has_job_title = job_chancellor
+			diplomacy >= 30
+		}
+
+		################################################################################
+
+		# Stewardship increases the Steward's influence
+		additive_modifier = {
+			value = 10
+			localisation_key = tooltip_imperial_vote_strength_steward_stewardship
+
+			has_job_title = job_treasurer
+			stewardship >= 8
+			stewardship < 10
+		}
+
+		additive_modifier = {
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_steward_stewardship
+
+			has_job_title = job_treasurer
+			stewardship >= 10
+			stewardship < 12
+		}
+
+		additive_modifier = {
+			value = 20
+			localisation_key = tooltip_imperial_vote_strength_steward_stewardship
+
+			has_job_title = job_treasurer
+			stewardship >= 12
+			stewardship < 14
+		}
+
+		additive_modifier = {
+			value = 25
+			localisation_key = tooltip_imperial_vote_strength_steward_stewardship
+
+			has_job_title = job_treasurer
+			stewardship >= 14
+			stewardship < 16
+		}
+
+		additive_modifier = {
+			value = 30
+			localisation_key = tooltip_imperial_vote_strength_steward_stewardship
+
+			has_job_title = job_treasurer
+			stewardship >= 16
+			stewardship < 18
+		}
+
+		additive_modifier = {
+			value = 35
+			localisation_key = tooltip_imperial_vote_strength_steward_stewardship
+
+			has_job_title = job_treasurer
+			stewardship >= 18
+			stewardship < 20
+		}
+
+		additive_modifier = {
+			value = 40
+			localisation_key = tooltip_imperial_vote_strength_steward_stewardship
+
+			has_job_title = job_treasurer
+			stewardship >= 20
+			stewardship < 25
+		}
+
+		additive_modifier = {
+			value = 50
+			localisation_key = tooltip_imperial_vote_strength_steward_stewardship
+
+			has_job_title = job_treasurer
+			stewardship >= 25
+			stewardship < 30
+		}
+
+		additive_modifier = {
+			value = 65
+			localisation_key = tooltip_imperial_vote_strength_steward_stewardship
+
+			has_job_title = job_treasurer
+			stewardship >= 30
+		}
+
+		################################################################################
+
+		# Intrigue increases the Spymaster's influence
+		additive_modifier = {
+			value = 10
+			localisation_key = tooltip_imperial_vote_strength_spymaster_intrigue
+
+			has_job_title = job_spymaster
+			intrigue >= 8
+			intrigue < 10
+		}
+
+		additive_modifier = {
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_spymaster_intrigue
+
+			has_job_title = job_spymaster
+			intrigue >= 10
+			intrigue < 12
+		}
+
+		additive_modifier = {
+			value = 20
+			localisation_key = tooltip_imperial_vote_strength_spymaster_intrigue
+
+			has_job_title = job_spymaster
+			intrigue >= 12
+			intrigue < 14
+		}
+
+		additive_modifier = {
+			value = 25
+			localisation_key = tooltip_imperial_vote_strength_spymaster_intrigue
+
+			has_job_title = job_spymaster
+			intrigue >= 14
+			intrigue < 16
+		}
+
+		additive_modifier = {
+			value = 30
+			localisation_key = tooltip_imperial_vote_strength_spymaster_intrigue
+
+			has_job_title = job_spymaster
+			intrigue >= 16
+			intrigue < 18
+		}
+
+		additive_modifier = {
+			value = 35
+			localisation_key = tooltip_imperial_vote_strength_spymaster_intrigue
+
+			has_job_title = job_spymaster
+			intrigue >= 18
+			intrigue < 20
+		}
+
+		additive_modifier = {
+			value = 40
+			localisation_key = tooltip_imperial_vote_strength_spymaster_intrigue
+
+			has_job_title = job_spymaster
+			intrigue >= 20
+			intrigue < 25
+		}
+
+		additive_modifier = {
+			value = 50
+			localisation_key = tooltip_imperial_vote_strength_spymaster_intrigue
+
+			has_job_title = job_spymaster
+			intrigue >= 25
+			intrigue < 30
+		}
+
+		additive_modifier = {
+			value = 65
+			localisation_key = tooltip_imperial_vote_strength_spymaster_intrigue
+
+			has_job_title = job_spymaster
+			intrigue >= 30
+		}
+
+		################################################################################
+
+		# Learning increases the Chaplain's influence
+		additive_modifier = {
+			value = 10
+			localisation_key = tooltip_imperial_vote_strength_chaplain_learning
+
+			has_job_title = job_spiritual
+			learning >= 8
+			learning < 10
+		}
+
+		additive_modifier = {
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_chaplain_learning
+
+			has_job_title = job_spiritual
+			learning >= 10
+			learning < 12
+		}
+
+		additive_modifier = {
+			value = 20
+			localisation_key = tooltip_imperial_vote_strength_chaplain_learning
+
+			has_job_title = job_spiritual
+			learning >= 12
+			learning < 14
+		}
+
+		additive_modifier = {
+			value = 25
+			localisation_key = tooltip_imperial_vote_strength_chaplain_learning
+
+			has_job_title = job_spiritual
+			learning >= 14
+			learning < 16
+		}
+
+		additive_modifier = {
+			value = 30
+			localisation_key = tooltip_imperial_vote_strength_chaplain_learning
+
+			has_job_title = job_spiritual
+			learning >= 16
+			learning < 18
+		}
+
+		additive_modifier = {
+			value = 35
+			localisation_key = tooltip_imperial_vote_strength_chaplain_learning
+
+			has_job_title = job_spiritual
+			learning >= 18
+			learning < 20
+		}
+
+		additive_modifier = {
+			value = 40
+			localisation_key = tooltip_imperial_vote_strength_chaplain_learning
+
+			has_job_title = job_spiritual
+			learning >= 20
+			learning < 25
+		}
+
+		additive_modifier = {
+			value = 50
+			localisation_key = tooltip_imperial_vote_strength_chaplain_learning
+
+			has_job_title = job_spiritual
+			learning >= 25
+			learning < 30
+		}
+
+		additive_modifier = {
+			value = 65
+			localisation_key = tooltip_imperial_vote_strength_chaplain_learning
+
+			has_job_title = job_spiritual
+			learning >= 30
+		}
+
+		# Chaplain is also the head of the ruling religion
+		additive_modifier = {
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_chaplain_patriarch
+
+			has_job_title = job_spiritual
+			controls_religion = yes
+
+			FROMFROM = {
+				holder_scope = {
+					religion = ROOT
+				}
+			}
+		}
+
+		# Spouse Bonus
+		additive_modifier = {
+			value = 30
+			localisation_key = tooltip_imperial_vote_strength_spouse
+
+			FROMFROM = {
+				holder_scope = {
+					is_married = ROOT
+				}
+			}
+		}
+
+		################################################################################
+
+		# Those crafty Byzantines...
+		additive_modifier = {
+			value = 10
+			localisation_key = tooltip_imperial_vote_strength_greek_intrigue
+
+			vassal_of = FROMFROM
+			culture = greek
+			intrigue >= 8
+			intrigue < 10
+		}
+
+		additive_modifier = {
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_greek_intrigue
+
+			vassal_of = FROMFROM
+			culture = greek
+			intrigue >= 10
+			intrigue < 12
+		}
+
+		additive_modifier = {
+			value = 20
+			localisation_key = tooltip_imperial_vote_strength_greek_intrigue
+
+			vassal_of = FROMFROM
+			culture = greek
+			intrigue >= 12
+			intrigue < 14
+		}
+
+		additive_modifier = {
+			value = 25
+			localisation_key = tooltip_imperial_vote_strength_greek_intrigue
+
+			vassal_of = FROMFROM
+			culture = greek
+			intrigue >= 14
+			intrigue < 16
+		}
+
+		additive_modifier = {
+			value = 30
+			localisation_key = tooltip_imperial_vote_strength_greek_intrigue
+
+			vassal_of = FROMFROM
+			culture = greek
+			intrigue >= 16
+			intrigue < 18
+		}
+
+		additive_modifier = {
+			value = 35
+			localisation_key = tooltip_imperial_vote_strength_greek_intrigue
+
+			vassal_of = FROMFROM
+			culture = greek
+			intrigue >= 18
+			intrigue < 20
+		}
+
+		additive_modifier = {
+			value = 40
+			localisation_key = tooltip_imperial_vote_strength_greek_intrigue
+
+			vassal_of = FROMFROM
+			culture = greek
+			intrigue >= 20
+			intrigue < 25
+		}
+
+		additive_modifier = {
+			value = 50
+			localisation_key = tooltip_imperial_vote_strength_greek_intrigue
+
+			vassal_of = FROMFROM
+			culture = greek
+			intrigue >= 25
+			intrigue < 30
+		}
+
+		additive_modifier = {
+			value = 65
+			localisation_key = tooltip_imperial_vote_strength_greek_intrigue
+
+			vassal_of = FROMFROM
+			culture = greek
+			intrigue >= 30
+		}
+
+		################################################################################
+
+		# Romans love their orators...
+		additive_modifier = {
+			value = 10
+			localisation_key = tooltip_imperial_vote_strength_roman_diplomacy
+
+			vassal_of = FROMFROM
+			culture = roman
+			diplomacy >= 8
+			diplomacy < 10
+		}
+
+		additive_modifier = { #Romans love their orations...
+			value = 15
+			localisation_key = tooltip_imperial_vote_strength_roman_diplomacy
+
+			vassal_of = FROMFROM
+			culture = roman
+			diplomacy >= 10
+			diplomacy < 12
+		}
+
+		additive_modifier = { #Romans love their orations...
+			value = 20
+			localisation_key = tooltip_imperial_vote_strength_roman_diplomacy
+
+			vassal_of = FROMFROM
+			culture = roman
+			diplomacy >= 12
+			diplomacy < 14
+		}
+
+		additive_modifier = { #Romans love their orations...
+			value = 25
+			localisation_key = tooltip_imperial_vote_strength_roman_diplomacy
+
+			vassal_of = FROMFROM
+			culture = roman
+			diplomacy >= 14
+			diplomacy < 16
+		}
+
+		additive_modifier = { #Romans love their orations...
+			value = 30
+			localisation_key = tooltip_imperial_vote_strength_roman_diplomacy
+
+			vassal_of = FROMFROM
+			culture = roman
+			diplomacy >= 16
+			diplomacy < 18
+		}
+
+		additive_modifier = { #Romans love their orations...
+			value = 35
+			localisation_key = tooltip_imperial_vote_strength_roman_diplomacy
+
+			vassal_of = FROMFROM
+			culture = roman
+			diplomacy >= 18
+			diplomacy < 20
+		}
+
+		additive_modifier = { #Romans love their orations...
+			value = 40
+			localisation_key = tooltip_imperial_vote_strength_roman_diplomacy
+
+			vassal_of = FROMFROM
+			culture = roman
+			diplomacy >= 20
+			diplomacy < 25
+		}
+
+		additive_modifier = { #Romans love their orations...
+			value = 50
+			localisation_key = tooltip_imperial_vote_strength_roman_diplomacy
+
+			vassal_of = FROMFROM
+			culture = roman
+			diplomacy >= 25
+			diplomacy < 30
+		}
+
+		additive_modifier = { #Romans love their orations...
+			value = 65
+			localisation_key = tooltip_imperial_vote_strength_roman_diplomacy
+
+			vassal_of = FROMFROM
+			culture = roman
+			diplomacy >= 30
+		}
+	}
+
+	# ROOT is current title holder
+	# FROM is candidate
+	# FROMFROM is title
+	# FROMFROMFROM is null
+	candidate_trigger = { # Close relatives, claimants, marshals. No mutilations (if Byzantine)
+		# Title must currently exist
+		FROMFROM = {
+			has_holder = yes
+		}
+
+		FROM = {
+			# Either the candidate is in the realm, or is landless, or the title is independent, or the realm of the title does NOT have protected inheritance
+			OR = {
+				is_vassal_or_below_of = ROOT
+				is_ruler = no
+
+				ROOT_FROMFROM = {
+					OR = {
+						holder_scope = {
+							independent = yes
+						}
+
+						NOR = {
+							has_law = out_of_realm_inheritance_law_1
+							has_law = crown_authority_3
+							has_law = crown_authority_4
+						}
+					}
+				}
+			}
+
+			# Must have a claim, be closely related to the current ruler, or be a landed marshal/commander
+			OR = {
+				has_claim = ROOT_FROMFROM
+				is_close_relative = ROOT
+
+				trigger_if = {
+					limit = { vassal_of = ROOT_FROMFROM }
+
+					OR = {
+						has_job_title = job_marshal
+						has_minor_title = title_commander
+					}
+				}
+			}
+
+			# Candidate should not be a landless Courtier who is about to inherit a Theocracy or Republic
+			trigger_if = {
+				limit = {
+					any_heir_title = {
+						OR = {
+							is_republic = yes
+							is_theocracy = yes
+						}
+					}
+				}
+
+				is_landed = yes
+				is_republic = no
+				is_theocracy = no
+			}
+
+			# If the title controls the religion, candidates must be of the same religion
+			trigger_if = {
+				limit = { ROOT = { controls_religion = yes } }
+				religion = ROOT
+			}
+
+			trigger_if = {
+				limit = { trait = bastard }
+				is_ruler = yes
+			}
+
+			is_ascetic_trigger = no
+			is_theocracy = no
+			is_republic = no
+
+			NOR = {
+				trait = cat
+				trait = disinherited
+				trait = horse
+				trait = eunuch
+				trait = disfigured
+				trait = blinded
+				trait = dwarf
+				trait = clubfooted
+				trait = harelip
+				trait = inbred
+				trait = crusader_king
+				trait = crusader_queen
+				character = ROOT # Not the current ruler
+				trait = bear
+				trait = dragon_bride_unmarried
+				trait = dragon_bride_married
+				trait = sent_to_china
+			}
+		}
+	}
+
+	candidate_vote_score = {
+		days = 0
+
+		### Elector voting himself ###
+		elector_self_feudal_vote = yes
+
+		### Candidate ###
+
+		## Heir
+		elector_heir_vote = yes
+
+		## All candidates
+
+		# Sexism
+		elector_candidate_gender_vote = yes
+
+		# Ageism
+		elector_candidate_age_vote = yes
+		elector_candidate_age_imperial_elective_vote = yes
+
+		# Culturism
+		elector_candidate_culture_vote = yes
+
+		# Faithism
+		elector_candidate_religion_vote = yes
+
+		# Barbarism
+		elector_candidate_barbarism_vote = yes
+
+		# Nepotism
+		elector_candidate_nepotism_vote = yes
+
+		# Prestige
+		elector_candidate_prestige_vote = yes
+
+		# Piety
+		elector_candidate_piety_vote = yes
+
+		# Education and lifestyle
+		elector_candidate_education_lifestyle_vote = yes
+
+		# Claims
+		elector_candidate_claims_vote = yes
+
+		# Traits
+		elector_candidate_traits_vote = yes
+		elector_candidate_traits_disfigured_bias_strong_vote = yes
+		elector_candidate_traits_excommunication_vote = yes
+		elector_candidate_traits_feudal_vote = yes
+		elector_candidate_traits_pagan_branch_vote = yes
+		elector_candidate_traits_sunni_branch_vote = yes
+		elector_candidate_traits_hindu_branch_vote = yes
+		elector_candidate_traits_buddhist_branch_vote = yes
+		elector_candidate_traits_jain_branch_vote = yes
+		elector_candidate_traits_taoist_branch_vote = yes
+		elector_candidate_traits_confucian_branch_vote = yes
+
+		# Ruler traits
+		elector_ruler_traits_vote = yes
+
+		# Candidate opinion
+		elector_candidate_opinion_vote = yes
+
+		# Ruler opinion
+		elector_ruler_opinion_vote = yes
+
+		### Roman attributes
+		# Roman Generals
+		elector_candidate_roman_attributes_martial_vote = yes
+
+		# Roman Orators
+		elector_candidate_roman_attributes_diplomacy_vote = yes
+
+		# Sneaky Byzantines
+		elector_candidate_roman_attributes_intrigue_vote = yes
+	}
+}

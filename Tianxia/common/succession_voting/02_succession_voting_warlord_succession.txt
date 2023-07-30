@@ -1,0 +1,299 @@
+warlord_succession = { # Not-quite heir designation, useful to let Grand Chancellors/Council Eunuchs/etc. meddle	
+	elector_vote_strength = {
+		days = 1 # Every elector starts with at least 1 vote
+		
+		additive_modifier = {
+			value = 10
+			FROMFROM = {
+				holder = ROOT
+			}
+		}
+		
+		additive_modifier = {
+			value = 10
+			FROMFROM = {
+				NOT = {
+					holder = ROOT
+				}
+			}
+			
+			has_job_title = job_marshal
+		}
+		
+		additive_modifier = {
+			value = 5
+			FROMFROM = {
+				NOT = {
+					holder = ROOT
+				}
+			}
+			
+			has_minor_title = title_commander
+		}
+		
+		additive_modifier = {
+			value = 5
+			FROMFROM = {
+				NOT = {
+					holder = ROOT
+				}
+			}
+			
+			has_minor_title = title_grand_chancellor
+		}
+		
+		additive_modifier = {
+			value = 1
+			trait = misguided_warrior
+		}
+		
+		additive_modifier = {
+			value = 2
+			trait = tough_soldier
+		}
+		
+		additive_modifier = {
+			value = 3
+			trait = skilled_tactician
+		}
+		
+		additive_modifier = {
+			value = 4
+			trait = brilliant_strategist
+		}
+		
+		additive_modifier = {
+			value = 5
+			trait = strategist
+		}
+	}
+	
+	# ROOT is elector
+	# FROMFROM is title
+	elector_selection = {
+		days = -5 		# If below 0, ROOT is not valid to be an Elector. Any character above 0 will be an elector.
+		
+		additive_modifier = {
+			value = 10
+			FROMFROM = {
+				holder = ROOT
+			}
+		}
+		
+		additive_modifier = {
+			value = 10
+			FROMFROM = {
+				NOT = {
+					holder = ROOT
+				}
+			}
+			
+			has_job_title = job_marshal
+		}
+		
+		additive_modifier = {
+			value = 10
+			FROMFROM = {
+				NOT = {
+					holder = ROOT
+				}
+			}
+			
+			has_minor_title = title_grand_chancellor
+		}
+		
+		additive_modifier = {
+			value = 5
+			FROMFROM = {
+				NOT = {
+					holder = ROOT
+				}
+			}
+			
+			has_minor_title = title_commander
+		}
+		
+		additive_modifier = {
+			value = 5
+			FROMFROM = {
+				NOT = {
+					holder = ROOT
+				}
+			}
+			
+			is_powerful_vassal = yes
+			is_feudal = yes
+		}
+		
+		additive_modifier = {
+			value = 1
+			FROMFROM = {
+				NOT = {
+					holder = ROOT
+				}
+			}
+			
+			is_landed = yes
+			is_feudal = yes
+			higher_real_tier_than = baron
+			OR = {
+				has_education_martial_trigger = yes
+				trait = strategist
+			}
+		}
+	}
+	
+	# ROOT = Current Title holder, FROM = Candidate, FROMFROM = Title, FROMFROMFROM = Null
+	candidate_trigger = {
+		NOT = {
+			character = FROM # Not the current ruler...
+		}
+		
+		FROM = {
+			# Either the candidate is in the realm, or is landless, or the title is independent, or the realm of the title does NOT have protected inheritance
+			OR = {
+				same_realm = ROOT
+				is_ruler = no
+
+				ROOT_FROMFROM = {
+					OR = {
+						holder_scope = {
+							independent = yes
+						}
+
+						NOR = {
+							has_law = out_of_realm_inheritance_law_1
+							has_law = crown_authority_3
+							has_law = crown_authority_4
+						}
+					}
+				}
+			}
+
+			# Candidate should not be a landless Courtier who is about to inherit a Theocracy or Republic
+			trigger_if = {
+				limit = {
+					any_heir_title = {
+						OR = {
+							is_republic = yes
+							is_theocracy = yes
+						}
+					}
+				}
+
+				is_landed = yes
+				is_republic = no
+				is_theocracy = no
+			}
+		}
+		
+		FROM = {
+			NOR = {
+				trait = cat
+				trait = disinherited
+				trait = horse
+				trait = eunuch
+				trait = bastard
+				trait = crusader_king
+				trait = crusader_queen
+				character = ROOT # Not the current ruler
+				trait = bear
+				trait = dragon_bride_unmarried
+				trait = dragon_bride_married
+				trait = sent_to_china
+			}
+			
+			# Must be eligible for the correct government type
+			can_have_confucian_bureaucracy_and_eastern_imperial_trigger = yes
+		}
+		
+		FROM = {
+			# Must have a claim, be closely related to the current ruler, or be a landed marshal/commander, or be a powerful martial vassal
+			OR = {
+				has_claim = ROOT_FROMFROM
+				is_close_relative = ROOT
+
+				trigger_if = {
+					limit = { vassal_of = ROOT_FROMFROM }
+
+					OR = {
+						has_job_title = job_marshal
+						has_minor_title = title_commander
+						has_minor_title = title_grand_chancellor
+						AND = {
+							is_powerful_vassal = yes
+							is_feudal = yes
+						}
+						AND = {
+							is_landed = yes
+							is_feudal = yes
+							higher_real_tier_than = baron
+							OR = {
+								has_education_martial_trigger = yes
+								trait = strategist
+							}
+						}
+					}
+				}
+			}
+			
+			age >= 16 # Must be an adult!
+		}
+	}
+	
+	# ROOT = Elector
+	# FROM = Candidate
+	# FROMFROM = Title
+	# FROMFROMFROM = Null
+	candidate_vote_score = {
+		days = 1
+
+		### Elector voting himself ###
+		elector_self_feudal_vote = yes
+		
+		# Current ruler always votes for own dynasty if at all possible
+		warlord_candidate_current_ruler_score = yes
+		
+		# Gender bias
+		warlord_candidate_gender_score = yes
+		
+		# We want a good general!
+		warlord_candidate_martial_score = yes
+		
+		# Friends and lovers get a bonus, rivals get a penalty
+		additive_modifier = {
+			value = 200
+			FROM = {
+				is_friend = ROOT
+			}
+		}
+		
+		additive_modifier = {
+			value = 200
+			FROM = {
+				is_lover = ROOT
+			}
+		}
+		
+		additive_modifier = {
+			value = -1000
+			FROM = {
+				is_rival = ROOT
+			}
+		}
+		
+		# Traits
+		elector_candidate_traits_vote = yes
+		elector_candidate_traits_disfigured_vote = yes
+		elector_candidate_traits_feudal_vote = yes
+
+		# Ruler traits
+		elector_ruler_traits_vote = yes
+
+		# Candidate opinion
+		elector_candidate_opinion_vote = yes
+
+		# Ruler opinion
+		elector_ruler_opinion_vote = yes
+	}
+}

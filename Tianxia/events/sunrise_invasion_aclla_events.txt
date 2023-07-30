@@ -6,27 +6,30 @@ namespace = sri
 
 # sri.101-300 reserved
 
+
+
 ##### Maintenance events
 
-# Fire on_yearly_pulse; find e_tawantinsuyu: if active, activate this and put it under the Sapa Inca, and fill it up. Otherwise do nothing.
+# Fire on_yearly_pulse; find e_inca_empire: if active, activate this and put it under the Sapa Inca, and fill it up. Otherwise do nothing.
 character_event = {
 	id = sri.101
 	hide_window = yes
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # on_yearly_pulse
 	
-	religion = catholic
-	only_rulers = yes
-	
+	has_dlc = "Sunset Invasion"
+	only_playable = yes
 	has_global_flag = sunrise_invasion_happened
-	
+
 	trigger = {
-		controls_religion = yes
-		e_tawantinsuyu = {
-			holder_scope = { always = yes }
+		owns = event_target:pulse_province
+		
+		e_inca_empire = {
+			holder_scope = { always = yes } # TIANXIATODO: Maybe only if following a proper religion?
 		}
+		
 		NOT = {
-			e_tawantinsuyu = {
+			e_inca_empire = {
 				holder_scope = {
 					any_courtier_or_vassal = {
 						has_landed_title = d_acllahuasi
@@ -34,10 +37,37 @@ character_event = {
 				}
 			}
 		}
+		
+		trigger_if = {
+			limit = {
+				inca_pagan = {
+					has_flag = has_been_reformed
+				}
+			}
+			
+			inca_pagan_reformed = {
+				NOR = {
+					has_religion_feature = religion_matriarchal
+					has_religion_feature = religion_equal
+				}
+			}
+		}
 	}
 	
 	immediate = {
-		activate_title = { title = d_acllahuasi status = yes }
+		if = {
+			limit = {
+				NOT = {
+					is_title_active = d_acllahuasi
+				}
+			}
+			
+			activate_title = {
+				title = d_acllahuasi
+				status = yes
+			}
+		}
+		
 		if = {
 			limit = {
 				d_acllahuasi = {
@@ -45,31 +75,23 @@ character_event = {
 						is_female = yes
 						age = 35
 						has_education_learning_trigger = yes
-						OR = {
-							AND = {
-								religion = inca_religion
-								NOT = {
-									has_global_flag = inca_reformation
-								}
-							}
-							AND = {
-								religion = inca_religion_reformed
-								has_global_flag = inca_reformation
-							}
-						}
+						religion_openly_inca_or_reformed_trigger = yes
 					}
 				}
 			}
+			
 			d_acllahuasi = {
-				de_jure_liege = e_tawantinsuyu
+				de_jure_liege = e_inca_empire
+				
 				holder_scope = {
-					set_defacto_liege = e_tawantinsuyu
+					set_defacto_liege = e_inca_empire
 					fill_acllahuasi = yes
 				}
 			}
 		}
+		
 		else = {
-			e_tawantinsuyu = {
+			e_inca_empire = {
 				holder_scope = {
 					create_random_priest = {
 						age = 50
@@ -78,26 +100,35 @@ character_event = {
 						female = yes
 						random_traits = yes
 						culture = quechua
-						religion = inca_religion
+						religion = inca_pagan
 						trait = aclla
 					}
+					
 					new_character = {
 						if = {
 							limit = {
-								has_global_flag = inca_reformation
+								inca_pagan = {
+									has_flag = has_been_reformed
+								}
 							}
-							religion = inca_religion_reformed
+							religion = inca_pagan_reformed
 						}
+						
 						set_government_type = theocracy_government
+						
 						d_acllahuasi = {
 							grant_title = PREV
+							
 							add_law = succ_open_elective
 							add_law = enatic_succession
-							de_jure_liege = e_tawantinsuyu
+							
+							de_jure_liege = e_inca_empire
+							
 							holder_scope = {
 								fill_acllahuasi = yes
 							}
 						}
+						
 						set_defacto_liege = PREV
 					}
 				}
@@ -111,64 +142,50 @@ character_event = {
 	id = sri.102
 	hide_window = yes
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # on_death
 	
+	has_dlc = "Sunset Invasion"
 	only_rulers = yes
+	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
 		has_landed_title = d_acllahuasi
 	}
 	
 	immediate = {
-		if = {
-			limit = {
-				NOT = {
-					current_heir = {
-						age = 35
-						is_female = yes
-						has_education_learning_trigger = yes
-						OR = {
-							AND = {
-								religion = inca_religion
-								NOT = {
-									has_global_flag = inca_reformation
-								}
-							}
-							AND = {
-								religion = inca_religion_reformed
-								has_global_flag = inca_reformation
-							}
-						}
+		create_random_priest = {
+			age = 50
+			health = 7
+			fertility = 0
+			female = yes
+			random_traits = yes
+			culture = quechua
+			religion = inca_pagan
+			trait = aclla
+		}
+					
+		new_character = {
+			if = {
+				limit = {
+					inca_pagan = {
+						has_flag = has_been_reformed
 					}
 				}
+				religion = inca_pagan_reformed
 			}
-			create_random_priest = {
-				age = 50
-				health = 7
-				fertility = 0
-				female = yes
-				random_traits = yes
-				culture = quechua
-				religion = inca_religion
-				trait = aclla
-			}
-			new_character = {
-				if = {
-					limit = {
-						has_global_flag = inca_reformation
-					}
-					religion = inca_religion_reformed
-				}
-				set_government_type = theocracy_government
-				d_acllahuasi = {
-					grant_title = PREV
-					add_law = succ_open_elective
-					add_law = enatic_succession
-					holder_scope = {
-						fill_acllahuasi = yes
-						set_defacto_liege = e_tawantinsuyu
-					}
-					de_jure_liege = e_tawantinsuyu
+			
+			set_government_type = theocracy_government
+			
+			d_acllahuasi = {
+				grant_title = PREV
+				
+				add_law = succ_open_elective
+				add_law = enatic_succession
+				
+				de_jure_liege = e_inca_empire
+				
+				holder_scope = {
+					fill_acllahuasi = yes
 				}
 			}
 		}
@@ -182,7 +199,7 @@ character_event = {
 	id = sri.103
 	hide_window = yes
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # on_war_ended_defeat
 	
 	has_dlc = "Sunset Invasion"
 	
@@ -192,22 +209,25 @@ character_event = {
 	
 	trigger = {
 		FROM = { # Attacker
-			has_landed_title = e_tawantinsuyu
+			has_landed_title = e_inca_empire
+			
 			any_realm_lord = {
 				has_landed_title = d_acllahuasi
+				religion_openly_inca_or_reformed_trigger = yes
 			}
-			OR = {
-				religion = inca_religion
-				religion = inca_religion_reformed
-			}
+			
+			religion_openly_inca_or_reformed_trigger = yes
+			
 			NOR = {
 				has_religion_feature = religion_matriarchal
 				has_religion_feature = religion_equal
 			}
 		}
+		
 		top_liege = {
-			has_landed_title = e_tawantinsuyu
+			has_landed_title = e_inca_empire
 		}
+		
 		any_child = {
 			is_female = yes
 			is_married = no # In case someone is pre-scripted or something odd has happened
@@ -239,18 +259,31 @@ character_event = {
 					has_character_flag = ex_aclla # Rescued
 				}
 			}
+			
 			preferred_limit = {
-				trait = fair
+				trait = attractive
+				religion_openly_inca_or_reformed_trigger = yes
 			}
+			
+			preferred_limit = {
+				trait = groomed
+				religion_openly_inca_or_reformed_trigger = yes
+			}
+			
+			preferred_limit = {
+				trait = attractive
+			}
+			
 			preferred_limit = {
 				trait = groomed
 			}
+			
 			save_event_target_as = child_to_seize
 		}
-		# Get apupanaca
+		
 		d_acllahuasi = {
 			holder_scope = {
-				character_event = { id = sri.104 }
+				character_event = { id = sri.104 } # Ping
 			}
 		}
 	}
@@ -269,12 +302,13 @@ character_event = {
 			female = no
 			random_traits = yes
 			culture = quechua
-			religion = inca_religion
+			religion = ROOT
 		}
+		
 		new_character = {
 			set_character_flag = apupanaca
 			save_event_target_as = apupanaca
-			character_event = { id = sri.105 }
+			character_event = { id = sri.105 } # Ping the apupanaca
 		}
 	}
 }
@@ -315,21 +349,24 @@ long_character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SRI_6 # Oh no!
 		trigger = {
 			event_target:child_to_seize = {
 				is_betrothed = no
 			}
 		}
+		
+		name = EVTOPTA_SRI_6 # Oh no!
 	}
 	
 	option = {
-		name = EVTOPTB_SRI_106 # Her betrothal will have to be broken
 		trigger = {
 			event_target:child_to_seize = {
 				is_betrothed = yes
 			}
 		}
+		
+		name = EVTOPTB_SRI_106 # Her betrothal will have to be broken
+		
 		event_target:child_to_seize = {
 			betrothed = {
 				break_betrothal = PREV
@@ -344,14 +381,14 @@ long_character_event = {
 	}
 }
 
-# Random chance that someone comes along and asks nicely if you're a vassal and have a decent candidate - on-bi-yearly pulse
+# Random chance that someone comes along and asks nicely if you're a vassal and have a decent candidate - on_bi_yearly_pulse
 character_event = {
 	id = sri.108
 	hide_window = yes
 	
 	has_dlc = "Sunset Invasion"
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # on_bi_yearly_pulse, aclla_events
 	
 	only_playable = yes
 	
@@ -359,24 +396,27 @@ character_event = {
 	
 	trigger = {
 		NOR = {
-			has_landed_title = e_tawantinsuyu
-			has_landed_title = d_sapa_inca
+			has_landed_title = e_inca_empire
+			#has_landed_title = d_sapa_inca # TIANXIATODO
 		}
+		
 		is_inaccessible_or_incapable_trigger = no
+		
 		top_liege = {
-			has_landed_title = e_tawantinsuyu
+			has_landed_title = e_inca_empire
+			religion_openly_inca_or_reformed_trigger = yes
+			
 			any_realm_lord = {
 				has_landed_title = d_acllahuasi
+				religion_openly_inca_or_reformed_trigger = yes
 			}
-			OR = {
-				religion = inca_religion
-				religion = inca_religion_reformed
-			}
+			
 			NOR = {
 				has_religion_feature = religion_matriarchal
 				has_religion_feature = religion_equal
 			}
 		}
+		
 		any_child = {
 			is_female = yes
 			is_married = no # In case someone is pre-scripted or something odd has happened
@@ -390,7 +430,8 @@ character_event = {
 				has_character_flag = ex_aclla # Rescued
 			}
 		}
-		NOT = { has_flag = ruler_supplied_acllahuasi } 
+		
+		NOT = { has_character_flag = ruler_supplied_acllahuasi } 
 	}
 
 	immediate = {
@@ -409,18 +450,31 @@ character_event = {
 					has_character_flag = ex_aclla # Rescued
 				}
 			}
+			
 			preferred_limit = {
-				trait = fair
+				trait = attractive
+				religion_openly_inca_or_reformed_trigger = yes
 			}
+			
+			preferred_limit = {
+				trait = groomed
+				religion_openly_inca_or_reformed_trigger = yes
+			}
+			
+			preferred_limit = {
+				trait = attractive
+			}
+			
 			preferred_limit = {
 				trait = groomed
 			}
+			
 			save_event_target_as = child_to_seize
 		}
-		# Get apupanaca
+		
 		d_acllahuasi = {
 			holder_scope = {
-				character_event = { id = sri.109 }
+				character_event = { id = sri.109 } # Ping
 			}
 		}
 	}
@@ -440,12 +494,13 @@ character_event = {
 			female = no
 			random_traits = yes
 			culture = quechua
-			religion = inca_religion
+			religion = ROOT
 		}
+		
 		new_character = {
 			set_character_flag = apupanaca
 			save_event_target_as = apupanaca
-			character_event = { id = sri.110 }
+			character_event = { id = sri.110 } # Ping
 		}
 	}
 }
@@ -475,90 +530,87 @@ long_character_event = {
 	
 	option = {
 		name = EVTOPTA_SRI_111 # Sure
+		
 		trigger = {
 			event_target:child_to_seize = {
 				is_betrothed = no
 			}
 		}
+		
 		prestige = 100
+		
 		hidden_tooltip = {
 			character_event = { id = sri.113 }
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0.1
-				NOR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					true_inca_religion_trigger = no
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
+				factor = 0.1
+				true_inca_religion_trigger = no
+			}
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = proud
-				NOR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
-			}
-			modifier = {
-				factor = 0
-				trait = zealous
-				NOR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				true_inca_religion_trigger = no
 			}
 		}
 	}
 	
 	option = {
-		name = EVTOPTB_SRI_111 # Her betrothal will have to be broken...
 		trigger = {
 			event_target:child_to_seize = {
 				is_betrothed = yes
 			}
 		}
+		
+		name = EVTOPTB_SRI_111 # Her betrothal will have to be broken...
+		
 		event_target:child_to_seize = {
 			betrothed = {
 				break_betrothal = PREV
 			}
 		}
+		
 		hidden_tooltip = {
 			character_event = { id = sri.113 }
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0.1
-				NOR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					true_inca_religion_trigger = no
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
+				factor = 0.1
+				true_inca_religion_trigger = no
+			}
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = proud
-				NOR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
-			}
-			modifier = {
-				factor = 0
-				trait = zealous
-				NOR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				true_inca_religion_trigger = no
 			}
 		}
 	}
 	
 	option = {
 		name = EVTOPTC_SRI_111 # Never!
+		
 		custom_tooltip = { text = EVTOPTC_SRI_111_TOOLTIP } # This may have repercussions... 
 		
 		hidden_tooltip = {
@@ -570,7 +622,7 @@ long_character_event = {
 			if = {
 				limit = {
 					NOT = {
-						intrigue = 16
+						intrigue >= 16
 					}
 				}
 				character_event = { id = sri.112 days = 30 random = 60 } # Repercussions
@@ -579,43 +631,41 @@ long_character_event = {
 		
 		if = {
 			limit = {
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
+				religion_openly_inca_or_reformed_trigger = yes
 			}
+			
 			piety = -100
 			prestige = -100
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					religion_openly_inca_or_reformed_trigger = yes
+				}
+			}
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = craven
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 2
 				trait = wroth
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 2
 				trait = cruel
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
-			}
-			modifier = {
-				factor = 0
-				trait = zealous
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
+				religion_openly_inca_or_reformed_trigger = yes
 			}
 		}
 	}
@@ -631,23 +681,24 @@ long_character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					religion_openly_inca_or_reformed_trigger = yes
+				}
+			}
+			
+			mult_modifier = {
 				factor = 0.01
 				trait = greedy
-			}
-			modifier = {
-				factor = 0
-				trait = zealous
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
 			}
 		}
 	}
 }
 
-character_event = { # Repercussions for not obeying Sapa Inca
+# Repercussions for not obeying the Sapa Inca
+character_event = {
 	id = sri.112 
 	desc = EVTDESC_SRI_112
 	picture = GFX_evt_scandal
@@ -657,11 +708,8 @@ character_event = { # Repercussions for not obeying Sapa Inca
 	
 	trigger = {
 		top_liege = {
-			has_landed_title = e_tawantinsuyu
-			OR = {
-				religion = inca_religion
-				religion = inca_religion_reformed
-			}
+			has_landed_title = e_inca_empire
+			religion_openly_inca_or_reformed_trigger = yes
 		}
 	}
 	
@@ -673,11 +721,11 @@ character_event = { # Repercussions for not obeying Sapa Inca
 		any_playable_ruler = {
 			limit = {
 				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
+					religion_openly_inca_or_reformed_trigger = yes
 					same_realm = ROOT
 				}
 			}
+			
 			opinion = {
 				modifier = opinion_refused_acllahuasi
 				who = ROOT
@@ -713,64 +761,43 @@ character_event = {
 			set_character_flag = acllakuna
 			add_trait = aclla
 			set_character_flag = no_court_invites
-			d_acllahuasi = {
-				change_variable = { which = no_of_acllakuna value = 1 }
-			}
 		}
 	}
 	
 	option = {
 		name = EVTOPTA_SRI_113 # Be strong!
 		
-		hidden_tooltip = {
-			if = {
-				limit = {
-					has_dlc = "Jade Dragon"
-				}
-			}
-			if = {
-				limit = {
-					event_target:child_to_seize = {
-						any_close_relative = {
-							dynasty = PREV
-							is_chinese_emperor_trigger = yes
-						}
-					}
-				}
-				e_tawantinsuyu = {
-					holder_scope = {
-						detract_grace_massive_effect = yes
-					}
-				}
-			}
-		}
+		# TIANXIATODO: Grace penalty
 		
 		event_target:child_to_seize = {
 			random_list = {
 				20 = {
-					modifier = {
-						factor = 0
-						OR = {
+					trigger = {
+						NOR = {
 							is_strong_trigger = yes
 							trait = weak
 						}
 					}
+					
 					if = {
 						limit = {
-							trait = feeble
+							trait = frail
 						}
-						remove_trait = feeble
+						remove_trait = frail
 					}
 					else = {
-						add_trait = robust
+						add_trait = brawny
 					}
 				}
+				
 				20 = {
 					add_trait = stressed
 				}
+				
 				40 = {
 					add_trait = proud
 				}
+				
 				20 = {}
 			}
 		}
@@ -780,21 +807,23 @@ character_event = {
 	
 	option = {
 		trigger = {
-			OR = {
-				true_religion = inca_religion
-				true_religion = inca_religion_reformed
-			}
+			true_inca_religion_trigger = yes
 		}
+		
 		name = EVTOPTB_SRI_113 # It is for Inti!
+		
+		# TIANXIATODO: Grace penalty
 		
 		event_target:child_to_seize = {
 			random_list = {
 				40 = { 
 					add_trait = zealous
 				}
+				
 				40 = {
 					add_trait = depressed
 				}
+				
 				20 = {}
 			}
 		}
@@ -803,29 +832,38 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
+			
+			trigger = {
+				NOT = {
+					trait = cynical
+				}
+			}
+			
+			mult_modifier = {
 				factor = 100
 				trait = zealous
-			}
-			modifier = {
-				factor = 0
-				trait = cynical
 			}
 		}
 	}
 	
 	option = {
 		name = EVTOPTC_SRI_113 # I *will* come back for you.
+		
+		# TIANXIATODO: Grace penalty
+		
 		event_target:child_to_seize = {
 			random_list = {
 				40 = { 
 					add_trait = deceitful
 				}
+				
 				40 = {
 					add_trait = depressed
 				}
+				
 				20 = {}
 			}
+			
 			opinion = {
 				who = ROOT
 				modifier = opinion_aclla_rescuer
@@ -834,10 +872,7 @@ character_event = {
 		
 		if = {
 			limit = {
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				true_inca_religion_trigger = yes
 			}
 			piety = -100
 		}
@@ -848,16 +883,17 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = zealous
-				NOR = {
-					trait = arbitrary
-					trait = deceitful
-				}
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					
+					NOR = {
+						trait = arbitrary
+						trait = deceitful
+					}
+					
+					true_inca_religion_trigger = yes
 				}
 			}
 		}
@@ -865,19 +901,25 @@ character_event = {
 	
 	after = {
 		set_character_flag = ruler_supplied_acllahuasi
-		any_playable_ruler = {
-			limit = {
-				same_realm = ROOT
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
+		
+		top_liege = {
+			any_realm_lord = {
+				limit = {
+					religion_openly_inca_or_reformed_trigger = yes
+				}
+				
+				opinion = {
+					modifier = opinion_supplied_acllahuasi
+					who = ROOT
 				}
 			}
+			
 			opinion = {
 				modifier = opinion_supplied_acllahuasi
 				who = ROOT
 			}
 		}
+		
 		hidden_tooltip = {
 			event_target:apupanaca = {
 				death = {
@@ -885,6 +927,7 @@ character_event = {
 				}
 			}
 		}
+		
 		character_event = { id = sri.114 days = 3650 random = 3650 } # Flag cleanup
 	}
 }
@@ -901,6 +944,8 @@ character_event = {
 	}
 }
 
+
+
 ### Aclla training
 
 # on_childhood_pulse - let's see what happens
@@ -908,7 +953,7 @@ character_event = {
 	id = sri.115
 	hide_window = yes
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # on_childhood_pulse
 	
 	has_dlc = "Sunset Invasion"
 	
@@ -919,175 +964,289 @@ character_event = {
 	trigger = {
 		is_inaccessible_or_incapable_trigger = no
 		trait = aclla
-		d_acllahuasi = {
-			holder_scope = {
-				any_courtier = {
-					character = ROOT
-				}
-			}
-		}
 	}
 	
 	immediate = {
 		if = {
 			limit = {
-				is_landed = yes
+				NOT = {
+					host = {
+						has_landed_title = d_acllahuasi
+					}
+				}
 			}
+			
 			remove_trait = aclla
 		}
+		
 		else = {
 			random_list = {
 				1 = {
-					modifier = {
-						factor = 0
-						culture = quechua
+					trigger = {
+						NOR = {
+							culture = quechua
+							trait = proud
+						}
 					}
-					modifier = {
-						factor = 0
-						trait = proud
-					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 10
 						trait = humble
 					}
-					character_event = { id = sri.116 } # Convert culture
+					
+					# Aclla becomes Quechua
+					culture = quechua
 				}
+				
 				1 = {
-					modifier = {
-						factor = 0
-						OR = {
-							religion = inca_religion
-							religion = inca_religion_reformed
+					trigger = {
+						religion_openly_inca_or_reformed_trigger = no
+						NAND = {
+							trait = zealous
+							true_inca_religion_trigger = no
 						}
 					}
-					modifier = {
-						factor = 0
-						trait = zealous
-					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 10
 						trait = cynical
 					}
-					character_event = { id = sri.117 } # Convert religion
-				}
-				1 = {
-					modifier = {
-						factor = 0
-						NAND = {
-							NOR = {
-								true_religion = inca_religion
-								true_religion = inca_religion_reformed
-							}
-							trait = zealous
-						}
+					
+					mult_modifier = {
+						factor = 10
+						true_inca_religion_trigger = no
 					}
+				
+					# Aclla converts religion
+					if = {
+						limit = {
+							inca_pagan = {
+								has_flag = has_been_reformed
+							}
+						}
+						
+						religion = inca_pagan_reformed
+					}
+					
+					else = {
+						religion = inca_pagan
+					}
+				}
+				
+				1 = {
+					trigger = {
+						religion_openly_inca_or_reformed_trigger = no
+						trait = zealous
+					}
+					
 					character_event = { id = sri.118 } # Zealous Aclla gets into trouble
 				}
+				
 				1 = {
-					modifier = {
-						factor = 0
-						OR = {
+					trigger = {
+						NOT = {
 							trait = zealous
+						}
+					}
+					
+					# Aclla becomes more Zealous
+					add_trait_partially_silently_zealous_effect = yes
+				}
+				
+				1 = {
+					trigger = {
+						NOT = {
 							trait = cynical
 						}
 					}
-					add_trait = zealous
+					
+					# Aclla becomes more Cynical
+					add_trait_partially_silently_cynical_effect = yes
 				}
+				
 				1 = {
-					modifier = {
-						factor = 0
-						OR = {
-							trait = zealous
-							trait = cynical
+					trigger = {
+						NOT = {
+							trait = proud
 						}
 					}
-					add_trait = cynical
+					
+					# Aclla becomes more Proud
+					add_trait_partially_silently_proud_effect = yes
 				}
+				
 				1 = {
-					modifier = {
-						factor = 0
-						OR = {
+					trigger = {
+						NOT = {
+							trait = groomed
+						}
+					}
+					
+					# Aclla becomes more Groomed
+					add_trait_partially_silently_groomed_effect = yes
+				}
+				
+				1 = {
+					trigger = {
+						NOR = {
 							has_character_modifier = aclla_okay_weaver
 							has_character_modifier = aclla_good_weaver
 							has_character_modifier = aclla_prodigious_weaver
 						}
 					}
-					character_event = { id = sri.121 } # Learns to weave
-				}
-				1 = {
-					modifier = {
-						factor = 0
-						has_character_modifier = aclla_brewer
+					
+					# Aclla learns to weave
+					random_list = {
+						30 = {
+							mult_modifier = {
+								factor = 6
+								is_dumb_trigger = yes
+							}
+							
+							add_character_modifier = {
+								modifier = aclla_okay_weaver
+								duration = -1
+							}
+							
+							prestige = 25
+						}
+						
+						20 = {
+							add_character_modifier = {
+								modifier = aclla_good_weaver
+								duration = -1
+							}
+							
+							prestige = 50
+						}
+						
+						10 = {
+							mult_modifier = {
+								factor = 6
+								is_smart_trigger = yes
+							}
+							
+							add_character_modifier = {
+								modifier = aclla_prodigious_weaver
+								duration = -1
+							}
+							
+							prestige = 100
+						}
 					}
-					character_event = { id = sri.122 } # Learns to brew chica
 				}
+				
 				1 = {
-					modifier = {
-						factor = 0
-						has_character_modifier = aclla_cook
+					trigger = {
+						NOT = {
+							has_character_modifier = aclla_brewer
+						}
 					}
-					character_event = { id = sri.123 } # Learns to prepare sancu
+					# Aclla learns to brew chica
+					
+					add_character_modifier = {
+						modifier = aclla_brewer
+						duration = -1
+					}
+					
+					prestige = 25
+					piety = 25
 				}
+				
 				1 = {
-					modifier = {
-						factor = 0
-						has_character_modifier = aclla_singer
+					trigger = {
+						NOT = {
+							has_character_modifier = aclla_cook
+						}
 					}
-					character_event = { id = sri.124 } # Learns to sing
+					
+					# Aclla learns to prepare sancu
+					add_character_modifier = {
+						modifier = aclla_cook
+						duration = -1
+					}
+					
+					prestige = 50
 				}
+				
 				1 = {
-					modifier = {
-						factor = 0
-						has_character_modifier = aclla_dancer
+					trigger = {
+						NOT = {
+							has_character_modifier = aclla_singer
+						}
 					}
-					character_event = { id = sri.125 } # Learns to dance
+					
+					# Aclla learns to sing
+					add_character_modifier = {
+						modifier = aclla_singer
+						duration = -1
+					}
+					
+					prestige = 50
 				}
+				
 				1 = {
-					modifier = {
-						factor = 0
-						trait = groomed
+					trigger = {
+						NOT = {
+							has_character_modifier = aclla_dancer
+						}
 					}
-					character_event = { id = sri.126 } # Becomes groomed
+					
+					# Aclla learns to dance
+					add_character_modifier = {
+						modifier = aclla_dancer
+						duration = -1
+					}
+					
+					prestige = 50
 				}
+				
 				10 = {} # Nothing
 			}
 		}
 	}
 }
 
-# Character becomes Inca culture
-character_event = {
-	id = sri.116
-	hide_window = yes
-	is_triggered_only = yes
-	
-	immediate = {
-		culture = quechua
-		prestige = 25
-	}
-}
+# Aclla becomes Quechua - handled in sri.115
+#character_event = {
+#	id = sri.116
+#	hide_window = yes
+#	
+#	is_triggered_only = yes
+#	
+#	immediate = {
+#		culture = quechua
+#		
+#		prestige = 25
+#	}
+#}
 
-# Character becomes Inca religion
-character_event = {
-	id = sri.117
-	hide_window = yes
-	is_triggered_only = yes
-	
-	immediate = {
-		if = {
-			limit = {
-				NOT = {
-					has_global_flag = inca_reformation
-				}
-			}
-			religion = inca_religion
-		}
-		else = {
-			religion = inca_religion_reformed
-		}
-		piety = 25
-	}
-}
+# Character becomes Inca religion - handled in sri.115
+#character_event = {
+#	id = sri.117
+#	hide_window = yes
+#	is_triggered_only = yes
+#	
+#	immediate = {
+#		if = {
+#			limit = {
+#				NOT = {
+#					inca_pagan = {
+#						has_flag = has_been_reformed
+#					}
+#				}
+#			}
+#			
+#			religion = inca_pagan
+#		}
+#		
+#		else = {
+#			religion = inca_pagan_reformed
+#		}
+#		
+#		piety = 25
+#	}
+#}
 
 # Zealous non-Inca might get into trouble
 character_event = {
@@ -1107,12 +1266,14 @@ character_event = {
 					}
 				}
 			}
+			
 			d_acllahuasi = {
 				holder_scope = {
 					character_event = { id = sri.119 } # How do you want to handle this?
 				}
 			}
 		}
+		
 		piety = 25
 	}
 }
@@ -1133,36 +1294,44 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = zealous
+			
+			trigger = {
+				NOT = {
+					trait = zealous
+				}
 			}
 		}
 	}
 	
 	option = {
-		name = EVTOPTB_SRI_119 # Try to convince her
+		name = EVTOPTB_SRI_119 # Try to change her mind
 		
-		if = {
-			limit = {
-				diplomacy = 15
+		random_list = {
+			25 = {
+				mult_modifier = {
+					factor = 10
+					diplomacy >= 15
+				}
+				
+				FROM = {
+					remove_trait = zealous
+				}
 			}
-			FROM = {
-				remove_trait = zealous
-			}
-			piety = 25
-		}
-		else = {
-			FROM = {
-				add_trait = stubborn
+			
+			75 = {
+				FROM = {
+					add_trait = stubborn
+				}
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cynical
+			
+			trigger = {
+				NOT = {
+					trait = cynical
+				}
 			}
 		}
 	}
@@ -1172,19 +1341,28 @@ character_event = {
 		
 		prestige = 25
 		
+		# TIANXIATODO: Grace penalty
+		
+		ROOT = {
+			FROM = { save_event_target_as = kinslayer_target }
+			add_kinslayer_trait_effect = yes
+		}
+		
 		FROM = {
 			death = {
 				death_reason = death_execution
+				killer = ROOT
 			}
+			
 			any_close_relative = {
-				character_event = { id = sri.120 }
+				character_event = { id = sri.120 } # Inform relatives
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
+			
+			trigger = {
 				trait = cruel
 			}
 		}
@@ -1202,12 +1380,10 @@ character_event = {
 	
 	option = {
 		trigger = {
-			NOR = {
-				religion = inca_religion
-				religion = inca_religion_reformed
-			}
+			religion_openly_inca_or_reformed_trigger = yes
 			trait = zealous
 		}
+		
 		name = EVTOPTA_SRI_120 # She will pay for this!
 		
 		add_rival = FROM
@@ -1215,10 +1391,7 @@ character_event = {
 	
 	option = {
 		trigger = {
-			OR = {
-				religion = inca_religion
-				religion = inca_religion_reformed
-			}
+			religion_openly_inca_or_reformed_trigger = yes
 		}
 		
 		add_rival = FROM
@@ -1228,145 +1401,143 @@ character_event = {
 	
 	option = {
 		trigger = {
-			OR = {
-				religion = inca_religion
-				religion = inca_religion_reformed
-			}
+			religion_openly_inca_or_reformed_trigger = no
 			trait = zealous
 		}
+		
 		name = EVTOPTC_SRI_120 # She did the right thing!
 		
 		piety = 25
 	}
 }
 
-# Character learns to weave
-character_event = {
-	id = sri.121
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		random_list = {
-			30 = {
-				modifier = {
-					factor = 6
-					is_dumb_trigger = yes
-				}
-				add_character_modifier = {
-					modifier = aclla_okay_weaver
-					duration = -1
-				}
-				prestige = 25
-			}
-			20 = {
-				add_character_modifier = {
-					modifier = aclla_good_weaver
-					duration = -1
-				}
-				prestige = 50
-			}
-			10 = {
-				modifier = {
-					factor = 6
-					is_smart_trigger = yes
-				}
-				add_character_modifier = {
-					modifier = aclla_prodigious_weaver
-					duration = -1
-				}
-				prestige = 100
-			}
-		}
-	}
-}
+# Character learns to weave - handled in sri.115
+#character_event = {
+#	id = sri.121
+#	hide_window = yes
+#	
+#	is_triggered_only = yes
+#	
+#	immediate = {
+#		random_list = {
+#			30 = {
+#				mult_modifier = {
+#					factor = 6
+#					is_dumb_trigger = yes
+#				}
+#				add_character_modifier = {
+#					modifier = aclla_okay_weaver
+#					duration = -1
+#				}
+#				prestige = 25
+#			}
+#			20 = {
+#				add_character_modifier = {
+#					modifier = aclla_good_weaver
+#					duration = -1
+#				}
+#				prestige = 50
+#			}
+#			10 = {
+#				mult_modifier = {
+#					factor = 6
+#					is_smart_trigger = yes
+#				}
+#				add_character_modifier = {
+#					modifier = aclla_prodigious_weaver
+#					duration = -1
+#				}
+#				prestige = 100
+#			}
+#		}
+#	}
+#}
 
-# Character learns to brew chica
-character_event = {
-	id = sri.122
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		add_character_modifier = {
-			modifier = aclla_brewer
-			duration = -1
-		}
-		prestige = 25
-		piety = 25
-	}
-}
+# Character learns to brew chica - handled in sri.115
+#character_event = {
+#	id = sri.122
+#	hide_window = yes
+#	
+#	is_triggered_only = yes
+#	
+#	immediate = {
+#		add_character_modifier = {
+#			modifier = aclla_brewer
+#			duration = -1
+#		}
+#		prestige = 25
+#		piety = 25
+#	}
+#}
 
-# Character learns to prepare sancu
-character_event = {
-	id = sri.123
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		add_character_modifier = {
-			modifier = aclla_cook
-			duration = -1
-		}
-		prestige = 50
-	}
-}
+# Character learns to prepare sancu - handled in sri.115
+#character_event = {
+#	id = sri.123
+#	hide_window = yes
+#	
+#	is_triggered_only = yes
+#	
+#	immediate = {
+#		add_character_modifier = {
+#			modifier = aclla_cook
+#			duration = -1
+#		}
+#		prestige = 50
+#	}
+#}
 
-# Character learns to sing
-character_event = {
-	id = sri.124
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		add_character_modifier = {
-			modifier = aclla_singer
-			duration = -1
-		}
-		prestige = 50
-	}
-}
+# Character learns to sing - handled in sri.115
+#character_event = {
+#	id = sri.124
+#	hide_window = yes
+#	
+#	is_triggered_only = yes
+#	
+#	immediate = {
+#		add_character_modifier = {
+#			modifier = aclla_singer
+#			duration = -1
+#		}
+#		prestige = 50
+#	}
+#}
 
-# Character learns to dance
-character_event = {
-	id = sri.125
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		add_character_modifier = {
-			modifier = aclla_dancer
-			duration = -1
-		}
-		prestige = 50
-	}
-}
+# Character learns to dance - handled in sri.115
+#character_event = {
+#	id = sri.125
+#	hide_window = yes
+#	
+#	is_triggered_only = yes
+#	
+#	immediate = {
+#		add_character_modifier = {
+#			modifier = aclla_dancer
+#			duration = -1
+#		}
+#		prestige = 50
+#	}
+#}
 
-# Character becomes groomed
-character_event = {
-	id = sri.126
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		if = {
-			limit = {
-				trait = uncouth
-			}
-			remove_trait = uncouth
-		}
-		else = {
-			add_trait = groomed
-		}
-		prestige = 25
-	}
-}
+# Character becomes more groomed - handled in sri.115
+#character_event = {
+#	id = sri.126
+#	hide_window = yes
+#	
+#	is_triggered_only = yes
+#	
+#	immediate = {
+#		if = {
+#			limit = {
+#				trait = uncouth
+#			}
+#			remove_trait = uncouth
+#		}
+#		else = {
+#			add_trait = groomed
+#		}
+#		prestige = 25
+#	}
+#}
 
 ### Rescue chain
 
@@ -1375,7 +1546,7 @@ character_event = {
 	id = sri.127
 	hide_window = yes
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # on_yearly_pulse
 	
 	has_dlc = "Sunset Invasion"
 	
@@ -1389,16 +1560,21 @@ character_event = {
 	
 	trigger = {
 		has_global_flag = sunrise_invasion_happened
+		
 		top_liege = {
-			has_landed_title = e_tawantinsuyu
+			has_landed_title = e_inca_empire
 		}
+		
 		is_inaccessible_or_incapable_trigger = no
+		
 		any_opinion_modifier_target = {
 			has_opinion_modifier = {
 				who = ROOT
 				modifier = opinion_aclla_rescuer
 			}
+			
 			trait = aclla
+			
 			NOR = {
 				has_character_flag = aclla_being_rescued
 				has_character_flag = aclla_rescue_attempt_lover
@@ -1412,110 +1588,129 @@ character_event = {
 	immediate = {
 		random_list = {
 			25 = {
-				modifier = {
+				mult_modifier = {
 					factor = 2
 					is_smart_trigger = yes
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 40
+					intrigue >= 40
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 36
+					intrigue >= 36
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 32
+					intrigue >= 32
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 28
+					intrigue >= 28
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 24
+					intrigue >= 24
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 20
+					intrigue >= 20
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 16
+					intrigue >= 16
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 199
+					combat_rating >= 200
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 175
+					combat_rating >= 175
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 150
+					combat_rating >= 150
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 125
+					combat_rating >= 125
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 100
+					combat_rating >= 100
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 75
+					combat_rating >= 75
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 5
 					any_opinion_modifier_target = {
 						has_opinion_modifier = {
 							who = ROOT
 							modifier = opinion_aclla_rescuer
 						}
+						
 						trait = aclla
+						
 						has_character_flag = aclla_being_sacrificed
 					}
 				}
+				
 				character_event = { id = sri.128 } # You see an opportunity
 			}
+			
 			75 = {
-				modifier = {
+				mult_modifier = {
 					factor = 2
 					is_dumb_trigger = yes
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						intrigue = 12
-					}
+					intrigue < 12
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						intrigue = 8
-					}
+					intrigue < 8
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						intrigue = 4
-					}
+					intrigue < 4
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						combat_rating = 50
-					}
+					combat_rating < 50
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						combat_rating = 25
-					}
+					combat_rating < 25
 				}
+				
+				mult_modifier = {
+					factor = 2
+					combat_rating < 0
+				}
+				
 				# No opportunity
 			}
 		}
@@ -1538,7 +1733,9 @@ character_event = {
 					who = ROOT
 					modifier = opinion_aclla_rescuer
 				}
+				
 				trait = aclla
+				
 				NOR = {
 					has_character_flag = aclla_being_rescued
 					has_character_flag = aclla_rescue_attempt_lover
@@ -1547,9 +1744,11 @@ character_event = {
 					has_character_flag = aclla_sacrifice_in_progress # Too late to rescue her
 				}
 			}
+			
 			preferred_limit = {
 				has_character_flag = aclla_being_sacrificed
 			}
+			
 			save_event_target_as = aclla_to_rescue
 		}
 	}
@@ -1559,11 +1758,9 @@ character_event = {
 		
 		if = {
 			limit = {
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				true_inca_religion_trigger = yes
 			}
+			
 			piety = -25
 		}
 		
@@ -1580,35 +1777,36 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = zealous
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					true_inca_religion_trigger = yes
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = craven
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = humble
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = just
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 100
 				event_target:aclla_to_rescue = {
 					has_character_flag = aclla_being_sacrificed
 				}
-				NOR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				
+				true_inca_religion_trigger = no
 			}
 		}
 	}
@@ -1620,23 +1818,25 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = zealous
-				NOR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					true_inca_religion_trigger = no
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = brave
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = proud
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = arbitrary
 			}
@@ -1675,242 +1875,256 @@ character_event = {
 		
 		random_list = {
 			20 = {
-				modifier = {
-					factor = 0
-					NOT = {
-						combat_rating = 25
-					}
+				trigger = {
+					combat_rating >= 25
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 75
+					combat_rating >= 75
 				}
+				
 				random_list = {
 					50 = {
-						modifier = {
+						mult_modifier = {
 							factor = 2
-							intrigue = 40
+							intrigue >= 40
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 36
+							intrigue >= 36
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 32
+							intrigue >= 32
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 28
+							intrigue >= 28
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 24
+							intrigue >= 24
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 20
+							intrigue >= 20
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 16
+							intrigue >= 16
 						}
+						
 						character_event = { id = sri.131 days = 1 } # Clean victory
 					}
 					50 = {
-						modifier = {
+						mult_modifier = {
 							factor = 2
-							NOT = {
-								intrigue = 12
-							}
+							intrigue < 12
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							NOT = {
-								intrigue = 8
-							}
+							intrigue < 8
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							NOT = {
-								intrigue = 4
-							}
+							intrigue < 4
 						}
+						
 						character_event = { id = sri.132 days = 1 } # Noisy
 					}
 				}
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 100
+				trigger = {
+					combat_rating < 100
 				}
+				
 				random_list = {
 					50 = {
-						modifier = {
+						mult_modifier = {
 							factor = 2
-							intrigue = 40
+							intrigue >= 40
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 36
+							intrigue >= 36
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 32
+							intrigue >= 32
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 28
+							intrigue >= 28
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 24
+							intrigue >= 24
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 20
+							intrigue >= 20
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 16
+							intrigue >= 16
 						}
+						
 						character_event = { id = sri.133 days = 1 } # Wounded
 					}
 					50 = {
-						modifier = {
+						mult_modifier = {
 							factor = 2
-							NOT = {
-								intrigue = 12
-							}
+							intrigue < 12
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							NOT = {
-								intrigue = 8
-							}
+							intrigue < 8
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							NOT = {
-								intrigue = 4
-							}
+							intrigue < 4
 						}
+						
 						character_event = { id = sri.134 days = 1 } # Wounded and noisy
 					}
 				}
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
+				
 				random_list = {
 					50 = {
-						modifier = {
+						mult_modifier = {
 							factor = 2
-							intrigue = 40
+							intrigue >= 40
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 36
+							intrigue >= 36
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 32
+							intrigue >= 32
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 28
+							intrigue >= 28
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 24
+							intrigue >= 24
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 20
+							intrigue >= 20
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							intrigue = 16
+							intrigue >= 16
 						}
+						
 						character_event = { id = sri.135 days = 1 } # Maimed
 					}
 					50 = {
-						modifier = {
+						mult_modifier = {
 							factor = 2
-							NOT = {
-								intrigue = 12
-							}
+							intrigue < 12
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							NOT = {
-								intrigue = 8
-							}
+							intrigue < 8
 						}
-						modifier = {
+						
+						mult_modifier = {
 							factor = 2
-							NOT = {
-								intrigue = 4
-							}
+							intrigue < 4
 						}
+						
 						character_event = { id = sri.136 days = 1 } # Maimed and noisy
 					}
 				}
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 0.5
-					combat_rating = 50
+					combat_rating >= 50
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						intrigue = 12
-					}
+					intrigue < 12
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						intrigue = 8
-					}
+					intrigue < 8
 				}
-				modifier = {
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						intrigue = 4
-					}
+					intrigue < 4
 				}
+				
 				character_event = { id = sri.137 days = 1 } # Captured
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 50
+				trigger = {
+					combat_rating < 50
 				}
+				
 				character_event = { id = sri.140 days = 1 } # Killed
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0.1
+			
+			trigger = {
 				NOT = {
-					combat_rating = 50
+					trait = craven
 				}
 			}
-			modifier = {
-				factor = 0
-				trait = craven
+			
+			mult_modifier = {
+				factor = 0.1
+				combat_rating < 50
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = deceitful
 			}
@@ -1922,77 +2136,90 @@ character_event = {
 		
 		random_list = {
 			33 = {
-				modifier = {
+				mult_modifier = {
 					factor = 2
-					diplomacy = 40
+					diplomacy >= 40
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					diplomacy = 36
+					diplomacy >= 36
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					diplomacy = 32
+					diplomacy >= 32
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					diplomacy = 28
+					diplomacy >= 28
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					diplomacy = 24
+					diplomacy >= 24
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					diplomacy = 20
+					diplomacy >= 20
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					diplomacy = 16
+					diplomacy >= 16
 				}
+				
 				character_event = { id = sri.141 days = 1 } # It worked
 			}
+			
 			34 = {
 				character_event = { id = sri.142 days = 1 } # They refuse
 			}
+			
 			33 = {
-				modifier = {
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						diplomacy = 12
-					}
+					diplomacy < 12
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						diplomacy = 8
-					}
+					diplomacy < 8
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						diplomacy = 4
-					}
+					diplomacy < 4
 				}
+				
 				character_event = { id = sri.143 days = 1 } # They try to arrest you
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0.1
+			
+			trigger = {
 				NOT = {
-					wealth = 100
+					trait = greedy
 				}
 			}
-			modifier = {
-				factor = 0
-				trait = greedy
+			
+			mult_modifier = {
+				factor = 0.1
+				wealth < 100
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = deceitful
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = gregarious
 			}
 		}
 	}
@@ -2002,75 +2229,83 @@ character_event = {
 		
 		random_list = {
 			33 = {
-				modifier = {
+				mult_modifier = {
 					factor = 2
-					intrigue = 40
+					intrigue >= 40
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 36
+					intrigue >= 36
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 32
+					intrigue >= 32
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 28
+					intrigue >= 28
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 24
+					intrigue >= 24
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 20
+					intrigue >= 20
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					intrigue = 16
+					intrigue >= 16
 				}
+				
 				character_event = { id = sri.144 days = 1 } # It worked
 			}
+			
 			34 = {
 				character_event = { id = sri.145 days = 1 } # You made too much noise - fight or leave?
 			}
+			
 			33 = {
-				modifier = {
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						intrigue = 12
-					}
+					intrigue < 12
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						intrigue = 8
-					}
+					intrigue < 8
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					NOT = {
-						intrigue = 4
-					}
+					intrigue < 4
 				}
+				
 				character_event = { id = sri.146 days = 1 } # Guards arrive to arrest you
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0.1
+			
+			trigger = {
 				NOT = {
-					intrigue = 10
+					trait = brave
 				}
 			}
-			modifier = {
-				factor = 0
-				trait = brave
+			
+			mult_modifier = {
+				factor = 0.1
+				intrigue < 10
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = honest
 			}
@@ -2258,35 +2493,12 @@ character_event = {
 		
 		prestige = -25
 		
+		# TIANXIATODO: Grace penalty
+		
 		d_acllahuasi = {
 			holder_scope = {
-				ROOT = {
-					imprison = PREV
-				}
-				if = {
-					limit = {
-						has_dlc = "Jade Dragon"
-					}
-					if = {
-						limit = {
-							ROOT = {
-								is_chinese_emperor_trigger = yes
-							}
-						}
-						detract_grace_super_huge_effect = yes
-					}
-					else_if = {
-						limit = {
-							ROOT = {
-								any_close_relative = {
-									dynasty = PREV
-									is_chinese_emperor_trigger = yes
-								}
-							}
-						}
-						detract_grace_massive_effect = yes
-					}
-				}
+				reverse_imprison = ROOT
+				
 				character_event = { id = sri.138 days = 1 }
 			}
 		}
@@ -2307,21 +2519,23 @@ character_event = {
 	is_triggered_only = yes
 	
 	option = {
-		name = EVTOPTA_SRI_138 # What FROM deserves!
+		name = EVTOPTA_SRI_138 # This is what FROM deserves!
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				OR = {
+			
+			trigger = {
+				NOR = {
 					event_target:aclla_to_rescue = {
 						any_rival = {
 							character = ROOT
 						}
+						
 						NOT = {
 							has_character_flag = aclla_being_sacrificed
 						}
 					}
+					
 					AND = {
 						trait = cruel
 						event_target:aclla_to_rescue = {
@@ -2334,6 +2548,7 @@ character_event = {
 								}
 							}
 						}
+						
 						NOT = {
 							has_character_flag = aclla_being_sacrificed
 						}
@@ -2351,33 +2566,17 @@ character_event = {
 				}
 			}
 		}
+		
 		name = EVTOPTB_SRI_138 # Time to make an example!
 		
+		# TIANXIATODO: Grace penalty
+		
+		ROOT = {
+			event_target:aclla_to_rescue = { save_event_target_as = kinslayer_target }
+			add_kinslayer_trait_effect = yes
+		}
+		
 		event_target:aclla_to_rescue = {
-			if = {
-				limit = {
-					has_dlc = "Jade Dragon"
-				}
-				if = {
-					limit = {
-						is_chinese_emperor_trigger = yes # Should be impossible...
-					}
-					ROOT = {
-						detract_grace_super_huge_effect = yes
-					}
-				}
-				else_if = {
-					limit = {
-						any_close_relative = {
-							dynasty = PREV
-							is_chinese_emperor_trigger = yes
-						}
-					}
-					ROOT = {
-						detract_grace_massive_effect = yes
-					}
-				}
-			}
 			death = {
 				death_reason = death_execution
 				killer = ROOT
@@ -2390,14 +2589,15 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
+			
+			trigger = {
+				OR = {
 					event_target:aclla_to_rescue = {
 						any_rival = {
 							character = ROOT
 						}
 					}
+					
 					AND = {
 						trait = cruel
 						event_target:aclla_to_rescue = {
@@ -2491,57 +2691,63 @@ character_event = {
 		
 		random_list = { # No noise penalty
 			20 = {
-				modifier = {
-					factor = 0
-					NOT = {
-						combat_rating = 25
-					}
+				trigger = {
+					combat_rating >= 25
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 75
+					combat_rating >= 75
 				}
+				
 				character_event = { id = sri.131 days = 1 } # Clean victory
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 100
+				trigger = {
+					combat_rating < 100
 				}
+				
 				character_event = { id = sri.133 days = 1 } # Wounded
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
+				
 				character_event = { id = sri.135 days = 1 } # Maimed
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 0.5
-					combat_rating = 50
+					combat_rating >= 50
 				}
+				
 				character_event = { id = sri.137 days = 1 } # Captured
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 50
+				trigger = {
+					combat_rating < 50
 				}
+				
 				character_event = { id = sri.140 days = 1 } # Killed
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = craven
+			
+			trigger = {
+				NOT = {
+					trait = craven
+				}
 			}
 		}
 	}
@@ -2559,9 +2765,11 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = brave
+			
+			trigger = {
+				NOT = {
+					trait = brave
+				}
 			}
 		}
 	}
@@ -2581,57 +2789,63 @@ character_event = {
 		
 		random_list = { # No noise penalty
 			20 = {
-				modifier = {
-					factor = 0
-					NOT = {
-						combat_rating = 25
-					}
+				trigger = {
+					combat_rating >= 25
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 75
+					combat_rating >= 75
 				}
+				
 				character_event = { id = sri.131 days = 1 } # Clean victory
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 100
+				trigger = {
+					combat_rating < 100
 				}
+				
 				character_event = { id = sri.133 days = 1 } # Wounded
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
+				
 				character_event = { id = sri.135 days = 1 } # Maimed
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 0.5
-					combat_rating = 50
+					combat_rating >= 50
 				}
+				
 				character_event = { id = sri.137 days = 1 } # Captured
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 50
+				trigger = {
+					combat_rating < 50
 				}
+				
 				character_event = { id = sri.140 days = 1 } # Killed
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = craven
+			
+			trigger = {
+				NOT = {
+					trait = craven
+				}
 			}
 		}
 	}
@@ -2641,35 +2855,12 @@ character_event = {
 		
 		prestige = -25
 		
+		# TIANXIATODO: Grace penalty
+		
 		d_acllahuasi = {
 			holder_scope = {
-				ROOT = {
-					imprison = PREV
-				}
-				if = {
-					limit = {
-						has_dlc = "Jade Dragon"
-					}
-					if = {
-						limit = {
-							ROOT = {
-								is_chinese_emperor_trigger = yes
-							}
-						}
-						detract_grace_super_huge_effect = yes
-					}
-					else_if = {
-						limit = {
-							ROOT = {
-								any_close_relative = {
-									dynasty = PREV
-									is_chinese_emperor_trigger = yes
-								}
-							}
-						}
-						detract_grace_massive_effect = yes
-					}
-				}
+				reverse_imprison = ROOT
+				
 				character_event = { id = sri.138 days = 1 }
 			}
 		}
@@ -2680,9 +2871,11 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = brave
+			
+			trigger = {
+				NOT = {
+					trait = brave
+				}
 			}
 		}
 	}
@@ -2720,57 +2913,63 @@ character_event = {
 		
 		random_list = { # No noise penalty
 			20 = {
-				modifier = {
-					factor = 0
-					NOT = {
-						combat_rating = 25
-					}
+				trigger = {
+					combat_rating >= 25
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 75
+					combat_rating >= 75
 				}
+				
 				character_event = { id = sri.131 days = 1 } # Clean victory
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 100
+				trigger = {
+					combat_rating < 100
 				}
+				
 				character_event = { id = sri.133 days = 1 } # Wounded
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
+				
 				character_event = { id = sri.135 days = 1 } # Maimed
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 0.5
-					combat_rating = 50
+					combat_rating >= 50
 				}
+				
 				character_event = { id = sri.137 days = 1 } # Captured
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 50
+				trigger = {
+					combat_rating < 50
 				}
+				
 				character_event = { id = sri.140 days = 1 } # Killed
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = craven
+			
+			trigger = {
+				NOT = {
+					trait = craven
+				}
 			}
 		}
 	}
@@ -2788,9 +2987,11 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = brave
+			
+			trigger = {
+				NOT = {
+					trait = brave
+				}
 			}
 		}
 	}
@@ -2810,57 +3011,63 @@ character_event = {
 		
 		random_list = { # No noise penalty
 			20 = {
-				modifier = {
-					factor = 0
-					NOT = {
-						combat_rating = 25
-					}
+				trigger = {
+					combat_rating >= 25
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 75
+					combat_rating >= 75
 				}
+				
 				character_event = { id = sri.131 days = 1 } # Clean victory
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 100
+				trigger = {
+					combat_rating < 100
 				}
+				
 				character_event = { id = sri.133 days = 1 } # Wounded
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
+				
 				character_event = { id = sri.135 days = 1 } # Maimed
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 0.5
-					combat_rating = 50
+					combat_rating >= 50
 				}
+				
 				character_event = { id = sri.137 days = 1 } # Captured
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 50
+				trigger = {
+					combat_rating < 50
 				}
+				
 				character_event = { id = sri.140 days = 1 } # Killed
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = craven
+			
+			trigger = {
+				NOT = {
+					trait = craven
+				}
 			}
 		}
 	}
@@ -2870,35 +3077,12 @@ character_event = {
 		
 		prestige = -25
 		
+		# TIANXIATODO: Grace penalty
+		
 		d_acllahuasi = {
 			holder_scope = {
-				ROOT = {
-					imprison = PREV
-				}
-				if = {
-					limit = {
-						has_dlc = "Jade Dragon"
-					}
-					if = {
-						limit = {
-							ROOT = {
-								is_chinese_emperor_trigger = yes
-							}
-						}
-						detract_grace_super_huge_effect = yes
-					}
-					else_if = {
-						limit = {
-							ROOT = {
-								any_close_relative = {
-									dynasty = PREV
-									is_chinese_emperor_trigger = yes
-								}
-							}
-						}
-						detract_grace_massive_effect = yes
-					}
-				}
+				reverse_imprison = ROOT
+				
 				character_event = { id = sri.138 days = 1 }
 			}
 		}
@@ -2909,9 +3093,11 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = brave
+			
+			trigger = {
+				NOT = {
+					trait = brave
+				}
 			}
 		}
 	}
@@ -2927,32 +3113,32 @@ character_event = {
 	immediate = {
 		random_list = {
 			1 = {
-				modifier = {
-					factor = 0
-					intrigue = 20
-				}
-				modifier = {
-					factor = 0
+				trigger = {
+					intrigue < 20
+					
 					d_acllahuasi = {
 						holder_scope = {
-							NOT = {
-								any_courtier = {
-									is_inaccessible_or_incapable_trigger = no
-									NOR = {
-										has_character_flag = aclla_being_rescued
-										has_character_flag = aclla_rescue_attempt_lover
-										has_character_flag = aclla_rescue_attempt_snitch
-										has_character_flag = aclla_being_married
-										has_character_flag = aclla_being_sacrificed
-									}
-									trait = aclla
-									intrigue = 10
-									OR = {
-										true_religion = inca_religion
-										true_religion = inca_religion_reformed
-										trait = cruel
-										trait = just
-										trait = honest
+							any_courtier = {
+								is_inaccessible_or_incapable_trigger = no
+								
+								NOR = {
+									has_character_flag = aclla_being_rescued
+									has_character_flag = aclla_rescue_attempt_lover
+									has_character_flag = aclla_rescue_attempt_snitch
+									has_character_flag = aclla_being_married
+									has_character_flag = aclla_being_sacrificed
+								}
+								
+								trait = aclla
+								intrigue >= 10
+								
+								OR = {
+									true_inca_religion_trigger = yes
+									trait = cruel
+									trait = just
+									trait = honest
+									AND = {
+										religion_openly_inca_or_reformed_trigger = yes
 										trait = zealous
 									}
 								}
@@ -2960,11 +3146,13 @@ character_event = {
 						}
 					}
 				}
+				
 				d_acllahuasi = {
 					holder_scope = {
 						random_courtier = {
 							limit = {
 								is_inaccessible_or_incapable_trigger = no
+								
 								NOR = {
 									has_character_flag = aclla_being_rescued
 									has_character_flag = aclla_rescue_attempt_lover
@@ -2972,15 +3160,19 @@ character_event = {
 									has_character_flag = aclla_being_married
 									has_character_flag = aclla_being_sacrificed
 								}
+								
 								trait = aclla
-								intrigue = 10
+								intrigue >= 10
+								
 								OR = {
-									true_religion = inca_religion
-									true_religion = inca_religion_reformed
+									true_inca_religion_trigger = yes
 									trait = cruel
 									trait = just
 									trait = honest
-									trait = zealous
+									AND = {
+										religion_openly_inca_or_reformed_trigger = yes
+										trait = zealous
+									}
 								}
 							}
 							set_character_flag = aclla_rescue_attempt_snitch
@@ -2988,94 +3180,26 @@ character_event = {
 						}
 					}
 				}
+				
 				if = {
 					limit = {
 						has_character_flag = aclla_no_more_guards
 					}
 					character_event = { id = sri.148 } # No guards!
 				}
+				
 				else = {
 					character_event = { id = sri.149 } # Guards!
 				}
 			}
+			
 			1 = {
-				modifier = {
-					factor = 0
+				trigger = {
 					d_acllahuasi = {
 						holder_scope = {
-							NOT = {
-								any_courtier = {
-									is_adult = yes
-									is_inaccessible_or_incapable_trigger = no
-									NOR = {
-										has_character_flag = aclla_being_rescued
-										has_character_flag = aclla_rescue_attempt_lover
-										has_character_flag = aclla_rescue_attempt_snitch
-										has_character_flag = aclla_being_married
-										has_character_flag = aclla_being_sacrificed
-									}
-									trait = aclla
-									OR = {
-										AND = {
-											ROOT = {
-												is_female = yes
-												trait = homosexual
-											}
-											trait = homosexual
-										}
-										AND = {
-											ROOT = {
-												is_female = no
-												NOT = {
-													trait = homosexual
-												}
-											}
-											NOT = {
-												trait = homosexual
-											}
-										}
-									}
-									OR = {
-										NOT = {
-											is_close_relative = ROOT
-										}
-										AND = {
-											OR = {
-												religion = inca_religion
-												religion = inca_religion_reformed
-											}
-											any_sibling = {
-												character = ROOT
-											}
-										}
-										AND = {
-											OR = {
-												religion = messalian
-												religion = zoroastrian
-												has_religion_feature = religion_feature_zun
-												has_religion_feature = religion_holy_family
-											}
-											ROOT = {
-												OR = {
-													religion = messalian
-													religion = zoroastrian
-													has_religion_feature = religion_feature_zun
-													has_religion_feature = religion_holy_family
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				d_acllahuasi = {
-					holder_scope = {
-						random_courtier = {
-							limit = {
-								is_adult = yes
+							any_courtier = {
 								is_inaccessible_or_incapable_trigger = no
+								
 								NOR = {
 									has_character_flag = aclla_being_rescued
 									has_character_flag = aclla_rescue_attempt_lover
@@ -3083,83 +3207,63 @@ character_event = {
 									has_character_flag = aclla_being_married
 									has_character_flag = aclla_being_sacrificed
 								}
+								
 								is_attractive_trigger = yes
 								is_unattractive_trigger = no
+								
 								trait = aclla
-								OR = {
-									AND = {
-										ROOT = {
-											is_female = yes
-											trait = homosexual
-										}
-										trait = homosexual
-									}
-									AND = {
-										ROOT = {
-											is_female = no
-											NOT = {
-												trait = homosexual
-											}
-										}
-										NOT = {
-											trait = homosexual
-										}
-									}
-								}
-								OR = {
-									NOT = {
-										is_close_relative = ROOT
-									}
-									AND = {
-										OR = {
-											religion = inca_religion
-											religion = inca_religion_reformed
-										}
-										any_sibling = {
-											character = ROOT
-										}
-									}
-									AND = {
-										OR = {
-											religion = messalian
-											religion = zoroastrian
-											has_religion_feature = religion_feature_zun
-											has_religion_feature = religion_holy_family
-										}
-										ROOT = {
-											OR = {
-												religion = messalian
-												religion = zoroastrian
-												has_religion_feature = religion_feature_zun
-												has_religion_feature = religion_holy_family
-											}
-										}
-									}
-								}
+								is_valid_romance_target = ROOT
 							}
+						}
+					}
+				}
+				
+				d_acllahuasi = {
+					holder_scope = {
+						random_courtier = {
+							limit = {
+								is_inaccessible_or_incapable_trigger = no
+								
+								NOR = {
+									has_character_flag = aclla_being_rescued
+									has_character_flag = aclla_rescue_attempt_lover
+									has_character_flag = aclla_rescue_attempt_snitch
+									has_character_flag = aclla_being_married
+									has_character_flag = aclla_being_sacrificed
+								}
+								
+								is_attractive_trigger = yes
+								is_unattractive_trigger = no
+								
+								trait = aclla
+								is_valid_romance_target = ROOT
+							}
+							
 							set_character_flag = aclla_rescue_attempt_lover
 							save_event_target_as = aclla_rescue_attempt_lover
 						}
 					}
 				}
+				
 				character_event = { id = sri.155 } # Possible tumbling
 			}
+			
 			1 = {
-				modifier = {
-					factor = 0
-					NOR = {
-						true_religion = inca_religion
-						true_religion = inca_religion_reformed
-					}
+				trigger = {
+					true_inca_religion_trigger = yes
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 10
 					trait = zealous
 				}
+				
 				# Possible second thoughts
 				character_event = { id = sri.163 days = 1 }
 			}
+			
 			5 = {
+			
 				# Go directly to kinswoman
 				character_event = { id = sri.164 days = 1 }
 			}
@@ -3167,7 +3271,7 @@ character_event = {
 	}
 }
 
-# No guards arrive - how deal with the snitch?
+# No guards arrive - how do you deal with the snitch?
 character_event = {
 	id = sri.148
 	desc = EVTDESC_SRI_148
@@ -3189,18 +3293,19 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cruel
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					trait = kind
-				}
-				event_target:aclla_rescue_attempt_snitch = {
-					any_rival = {
-						character = ROOT
+			
+			trigger = {
+				NOR = {
+					trait = cruel
+					AND = {
+						NOT = {
+							trait = kind
+						}
+						event_target:aclla_rescue_attempt_snitch = {
+							any_rival = {
+								character = ROOT
+							}
+						}
 					}
 				}
 			}
@@ -3223,9 +3328,9 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
+			
+			trigger = {
+				OR = {
 					trait = cruel
 					event_target:aclla_rescue_attempt_snitch = {
 						any_rival = {
@@ -3233,17 +3338,17 @@ character_event = {
 						}
 					}
 				}
-			}
-			modifier = {
-				factor = 0
-				trait = cruel
-				event_target:aclla_rescue_attempt_snitch = {
-					OR = {
-						any_friend = {
-							character = ROOT
-						}
-						any_lover = {
-							character = ROOT
+				
+				NAND = {
+					trait = kind
+					event_target:aclla_rescue_attempt_snitch = {
+						OR = {
+							any_friend = {
+								character = ROOT
+							}
+							any_lover = {
+								character = ROOT
+							}
 						}
 					}
 				}
@@ -3266,57 +3371,62 @@ character_event = {
 		
 		random_list = { # No noise penalty
 			20 = {
-				modifier = {
-					factor = 0
-					NOT = {
-						combat_rating = 25
-					}
+				trigger = {
+					combat_rating > 25
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 75
+					combat_rating >= 75
 				}
+				
 				character_event = { id = sri.150 days = 1 } # Clean victory
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 100
+				trigger = {
+					combat_rating < 100
 				}
+				
 				character_event = { id = sri.151 days = 1 } # Wounded
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
+				
 				character_event = { id = sri.152 days = 1 } # Maimed
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 0.5
-					combat_rating = 50
+					combat_rating >= 50
 				}
 				character_event = { id = sri.153 days = 1 } # Captured
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 50
+				trigger = {
+					combat_rating < 50
 				}
+				
 				character_event = { id = sri.154 days = 1 } # Killed
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = craven
+			
+			trigger = {
+				NOT = {
+					trait = craven
+				}
 			}
 		}
 	}
@@ -3326,35 +3436,12 @@ character_event = {
 		
 		prestige = -25
 		
+		# TIANXIATODO: Grace penalty
+		
 		d_acllahuasi = {
 			holder_scope = {
-				ROOT = {
-					imprison = PREV
-				}
-				if = {
-					limit = {
-						has_dlc = "Jade Dragon"
-					}
-					if = {
-						limit = {
-							ROOT = {
-								is_chinese_emperor_trigger = yes
-							}
-						}
-						detract_grace_super_huge_effect = yes
-					}
-					else_if = {
-						limit = {
-							ROOT = {
-								any_close_relative = {
-									dynasty = PREV
-									is_chinese_emperor_trigger = yes
-								}
-							}
-						}
-						detract_grace_massive_effect = yes
-					}
-				}
+				reverse_imprison = ROOT
+				
 				character_event = { id = sri.138 days = 1 }
 			}
 		}
@@ -3362,15 +3449,18 @@ character_event = {
 		event_target:aclla_to_rescue = {
 			clr_character_flag = aclla_being_rescued
 		}
+		
 		event_target:aclla_rescue_attempt_snitch = {
 			clr_character_flag = aclla_rescue_attempt_snitch
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = brave
+			
+			trigger = {
+				NOT = {
+					trait = brave
+				}
 			}
 		}
 	}
@@ -3401,18 +3491,19 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cruel
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					trait = kind
-				}
-				event_target:aclla_rescue_attempt_snitch = {
-					any_rival = {
-						character = ROOT
+			
+			trigger = {
+				NOR = {
+					trait = cruel
+					AND = {
+						NOT = {
+							trait = kind
+						}
+						event_target:aclla_rescue_attempt_snitch = {
+							any_rival = {
+								character = ROOT
+							}
+						}
 					}
 				}
 			}
@@ -3438,9 +3529,9 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
+			
+			trigger = {
+				OR = {
 					trait = cruel
 					event_target:aclla_rescue_attempt_snitch = {
 						any_rival = {
@@ -3448,17 +3539,17 @@ character_event = {
 						}
 					}
 				}
-			}
-			modifier = {
-				factor = 0
-				trait = cruel
-				event_target:aclla_rescue_attempt_snitch = {
-					OR = {
-						any_friend = {
-							character = ROOT
-						}
-						any_lover = {
-							character = ROOT
+				
+				NAND = {
+					trait = kind
+					event_target:aclla_rescue_attempt_snitch = {
+						OR = {
+							any_friend = {
+								character = ROOT
+							}
+							any_lover = {
+								character = ROOT
+							}
 						}
 					}
 				}
@@ -3493,18 +3584,19 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cruel
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					trait = kind
-				}
-				event_target:aclla_rescue_attempt_snitch = {
-					any_rival = {
-						character = ROOT
+			
+			trigger = {
+				NOR = {
+					trait = cruel
+					AND = {
+						NOT = {
+							trait = kind
+						}
+						event_target:aclla_rescue_attempt_snitch = {
+							any_rival = {
+								character = ROOT
+							}
+						}
 					}
 				}
 			}
@@ -3531,9 +3623,8 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
+			trigger = {
+				OR = {
 					trait = cruel
 					event_target:aclla_rescue_attempt_snitch = {
 						any_rival = {
@@ -3541,17 +3632,17 @@ character_event = {
 						}
 					}
 				}
-			}
-			modifier = {
-				factor = 0
-				trait = cruel
-				event_target:aclla_rescue_attempt_snitch = {
-					OR = {
-						any_friend = {
-							character = ROOT
-						}
-						any_lover = {
-							character = ROOT
+				
+				NAND = {
+					trait = kind
+					event_target:aclla_rescue_attempt_snitch = {
+						OR = {
+							any_friend = {
+								character = ROOT
+							}
+							any_lover = {
+								character = ROOT
+							}
 						}
 					}
 				}
@@ -3585,18 +3676,19 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cruel
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					trait = kind
-				}
-				event_target:aclla_rescue_attempt_snitch = {
-					any_rival = {
-						character = ROOT
+			
+			trigger = {
+				NOR = {
+					trait = cruel
+					AND = {
+						NOT = {
+							trait = kind
+						}
+						event_target:aclla_rescue_attempt_snitch = {
+							any_rival = {
+								character = ROOT
+							}
+						}
 					}
 				}
 			}
@@ -3622,9 +3714,9 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
+			
+			trigger = {
+				OR = {
 					trait = cruel
 					event_target:aclla_rescue_attempt_snitch = {
 						any_rival = {
@@ -3632,17 +3724,17 @@ character_event = {
 						}
 					}
 				}
-			}
-			modifier = {
-				factor = 0
-				trait = cruel
-				event_target:aclla_rescue_attempt_snitch = {
-					OR = {
-						any_friend = {
-							character = ROOT
-						}
-						any_lover = {
-							character = ROOT
+				
+				NAND = {
+					trait = kind
+					event_target:aclla_rescue_attempt_snitch = {
+						OR = {
+							any_friend = {
+								character = ROOT
+							}
+							any_lover = {
+								character = ROOT
+							}
 						}
 					}
 				}
@@ -3665,35 +3757,11 @@ character_event = {
 		
 		prestige = -25
 		
+		# TIANXIATODO: Grace penalty
+		
 		d_acllahuasi = {
 			holder_scope = {
-				ROOT = {
-					imprison = PREV
-				}
-				if = {
-					limit = {
-						has_dlc = "Jade Dragon"
-					}
-					if = {
-						limit = {
-							ROOT = {
-								is_chinese_emperor_trigger = yes
-							}
-						}
-						detract_grace_super_huge_effect = yes
-					}
-					else_if = {
-						limit = {
-							ROOT = {
-								any_close_relative = {
-									dynasty = PREV
-									is_chinese_emperor_trigger = yes
-								}
-							}
-						}
-						detract_grace_massive_effect = yes
-					}
-				}
+				reverse_imprison = ROOT
 				character_event = { id = sri.138 days = 1 }
 			}
 		}
@@ -3752,117 +3820,88 @@ character_event = {
 		
 		random_list = {
 			33 = {
-				modifier = {
-					factor = 0
-					event_target:aclla_rescue_attempt_lover = {
-						any_rival = {
-							character = ROOT
+				trigger = {
+					NOR = {
+						event_target:aclla_rescue_attempt_lover = {
+							OR = {
+								any_rival = {
+									character = ROOT
+								}
+								trait = celibate
+								trait = chaste
+								AND = {
+									true_inca_religion_trigger = yes
+									trait = zealous
+								}
+							}
 						}
+						is_unattractive_trigger = yes
 					}
 				}
-				modifier = {
-					factor = 0
-					event_target:aclla_rescue_attempt_lover = {
-						OR = {
-							trait = celibate
-							trait = chaste
-						}
-					}
-				}
-				modifier = {
-					factor = 0
-					is_unattractive_trigger = yes
-				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 10
 					OR = {
-						trait = seducer
-						trait = seductress
+						trait = master_seducer
+						trait = master_seductress
 					}
 				}
-				modifier = {
-					factor = 0
-					event_target:aclla_rescue_attempt_lover = {
-						OR = {
-							true_religion = inca_religion
-							true_religion = inca_religion_reformed
-						}
-						trait = zealous
-					}
-				}
+				
 				character_event = { id = sri.156 days = 1 }
 			}
+			
 			34 = {
-				modifier = {
-					factor = 0
-					event_target:aclla_rescue_attempt_lover = {
-						any_rival = {
-							character = ROOT
-						}
+				trigger = {
+					NOR = {
+						is_rival = event_target:aclla_rescue_attempt_lover
+						is_lover = event_target:aclla_rescue_attempt_lover
 					}
 				}
-				modifier = {
-					factor = 0
-					event_target:aclla_rescue_attempt_lover = {
-						any_lover = {
-							character = ROOT
-						}
-					}
-				}
+				
 				character_event = { id = sri.160 days = 1 }
 			}
+			
 			33 = {
-				modifier = {
-					factor = 0
-					event_target:aclla_rescue_attempt_lover = {
-						OR = {
-							any_friend = {
-								character = ROOT
-							}
-							any_lover = {
-								character = ROOT
+				trigger = {
+					NOR = {
+						event_target:aclla_rescue_attempt_lover = {
+							OR = {
+								any_friend = {
+									character = ROOT
+								}
+								any_lover = {
+									character = ROOT
+								}
+								trait = lustful
 							}
 						}
+						is_attractive_trigger = yes
+						trait = master_seducer
+						trait = master_seductress
 					}
 				}
-				modifier = {
-					factor = 0
-					event_target:aclla_rescue_attempt_lover = {
-						trait = lustful
-					}
-				}
-				modifier = {
-					factor = 0
-					is_attractive_trigger = yes
-				}
-				modifier = {
-					factor = 0
-					OR = {
-						trait = seducer
-						trait = seductress
-					}
-				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 10
 					event_target:aclla_rescue_attempt_lover = {
-						OR = {
-							true_religion = inca_religion
-							true_religion = inca_religion_reformed
-						}
+						true_inca_religion_trigger = yes
 						trait = zealous
 					}
 				}
+				
 				# Crit fail
 				event_target:aclla_rescue_attempt_lover = {
 					clr_character_flag = aclla_rescue_attempt_lover
 					save_event_target_as = aclla_rescue_attempt_snitch
 					set_character_flag = aclla_rescue_attempt_snitch
+					
 					if = {
 						limit = {
 							has_character_flag = aclla_no_more_guards
 						}
 						character_event = { id = sri.161 } # No guards!
 					}
+					
 					else = {
 						character_event = { id = sri.162 } # Guards!
 					}
@@ -3872,32 +3911,30 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				OR = {
+			
+			trigger = {
+				NOR = {
 					trait = chaste
 					trait = celibate
+					AND = {
+						true_inca_religion_trigger = yes
+						trait = zealous
+						NOT = {
+							trait = lustful
+						}
+					}
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = content
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				event_target:aclla_rescue_attempt_lover = {
 					is_unattractive_trigger = yes
-				}
-			}
-			modifier = {
-				factor = 0
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
-				trait = zealous
-				NOT = {
-					trait = lustful
 				}
 			}
 		}
@@ -3912,15 +3949,19 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = lustful
+			
+			trigger = {
+				NOT = {
+					trait = lustful
+				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = ambitious
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				event_target:aclla_rescue_attempt_lover = {
 					is_attractive_trigger = yes
@@ -3942,47 +3983,10 @@ character_event = {
 	option = {
 		name = EVTOPTA_SRI_156 # Come with me if you want to leave!
 		
-		if = {
-			limit = {
-				trait = chaste
-			}
-			remove_trait = chaste
-		}
-		if = {
-			limit = {
-				trait = celibate
-			}
-			remove_trait = celibate
-		}
-		if = {
-			limit = {
-				has_character_modifier = mourning_celibate
-			}
-			remove_character_modifier = mourning_celibate
-		}
-		
 		event_target:aclla_rescue_attempt_lover = {
-			piety = -10
-			if = {
-				limit = {
-					trait = chaste
-				}
-				remove_trait = chaste
-			}
-			if = {
-				limit = {
-					trait = celibate
-				}
-				remove_trait = celibate
-			}
-			if = {
-				limit = {
-					has_character_modifier = mourning_celibate
-				}
-				remove_character_modifier = mourning_celibate
-			}
 			save_event_target_as = sex_partner
 		}
+		
 		unprotected_sex_effect_event_target = yes
 		
 		add_lover = event_target:aclla_rescue_attempt_lover
@@ -3991,9 +3995,11 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cruel
+			
+			trigger = {
+				NOT = {
+					trait = cruel
+				}
 			}
 		}
 	}
@@ -4001,53 +4007,13 @@ character_event = {
 	option = {
 		name = EVTOPTB_SRI_156 # Bye!
 		
-		if = {
-			limit = {
-				trait = kind
-			}
-			remove_trait = kind
-		}
-		if = {
-			limit = {
-				trait = chaste
-			}
-			remove_trait = chaste
-		}
-		if = {
-			limit = {
-				trait = celibate
-			}
-			remove_trait = celibate
-		}
-		if = {
-			limit = {
-				has_character_modifier = mourning_celibate
-			}
-			remove_character_modifier = mourning_celibate
-		}
+		remove_trait_kind_effect = yes
 		
 		event_target:aclla_rescue_attempt_lover = {
 			piety = -10
-			if = {
-				limit = {
-					trait = chaste
-				}
-				remove_trait = chaste
-			}
-			if = {
-				limit = {
-					trait = celibate
-				}
-				remove_trait = celibate
-			}
-			if = {
-				limit = {
-					has_character_modifier = mourning_celibate
-				}
-				remove_character_modifier = mourning_celibate
-			}
 			save_event_target_as = sex_partner
 		}
+		
 		unprotected_sex_effect_event_target = yes
 		
 		event_target:aclla_rescue_attempt_lover = {
@@ -4056,9 +4022,11 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = kind
+			
+			trigger = {
+				NOT = {
+					trait = kind
+				}
 			}
 		}
 	}
@@ -4068,50 +4036,15 @@ character_event = {
 		
 		piety = -25
 		
-		add_trait = cruel
-			if = {
-			limit = {
-				trait = chaste
-			}
-			remove_trait = chaste
-		}
-		if = {
-			limit = {
-				trait = celibate
-			}
-			remove_trait = celibate
-		}
-		if = {
-			limit = {
-				has_character_modifier = mourning_celibate
-			}
-			remove_character_modifier = mourning_celibate
-		}
+		add_trait_fully_cruel_effect = yes
 		
 		character_event = { id = sri.164 days = 1 }
 		
 		event_target:aclla_rescue_attempt_lover = {
 			piety = -10
-			if = {
-				limit = {
-					trait = chaste
-				}
-				remove_trait = chaste
-			}
-			if = {
-				limit = {
-					trait = celibate
-				}
-				remove_trait = celibate
-			}
-			if = {
-				limit = {
-					has_character_modifier = mourning_celibate
-				}
-				remove_character_modifier = mourning_celibate
-			}
 			save_event_target_as = sex_partner
 		}
+		
 		unprotected_sex_effect_event_target = yes
 		
 		event_target:aclla_rescue_attempt_lover = {
@@ -4123,11 +4056,9 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOT = {
-					trait = cruel
-				}
+			
+			trigger = {
+				trait = cruel
 			}
 		}
 	}
@@ -4155,21 +4086,26 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = proud
-				trait = cruel
-				trait = wroth
+			
+			trigger = {
+				NAND = {
+					trait = proud
+					trait = cruel
+					trait = wroth
+				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = proud
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = cruel
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = wroth
 			}
@@ -4179,6 +4115,8 @@ character_event = {
 	option = {
 		name = EVTOPTB_SRI_157 # Hell hath no fury...
 		
+		add_rival = FROM
+		
 		save_event_target_as = aclla_rescue_attempt_snitch
 		clr_character_flag = aclla_rescue_attempt_lover
 		set_character_flag = aclla_rescue_attempt_snitch
@@ -4187,29 +4125,36 @@ character_event = {
 			limit = {
 				has_character_flag = aclla_no_more_guards
 			}
+			
 			character_event = { id = sri.158 } # No guards!
 		}
+		
 		else = {
 			character_event = { id = sri.159 } # Guards!
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = humble
-				trait = kind
-				trait = content
+			
+			trigger = {
+				NAND = {
+					trait = humble
+					trait = kind
+					trait = content
+				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = humble
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = kind
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = content
 			}
@@ -4239,18 +4184,19 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cruel
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					trait = kind
-				}
-				event_target:aclla_rescue_attempt_snitch = {
-					any_rival = {
-						character = ROOT
+			
+			trigger = {
+				NOR = {
+					trait = cruel
+					AND = {
+						NOT = {
+							trait = kind
+						}
+						event_target:aclla_rescue_attempt_snitch = {
+							any_rival = {
+								character = ROOT
+							}
+						}
 					}
 				}
 			}
@@ -4273,9 +4219,9 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
+			
+			trigger = {
+				OR = {
 					trait = cruel
 					event_target:aclla_rescue_attempt_snitch = {
 						any_rival = {
@@ -4283,17 +4229,17 @@ character_event = {
 						}
 					}
 				}
-			}
-			modifier = {
-				factor = 0
-				trait = cruel
-				event_target:aclla_rescue_attempt_snitch = {
-					OR = {
-						any_friend = {
-							character = ROOT
-						}
-						any_lover = {
-							character = ROOT
+				
+				NAND = {
+					trait = kind
+					event_target:aclla_rescue_attempt_snitch = {
+						OR = {
+							any_friend = {
+								character = ROOT
+							}
+							any_lover = {
+								character = ROOT
+							}
 						}
 					}
 				}
@@ -4316,57 +4262,62 @@ character_event = {
 		
 		random_list = { # No noise penalty
 			20 = {
-				modifier = {
-					factor = 0
-					NOT = {
-						combat_rating = 25
-					}
+				trigger = {
+					combat_rating >= 25
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 75
+					combat_rating >= 75
 				}
+				
 				character_event = { id = sri.150 days = 1 } # Clean victory
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 100
+				trigger = {
+					combat_rating < 100
 				}
+				
 				character_event = { id = sri.151 days = 1 } # Wounded
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
+				
 				character_event = { id = sri.152 days = 1 } # Maimed
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 0.5
-					combat_rating = 50
+					combat_rating >= 50
 				}
 				character_event = { id = sri.153 days = 1 } # Captured
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 50
+				trigger = {
+					combat_rating < 50
 				}
+				
 				character_event = { id = sri.154 days = 1 } # Killed
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = craven
+			
+			trigger = {
+				NOT = {
+					trait = craven
+				}
 			}
 		}
 	}
@@ -4376,35 +4327,12 @@ character_event = {
 		
 		prestige = -25
 		
+		# TIANXIATODO: Grace penalty
+		
 		d_acllahuasi = {
 			holder_scope = {
-				ROOT = {
-					imprison = PREV
-				}
-				if = {
-					limit = {
-						has_dlc = "Jade Dragon"
-					}
-					if = {
-						limit = {
-							ROOT = {
-								is_chinese_emperor_trigger = yes
-							}
-						}
-						detract_grace_super_huge_effect = yes
-					}
-					else_if = {
-						limit = {
-							ROOT = {
-								any_close_relative = {
-									dynasty = PREV
-									is_chinese_emperor_trigger = yes
-								}
-							}
-						}
-						detract_grace_massive_effect = yes
-					}
-				}
+				reverse_imprison = ROOT
+				
 				character_event = { id = sri.138 days = 1 }
 			}
 		}
@@ -4412,15 +4340,18 @@ character_event = {
 		event_target:aclla_to_rescue = {
 			clr_character_flag = aclla_being_rescued
 		}
+		
 		event_target:aclla_rescue_attempt_snitch = {
 			clr_character_flag = aclla_rescue_attempt_snitch
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = brave
+			
+			trigger = {
+				NOT = {
+					trait = brave
+				}
 			}
 		}
 	}
@@ -4442,13 +4373,12 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = paranoid
-			}
-			modifier = {
-				factor = 0
-				trait = cruel
+			
+			trigger = {
+				NOR = {
+					trait = cruel
+					trait = paranoid
+				}
 			}
 		}
 	}
@@ -4469,9 +4399,9 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
+			
+			trigger = {
+				OR = {
 					trait = cruel
 					trait = paranoid
 				}
@@ -4502,18 +4432,19 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cruel
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					trait = kind
-				}
-				event_target:aclla_rescue_attempt_snitch = {
-					any_rival = {
-						character = ROOT
+			
+			trigger = {
+				NOR = {
+					trait = cruel
+					AND = {
+						NOT = {
+							trait = kind
+						}
+						event_target:aclla_rescue_attempt_snitch = {
+							any_rival = {
+								character = ROOT
+							}
+						}
 					}
 				}
 			}
@@ -4536,9 +4467,9 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
+			
+			trigger = {
+				OR = {
 					trait = cruel
 					event_target:aclla_rescue_attempt_snitch = {
 						any_rival = {
@@ -4546,17 +4477,17 @@ character_event = {
 						}
 					}
 				}
-			}
-			modifier = {
-				factor = 0
-				trait = cruel
-				event_target:aclla_rescue_attempt_snitch = {
-					OR = {
-						any_friend = {
-							character = ROOT
-						}
-						any_lover = {
-							character = ROOT
+				
+				NAND = {
+					trait = kind
+					event_target:aclla_rescue_attempt_snitch = {
+						OR = {
+							any_friend = {
+								character = ROOT
+							}
+							any_lover = {
+								character = ROOT
+							}
 						}
 					}
 				}
@@ -4579,57 +4510,62 @@ character_event = {
 		
 		random_list = { # No noise penalty
 			20 = {
-				modifier = {
-					factor = 0
-					NOT = {
-						combat_rating = 25
-					}
+				trigger = {
+					combat_rating >= 25
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 75
+					combat_rating >= 75
 				}
+				
 				character_event = { id = sri.150 days = 1 } # Clean victory
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 100
+				trigger = {
+					combat_rating < 100
 				}
+				
 				character_event = { id = sri.151 days = 1 } # Wounded
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
+				
 				character_event = { id = sri.152 days = 1 } # Maimed
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 0.5
-					combat_rating = 50
+					combat_rating >= 50
 				}
 				character_event = { id = sri.153 days = 1 } # Captured
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 50
+				trigger = {
+					combat_rating < 50
 				}
+				
 				character_event = { id = sri.154 days = 1 } # Killed
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = craven
+			
+			trigger = {
+				NOT = {
+					trait = craven
+				}
 			}
 		}
 	}
@@ -4639,35 +4575,12 @@ character_event = {
 		
 		prestige = -25
 		
+		# TIANXIATODO: Grace penalty
+		
 		d_acllahuasi = {
 			holder_scope = {
-				ROOT = {
-					imprison = PREV
-				}
-				if = {
-					limit = {
-						has_dlc = "Jade Dragon"
-					}
-					if = {
-						limit = {
-							ROOT = {
-								is_chinese_emperor_trigger = yes
-							}
-						}
-						detract_grace_super_huge_effect = yes
-					}
-					else_if = {
-						limit = {
-							ROOT = {
-								any_close_relative = {
-									dynasty = PREV
-									is_chinese_emperor_trigger = yes
-								}
-							}
-						}
-						detract_grace_massive_effect = yes
-					}
-				}
+				reverse_imprison = ROOT
+				
 				character_event = { id = sri.138 days = 1 }
 			}
 		}
@@ -4675,15 +4588,18 @@ character_event = {
 		event_target:aclla_to_rescue = {
 			clr_character_flag = aclla_being_rescued
 		}
+		
 		event_target:aclla_rescue_attempt_snitch = {
 			clr_character_flag = aclla_rescue_attempt_snitch
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = brave
+			
+			trigger = {
+				NOT = {
+					trait = brave
+				}
 			}
 		}
 	}
@@ -4703,20 +4619,17 @@ character_event = {
 		
 		piety = -25
 		
-		if = {
-			limit = {
-				trait = zealous
-			}
-			remove_trait = zealous
-		}
+		remove_trait_zealous_effect = yes
 		
 		character_event = { id = sri.164 days = 1 }
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = zealous
+			
+			trigger = {
+				NOT = {
+					trait = zealous
+				}
 			}
 		}
 	}
@@ -4726,12 +4639,7 @@ character_event = {
 		
 		piety = 25
 		
-		if = {
-			limit = {
-				trait = cynical
-			}
-			remove_trait = cynical
-		}
+		remove_trait_cynical_effect = yes
 		
 		character_event = { id = sri.130 days = 30 random = 30 } # Returned home
 		
@@ -4741,9 +4649,11 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cynical
+			
+			trigger = {
+				NOT = {
+					trait = cynical
+				}
 			}
 		}
 	}
@@ -4763,16 +4673,82 @@ character_event = {
 		
 		random_list = {
 			50 = {
-				modifier = {
-					factor = 0
+				trigger = {
+					NOT = {
+						event_target:aclla_to_rescue = {
+							true_inca_religion_trigger = yes
+							OR = {
+								AND = {
+									NOT = {
+										has_character_flag = aclla_being_sacrificed
+									}
+									trait = zealous
+								}
+								NOT = {
+									trait = cynical
+								}
+							}
+						}
+					}
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					any_rival = {
+						character = event_target:aclla_to_rescue
+					}
+				}
+				
+				# She's willing to leave
+				character_event = { id = sri.165 }
+			}
+			
+			40 = {
+				trigger = {
+					NOR = {
+						event_target:aclla_to_rescue = {
+							true_inca_religion_trigger = no
+							trait = zealous
+						}
+						event_target:aclla_to_rescue = {
+							has_character_flag = aclla_being_sacrificed
+							NOT = {
+								trait = zealous
+							}
+						}
+					}
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					any_rival = {
+						character = event_target:aclla_to_rescue
+					}
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					any_friend = {
+						character = event_target:aclla_to_rescue
+					}
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					any_lover = { # Extremely unlikely to be relevant...
+						character = event_target:aclla_to_rescue
+					}
+				}
+				
+				# She's unwilling to leave
+				character_event = { id = sri.166 }
+			}
+			
+			10 = {
+				trigger = {
 					event_target:aclla_to_rescue = {
-						OR = {
-							true_religion = inca_religion
-							true_religion = inca_religion_reformed
-						}
-						NOT = {
-							trait = cynical
-						}
+						true_inca_religion_trigger = yes
+						
 						OR = {
 							NOT = {
 								has_character_flag = aclla_being_sacrificed
@@ -4781,105 +4757,21 @@ character_event = {
 						}
 					}
 				}
-				modifier = {
-					factor = 0.1
-					any_rival = {
-						character = event_target:aclla_to_rescue
-					}
-				}
-				# She's willing to leave
-				character_event = { id = sri.165 }
-			}
-			40 = {
-				modifier = {
-					factor = 0
-					event_target:aclla_to_rescue = {
-						NOR = {
-							true_religion = inca_religion
-							true_religion = inca_religion_reformed
-						}
-						trait = zealous
-					}
-				}
-				modifier = {
-					factor = 0
-					event_target:aclla_to_rescue = {
-						OR = {
-							true_religion = inca_religion
-							true_religion = inca_religion_reformed
-						}
-						trait = zealous
-					}
-				}
-				modifier = {
-					factor = 0.1
-					any_rival = {
-						character = event_target:aclla_to_rescue
-					}
-				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 0.1
 					any_friend = {
 						character = event_target:aclla_to_rescue
 					}
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 0.1
 					any_lover = { # Extremely unlikely to be relevant...
 						character = event_target:aclla_to_rescue
 					}
 				}
-				modifier = {
-					factor = 0
-					event_target:aclla_to_rescue = {
-						has_character_flag = aclla_being_sacrificed
-						NAND = {
-							OR = {
-								true_religion = inca_religion
-								true_religion = inca_religion_reformed
-							}
-							trait = zealous
-						}
-					}
-				}
-				# She's unwilling to leave
-				character_event = { id = sri.166 }
-			}
-			10 = {
-				modifier = {
-					factor = 0
-					event_target:aclla_to_rescue = {
-						NOR = {
-							true_religion = inca_religion
-							true_religion = inca_religion_reformed
-						}
-					}
-				}
-				modifier = {
-					factor = 0.1
-					any_friend = {
-						character = event_target:aclla_to_rescue
-					}
-				}
-				modifier = {
-					factor = 0.1
-					any_lover = { # Extremely unlikely to be relevant...
-						character = event_target:aclla_to_rescue
-					}
-				}
-				modifier = {
-					factor = 0
-					event_target:aclla_to_rescue = {
-						has_character_flag = aclla_being_sacrificed
-						NAND = {
-							OR = {
-								true_religion = inca_religion
-								true_religion = inca_religion_reformed
-							}
-							trait = zealous
-						}
-					}
-				}
+				
 				# She's extremely unwilling to leave
 				event_target:aclla_to_rescue = {
 					character_event = { id = sri.168 }
@@ -4912,6 +4804,7 @@ character_event = {
 					}
 				}
 			}
+			
 			event_target:aclla_rescue_attempt_lover = {
 				move_character = ROOT
 				add_trait = travelling
@@ -4919,12 +4812,15 @@ character_event = {
 				set_character_flag = ex_aclla # Rescued
 				clr_character_flag = no_court_invites
 				remove_trait = aclla
+				
 				character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+				
 				ROOT = {
 					set_character_flag = aclla_lover_is_coming_along
 				}
 			}
 		}
+		
 		event_target:aclla_to_rescue = {
 			move_character = ROOT
 			add_trait = travelling
@@ -4935,8 +4831,10 @@ character_event = {
 			clr_character_flag = aclla_being_sacrificed
 			clr_character_flag = aclla_sacrifice_in_progress
 			remove_character_modifier = qhapaq_hucha
+			
 			character_event = { id = sri.184 days = 61 } # Safety flag cleanup
 		}
+		
 		ROOT = {
 			set_character_flag = aclla_is_willing
 		}
@@ -4968,6 +4866,7 @@ character_event = {
 					}
 				}
 			}
+			
 			event_target:aclla_rescue_attempt_lover = {
 				move_character = ROOT
 				add_trait = travelling
@@ -4975,7 +4874,9 @@ character_event = {
 				set_character_flag = ex_aclla # Rescued
 				clr_character_flag = no_court_invites
 				remove_trait = aclla
+				
 				character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+				
 				ROOT = {
 					set_character_flag = aclla_lover_is_coming_along
 				}
@@ -4986,6 +4887,7 @@ character_event = {
 		
 		event_target:aclla_to_rescue = {
 			clr_character_flag = aclla_being_rescued
+			
 			remove_opinion = {
 				who = ROOT
 				modifier = opinion_aclla_rescuer
@@ -4994,22 +4896,20 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					religion_openly_inca_or_reformed_trigger = no
+					trait = zealous
 				}
-				trait = zealous
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
-				NOR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
+				religion_openly_inca_or_reformed_trigger = no
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = stubborn
 			}
@@ -5025,22 +4925,20 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					religion_openly_inca_or_reformed_trigger = yes
+					trait = zealous
 				}
-				trait = zealous
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
+				religion_openly_inca_or_reformed_trigger = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = kind
 			}
@@ -5071,6 +4969,7 @@ character_event = {
 					}
 				}
 			}
+			
 			event_target:aclla_rescue_attempt_lover = {
 				move_character = FROM
 				add_trait = travelling
@@ -5078,11 +4977,14 @@ character_event = {
 				set_character_flag = ex_aclla # Rescued
 				clr_character_flag = no_court_invites
 				remove_trait = aclla
+				
 				character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+				
 				FROM = {
 					set_character_flag = aclla_lover_is_coming_along
 				}
 			}
+			
 			move_character = FROM
 			add_trait = travelling
 			set_character_flag = do_not_disturb
@@ -5092,8 +4994,10 @@ character_event = {
 			clr_character_flag = aclla_sacrifice_in_progress
 			remove_character_modifier = qhapaq_hucha
 			remove_trait = aclla
+			
 			character_event = { id = sri.184 days = 61 } # Safety flag cleanup
 		}
+		
 		FROM = {
 			set_character_flag = aclla_is_unwilling
 			character_event = { id = sri.176 days = 1 } # Escape
@@ -5101,6 +5005,7 @@ character_event = {
 		
 		event_target:aclla_to_rescue = {
 			clr_character_flag = aclla_being_rescued
+			
 			remove_opinion = {
 				who = FROM
 				modifier = opinion_aclla_rescuer
@@ -5109,22 +5014,20 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					true_inca_religion_trigger = yes
+					trait = zealous
 				}
-				trait = zealous
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
+				religion_openly_inca_or_reformed_trigger = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = stubborn
 			}
@@ -5140,10 +5043,12 @@ character_event = {
 					has_character_flag = aclla_no_more_guards
 				}
 			}
+			
 			FROM = {
 				character_event = { id = sri.169 days = 1 } # No guards
 			}
 		}
+		
 		else = {
 			FROM = {
 				character_event = { id = sri.170 days = 1 } # Guards
@@ -5152,20 +5057,20 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
-				trait = zealous
+			
+			trigger = {
+				true_inca_religion_trigger = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
+				religion_openly_inca_or_reformed_trigger = no
+			}
+			
+			mult_modifier = {
+				factor = 10
+				true_inca_religion_trigger = yes
+				trait = zealous
 			}
 		}
 	}
@@ -5191,10 +5096,12 @@ character_event = {
 					has_character_flag = aclla_no_more_guards
 				}
 			}
+			
 			FROM = {
 				character_event = { id = sri.169 days = 1 } # No guards
 			}
 		}
+		
 		else = {
 			FROM = {
 				character_event = { id = sri.170 days = 1 } # Guards
@@ -5226,6 +5133,7 @@ character_event = {
 					}
 				}
 			}
+			
 			event_target:aclla_rescue_attempt_lover = {
 				move_character = ROOT
 				add_trait = travelling
@@ -5233,12 +5141,15 @@ character_event = {
 				set_character_flag = ex_aclla # Rescued
 				clr_character_flag = no_court_invites
 				remove_trait = aclla
+				
 				character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+				
 				ROOT = {
 					set_character_flag = aclla_lover_is_coming_along
 				}
 			}
 		}
+		
 		event_target:aclla_to_rescue = {
 			move_character = ROOT
 			add_trait = travelling
@@ -5249,8 +5160,10 @@ character_event = {
 			clr_character_flag = aclla_sacrifice_in_progress
 			remove_character_modifier = qhapaq_hucha
 			remove_trait = aclla
+			
 			character_event = { id = sri.184 days = 61 } # Safety flag cleanup
 		}
+		
 		ROOT = {
 			set_character_flag = aclla_is_unwilling
 		}
@@ -5259,18 +5172,19 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cruel
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					trait = kind
-				}
-				event_target:aclla_to_rescue = {
-					any_rival = {
-						character = ROOT
+			
+			trigger = {
+				NOR = {
+					trait = cruel
+					AND = {
+						NOT = {
+							trait = kind
+						}
+						event_target:aclla_rescue_attempt_snitch = {
+							any_rival = {
+								character = ROOT
+							}
+						}
 					}
 				}
 			}
@@ -5293,6 +5207,7 @@ character_event = {
 					}
 				}
 			}
+			
 			event_target:aclla_rescue_attempt_lover = {
 				move_character = ROOT
 				add_trait = travelling
@@ -5300,7 +5215,9 @@ character_event = {
 				set_character_flag = ex_aclla # Rescued
 				clr_character_flag = no_court_invites
 				remove_trait = aclla
+				
 				character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+				
 				ROOT = {
 					set_character_flag = aclla_lover_is_coming_along
 				}
@@ -5318,27 +5235,27 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
+			
+			trigger = {
+				OR = {
 					trait = cruel
-					event_target:aclla_to_rescue = {
+					event_target:aclla_rescue_attempt_snitch = {
 						any_rival = {
 							character = ROOT
 						}
 					}
 				}
-			}
-			modifier = {
-				factor = 0
-				trait = cruel
-				event_target:aclla_to_rescue = {
-					OR = {
-						any_friend = {
-							character = ROOT
-						}
-						any_lover = {
-							character = ROOT
+				
+				NAND = {
+					trait = kind
+					event_target:aclla_rescue_attempt_snitch = {
+						OR = {
+							any_friend = {
+								character = ROOT
+							}
+							any_lover = {
+								character = ROOT
+							}
 						}
 					}
 				}
@@ -5361,57 +5278,62 @@ character_event = {
 		
 		random_list = { # No noise penalty
 			20 = {
-				modifier = {
-					factor = 0
-					NOT = {
-						combat_rating = 25
-					}
+				trigger = {
+					combat_rating >= 25
 				}
-				modifier = {
+				
+				mult_modifier = {
 					factor = 2
-					combat_rating = 75
+					combat_rating >= 75
 				}
 				character_event = { id = sri.171 days = 1 } # Clean victory
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 100
+				trigger = {
+					combat_rating < 100
 				}
+				
 				character_event = { id = sri.172 days = 1 } # Wounded
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
+				
 				character_event = { id = sri.173 days = 1 } # Maimed
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 75
+				trigger = {
+					combat_rating < 75
 				}
-				modifier = {
+				
+				
+				mult_modifier = {
 					factor = 0.5
-					combat_rating = 50
+					combat_rating >= 50
 				}
 				character_event = { id = sri.174 days = 1 } # Captured
 			}
+			
 			20 = {
-				modifier = {
-					factor = 0
-					combat_rating = 50
+				trigger = {
+					combat_rating < 50
 				}
+				
 				character_event = { id = sri.175 days = 1 } # Killed
 			}
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = craven
+			
+			trigger = {
+				NOT = {
+					trait = craven
+				}
 			}
 		}
 	}
@@ -5421,35 +5343,12 @@ character_event = {
 		
 		prestige = -25
 		
+		# TIANXIATODO: Grace penalty
+		
 		d_acllahuasi = {
 			holder_scope = {
-				ROOT = {
-					imprison = PREV
-				}
-				if = {
-					limit = {
-						has_dlc = "Jade Dragon"
-					}
-					if = {
-						limit = {
-							ROOT = {
-								is_chinese_emperor_trigger = yes
-							}
-						}
-						detract_grace_super_huge_effect = yes
-					}
-					else_if = {
-						limit = {
-							ROOT = {
-								any_close_relative = {
-									dynasty = PREV
-									is_chinese_emperor_trigger = yes
-								}
-							}
-						}
-						detract_grace_massive_effect = yes
-					}
-				}
+				reverse_imprison = ROOT
+				
 				character_event = { id = sri.138 days = 1 }
 			}
 		}
@@ -5457,15 +5356,18 @@ character_event = {
 		event_target:aclla_to_rescue = {
 			clr_character_flag = aclla_being_rescued
 		}
+		
 		event_target:aclla_rescue_attempt_lover = {
 			clr_character_flag = aclla_rescue_attempt_lover
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = brave
+			
+			trigger = {
+				NOT = {
+					trait = brave
+				}
 			}
 		}
 	}
@@ -5494,6 +5396,7 @@ character_event = {
 					}
 				}
 			}
+			
 			event_target:aclla_rescue_attempt_lover = {
 				move_character = ROOT
 				add_trait = travelling
@@ -5501,12 +5404,15 @@ character_event = {
 				set_character_flag = ex_aclla # Rescued
 				clr_character_flag = no_court_invites
 				remove_trait = aclla
+				
 				character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+				
 				ROOT = {
 					set_character_flag = aclla_lover_is_coming_along
 				}
 			}
 		}
+		
 		event_target:aclla_to_rescue = {
 			move_character = ROOT
 			add_trait = travelling
@@ -5517,8 +5423,10 @@ character_event = {
 			clr_character_flag = aclla_sacrifice_in_progress
 			remove_character_modifier = qhapaq_hucha
 			remove_trait = aclla
+			
 			character_event = { id = sri.184 days = 61 } # Safety flag cleanup
 		}
+		
 		ROOT = {
 			set_character_flag = aclla_is_unwilling
 		}
@@ -5530,18 +5438,19 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cruel
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					trait = kind
-				}
-				event_target:aclla_to_rescue = {
-					any_rival = {
-						character = ROOT
+			
+			trigger = {
+				NOR = {
+					trait = cruel
+					AND = {
+						NOT = {
+							trait = kind
+						}
+						event_target:aclla_rescue_attempt_snitch = {
+							any_rival = {
+								character = ROOT
+							}
+						}
 					}
 				}
 			}
@@ -5572,6 +5481,7 @@ character_event = {
 					}
 				}
 			}
+			
 			event_target:aclla_rescue_attempt_lover = {
 				move_character = ROOT
 				add_trait = travelling
@@ -5579,7 +5489,9 @@ character_event = {
 				set_character_flag = ex_aclla # Rescued
 				clr_character_flag = no_court_invites
 				remove_trait = aclla
+				
 				character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+				
 				ROOT = {
 					set_character_flag = aclla_lover_is_coming_along
 				}
@@ -5590,27 +5502,27 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
+			
+			trigger = {
+				OR = {
 					trait = cruel
-					event_target:aclla_to_rescue = {
+					event_target:aclla_rescue_attempt_snitch = {
 						any_rival = {
 							character = ROOT
 						}
 					}
 				}
-			}
-			modifier = {
-				factor = 0
-				trait = cruel
-				event_target:aclla_to_rescue = {
-					OR = {
-						any_friend = {
-							character = ROOT
-						}
-						any_lover = {
-							character = ROOT
+				
+				NAND = {
+					trait = kind
+					event_target:aclla_rescue_attempt_snitch = {
+						OR = {
+							any_friend = {
+								character = ROOT
+							}
+							any_lover = {
+								character = ROOT
+							}
 						}
 					}
 				}
@@ -5642,6 +5554,7 @@ character_event = {
 					}
 				}
 			}
+			
 			event_target:aclla_rescue_attempt_lover = {
 				move_character = ROOT
 				add_trait = travelling
@@ -5649,12 +5562,15 @@ character_event = {
 				set_character_flag = ex_aclla # Rescued
 				clr_character_flag = no_court_invites
 				remove_trait = aclla
+				
 				character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+				
 				ROOT = {
 					set_character_flag = aclla_lover_is_coming_along
 				}
 			}
 		}
+		
 		event_target:aclla_to_rescue = {
 			move_character = ROOT
 			add_trait = travelling
@@ -5665,7 +5581,9 @@ character_event = {
 			clr_character_flag = aclla_sacrifice_in_progress
 			remove_character_modifier = qhapaq_hucha
 			remove_trait = aclla
+			
 			character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+			
 			ROOT = {
 				set_character_flag = aclla_is_unwilling
 			}
@@ -5679,18 +5597,19 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cruel
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					trait = kind
-				}
-				event_target:aclla_to_rescue = {
-					any_rival = {
-						character = ROOT
+			
+			trigger = {
+				NOR = {
+					trait = cruel
+					AND = {
+						NOT = {
+							trait = kind
+						}
+						event_target:aclla_rescue_attempt_snitch = {
+							any_rival = {
+								character = ROOT
+							}
+						}
 					}
 				}
 			}
@@ -5722,6 +5641,7 @@ character_event = {
 					}
 				}
 			}
+			
 			event_target:aclla_rescue_attempt_lover = {
 				move_character = ROOT
 				add_trait = travelling
@@ -5729,7 +5649,9 @@ character_event = {
 				set_character_flag = ex_aclla # Rescued
 				clr_character_flag = no_court_invites
 				remove_trait = aclla
+				
 				character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+				
 				ROOT = {
 					set_character_flag = aclla_lover_is_coming_along
 				}
@@ -5740,27 +5662,27 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
+			
+			trigger = {
+				OR = {
 					trait = cruel
-					event_target:aclla_to_rescue = {
+					event_target:aclla_rescue_attempt_snitch = {
 						any_rival = {
 							character = ROOT
 						}
 					}
 				}
-			}
-			modifier = {
-				factor = 0
-				trait = cruel
-				event_target:aclla_to_rescue = {
-					OR = {
-						any_friend = {
-							character = ROOT
-						}
-						any_lover = {
-							character = ROOT
+				
+				NAND = {
+					trait = kind
+					event_target:aclla_rescue_attempt_snitch = {
+						OR = {
+							any_friend = {
+								character = ROOT
+							}
+							any_lover = {
+								character = ROOT
+							}
 						}
 					}
 				}
@@ -5792,6 +5714,7 @@ character_event = {
 					}
 				}
 			}
+			
 			event_target:aclla_rescue_attempt_lover = {
 				move_character = ROOT
 				add_trait = travelling
@@ -5799,12 +5722,15 @@ character_event = {
 				set_character_flag = ex_aclla # Rescued
 				clr_character_flag = no_court_invites
 				remove_trait = aclla
+				
 				character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+				
 				ROOT = {
 					set_character_flag = aclla_lover_is_coming_along
 				}
 			}
 		}
+		
 		event_target:aclla_to_rescue = {
 			move_character = ROOT
 			add_trait = travelling
@@ -5815,7 +5741,9 @@ character_event = {
 			clr_character_flag = aclla_sacrifice_in_progress
 			remove_character_modifier = qhapaq_hucha
 			remove_trait = aclla
+			
 			character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+			
 			ROOT = {
 				set_character_flag = aclla_is_unwilling
 			}
@@ -5828,18 +5756,19 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cruel
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					trait = kind
-				}
-				event_target:aclla_to_rescue = {
-					any_rival = {
-						character = ROOT
+			
+			trigger = {
+				NOR = {
+					trait = cruel
+					AND = {
+						NOT = {
+							trait = kind
+						}
+						event_target:aclla_rescue_attempt_snitch = {
+							any_rival = {
+								character = ROOT
+							}
+						}
 					}
 				}
 			}
@@ -5870,6 +5799,7 @@ character_event = {
 					}
 				}
 			}
+			
 			event_target:aclla_rescue_attempt_lover = {
 				move_character = ROOT
 				add_trait = travelling
@@ -5877,7 +5807,9 @@ character_event = {
 				set_character_flag = ex_aclla # Rescued
 				clr_character_flag = no_court_invites
 				remove_trait = aclla
+				
 				character_event = { id = sri.184 days = 61 } # Safety flag cleanup
+				
 				ROOT = {
 					set_character_flag = aclla_lover_is_coming_along
 				}
@@ -5888,27 +5820,27 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				NOR = {
+			
+			trigger = {
+				OR = {
 					trait = cruel
-					event_target:aclla_to_rescue = {
+					event_target:aclla_rescue_attempt_snitch = {
 						any_rival = {
 							character = ROOT
 						}
 					}
 				}
-			}
-			modifier = {
-				factor = 0
-				trait = cruel
-				event_target:aclla_to_rescue = {
-					OR = {
-						any_friend = {
-							character = ROOT
-						}
-						any_lover = {
-							character = ROOT
+				
+				NAND = {
+					trait = kind
+					event_target:aclla_rescue_attempt_snitch = {
+						OR = {
+							any_friend = {
+								character = ROOT
+							}
+							any_lover = {
+								character = ROOT
+							}
 						}
 					}
 				}
@@ -5931,35 +5863,12 @@ character_event = {
 		
 		prestige = -25
 		
+		# TIANXIATODO: Grace penalty
+		
 		d_acllahuasi = {
 			holder_scope = {
-				ROOT = {
-					imprison = PREV
-				}
-				if = {
-					limit = {
-						has_dlc = "Jade Dragon"
-					}
-					if = {
-						limit = {
-							ROOT = {
-								is_chinese_emperor_trigger = yes
-							}
-						}
-						detract_grace_super_huge_effect = yes
-					}
-					else_if = {
-						limit = {
-							ROOT = {
-								any_close_relative = {
-									dynasty = PREV
-									is_chinese_emperor_trigger = yes
-								}
-							}
-						}
-						detract_grace_massive_effect = yes
-					}
-				}
+				reverse_imprison = ROOT
+				
 				character_event = { id = sri.138 days = 1 }
 			}
 		}
@@ -6017,6 +5926,7 @@ character_event = {
 			}
 			character_event = { id = sri.177 }
 		}
+		
 		else_if = {
 			limit = {
 				has_character_flag = aclla_is_unwilling
@@ -6024,24 +5934,28 @@ character_event = {
 			}
 			character_event = { id = sri.178 }
 		}
+		
 		else_if = {
 			limit = {
 				has_character_flag = aclla_is_willing
 			}
 			character_event = { id = sri.179 }
 		}
+		
 		else_if = {
 			limit = {
 				has_character_flag = aclla_is_unwilling
 			}
 			character_event = { id = sri.180 }
 		}
+		
 		else_if = {
 			limit = {
 				has_character_flag = aclla_lover_is_coming_along
 			}
 			character_event = { id = sri.181 }
 		}
+		
 		else = {
 			character_event = { id = sri.182 }
 		}
@@ -6167,10 +6081,13 @@ character_event = {
 			limit = {
 				has_character_flag = aclla_lover_is_coming_along
 			}
+			
 			prestige = 25
+			
 			event_target:aclla_rescue_attempt_lover = {
 				remove_trait = travelling
 				clr_character_flag = do_not_disturb
+				
 				character_event = { id = sri.185 days = 30 random = 30 } # See if lover wants to be more
 			}
 		}
@@ -6182,7 +6099,9 @@ character_event = {
 					has_character_flag = aclla_is_unwilling
 				}
 			}
+			
 			prestige = 25
+			
 			event_target:aclla_to_rescue = {
 				remove_trait = travelling
 				clr_character_flag = do_not_disturb
@@ -6222,8 +6141,24 @@ character_event = {
 			is_female = no
 			is_inaccessible_or_incapable_trigger = no
 			is_alive = yes
-			is_married = no
-			is_consort = no
+			OR = {
+				is_married = no
+				AND = {
+					OR = {
+						has_religion_feature = religion_harems
+						has_religion_feature = religion_feature_tengri
+						has_religion_feature = religion_feature_zun
+						has_religion_feature = religion_feature_nivkh
+					}
+					NOT = {
+						num_of_spouses = 4
+					}
+				}
+			}
+			OR = {
+				is_consort = no
+				is_senior_consort_party = yes
+			}
 			is_betrothed = no
 			any_lover = {
 				character = ROOT
@@ -6240,6 +6175,8 @@ character_event = {
 						OR = {
 							has_religion_feature = religion_harems
 							has_religion_feature = religion_feature_tengri
+							has_religion_feature = religion_feature_zun
+							has_religion_feature = religion_feature_nivkh
 						}
 						NOT = {
 							num_of_spouses = 4
@@ -6251,14 +6188,7 @@ character_event = {
 		
 		name = EVTOPTA_SRI_185 # I want to marry FROM!
 		
-		if = {
-			limit = {
-				NOT = {
-					trait = ambitious
-				}
-			}
-			add_trait = ambitious
-		}
+		add_trait_ambitious_effect = yes
 		
 		FROM = {
 			character_event = { id = sri.186 } # FROM approached
@@ -6266,11 +6196,14 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = content
+			
+			trigger = {
+				NOT = {
+					trait = content
+				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = humble
 			}
@@ -6279,6 +6212,7 @@ character_event = {
 	
 	option = {
 		trigger = {
+			is_landed = no
 			FROM = {
 				OR = {
 					AND = {
@@ -6287,29 +6221,30 @@ character_event = {
 							government = tribal_government
 							government = nomadic_government
 						}
-						NOT = {
-							num_of_consorts = 3
-						}
+						
+						num_of_consorts < 3
 					}
+					
+					AND = {
+						government = eastern_imperial_government
+						
+						num_of_consorts < 10
+					}
+					
 					AND = {
 						OR = { # Theoretically possible to max out consorts, but yeah...
 							government = chinese_imperial_government
 							government = japanese_imperial_government
 							government = divine_imperial_government
 						}
+						
+						num_of_consorts < 100
 					}
 				}
 			}
 		}
 		
-		if = {
-			limit = {
-				NOT = {
-					trait = ambitious
-				}
-			}
-			add_trait = ambitious
-		}
+		add_trait_ambitious_effect = yes
 		
 		name = EVTOPTB_SRI_185 # I want to be a consort!
 		
@@ -6319,17 +6254,17 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				FROM = {
-					is_married = no # Better!
+			
+			trigger = {
+				NOR = {
+					FROM = {
+						is_married = yes
+					}
+					trait = content
 				}
 			}
-			modifier = {
-				factor = 0
-				trait = content
-			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = humble
 			}
@@ -6339,28 +6274,25 @@ character_event = {
 	option = {
 		name = EVTOPTC_SRI_185 # This is fine...
 		
-		if = {
-			limit = {
-				NOT = {
-					trait = content
-				}
-			}
-			add_trait = content
-		}
+		add_trait_content_effect = yes
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
+			
+			trigger = {
+				NOT = {
+					trait = ambitious
+				}
+			}
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = proud
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = envious
-			}
-			modifier = {
-				factor = 0
-				trait = ambitious
 			}
 		}
 	}
@@ -6418,7 +6350,8 @@ character_event = {
 character_event = {
 	id = sri.188
 	hide_window = yes
-	is_triggered_only = yes
+	
+	is_triggered_only = yes # on_adulthood
 	
 	has_dlc = "Sunset Invasion"
 	
@@ -6428,13 +6361,15 @@ character_event = {
 	
 	trigger = {
 		trait = aclla
-		e_tawantinsuyu = {
-			has_holder = yes
-			holder_scope = {
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
+		
+		host = {
+			has_landed_title = d_acllahuasi
+			
+			any_liege = {
+				has_landed_title = e_inca_empire
+				
+				religion_openly_inca_or_reformed_trigger = yes
+				
 				NOR = {
 					has_religion_feature = religion_matriarchal
 					has_religion_feature = religion_equal
@@ -6451,40 +6386,46 @@ character_event = {
 					has_character_flag = aclla_rescue_attempt_snitch
 				}
 			}
-			repeat_event = { id = sri.188 days = 30 } # We don't want the other chain to collide with this one...
+			
+			repeat_event = { id = sri.188 days = 30 random = 60 } # We don't want the other chain to collide with this one...
 		}
+		
 		else = {
 			random_list = {
 				20 = { # Tier 1, sacrifice
-					modifier = {
+					mult_modifier = {
 						factor = 2
-						trait = fair
+						trait = attractive
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
 						trait = groomed
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
 						is_smart_trigger = yes
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 1.5
 						has_character_modifier = aclla_prodigious_weaver
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 1.4
 						trait = zealous
-						OR = {
-							religion = inca_religion
-							religion = inca_religion_reformed
-						}
+						religion_openly_inca_or_reformed_trigger = yes
 					}
+					
 					add_character_modifier = {
 						modifier = yurac_aclla
 						duration = -1
 					}
+					
 					prestige = 250
+					
 					any_close_relative = {
 						limit = {
 							is_landed = yes
@@ -6492,13 +6433,15 @@ character_event = {
 						character_event = { id = sri.189 } # Alert family 
 					}
 				}
+				
 				20 = { # Tier 2, marrige to Sapa Inca
-					modifier = {
-						factor = 0
-						e_tawantinsuyu = {
+					
+					trigger = {
+						e_inca_empire = {
 							holder_scope = {
-								OR = {
+								NOR = {
 									is_female = yes
+									
 									AND = {
 										is_married = yes
 										NOT = {
@@ -6506,8 +6449,10 @@ character_event = {
 										}
 									}
 									num_of_spouses = 4
+									
 									AND = {
 										is_close_relative = ROOT
+										
 										NOR = {
 											any_sibling = {
 												character = ROOT
@@ -6519,89 +6464,121 @@ character_event = {
 							}
 						}
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 1.5
-						trait = fair
+						trait = attractive
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 1.5
 						has_character_modifier = aclla_prodigious_weaver
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 6
-						OR = {
-							trait = shrewd
-							trait = quick
-							trait = genius
-						}
+						is_smart_trigger = yes
 					}
+					
 					add_character_modifier = {
 						modifier = huayru_aclla
 						duration = -1
 					}
+					
 					prestige = 199
+					
 					set_character_flag = aclla_being_married
-					e_tawantinsuyu = {
+					
+					e_inca_empire = {
 						holder_scope = {
 							character_event = { id = sri.190 } # Sapa Inca asked about marriage
 						}
 					}
 				}
+				
 				40 = { # Tier 3, marriage to vassal
 					add_character_modifier = {
 						modifier = pacu_aclla
 						duration = -1
 					}
+					
 					prestige = 100
+					
 					set_character_flag = aclla_being_married
+					
 					character_event = { id = sri.192 } # Ping to set up vassal marriage
 				}
+				
 				20 = { # Tier 4, servitude
-					modifier = {
-						factor = 1.5
-						has_character_modifier = aclla_dancer
-					}
-					modifier = {
-						factor = 1.5
-						has_character_modifier = aclla_singer
-					}
-					modifier = {
-						factor = 1.5
-						has_character_modifier = aclla_brewer
-					}
-					modifier = {
-						factor = 1.5
-						has_character_modifier = aclla_cook
-					}
-					modifier = { # Can't become a servant if you can't do nothing
-						factor = 0
-						NOR = {
+					trigger = {
+						OR = {
 							has_character_modifier = aclla_cook
 							has_character_modifier = aclla_dancer
 							has_character_modifier = aclla_singer
 							has_character_modifier = aclla_brewer
 						}
 					}
+					
+					mult_modifier = {
+						factor = 1.5
+						has_character_modifier = aclla_dancer
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						has_character_modifier = aclla_singer
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						has_character_modifier = aclla_brewer
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						has_character_modifier = aclla_cook
+					}
+					
 					add_character_modifier = {
 						modifier = yana_aclla
 						duration = -1
 					}
+					
 					prestige = 50
-					e_tawantinsuyu = {
+					
+					e_inca_empire = {
 						holder_scope = {
 							random_realm_lord = {
+								preferred_limit = {
+									religion_openly_inca_or_reformed_trigger = yes
+									reverse_opinion = {
+										who = PREV
+										value = 25
+									}
+								}
+								
+								preferred_limit = {
+									religion_openly_inca_or_reformed_trigger = yes
+									reverse_opinion = {
+										who = PREV
+										value = 0
+									}
+								}
+								
 								preferred_limit = {
 									reverse_opinion = {
 										who = PREV
 										value = 25
 									}
 								}
+								
 								preferred_limit = {
 									reverse_opinion = {
 										who = PREV
 										value = 0
 									}
 								}
+								
 								character_event = { id = sri.195 } # Have a servant!
 							}
 						}
@@ -6623,18 +6600,18 @@ character_event = {
 	
 	option = {
 		trigger = {
-			OR = {
-				true_religion = inca_religion
-				true_religion = inca_religion_reformed
-			}
+			true_inca_religion_trigger = yes
 		}
+		
 		name = EVTOPTA_SRI_189 # That's great!
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = cynical
+			
+			trigger = {
+				NOT = {
+					trait = cynical
+				}
 			}
 		}
 	}
@@ -6644,12 +6621,9 @@ character_event = {
 		
 		if = {
 			limit = {
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				true_inca_religion_trigger = yes
 			}
-			remove_trait = zealous
+			remove_trait_zealous_effect = yes
 		}
 		
 		FROM = {
@@ -6665,13 +6639,12 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					true_inca_religion_trigger = yes
+					trait = zealous
 				}
-				trait = zealous
 			}
 		}
 	}
@@ -6692,8 +6665,10 @@ character_event = {
 				is_female = no
 				is_adult = yes
 				is_ascetic_trigger = no
+				
 				NOT = { trait = eunuch }
 				NOT = { trait = celibate }
+				
 				NOR = {
 					AND = {
 						is_married = yes
@@ -6701,11 +6676,15 @@ character_event = {
 							has_religion_feature = religion_harems
 							has_religion_feature = religion_feature_zun
 							has_religion_feature = religion_feature_tengri
+							has_religion_feature = religion_feature_nivkh
 						}
 					}
+					
 					num_of_spouses = 4
+					
 					AND = {
 						is_close_relative = FROM
+						
 						NOR = {
 							any_sibling = {
 								character = FROM
@@ -6717,20 +6696,24 @@ character_event = {
 						}
 					}
 				}
+				
 				host = { character = PREV }
 				is_landed = no
 			}
+			
 			save_event_target_as = relative_to_marry_aclla
 		}
 	}
 	
 	option = {
 		name = EVTOPTA_SRI_190 # Sure!
+		
 		FROM = {
 			clr_character_flag = aclla_being_married
 			clr_character_flag = no_court_invites
 			remove_trait = aclla # Marriage blocker
 		}
+		
 		add_spouse = FROM
 		prestige = 250
 		piety = 150
@@ -6745,15 +6728,18 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
+			
+			mult_modifier = {
 				factor = 100
 				trait = zealous
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.01
 				trait = cynical
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0
 				trait = homosexual
 			}
@@ -6766,7 +6752,8 @@ character_event = {
 				always = yes
 			}
 		}
-		name = EVTOPTB_SRI_190 # Something for my heir, perhaps?
+		
+		name = EVTOPTB_SRI_190 # Something for my kinsman, perhaps?
 		
 		event_target:relative_to_marry_aclla = {
 			FROM = {
@@ -6774,6 +6761,7 @@ character_event = {
 				clr_character_flag = no_court_invites
 				remove_trait = aclla # Marriage blocker
 			}
+			
 			add_spouse = FROM
 			prestige = 150
 			piety = 100
@@ -6789,15 +6777,18 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
+			
+			mult_modifier = {
 				factor = 100
 				trait = zealous
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.01
 				trait = cynical
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0
 				event_target:relative_to_marry_aclla = {
 					trait = homosexual
@@ -6808,15 +6799,19 @@ character_event = {
 
 	option = {
 		name = EVTOPTC_SRI_190 # Nah, let the vassals have her.
+		
 		piety = -50
 		
 		FROM = {
 			remove_character_modifier = huayru_aclla
+			
 			add_character_modifier = {
 				modifier = pacu_aclla
 				duration = -1
 			}
+			
 			prestige = -100
+			
 			hidden_tooltip = {
 				character_event = { id = sri.192 } # Ping
 			}
@@ -6854,7 +6849,7 @@ character_event = {
 				}
 			}
 			
-			e_tawantinsuyu = {
+			e_inca_empire = {
 				holder_scope = {
 					random_realm_lord = {
 						limit = {
@@ -6866,9 +6861,12 @@ character_event = {
 										has_religion_feature = religion_harems
 										has_religion_feature = religion_feature_zun
 										has_religion_feature = religion_feature_tengri
+										has_religion_feature = religion_feature_nivkh
 									}
 								}
+								
 								num_of_spouses = 4
+								
 								AND = {
 									is_close_relative = ROOT
 									NOR = {
@@ -6883,55 +6881,89 @@ character_event = {
 								}
 							}
 						}
+						
 						preferred_limit = {
-							OR = {
-								religion = inca_religion
-								religion = inca_religion_reformed
+							religion_openly_inca_or_reformed_trigger = yes
+							reverse_opinion = {
+								who = PREV
+								value = 25
 							}
 						}
+						
+						preferred_limit = {
+							religion_openly_inca_or_reformed_trigger = yes
+							reverse_opinion = {
+								who = PREV
+								value = 0
+							}
+						}
+						
 						preferred_limit = {
 							reverse_opinion = {
 								who = PREV
 								value = 25
 							}
 						}
+						
 						preferred_limit = {
 							reverse_opinion = {
 								who = PREV
 								value = 0
 							}
 						}
+						
 						character_event = {
 							id = sri.193 # Here, have a wife!
-							days = 3
 						}
 					}
 				}
 			}
 		}
+		
 		else = {
 			clr_character_flag = aclla_being_married
 			remove_character_modifier = pacu_aclla
+			
 			add_character_modifier = {
 				modifier = yana_aclla
 				duration = -1
 			}
+			
 			prestige = -100
-			e_tawantinsuyu = {
+			
+			e_inca_empire = {
 				holder_scope = {
 					random_realm_lord = {
+						preferred_limit = {
+							religion_openly_inca_or_reformed_trigger = yes
+							reverse_opinion = {
+								who = PREV
+								value = 25
+							}
+						}
+						
+						preferred_limit = {
+							religion_openly_inca_or_reformed_trigger = yes
+							reverse_opinion = {
+								who = PREV
+								value = 0
+							}
+						}
+						
 						preferred_limit = {
 							reverse_opinion = {
 								who = PREV
 								value = 25
 							}
 						}
+						
 						preferred_limit = {
 							reverse_opinion = {
 								who = PREV
 								value = 0
 							}
 						}
+						
 						character_event = { id = sri.195 } # Here, have a servant!
 					}
 				}
@@ -6955,8 +6987,10 @@ character_event = {
 				is_female = no
 				is_adult = yes
 				is_ascetic_trigger = no
+				
 				NOT = { trait = eunuch }
 				NOT = { trait = celibate }
+				
 				NOR = {
 					AND = {
 						is_married = yes
@@ -6964,9 +6998,12 @@ character_event = {
 							has_religion_feature = religion_harems
 							has_religion_feature = religion_feature_zun
 							has_religion_feature = religion_feature_tengri
+							has_religion_feature = religion_feature_nivkh
 						}
 					}
+					
 					num_of_spouses = 4
+					
 					AND = {
 						is_close_relative = FROM
 						NOR = {
@@ -6980,9 +7017,11 @@ character_event = {
 						}
 					}
 				}
+				
 				host = { character = PREV }
 				is_landed = no
 			}
+			
 			save_event_target_as = relative_to_marry_aclla
 		}
 	}
@@ -6990,11 +7029,13 @@ character_event = {
 	
 	option = {
 		name = EVTOPTA_SRI_193 # Sure!
+		
 		FROM = {
 			clr_character_flag = aclla_being_married
 			clr_character_flag = no_court_invites
 			remove_trait = aclla # Marriage blocker
 		}
+		
 		add_spouse = FROM
 		prestige = 250
 		piety = 150
@@ -7009,23 +7050,20 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
+			
+			mult_modifier = {
 				factor = 100
 				trait = zealous
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
+				religion_openly_inca_or_reformed_trigger = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.01
 				trait = cynical
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
+				religion_openly_inca_or_reformed_trigger = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0
 				trait = homosexual
 			}
@@ -7038,7 +7076,8 @@ character_event = {
 				always = yes
 			}
 		}
-		name = EVTOPTB_SRI_193 # Something for my heir, perhaps?
+		
+		name = EVTOPTB_SRI_193 # Something for my kinsman, perhaps?
 		
 		event_target:relative_to_marry_aclla = {
 			FROM = {
@@ -7046,6 +7085,7 @@ character_event = {
 				clr_character_flag = no_court_invites
 				remove_trait = aclla # Marriage blocker
 			}
+			
 			add_spouse = FROM
 			prestige = 150
 			piety = 100
@@ -7061,23 +7101,20 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
+			
+			mult_modifier = {
 				factor = 100
 				trait = zealous
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
+				religion_openly_inca_or_reformed_trigger = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.01
 				trait = cynical
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
+				religion_openly_inca_or_reformed_trigger = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0
 				event_target:relative_to_marry_aclla = {
 					trait = homosexual
@@ -7092,7 +7129,7 @@ character_event = {
 		FROM = {
 			prestige = -10
 			hidden_tooltip = {
-				character_event = { id = sri.192 } # Try again
+				character_event = { id = sri.192 days = 30 random = 30 } # Try again
 			}
 		}
 	}
@@ -7135,14 +7172,14 @@ character_event = {
 
 ##### Servant events
 
-# Dancer dances; triggered on yearly pulse
+# Dancer dances; triggered on_bi_yearly_pulse
 character_event = {
 	id = sri.196
 	desc = EVTDESC_SRI_196
 	picture = GFX_evt_dancing
 	border = GFX_event_normal_frame_religion
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # on_bi_yearly_pulse, aclla_events
 	
 	has_dlc = "Sunset Invasion"
 	
@@ -7154,6 +7191,7 @@ character_event = {
 		any_courtier = {
 			has_character_modifier = aclla_dancer
 		}
+		
 		OR = {
 			trait = stressed
 			trait = depressed
@@ -7172,35 +7210,43 @@ character_event = {
 	
 	option = {
 		name = EVTOPTA_SRI_196 # Entrancing...
-		if = {
-			limit = {
-				trait = stressed
+		
+		random_list = {
+			10 = {
+				trigger = {
+					trait = stressed
+				}
+				
+				remove_trait_stressed_effect = yes
 			}
-			remove_trait = stressed
-		}
-		if = {
-			limit = {
-				trait = depressed
+			
+			10 = {
+				trigger = {
+					trait = depressed
+				}
+				
+				remove_trait_depressed_effect = yes
 			}
-			remove_trait = depressed
-		}
-		if = {
-			limit = {
-				trait = paranoid
+			
+			10 = {
+				trigger = {
+					trait = paranoid
+				}
+				
+				remove_trait_paranoid_effect = yes
 			}
-			remove_trait = paranoid
 		}
 	}
 }
 
-# Singer sings; triggered on yearly pulse
+# Singer sings; triggered on_bi_yearly_pulse
 character_event = {
 	id = sri.197
 	desc = EVTDESC_SRI_197
 	picture = GFX_evt_dancing
 	border = GFX_event_normal_frame_religion
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # on_bi_yearly_pulse, aclla_events
 	
 	has_dlc = "Sunset Invasion"
 	
@@ -7225,30 +7271,24 @@ character_event = {
 	
 	option = {
 		name = EVTOPTA_SRI_197 # Entrancing...
+		
 		prestige = 25
-		if = {
-			limit = {
-				trait = humble
-			}
-			remove_trait = humble
-		}
-		else = {
-			random = {
-				chance = 30
-				add_trait = proud
-			}
+		
+		random = {
+			chance = 30
+			add_trait_partially_proud_effect = yes
 		}
 	}
 }
 
-# Brewer brews; triggered on yearly pulse
+# Brewer brews; triggered on_bi_yearly_pulse
 character_event = {
 	id = sri.198
 	desc = EVTDESC_SRI_198
 	picture = GFX_evt_feast
 	border = GFX_event_normal_frame_religion
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # on_bi_yearly_pulse, aclla_events
 	
 	has_dlc = "Sunset Invasion"
 	
@@ -7262,6 +7302,7 @@ character_event = {
 			trait = depressed
 			trait = paranoid
 		}
+		
 		any_courtier = {
 			has_character_modifier = aclla_brewer
 		}
@@ -7278,47 +7319,48 @@ character_event = {
 	
 	option = {
 		name = EVTOPTA_SRI_198 # Delicious!
-		if = {
-			limit = {
-				trait = stressed
+		
+		random_list = {
+			10 = {
+				trigger = {
+					trait = stressed
+				}
+				
+				remove_trait_stressed_effect = yes
 			}
-			remove_trait = stressed
+			
+			10 = {
+				trigger = {
+					trait = depressed
+				}
+				
+				remove_trait_depressed_effect = yes
+			}
+			
+			10 = {
+				trigger = {
+					trait = paranoid
+				}
+				
+				remove_trait_paranoid_effect = yes
+			}
 		}
-		if = {
-			limit = {
-				trait = depressed
-			}
-			remove_trait = depressed
-		}
-		if = {
-			limit = {
-				trait = paranoid
-			}
-			remove_trait = paranoid
-		}
-		if = {
-			limit = {
-				trait = temperate
-			}
-			remove_trait = temperate
-		}
-		else = {
-			random = {
-				chance = 30
-				add_trait = drunkard
-			}
+		
+		random = {
+			chance = 30
+			add_trait_partially_drunkard_effect = yes
 		}
 	}
 }
 
-# Cook cooks; triggered on yearly pulse
+# Cook cooks; triggered on_bi_yearly_pulse
 character_event = {
 	id = sri.199
 	desc = EVTDESC_SRI_199
 	picture = GFX_evt_fancy_feast
 	border = GFX_event_normal_frame_religion
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # on_bi_yearly_pulse, aclla_events
 	
 	has_dlc = "Sunset Invasion"
 	
@@ -7332,6 +7374,7 @@ character_event = {
 			trait = depressed
 			trait = paranoid
 		}
+		
 		any_courtier = {
 			has_character_modifier = aclla_cook
 		}
@@ -7348,35 +7391,36 @@ character_event = {
 	
 	option = {
 		name = EVTOPTA_SRI_199 # Delicious!
-		if = {
-			limit = {
-				trait = stressed
+		
+		random_list = {
+			10 = {
+				trigger = {
+					trait = stressed
+				}
+				
+				remove_trait_stressed_effect = yes
 			}
-			remove_trait = stressed
+			
+			10 = {
+				trigger = {
+					trait = depressed
+				}
+				
+				remove_trait_depressed_effect = yes
+			}
+			
+			10 = {
+				trigger = {
+					trait = paranoid
+				}
+				
+				remove_trait_paranoid_effect = yes
+			}
 		}
-		if = {
-			limit = {
-				trait = depressed
-			}
-			remove_trait = depressed
-		}
-		if = {
-			limit = {
-				trait = paranoid
-			}
-			remove_trait = paranoid
-		}
-		if = {
-			limit = {
-				trait = temperate
-			}
-			remove_trait = temperate
-		}
-		else = {
-			random = {
-				chance = 30
-				add_trait = gluttonous
-			}
+		
+		random = {
+			chance = 30
+			add_trait_partially_gluttonous_effect = yes
 		}
 	}
 }
@@ -7387,7 +7431,7 @@ character_event = {
 
 ### Startup
 
-# on_new_holder (any_kind) for e_tawantinsuyu
+# on_new_holder (any_kind) for e_inca_empire
 character_event = {
 	id = sri.200
 	hide_window = yes
@@ -7396,18 +7440,17 @@ character_event = {
 	
 	has_dlc = "Sunset Invasion"
 	
-	only_playable = yes
+	only_independent = yes
 	
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
 		FROM = {
-			title = e_tawantinsuyu
+			title = e_inca_empire # TIANXIATODO
 		}
-		OR = {
-			religion = inca_religion
-			religion = inca_religion_reformed
-		}
+		
+		religion_openly_inca_or_reformed_trigger = yes
+		
 		NOR = {
 			has_religion_feature = religion_matriarchal
 			has_religion_feature = religion_equal
@@ -7419,12 +7462,12 @@ character_event = {
 	}
 }
 
-# on_war_lost for e_tawantinsuyu - e_tawantinsuyu was the attacker
+# on_war_ended_defeat for e_inca_empire - e_inca_empire was the attacker
 character_event = {
 	id = sri.201
 	hide_window = yes
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # on_war_ended_defeat
 	
 	has_dlc = "Sunset Invasion"
 	
@@ -7434,11 +7477,10 @@ character_event = {
 	
 	trigger = {
 		FROM = { # Attacker
-			has_landed_title = e_tawantinsuyu
-			OR = {
-				religion = inca_religion
-				religion = inca_religion_reformed
-			}
+			has_landed_title = e_inca_empire
+			
+			religion_openly_inca_or_reformed_trigger = yes
+			
 			NOR = {
 				has_religion_feature = religion_matriarchal
 				has_religion_feature = religion_equal
@@ -7453,7 +7495,7 @@ character_event = {
 	}
 }
 
-# Ping e_tawantinsuyu's holder
+# Ping e_inca_empire's holder
 character_event = {
 	id = sri.202
 	hide_window = yes
@@ -7465,25 +7507,24 @@ character_event = {
 	}
 }
 
-# on_war_lost for e_tawantinsuyu - e_tawantinsuyu was the defender
+# on_war_ended_defeat for e_inca_empire - e_inca_empire was the defender
 character_event = {
 	id = sri.203
 	hide_window = yes
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # on_war_ended_defeat
 	
 	has_dlc = "Sunset Invasion"
 	
-	only_playable = yes
+	only_independent = yes
 	
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
-		OR = {
-			religion = inca_religion
-			religion = inca_religion_reformed
-		}
+		has_landed_title = e_inca_empire
+		
+		religion_openly_inca_or_reformed_trigger = yes
+		
 		NOR = {
 			has_religion_feature = religion_matriarchal
 			has_religion_feature = religion_equal
@@ -7495,7 +7536,7 @@ character_event = {
 	}
 }
 
-# Ping self - delay one day to see if e_tawantinsuyu was disabled
+# Ping self - delayed one day to see if e_inca_empire was disabled
 character_event = {
 	id = sri.204
 	hide_window = yes
@@ -7506,19 +7547,19 @@ character_event = {
 	immediate = {
 		if = {
 			limit = {
-				has_landed_title = e_tawantinsuyu
-				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
-				}
+				has_landed_title = e_inca_empire
+				
+				religion_openly_inca_or_reformed_trigger = yes
+				
 				NOR = {
 					has_religion_feature = religion_matriarchal
 					has_religion_feature = religion_equal
 				}
 			}
+			
 			d_acllahuasi = {
 				holder_scope = {
-					character_event = { id = sri.205 }
+					character_event = { id = sri.205 } # Ping
 				}
 			}
 		}
@@ -7536,19 +7577,80 @@ character_event = {
 		random_courtier = {
 			limit = {
 				trait = aclla
+				
 				NOT = {
 					has_character_flag = aclla_being_sacrificed
 				}
+				
+				has_character_modifier = yurac_aclla
+			}
+			
+			preferred_limit = {
+				NOR = {
+					has_character_flag = aclla_being_rescued
+					has_character_flag = aclla_rescue_attempt_lover
+					has_character_flag = aclla_rescue_attempt_snitch
+					has_character_flag = aclla_being_married
+				}
+				
 				NOT = {
 					any_dynasty_member = {
 						OR = {
-							has_landed_title = e_tawantinsuyu
-							has_landed_title = d_sapa_inca
+							has_landed_title = e_inca_empire
+							#has_landed_title = d_sapa_inca # TIANXIATODO
 						}
 					}
 				}
-				has_character_modifier = yurac_aclla
 			}
+			
+			preferred_limit = {
+				NOR = {
+					has_character_flag = aclla_being_rescued
+					has_character_flag = aclla_rescue_attempt_lover
+					has_character_flag = aclla_rescue_attempt_snitch
+				}
+				
+				NOT = {
+					any_dynasty_member = {
+						OR = {
+							has_landed_title = e_inca_empire
+							#has_landed_title = d_sapa_inca # TIANXIATODO
+						}
+					}
+				}
+			}
+			
+			preferred_limit = {
+				NOR = {
+					has_character_flag = aclla_being_rescued
+					has_character_flag = aclla_rescue_attempt_lover
+				}
+				
+				NOT = {
+					any_dynasty_member = {
+						OR = {
+							has_landed_title = e_inca_empire
+							#has_landed_title = d_sapa_inca # TIANXIATODO
+						}
+					}
+				}
+			}
+			
+			preferred_limit = {
+				NOT = {
+					has_character_flag = aclla_being_rescued
+				}
+				
+				NOT = {
+					any_dynasty_member = {
+						OR = {
+							has_landed_title = e_inca_empire
+							#has_landed_title = d_sapa_inca # TIANXIATODO
+						}
+					}
+				}
+			}
+			
 			preferred_limit = {
 				NOR = {
 					has_character_flag = aclla_being_rescued
@@ -7557,6 +7659,7 @@ character_event = {
 					has_character_flag = aclla_being_married
 				}
 			}
+			
 			preferred_limit = {
 				NOR = {
 					has_character_flag = aclla_being_rescued
@@ -7564,21 +7667,25 @@ character_event = {
 					has_character_flag = aclla_rescue_attempt_snitch
 				}
 			}
+			
 			preferred_limit = {
 				NOR = {
 					has_character_flag = aclla_being_rescued
 					has_character_flag = aclla_rescue_attempt_lover
 				}
 			}
+			
 			preferred_limit = {
 				NOT = {
 					has_character_flag = aclla_being_rescued
 				}
 			}
+			
 			add_character_modifier = {
 				modifier = qhapaq_hucha
 				duration = -1
 			}
+			
 			add_trait = groomed
 			character_event = { id = sri.206 }
 		}
@@ -7594,6 +7701,7 @@ character_event = {
 	
 	immediate = {
 		set_character_flag = aclla_being_sacrificed
+		
 		any_close_relative = {
 			limit = {
 				is_landed = yes
@@ -7616,30 +7724,32 @@ character_event = {
 	
 	option = {
 		trigger = {
-			OR = {
-				true_religion = inca_religion
-				true_religion = inca_religion_reformed
-			}
+			true_inca_religion_trigger = yes
 		}
+		
 		name = EVTOPTA_SRI_207 # It is for Inti!
 		
 		piety = 100
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
+			
+			trigger = {
+				NOT = {
+					trait = cynical
+				}
+			}
+			
+			mult_modifier = {
 				factor = 100
 				trait = zealous
-			}
-			modifier = {
-				factor = 0
-				trait = cynical
 			}
 		}
 	}
 	
 	option = {
 		name = EVTOPTB_SRI_207 # I *will* rescue her!
+		
 		FROM = {
 			opinion = {
 				who = ROOT
@@ -7649,10 +7759,7 @@ character_event = {
 		
 		if = {
 			limit = {
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				true_inca_religion_trigger = yes
 			}
 			piety = -100
 		}
@@ -7663,16 +7770,17 @@ character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = zealous
-				NOR = {
-					trait = arbitrary
-					trait = deceitful
-				}
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					
+					NOR = {
+						trait = arbitrary
+						trait = deceitful
+					}
+					
+					true_inca_religion_trigger = yes
 				}
 			}
 		}
@@ -7685,17 +7793,22 @@ character_event = {
 	hide_window = yes
 	is_triggered_only = yes
 	
+	trigger = {
+		is_landed = no
+		trait = aclla
+	}
+	
 	immediate = {
 		if = {
 			limit = {
 				has_character_flag = aclla_being_sacrificed
-				e_tawantinsuyu = {
+				
+				e_inca_empire = {
 					has_holder = yes
+					
 					holder_scope = {
-						OR = {
-							religion = inca_religion
-							religion = inca_religion_reformed
-						}
+						religion_openly_inca_or_reformed_trigger = yes
+						
 						NOR = {
 							has_religion_feature = religion_matriarchal
 							has_religion_feature = religion_equal
@@ -7703,13 +7816,17 @@ character_event = {
 					}
 				}
 			}
+			
 			remove_trait = cynical
+			
 			random = {
 				chance = 75
 				add_trait = zealous
 			}
+			
 			character_event = {	id = sri.209 days = 100 }
 		}
+		
 		else = {
 			clr_character_flag = aclla_being_sacrificed
 			remove_character_modifier = qhapaq_hucha
@@ -7723,17 +7840,22 @@ character_event = {
 	hide_window = yes
 	is_triggered_only = yes
 	
+	trigger = {
+		is_landed = no
+		trait = aclla
+	}
+	
 	immediate = {
 		if = {
 			limit = {
 				has_character_flag = aclla_being_sacrificed
-				e_tawantinsuyu = {
+				
+				e_inca_empire = {
 					has_holder = yes
+					
 					holder_scope = {
-						OR = {
-							religion = inca_religion
-							religion = inca_religion_reformed
-						}
+						religion_openly_inca_or_reformed_trigger = yes
+						
 						NOR = {
 							has_religion_feature = religion_matriarchal
 							has_religion_feature = religion_equal
@@ -7741,30 +7863,38 @@ character_event = {
 					}
 				}
 			}
-			remove_trait = is_malnourished
-			remove_trait = feeble
+			
+			remove_trait = malnourished
+			remove_trait = frail
+			
 			if = {
 				limit = {
 					NOT = {
 						is_strong_trigger = yes
 					}
 				}
+				
 				random = {
 					chance = 50
 					add_trait = sturdy
 				}
 			}
+			
 			set_character_flag = aclla_sacrifice_in_progress # No furter rescue attempts possible
+			
 			if = {
 				limit = {
 					has_character_flag = aclla_being_rescued
 				}
+				
 				character_event = { id = sri.210 days = 75 } # Slight delay
 			}
+			
 			else = {
 				character_event = { id = sri.210 days = 50 }
 			}
 		}
+		
 		else = {
 			clr_character_flag = aclla_being_sacrificed
 			remove_character_modifier = qhapaq_hucha
@@ -7778,17 +7908,22 @@ character_event = {
 	hide_window = yes
 	is_triggered_only = yes
 	
+	trigger = {
+		is_landed = no
+		trait = aclla
+	}
+	
 	immediate = {
 		if = {
 			limit = {
 				has_character_flag = aclla_being_sacrificed
-				e_tawantinsuyu = {
+				
+				e_inca_empire = {
 					has_holder = yes
+					
 					holder_scope = {
-						OR = {
-							religion = inca_religion
-							religion = inca_religion_reformed
-						}
+						religion_openly_inca_or_reformed_trigger = yes
+						
 						NOR = {
 							has_religion_feature = religion_matriarchal
 							has_religion_feature = religion_equal
@@ -7796,11 +7931,14 @@ character_event = {
 					}
 				}
 			}
+			
 			add_trait = content
+			
 			random = {
 				chance = 50
 				add_trait = drunkard
 			}
+			
 			random = {
 				chance = 50
 				add_trait = dull
@@ -7810,31 +7948,35 @@ character_event = {
 				50 = { # Sacrifice in Cuzco
 					character_event = { id = sri.211 days = 50 }
 				}
+				
 				50 = { # Sacrifice in home province
-					modifier = {
+					mult_modifier = {
 						factor = 0
 						NOT = {
 							any_close_relative = {
 								is_landed = yes
 								top_liege = {
-									has_landed_title = e_tawantinsuyu
+									has_landed_title = e_inca_empire
 								}
 							}
 						}
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 0
 						any_dynasty_member = {
 							OR = {
-								has_landed_title = e_tawantinsuyu
-								has_landed_title = d_sapa_inca
+								has_landed_title = e_inca_empire
+								#has_landed_title = d_sapa_inca # TIANXIATODO
 							}
 						}
 					}
+					
 					character_event = { id = sri.214 days = 50 }
 				}
 			}
 		}
+		
 		else = {
 			clr_character_flag = aclla_being_sacrificed
 			clr_character_flag = aclla_sacrifice_in_progress
@@ -7851,17 +7993,22 @@ character_event = {
 	hide_window = yes
 	is_triggered_only = yes
 	
+	trigger = {
+		is_landed = no
+		trait = aclla
+	}
+	
 	immediate = {
 		if = {
 			limit = {
 				has_character_flag = aclla_being_sacrificed
-				e_tawantinsuyu = {
+				
+				e_inca_empire = {
 					has_holder = yes
+					
 					holder_scope = {
-						OR = {
-							religion = inca_religion
-							religion = inca_religion_reformed
-						}
+						religion_openly_inca_or_reformed_trigger = yes
+						
 						NOR = {
 							has_religion_feature = religion_matriarchal
 							has_religion_feature = religion_equal
@@ -7869,12 +8016,14 @@ character_event = {
 					}
 				}
 			}
-			e_tawantinsuyu = {
+			
+			e_inca_empire = {
 				holder_scope = {
 					character_event = { id = sri.212 }
 				}
 			}
 		}
+		
 		else = {
 			clr_character_flag = aclla_being_sacrificed
 			clr_character_flag = aclla_sacrifice_in_progress
@@ -7896,10 +8045,18 @@ character_event = {
 		name = EVTOPTA_SRI_212 # Glory to Inti!
 		piety = 300
 		
+		# TIANXIATODO: Grace penalty
+		
 		FROM = {
+			event_target:target_victim = {
+				save_event_target_as = kinslayer_target
+			}
+
+			add_kinslayer_trait_effect = yes
+			
 			death = {
 				death_reason = death_sacrificed
-				#killer = ROOT
+				killer = ROOT
 			}
 		}
 		
@@ -7924,24 +8081,25 @@ character_event = {
 	
 	option = {
 		trigger = {
-			OR = {
-				true_religion = inca_religion
-				true_religion = inca_religion_reformed
-			}
+			true_inca_religion_trigger = yes
 		}
+		
 		name = EVTOPTA_SRI_213 # It is for Inti!
 		
 		piety = 100
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
+			
+			trigger = {
+				NOT = {
+					trait = cynical
+				}
+			}
+			
+			mult_modifier = {
 				factor = 100
 				trait = zealous
-			}
-			modifier = {
-				factor = 0
-				trait = cynical
 			}
 		}
 	}
@@ -7953,26 +8111,24 @@ character_event = {
 		
 		if = {
 			limit = {
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				true_inca_religion_trigger = yes
 			}
 			piety = -100
 		}
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = zealous
-				NOR = {
-					trait = arbitrary
-					trait = deceitful
-				}
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					
+					NOR = {
+						trait = arbitrary
+						trait = deceitful
+					}
+					
+					true_inca_religion_trigger = yes
 				}
 			}
 		}
@@ -7987,17 +8143,22 @@ character_event = {
 	hide_window = yes
 	is_triggered_only = yes
 	
+	trigger = {
+		is_landed = no
+		trait = aclla
+	}
+	
 	immediate = {
 		if = {
 			limit = {
 				has_character_flag = aclla_being_sacrificed
-				e_tawantinsuyu = {
+				
+				e_inca_empire = {
 					has_holder = yes
+					
 					holder_scope = {
-						OR = {
-							religion = inca_religion
-							religion = inca_religion_reformed
-						}
+						religion_openly_inca_or_reformed_trigger = yes
+						
 						NOR = {
 							has_religion_feature = religion_matriarchal
 							has_religion_feature = religion_equal
@@ -8005,38 +8166,42 @@ character_event = {
 					}
 				}
 			}
+			
 			if = {
 				limit = {
 					any_close_relative = {
 						is_landed = yes
 						top_liege = {
-							has_landed_title = e_tawantinsuyu
+							has_landed_title = e_inca_empire
 						}
 					}
 				}
+				
 				random_close_relative = {
 					limit = {
 						is_landed = yes
 						top_liege = {
-							has_landed_title = e_tawantinsuyu
+							has_landed_title = e_inca_empire
 						}
 					}
+					
 					long_character_event = { id = sri.215 } # Inform family
 				}
+				
 				character_event = { id = sri.222 days = 15 } # Fallback sacrifice
 			}
 			else = {
 				character_event = { id = sri.211 } # Fallback: Cuzco
 			}
 		}
+		
 		else = {
 			clr_character_flag = aclla_being_sacrificed
 			clr_character_flag = aclla_sacrifice_in_progress
 			remove_character_modifier = qhapaq_hucha
 		}
 	}
-}
-			
+}	
 
 # Sacrifice arrives - last chance to attempt a rescue
 long_character_event = {
@@ -8060,23 +8225,21 @@ long_character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 100
-				trait = zealous
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					true_inca_religion_trigger = no
 				}
 			}
-			modifier = {
+					
+			mult_modifier = {
 				factor = 100
 				trait = zealous
-				NOR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				true_inca_religion_trigger = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = brave
 			}
@@ -8088,10 +8251,7 @@ long_character_event = {
 		
 		if = {
 			limit = {
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				true_inca_religion_trigger = yes
 			}
 			piety = -100
 		}
@@ -8104,19 +8264,21 @@ long_character_event = {
 		
 		ai_chance = {
 			factor = 100
-			modifier = {
-				factor = 0
-				trait = zealous
-				NOR = {
-					trait = arbitrary
-					trait = deceitful
-				}
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
+			
+			trigger = {
+				NAND = {
+					trait = zealous
+					
+					NOR = {
+						trait = arbitrary
+						trait = deceitful
+					}
+					
+					true_inca_religion_trigger = yes
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = craven
 			}
@@ -8136,11 +8298,14 @@ character_event = {
 	trigger = {
 		event_target:qhapaq_hucha = {
 			is_alive = yes
+			trait = aclla
+			is_landed = no
 		}
 	}
 	
 	option = {
 		name = EVTOPTA_SRI_216 # She's not much of a talker now
+		
 		character_event = { id = sri.221 days = 1 } # Go up the mountain
 	}
 }
@@ -8157,6 +8322,8 @@ character_event = {
 	trigger = {
 		event_target:qhapaq_hucha = {
 			is_alive = yes
+			trait = aclla
+			is_landed = no
 		}
 	}
 	
@@ -8166,147 +8333,147 @@ character_event = {
 			limit = {
 				event_target:qhapaq_hucha = {
 					NAND = {
-						OR = {
-							true_religion = inca_religion
-							true_religion = inca_religion_reformed
-						}
+						true_inca_religion_trigger = yes
 						trait = zealous
 					}
 				}
 			}
+			
 			random_list = {
 				50 = {
-					modifier = {
+					mult_modifier = {
 						factor = 2
-						intrigue = 40
+						intrigue >= 40
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
-						intrigue = 36
+						intrigue >= 36
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
-						intrigue = 32
+						intrigue >= 32
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
-						intrigue = 28
+						intrigue >= 28
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
-						intrigue = 24
+						intrigue >= 24
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
-						intrigue = 20
+						intrigue >= 20
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
-						intrigue = 16
+						intrigue >= 16
 					}
-					modifier = {
-						factor = 2
-						event_target:qhapaq_hucha = {
-							intrigue = 40
-						}
-					}
-					modifier = {
-						factor = 2
-						event_target:qhapaq_hucha = {
-							intrigue = 36
-						}
-					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
 						event_target:qhapaq_hucha = {
-							intrigue = 32
+							intrigue >= 40
 						}
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
 						event_target:qhapaq_hucha = {
-							intrigue = 24
+							intrigue >= 36
 						}
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
 						event_target:qhapaq_hucha = {
-							intrigue = 20
+							intrigue >= 32
 						}
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
 						event_target:qhapaq_hucha = {
-							intrigue = 16
+							intrigue >= 24
 						}
 					}
+					
+					mult_modifier = {
+						factor = 2
+						event_target:qhapaq_hucha = {
+							intrigue >= 20
+						}
+					}
+					
+					mult_modifier = {
+						factor = 2
+						event_target:qhapaq_hucha = {
+							intrigue >= 16
+						}
+					}
+					
 					character_event = { id = sri.218 days = 1 } # Succesful rescue
 				}
+				
 				50 = {
-					modifier = {
-						factor = 2
-						NOT = {
-							intrigue = 12
+					trigger = {
+						any_courtier_or_vassal = {
+							ai = yes
+							true_inca_religion_trigger = yes
 						}
 					}
-					modifier = {
+				
+					mult_modifier = {
 						factor = 2
-						NOT = {
-							intrigue = 8
-						}
+						intrigue < 12
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
-						NOT = {
-							intrigue = 4
-						}
+						intrigue < 8
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
-						event_target:qhapaq_hucha = {
-							NOT = {
-								intrigue = 12
-							}
-						}
+						intrigue < 4
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
 						event_target:qhapaq_hucha = {
-							NOT = {
-								intrigue = 8
-							}
+							intrigue < 12
 						}
 					}
-					modifier = {
+					
+					mult_modifier = {
 						factor = 2
 						event_target:qhapaq_hucha = {
-							NOT = {
-								intrigue = 4
-							}
+							intrigue < 8
 						}
 					}
-					modifier = {
-						factor = 0
-						NOT = {
-							any_courtier_or_vassal = {
-								ai = yes
-								OR = {
-									true_religion = inca_religion
-									true_religion = inca_religion_reformed
-								}
-							}
+					
+					mult_modifier = {
+						factor = 2
+						event_target:qhapaq_hucha = {
+							intrigue < 4
 						}
 					}
+					
 					random_courtier_or_vassal = {
 						limit = {
 							ai = yes
-							OR = {
-								true_religion = inca_religion
-								true_religion = inca_religion_reformed
-							}
+							true_inca_religion_trigger = yes
 						}
+						
 						preferred_limit = {
 							trait = zealous
+							
 							NOR = {
 								any_friend = {
 									character = ROOT
@@ -8316,9 +8483,10 @@ character_event = {
 								}
 								opinion = {
 									who = ROOT
-									value = 50
+									value >= 50
 								}
 							}
+							
 							NOR = {
 								any_friend = {
 									character = event_target:qhapaq_hucha
@@ -8327,11 +8495,12 @@ character_event = {
 									character = event_target:qhapaq_hucha
 								}
 								opinion = {
-									who = ROOT
-									value = 50
+									who = event_target:qhapaq_hucha
+									value >= 50
 								}
 							}
 						}
+						
 						preferred_limit = {
 							trait = zealous
 							NOR = {
@@ -8342,6 +8511,7 @@ character_event = {
 									character = ROOT
 								}
 							}
+							
 							NOR = {
 								any_friend = {
 									character = event_target:qhapaq_hucha
@@ -8351,6 +8521,7 @@ character_event = {
 								}
 							}
 						}
+						
 						preferred_limit = {
 							trait = zealous
 							NOR = {
@@ -8358,21 +8529,26 @@ character_event = {
 									character = ROOT
 								}
 							}
+							
 							NOR = {
 								any_friend = {
 									character = event_target:qhapaq_hucha
 								}
 							}
 						}
+						
 						preferred_limit = {
 							trait = zealous
 						}
+						
 						save_event_target_as = meddlesome_vassal
 					}
+					
 					character_event = { id = sri.219 days = 1 } # Not-quite successful rescue
 				}
 			}
 		}
+		
 		else = {
 			character_event = { id = sri.220 days = 1 } # She's a lost cause
 		}
@@ -8391,6 +8567,8 @@ character_event = {
 	trigger = {
 		event_target:qhapaq_hucha = {
 			is_alive = yes
+			trait = aclla
+			is_landed = no
 		}
 	}
 	
@@ -8400,9 +8578,11 @@ character_event = {
 		prestige = 100
 		
 		add_friend = event_target:qhapaq_hucha
+		
 		event_target:qhapaq_hucha = {
 			move_character = ROOT
 			remove_trait = aclla
+			
 			clr_character_flag = aclla_being_sacrificed
 			clr_character_flag = aclla_sacrifice_in_progress
 			remove_character_modifier = qhapaq_hucha
@@ -8410,7 +8590,7 @@ character_event = {
 	}
 }
 
-# Rescue attempt goes semi-well - someone spots you - gain a rival and gain a crime modifier from all inca_religion/inca_religion_reformed realm lords
+# Rescue attempt goes semi-well - someone spots you - gain a rival and gain a crime modifier from all inca_pagan/inca_pagan_reformed realm lords
 character_event = {
 	id = sri.219
 	desc = EVTDESC_SRI_219
@@ -8422,6 +8602,8 @@ character_event = {
 	trigger = {
 		event_target:qhapaq_hucha = {
 			is_alive = yes
+			trait = aclla
+			is_landed = no
 		}
 	}
 	
@@ -8433,37 +8615,17 @@ character_event = {
 		add_rival = event_target:meddlesome_vassal
 		
 		add_friend = event_target:qhapaq_hucha
+		
+		# TIANXIATODO: Grace penalty
+		
 		event_target:qhapaq_hucha = {
 			prestige = -100
-			if = {
-				limit = {
-					has_dlc = "Jade Dragon"
-					is_chinese_emperor_trigger = no
-				}
-				if = {
-					limit = {
-						ROOT = {
-							is_chinese_emperor_trigger = yes # Should be impossible, but...
-						}
-					}
-					detract_grace_super_huge_effect = yes
-				}
-				else_if = {
-					limit = {
-						ROOT = {
-							any_close_relative = {
-								dynasty = PREV
-								is_chinese_emperor_trigger = yes
-							}
-						}
-					}
-					detract_grace_massive_effect = yes
-				}
-			}
 			
 			add_rival = event_target:meddlesome_vassal
+			
 			move_character = ROOT
 			remove_trait = aclla
+			
 			clr_character_flag = aclla_being_sacrificed
 			clr_character_flag = aclla_sacrifice_in_progress
 			remove_character_modifier = qhapaq_hucha
@@ -8472,11 +8634,11 @@ character_event = {
 		any_playable_ruler = {
 			limit = {
 				OR = {
-					religion = inca_religion
-					religion = inca_religion_reformed
+					religion_openly_inca_or_reformed_trigger = yes
 					same_realm = ROOT
 				}
 			}
+			
 			opinion = {
 				modifier = opinion_meddled_with_sacrifice
 				who = ROOT
@@ -8521,20 +8683,17 @@ character_event = {
 	option = {
 		trigger = {
 			OR = {
-				religion = inca_religion
-				religion = inca_religion_reformed
-				true_religion = inca_religion
-				true_religion = inca_religion_reformed
+				religion_openly_inca_or_reformed_trigger = yes
+				true_inca_religion_trigger = yes
 			}
 		}
+		
 		name = EVTOPTA_SRI_221 # Glory... to Inti.
+		
 		prestige = 100
 		if = {
 			limit = {
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				true_inca_religion_trigger = yes
 			}
 			piety = 100
 		}
@@ -8544,58 +8703,56 @@ character_event = {
 				death_reason = death_sacrificed
 			}
 		}
+		
 		if = {
 			limit = {
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				true_inca_religion_trigger = yes
 				trait = zealous
 			}
+			
 			random = {
 				chance = 50
-				remove_trait = zealous
+				remove_trait_zealous_effect = yes
 			}
 		}
 		
 		random = {
 			chance = 50
-			add_trait = depressed
+			add_trait_depressed_effect = yes
 		}
 	}
 	
 	option = {
 		trigger = {
-			NOR = {
-				religion = inca_religion
-				religion = inca_religion_reformed
-			}
+			religion_openly_inca_or_reformed_trigger = no
 		}
+		
 		name = EVTOPTB_SRI_221 # Curse these savages!
 		
 		prestige = -100
+		
 		if = {
 			limit = {
-				OR = {
-					true_religion = inca_religion
-					true_religion = inca_religion_reformed
-				}
+				true_inca_religion_trigger = yes
 			}
 			piety = -100
 		}
+		
 		else = {
 			random = {
 				chance = 50
-				add_trait = zealous
+				add_trait_zealous_effect = yes
 			}
 		}
+		
 		random = {
 			chance = 50
-			add_trait = ambitious
+			add_trait_ambitious_effect = yes
 		}
+		
 		random = {
 			chance = 50
-			add_trait = wroth
+			add_trait_wroth_effect = yes
 		}
 		
 		event_target:qhapaq_hucha = {
@@ -8606,7 +8763,7 @@ character_event = {
 		
 		random = {
 			chance = 50
-			add_trait = depressed
+			add_trait_depressed_effect = yes
 		}
 	}
 }
@@ -8615,16 +8772,25 @@ character_event = {
 character_event = {
 	id = sri.222
 	hide_window = yes
+	
 	is_triggered_only = yes
 	
 	immediate = {
 		if = {
 			limit = {
 				trait = aclla
+				is_landed = no
 			}
 			death = {
 				death_reason = death_sacrificed
 			}
+		}
+		
+		else = {
+			remove_trait = aclla
+			remove_character_modifier = qhapaq_hucha
+			clr_character_flag = aclla_being_sacrificed
+			clr_character_flag = aclla_sacrifice_in_progress
 		}
 	}
 }

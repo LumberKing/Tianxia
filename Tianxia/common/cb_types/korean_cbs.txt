@@ -1,0 +1,363 @@
+# korean_reconquest
+
+# Taejo/Munmu bloodline CB
+korean_reconquest = {
+	name = CB_NAME_KOREAN_RECONQUEST
+	war_name = WAR_NAME_KOREAN_RECONQUEST
+	sprite = 8
+	truce_days = 3650
+	
+	is_permanent = yes
+	check_de_jure_tier = DUKE # this scans all dejure duchies for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
+	allowed_to_target_tributaries = no
+	
+	can_use_gui = {
+		ROOT = {
+			
+			china_forbids_war_trigger = no
+			
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = treasure_fleet_voyage
+			}
+		}
+	}
+
+	can_use = {
+		ROOT = {
+			any_owned_bloodline = {
+				has_bloodline_flag = korean_bloodline
+			}
+			culture_group = koreanic
+			
+			OR = {
+				religion = buddhist
+				religion = taoist
+				religion = confucian
+				religion_openly_korean_or_reformed_trigger = yes
+			}
+			
+			independent = yes
+			
+			OR = {
+				tier = king
+				tier = emperor
+			}
+			
+			OR = {
+				capital_scope = {
+					OR = {
+						region = world_korea
+						
+						AND = {
+							region = world_balhae # If Balhae drifts into Korea it is a valid target
+							
+							OR = {
+								de_jure_liege_or_above = e_korea # Currently part of de jure Korea
+								de_jure_liege_or_above = k_goryeo
+								de_jure_liege_or_above = k_silla
+								de_jure_liege_or_above = k_baekje
+							}
+						}
+					}
+				}
+				
+				has_landed_title = e_korea
+			}
+		}
+	}
+
+	can_use_title = {
+		OR = {
+			region = world_korea
+			
+			AND = {
+				region = world_balhae # If Balhae drifts into Korea it is a valid target
+				
+				OR = {
+					de_jure_liege_or_above = e_korea # Currently part of de jure Korea
+					de_jure_liege_or_above = k_goryeo
+					de_jure_liege_or_above = k_silla
+					de_jure_liege_or_above = k_baekje
+				}
+			}
+		}
+		
+		OR = {
+			de_jure_liege_or_above = e_korea # Currently part of de jure Korea
+			de_jure_liege_or_above = k_goryeo
+			de_jure_liege_or_above = k_silla
+			de_jure_liege_or_above = k_baekje
+			
+			AND = {
+				any_direct_de_jure_vassal_title = {
+					location = {
+						culture_group = koreanic
+					}
+				}
+			}
+		}
+		
+		any_direct_de_jure_vassal_title = { # Title must be inside holy war range
+			OR = {
+				holder_scope = {
+					OR = {
+						character = ROOT
+						is_liege_or_above = ROOT
+					}
+				}
+				
+				location = {
+					any_neighbor_province = {
+						OR = {
+							AND = {
+								has_owner = yes
+								owner = {
+									OR = {
+										character = ROOT
+										is_liege_or_above = ROOT
+									}
+								}
+							}
+							
+							AND = {
+								is_land = no
+								any_neighbor_province = {
+									OR = {
+										AND = {
+											has_owner = yes
+											owner = {
+												OR = {
+													character = ROOT
+													is_liege_or_above = ROOT
+												}
+											}
+										}
+										
+										AND = {
+											is_land = no
+											any_neighbor_province = {
+												owner = {
+													OR = {
+														character = ROOT
+														is_liege_or_above = ROOT
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		OR = { # It should be a bit harder to use this CB unless you hold e_korea
+			ROOT = {
+				has_landed_title = e_korea
+			}
+			
+			prestige = 100
+		}
+	}
+	
+	on_add = {
+		ROOT = {
+			if = {
+				limit = {
+					NOT = {
+						has_landed_title = e_korea
+					}
+				}
+			}
+			
+			prestige = -100
+		}
+		
+		fire_haruspicy_event_effect = yes
+		anger_china_effect = yes
+	}
+	
+	is_valid = {
+		ROOT = {
+			culture_group = koreanic
+			
+			OR = {
+				religion = buddhist
+				religion = taoist
+				religion = confucian
+				religion_openly_korean_or_reformed_trigger = yes
+			}
+			
+			independent = yes
+			
+			OR = {
+				tier = king
+				tier = emperor
+			}
+		}
+	}
+	
+	on_success = {
+		attacker = {
+			participation_scaled_prestige = 100
+		}
+		
+		any_attacker = {
+			limit = { NOT = { character = attacker } }
+			
+			hidden_tooltip = { 
+				participation_scaled_prestige = 100
+			}
+		}
+		
+		defender = { prestige = -100 }
+		
+		attacker = {
+			if = {
+				limit = {
+					government = chinese_imperial_government
+				}
+				mandate_boost_medium_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					government = chinese_imperial_government
+				}
+				mandate_penalty_medium_effect = yes
+			}
+		}
+	}
+
+	
+
+	on_success_title = {
+		custom_tooltip = { 
+			text = other_invasion_succ_tip
+			hidden_tooltip = {
+				attacker = {
+					vassalize_or_take_under_title = {
+						title = PREV
+						enemy = defender
+						type = invasion
+					}
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				holder_scope = {
+					character = defender
+				}
+			}
+			
+			usurp_title_only = {
+				target = attacker
+				type = invasion
+			}
+		}
+	}
+
+	on_fail = {
+		attacker = {
+			prestige = -150
+		}
+		
+		attacker = {
+			if = {
+				limit = {
+					government = chinese_imperial_government
+				}
+				mandate_penalty_small_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					government = chinese_imperial_government
+				}
+				mandate_boost_small_effect = yes
+			}
+		}
+	}
+
+	on_reverse_demand = {
+		attacker = {
+			transfer_scaled_wealth = {
+				to = FROM
+				value = 4.0
+			}
+			
+			prestige = -200
+		}
+		
+		defender = {
+			participation_scaled_piety = 100
+			participation_scaled_prestige = 200
+			
+			if = {
+				limit = {
+					uses_decadence = yes
+				}
+				participation_scaled_decadence = -10
+			}
+		}
+		
+		any_defender = {
+			limit = { NOT = { character = defender } }
+			
+			hidden_tooltip = { 
+				participation_scaled_piety = 100
+				participation_scaled_prestige = 200
+				
+				if = {
+					limit = {
+						uses_decadence = yes
+					}
+					participation_scaled_decadence = -10
+				}
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					government = chinese_imperial_government
+				}
+				mandate_boost_medium_effect = yes
+			}
+		}
+		
+		attacker = {
+			if = {
+				limit = {
+					government = chinese_imperial_government
+				}
+				mandate_penalty_medium_effect = yes
+			}
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+}

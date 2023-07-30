@@ -1,6 +1,6 @@
 ###################################
 #
-# THE OLD GODS 
+# THE OLD GODS
 # - Zoroastrian Events
 #
 ###################################
@@ -16,29 +16,40 @@ narrative_event = {
 	desc = EVTDESC_TOG_6000
 	picture = GFX_evt_imam
 	border = GFX_event_narrative_frame_religion
-	
-	is_triggered_only = yes
-	
+
+	is_triggered_only = yes # become_saoshyant, realm_decisions.txt
 	hide_from = yes
-	
+
 	immediate = {
 		if = {
 			limit = {
 				ai = no
+				is_ironman = yes
 			}
+
 			set_character_flag = achievement_brings_benefit
 		}
 	}
-	
+
 	option = {
 		name = EVTOPTA_TOG_6000
-		hidden_tooltip = {
-			any_playable_ruler = {
-				limit = { 
-					ai = no 
-					NOT = { character = ROOT }
-				}
-				narrative_event = { id = TOG.6003 }
+
+		any_player = {
+			limit = { NOT = { character = ROOT } }
+			narrative_event = { id = TOG.6003 }
+		}
+
+		sunni = {
+			religion_authority = {
+				name = zoroastrian_rebirth
+				years = 100
+			}
+		}
+
+		shiite = {
+			religion_authority = {
+				name = zoroastrian_rebirth
+				years = 100
 			}
 		}
 	}
@@ -47,23 +58,32 @@ narrative_event = {
 # Children gains Saoshyant Descendant trait from Saoshyant
 character_event = {
 	id = TOG.6001
+
+	is_triggered_only = yes # on_birth, become_saoshyant, TOG.6001, RIP.21991 (rip_eternal_life_events)
 	hide_window = yes
-	
-	is_triggered_only = yes
-	
+
 	has_dlc = "The Old Gods"
 	has_global_flag = saoshyant_appears
-	
+
 	trigger = {
 		OR = {
-			mother_even_if_dead = { trait = saoshyant }
-			father_even_if_dead = { trait = saoshyant }
-			mother_even_if_dead = { trait = saoshyant_descendant }
-			father_even_if_dead = { trait = saoshyant_descendant } 
+			mother_even_if_dead = {
+				OR = {
+					trait = saoshyant
+					trait = saoshyant_descendant
+				}
+			}
+			father_even_if_dead = {
+				OR = {
+					trait = saoshyant
+					trait = saoshyant_descendant
+				}
+			}
 		}
+
 		NOT = { trait = saoshyant_descendant }
 	}
-	
+
 	immediate = {
 		add_trait = saoshyant_descendant
 		save_event_target_as = inheritance_sanity_check_character
@@ -71,18 +91,99 @@ character_event = {
 		any_child = {
 			character_event = { id = TOG.6001 }
 		}
-		random_playable_ruler = { 
-			limit = { religion = sunni }		
-			religion_authority = {
-				modifier = zoroastrian_rebirth
-				years = 100
+	}
+}
+
+# Saoshyant Descendant - workaround to handle dead children/etc.
+character_event = {
+	id = TOG.6002
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		any_child_even_if_dead = {
+			if = {
+				limit = {
+					NOT = {
+						any_owned_bloodline = {
+							has_bloodline_flag = saoshyant
+						}
+					}
+				}
+				event_target:the_saoshyant = {
+					any_bloodline = {
+						limit = {
+							has_bloodline_flag = saoshyant
+						}
+						add_bloodline_member = PREVPREV
+					}
+				}
+				add_trait = saoshyant_descendant
+				character_event = { id = TOG.6002 }
 			}
-		}
-		random_playable_ruler = { 
-			limit = { religion = shiite }		
-			religion_authority = {
-				modifier = zoroastrian_rebirth
-				years = 100
+			any_child_even_if_dead = {
+				if = {
+					limit = {
+						NOT = {
+							any_owned_bloodline = {
+								has_bloodline_flag = saoshyant
+							}
+						}
+					}
+					event_target:the_saoshyant = {
+						any_bloodline = {
+							limit = {
+								has_bloodline_flag = saoshyant
+							}
+							add_bloodline_member = PREVPREV
+						}
+					}
+					add_trait = saoshyant_descendant
+					character_event = { id = TOG.6002 }
+				}
+				any_child_even_if_dead = {
+					if = {
+						limit = {
+							NOT = {
+								any_owned_bloodline = {
+									has_bloodline_flag = saoshyant
+								}
+							}
+						}
+						event_target:the_saoshyant = {
+							any_bloodline = {
+								limit = {
+									has_bloodline_flag = saoshyant
+								}
+								add_bloodline_member = PREVPREV
+							}
+						}
+						add_trait = saoshyant_descendant
+						character_event = { id = TOG.6002 }
+					}
+					any_child_even_if_dead = {
+						if = {
+							limit = {
+								NOT = {
+									any_owned_bloodline = {
+										has_bloodline_flag = saoshyant
+									}
+								}
+							}
+							event_target:the_saoshyant = {
+								any_bloodline = {
+									limit = {
+										has_bloodline_flag = saoshyant
+									}
+									add_bloodline_member = PREVPREV
+								}
+							}
+							add_trait = saoshyant_descendant
+							character_event = { id = TOG.6002 }
+						}
+					}
+				}
 			}
 		}
 	}
@@ -95,39 +196,39 @@ narrative_event = {
 	desc = EVTDESC_TOG_6003
 	picture = GFX_evt_imam
 	border = GFX_event_narrative_frame_religion
-	
+
 	is_triggered_only = yes
-	
+
 	option = {
-		name = EVTOPTA_TOG_6003
-		trigger = {
-			religion_group = zoroastrian_group
+		name = {
+			text = EVTOPTA_TOG_6003
+			trigger = { religion_group = zoroastrian_group }
 		}
-	}
-	option = {
-		name = EVTOPTB_TOG_6003
-		trigger = {
-			NOT = {
-				religion_group = zoroastrian_group
-				religion_group = muslim
+		name = {
+			text = EVTOPTB_TOG_6003
+			trigger = {
+				NOR = {
+					religion_group = zoroastrian_group
+					religion_group = muslim
+				}
 			}
 		}
-	}
-	option = {
-		name = EVTOPTC_TOG_6003
-		trigger = {
-			religion_group = muslim
+		name = {
+			text = EVTOPTC_TOG_6003
+			trigger = { religion_group = muslim }
 		}
-		if = { 
-			limit = { 
-				OR = { 
-					religion = sunni 
+
+		if = {
+			limit = {
+				OR = {
+					religion = sunni
 					religion = shiite
-				} 
+				}
 			}
+
 			tooltip = {
 				religion_authority = {
-					modifier = zoroastrian_rebirth
+					name = zoroastrian_rebirth
 					years = 100
 				}
 			}
@@ -142,31 +243,27 @@ narrative_event = {
 	desc = EVTDESC_TOG_6004
 	picture = GFX_evt_imam
 	border = GFX_event_narrative_frame_religion
-	
-	major = yes
-	
+
 	is_triggered_only = yes
-	
+	major = yes
+
 	option = {
-		name = EVTOPTA_TOG_6004
-		trigger = {
-			religion_group = zoroastrian_group
+		name = {
+			text = EVTOPTA_TOG_6004
+			trigger = { religion_group = zoroastrian_group }
 		}
-	}
-	option = {
-		name = EVTOPTB_TOG_6004
-		trigger = {
-			NOT = {
-				religion_group = zoroastrian_group
-				religion_group = muslim
+		name = {
+			text = EVTOPTB_TOG_6004
+			trigger = {
+				NOR = {
+					religion_group = zoroastrian_group
+					religion_group = muslim
+				}
 			}
 		}
-	}
-	option = {
-		name = EVTOPTC_TOG_6004
-		trigger = {
-			religion_group = muslim
+		name = {
+			text = EVTOPTC_TOG_6004
+			trigger = { religion_group = muslim }
 		}
 	}
 }
-

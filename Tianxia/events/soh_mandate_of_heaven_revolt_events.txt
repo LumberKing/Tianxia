@@ -7,78 +7,29 @@ namespace = soh
 
 # IDs 5901-6000 reserved
 
-### tOG revolts, modelled after liberation revolts
-# Liberation-style revolt against a low MoH realm
-# Triggered from "on_rebel_revolt"
+# Major peasant revolt due to a belief that the top liege has lost the Mandate of Heaven (temporary rebel title created, with a leader and a war)
 province_event = {
 	id = soh.5901
 	desc = EVTDESC_SOH_5901
 	picture = GFX_evt_china_unrest
 	border = GFX_event_normal_frame_war
-	
-	is_triggered_only = yes
 
-	trigger = {
-		has_dlc = "The Old Gods"
-		can_have_chinese_imperial_trigger = yes
+	is_triggered_only = yes # on_rebel_revolt via TOG.999
 
-		any_province_holding = {
-			NOT = { holding_type = nomad }
-		}
-		
-		owner = {
-			top_liege = {
-				government = chinese_imperial_government
-				OR = {
-					AND = {
-						has_character_modifier = mandate_of_heaven_2 # China is held to a higher standard
-						has_landed_title = e_china
-					}
-					AND = {
-						e_china = {
-							holder_scope = {
-								government = chinese_imperial_government
-							}
-						}
-						has_character_modifier = mandate_of_heaven_1
-					}
-				}
-			}
-		}
-		
-		county = {
-			OR = {
-				region = world_china
-				owner = {
-					top_liege = {
-						primary_title = {
-							de_jure_vassal_or_below = PREVPREV
-						}
-					}
-				}
-			}
-		}
-		NOT = { # Not if there is already an ongoing MoH revolt for the title
-			owner = {
-				top_liege = {
-					war = yes
-					any_war = {
-						defender = { character = PREV }
-						using_cb = mandate_of_heaven_uprising
-						thirdparty_title_scope = {
-							ROOT = {
-								kingdom = {
-									title = PREVPREV
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	
 	immediate = {
+		add_province_modifier = {
+			name = recent_county_uprising # -100% revolt risk
+			years = 5
+		}
+
+		top_liege = {
+			save_event_target_as = province_top_liege
+		}
+
+		kingdom = {
+			save_event_target_as = province_kingdom
+		}
+
 		create_character = {
 			random_traits = yes
 			dynasty = random
@@ -88,6 +39,14 @@ province_event = {
 			age = 20
 			health = 7
 			fertility = 0.7
+			add_trait = just
+			add_trait = brave
+			add_trait = gregarious
+			add_trait = ambitious
+			add_trait = brilliant_strategist
+			add_trait = inspiring_leader
+			add_trait = peasant_leader
+
 			attributes = {
 				diplomacy = 6
 				martial = 8
@@ -95,13 +54,6 @@ province_event = {
 				intrigue = 2
 				learning = 6
 			}
-			trait = just
-			trait = brave
-			trait = gregarious
-			trait = ambitious
-			trait = brilliant_strategist
-			trait = inspiring_leader
-			trait = peasant_leader
 		}
 		
 		new_character = {
@@ -116,7 +68,7 @@ province_event = {
 				name = "MOH_REVOLT"
 				holder = THIS
 			}
-			
+
 			wealth = 100
 			
 			spawn_unit = {
@@ -125,6 +77,7 @@ province_event = {
 				owner = THIS
 				#leader = THIS
 				scaled_by_biggest_garrison = 2
+				
 				troops = {
 					pikemen = { 10 10 }
 					heavy_infantry = { 4 4 }
@@ -133,11 +86,13 @@ province_event = {
 					light_cavalry = { 4 4 }
 					knights = { 2 2 }
 				}
+				
 				attrition = 1.0
 			}
+
+			spawn_moh_army_effect = yes
+			spawn_moh_army_effect = yes
 			
-			spawn_moh_army_effect = yes
-			spawn_moh_army_effect = yes
 			if = {
 				limit = {
 					ROOT = {
@@ -148,9 +103,10 @@ province_event = {
 						}
 					}
 				}
+				
 				spawn_moh_army_effect = yes
 			}
-			
+
 			if = {
 				limit = {
 					has_game_rule = {
@@ -158,30 +114,33 @@ province_event = {
 						value = powerful
 					}
 				}
+
 				spawn_moh_army_effect = yes
 				wealth = 150
 			}
 			
-			if = {
+			else_if = {
 				limit = {
 					has_game_rule = {
 						name = provincial_revolt_strength
 						value = very_powerful
 					}
 				}
+
 				spawn_moh_army_effect = yes
 				spawn_moh_army_effect = yes
 				spawn_moh_army_effect = yes
 				wealth = 250
 			}
 			
-			if = {
+			else_if = {
 				limit = {
 					has_game_rule = {
 						name = provincial_revolt_strength
 						value = extremely_powerful
 					}
 				}
+
 				spawn_moh_army_effect = yes
 				spawn_moh_army_effect = yes
 				spawn_moh_army_effect = yes
@@ -189,37 +148,31 @@ province_event = {
 				spawn_moh_army_effect = yes
 				wealth = 350
 			}
-			
+
 			# DoW on the province top liege
-			ROOT = {
-				owner = {
-					top_liege = {
-						reverse_war = {
-							target = PREVPREVPREV
-							casus_belli = mandate_of_heaven_uprising
-							thirdparty_title = ROOT # The county...
-							tier = KING # ... but really the de jure kingdom
-						}
-						reverse_opinion = {
-							who = PREVPREVPREV
-							modifier = opinion_evil_tyrant
-						}
-					}
-				}
+			war = {
+				target = event_target:province_top_liege
+				casus_belli = mandate_of_heaven_uprising
+				thirdparty_title = event_target:province_kingdom
+			}
+
+			opinion = {
+				name = opinion_evil_tyrant
+				who = event_target:province_top_liege
 			}
 		}
-		
+
 		owner = {
 			any_liege = { # Inform the lieges
-				character_event = {
-					id = soh.5902
-				}
+				character_event = { id = soh.5902 }
 			}
 		}
 	}
-	
+
 	option = {
-		name = "EVTOPTA_SOH_5901"
+		name = EVTOPTA_TOG_1040
+		
+		# TIANXIATODO: Grace penalty
 	}
 }
 
@@ -231,6 +184,8 @@ character_event = {
 	
 	is_triggered_only = yes
 	
+	ai = no
+	
 	option = {
 		name = EVTOPTA_SOH_5902
 	}
@@ -239,41 +194,72 @@ character_event = {
 # Nationalists seize a holding. Fired from 'on_siege_over_winner'.
 character_event = {
 	id = soh.5903
+
+	is_triggered_only = yes # on_siege_over_winner
 	hide_window = yes
-	is_triggered_only = yes
-	
+
 	trigger = {
 		rebel = yes
-		FROM = { 
+
+		FROM = {
 			is_capital = yes # The capital holding
 		}
+
 		any_war = {
 			attacker = { character = ROOT }
 			using_cb = mandate_of_heaven_uprising
 		}
 	}
-	
+
 	immediate = {
 		FROM = {
 			location = {
 				if = {
-					limit = {
-						NOT = { culture = ROOT }
-						kingdom = { culture = ROOT }
+					limit = { culture = ROOT }
+
+					if = {
+						limit = {
+							NOT = { has_province_modifier = cultural_unrest }
+						}
+
+						add_province_modifier = {
+							name = cultural_unrest
+							years = 2
+						}
 					}
+					
+					if = {
+						limit = {
+							could_have_chinese_government_province_trigger = no
+						}
+
+						random = {
+							chance = 20
+							culture = ROOT
+
+							if = {
+								limit = {
+									NOT = { has_province_modifier = religious_unrest }
+								}
+
+								add_province_modifier = {
+									name = religious_unrest
+									years = 2
+								}
+							}
+						}
+					}
+				}
+				
+				else_if = {
+					limit = {
+						kingdom = { culture = ROOT }
+						could_have_chinese_government_province_trigger = no
+					}
+
 					random = {
 						chance = 20
 						culture = ROOT
-					}
-				}
-				if = {
-					limit = {
-						culture = ROOT
-						NOT = { has_province_modifier = cultural_unrest }
-					}
-					add_province_modifier = {
-						name = cultural_unrest
-						duration = 730
 					}
 				}
 			}
@@ -281,63 +267,33 @@ character_event = {
 	}
 }
 
-# Rebels rise up to reinforce an ongoing revolt
-# Triggered from "on_rebel_revolt"
+# Nationalist Rebels rise up to reinforce an ongoing revolt
 province_event = {
 	id = soh.5904
 	desc = EVTDESC_SOH_5904
-	picture = GFX_evt_china_unrest
+	picture = GFX_evt_china_civil_war
 	border = GFX_event_normal_frame_war
-	
-	is_triggered_only = yes
 
-	trigger = {
-		has_dlc = "The Old Gods"
+	is_triggered_only = yes # on_rebel_revolt via TOG.999
 
-		any_province_holding = {
-			NOT = { holding_type = nomad }
-		}
-		
-		# There is already an ongoing MoH revolt for the same kingdom
-		owner = {
-			top_liege = {
-				war = yes
-				any_war = {
-					defender = { character = PREV }
-					using_cb = mandate_of_heaven_uprising
-					thirdparty_title_scope = {
-						ROOT = {
-							kingdom = {
-								title = PREVPREV
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	
 	immediate = {
 		add_province_modifier = {
-			name = recent_county_uprising
-			duration = 1825 # Five years of -100% revolt risk in this county
+			name = recent_county_uprising # -100% revolt risk
+			years = 5
 		}
+
 		owner = {
 			top_liege = {
 				any_war = {
 					limit = {
-						defender = { character = PREV }
-						using_cb = mandate_of_heaven_uprising
-						thirdparty_title_scope = {
-							ROOT = {
-								kingdom = {
-									title = PREVPREV
-								}
-							}
-						}
+						using_cb = liberation_revolt
+						defender = { character = PREVPREV }
+						ROOT = { de_jure_liege_or_above = thirdparty_title_scope }
 					}
+
 					attacker = {
 						spawn_moh_reinforcements_effect = yes
+						
 						if = {
 							limit = {
 								ROOT = {
@@ -348,9 +304,10 @@ province_event = {
 									}
 								}
 							}
+							
 							spawn_moh_reinforcements_effect = yes
 						}
-						
+
 						if = {
 							limit = {
 								has_game_rule = {
@@ -358,28 +315,31 @@ province_event = {
 									value = powerful
 								}
 							}
+
 							spawn_moh_reinforcements_effect = yes
 						}
 						
-						if = {
+						else_if = {
 							limit = {
 								has_game_rule = {
 									name = provincial_revolt_strength
 									value = very_powerful
 								}
 							}
+
 							spawn_moh_reinforcements_effect = yes
 							spawn_moh_reinforcements_effect = yes
 							spawn_moh_reinforcements_effect = yes
 						}
 						
-						if = {
+						else_if = {
 							limit = {
 								has_game_rule = {
 									name = provincial_revolt_strength
 									value = extremely_powerful
 								}
 							}
+
 							spawn_moh_reinforcements_effect = yes
 							spawn_moh_reinforcements_effect = yes
 							spawn_moh_reinforcements_effect = yes
@@ -389,19 +349,15 @@ province_event = {
 					}
 				}
 			}
-		}
-		
-		owner = {
+
 			any_liege = { # Inform the lieges
-				character_event = {
-					id = soh.5905
-				}
+				character_event = { id = soh.5905 }
 			}
 		}
 	}
-	
+
 	option = {
-		name = "EVTOPTA_SOH_5904"
+		name = EVTOPTA_SOH_5904
 	}
 }
 
@@ -412,6 +368,8 @@ character_event = {
 	border = GFX_event_normal_frame_war
 	
 	is_triggered_only = yes
+	
+	ai = no
 	
 	option = {
 		name = EVTOPTA_SOH_5905

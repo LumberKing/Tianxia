@@ -1,0 +1,1603 @@
+society_decisions = {
+	warrior_lodge_become_falconer = {
+		only_playable = yes
+		is_in_society = yes
+		ai_check_interval = 60
+		
+		potential = {
+			society_member_of = warrior_lodge_jurchen
+			NOT = {
+				trait = falconer
+			}
+		}
+		
+		allow = {
+			is_inaccessible_or_incapable_trigger = no
+			
+			society_currency >= 100
+		}
+		
+		effect = {
+			change_society_currency = -100
+			
+			add_trait = falconer
+		}
+		
+		ai_will_do = {
+			factor = 1
+		}
+	}
+	
+	warrior_lodge_medical_herbs = {
+		only_playable = yes
+		is_in_society = yes
+		ai_check_interval = 60
+		
+		potential = {
+			society_member_of = warrior_lodge_andamanese
+			NOT = {
+				has_character_modifier = medical_herbs
+			}
+		}
+		
+		allow = {
+			is_inaccessible_or_incapable_trigger = no
+			
+			society_currency >= 250
+		}
+		
+		effect = {
+			change_society_currency = -250
+			
+			add_character_modifier = {
+				modifier = medical_herbs
+				days = 1825
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			trigger = {
+				OR = {
+					is_sick_or_injured_trigger = yes
+					has_epidemic_disease_trigger = yes
+					is_maimed_trigger = yes
+					trait = wounded
+					trait = severely_injured
+				}
+				
+				health < 10
+				
+				NOT = {
+					trait = depressed
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				always = yes # Slow down
+			}
+			
+			mult_modifier = {
+				factor = 2
+				health < 6
+			}
+			
+			mult_modifier = {
+				factor = 5
+				health < 3
+			}
+			
+			mult_modifier = {
+				factor = 0.2
+				trait = content
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = ambitious
+			}
+		}
+	}
+}
+
+targeted_decisions = {
+	warrior_lodge_admirer_consort = {
+		ai = no # Handled on_decade_pulse
+		only_playable = yes
+		is_in_society = yes
+		
+		from_potential = {
+			has_dlc = "Holy Fury"
+			is_adult = yes
+			society_member_of = warrior_lodge_ainu
+			society_rank >= 2
+		}
+		
+		potential = {
+			is_adult = yes
+			is_landed = no
+			is_ruler = no
+			is_inaccessible_or_incapable_trigger = no
+			
+			trigger_if = {
+				limit = {
+					FROM = {
+						is_female = yes
+					}
+				}
+				
+				is_female = no
+				
+				FROM = {
+					OR = {
+						has_religion_feature = religion_matriarchal
+						has_religion_feature = religion_equal
+					}
+				}
+			}
+			
+			trigger_else = {
+				is_female = yes
+				
+				FROM = {
+					NOR = {
+						has_religion_feature = religion_matriarchal
+						has_religion_feature = religion_harems
+					}
+				}
+			}
+			
+			employer = {
+				NOT = {
+					character = FROM
+				}
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			religion_openly_ainu_or_reformed_trigger = yes
+			
+			FROM = {
+				religion_openly_ainu_or_reformed_trigger = yes
+				
+				is_inaccessible_or_incapable_trigger = no
+				
+				num_of_consorts < 3
+			}
+			
+			is_married = no
+			is_consort = no
+			is_heir = no
+			
+			NOR = {
+				trait = celibate
+				trait = homosexual
+				is_rival = FROM
+			}
+			
+			NOT = {
+				any_lover = {
+					NOT = {
+						character = FROM
+					}
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					is_close_relative = FROM
+				}
+				
+				FROM = {
+					has_religion_feature = religion_holy_family
+				}
+				
+				has_religion_feature = religion_holy_family
+			}
+			
+			trigger_if = {
+				limit = {
+					any_close_relative = {
+						real_tier = emperor
+					}
+				}
+				
+				FROM = {
+					OR = {
+						real_tier = emperor
+						AND = {
+							real_tier = king
+							society_rank >= 3
+						}
+						AND = {
+							real_tier = duke
+							society_rank == 4
+						}
+					}
+				}
+			}
+			
+			trigger_else_if = {
+				limit = {
+					any_close_relative = {
+						real_tier = king
+					}
+				}
+				
+				FROM = {
+					OR = {
+						higher_real_tier_than = duke
+						AND = {
+							real_tier = duke
+							society_rank >= 3
+						}
+						AND = {
+							real_tier = count
+							society_rank == 4
+						}
+					}
+				}
+			}
+			
+			trigger_else_if = {
+				limit = {
+					any_close_relative = {
+						real_tier = duke
+					}
+				}
+				
+				FROM = {
+					OR = {
+						higher_real_tier_than = count
+						AND = {
+							real_tier = count
+							society_rank >= 3
+						}
+						society_rank == 4
+					}
+				}
+			}
+			
+			trigger_else_if = {
+				limit = {
+					any_close_relative = {
+						real_tier = count
+					}
+				}
+				
+				FROM = {
+					OR = {
+						higher_real_tier_than = baron
+						society_rank >= 3
+					}
+				}
+			}
+			
+			FROM = {
+				society_currency >= 1000
+			}
+		}
+		
+		effect = {
+			save_event_target_as = wl_consort
+			
+			FROM = {
+				save_event_target_as = wl_consort_taker
+				
+				change_society_currency = -1000
+			}
+			
+			if = {
+				limit = {
+					is_betrothed = yes
+				}
+				
+				break_betrothal = yes
+			}
+			
+			if = {
+				limit = {
+					employer = {
+						ai = no
+						NOT = {
+							character = FROM
+						}
+					}
+				}
+					
+				employer = {
+					character_event = { id = tianxia.402 } # Inform host
+				}
+			}
+			
+			FROM = {
+				add_consort = ROOT
+			}
+		}
+	}
+	
+	warrior_lodge_intimidate_to_leave_factions = {
+		only_playable = yes
+		is_in_society = yes
+		ai_check_interval = 12
+		filter = vassals
+		ai_target_filter = vassals
+		
+		from_potential = {
+			has_dlc = "Holy Fury"
+			is_adult = yes
+			society_member_of = warrior_lodge_nivkh
+			society_rank >= 3
+		}
+		
+		potential = {
+			is_playable = yes
+			liege = {
+				character = FROM
+			}
+			in_faction = yes
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			FROM = {
+				society_currency >= 1000
+				
+				is_inaccessible_or_incapable_trigger = no
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			NOT = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_intimidated_out_of_factions
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				change_society_currency = -1000
+			}
+			
+			opinion = {
+				who = FROM
+				modifier = opinion_intimidated_out_of_factions
+			}
+			
+			character_event = { id = soh.403 } # Inform the target
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			trigger = {
+				OR = {
+					# All relevant factions; if any new relevant factions are added, update this
+					AND = {
+						in_faction = faction_succ_seniority
+						faction_power = {
+							faction = faction_succ_seniority
+							power >= 0.25
+						}
+					}
+					
+					AND = {
+						in_faction = faction_succ_primogeniture
+						faction_power = {
+							faction = faction_succ_primogeniture
+							power >= 0.25
+						}
+					}
+					
+					AND = {
+						in_faction = faction_succ_gavelkind
+						faction_power = {
+							faction = faction_succ_gavelkind
+							power >= 0.25
+						}
+					}
+					
+					AND = {
+						in_faction = faction_succ_feudal_elective
+						faction_power = {
+							faction = faction_succ_feudal_elective
+							power >= 0.25
+						}
+					}
+					
+					AND = {
+						in_faction = faction_lower_crown_authority
+						faction_power = {
+							faction = faction_lower_crown_authority
+							power >= 0.25
+						}
+					}
+					
+					AND = {
+						in_faction = faction_lower_tribal_organization
+						faction_power = {
+							faction = faction_lower_tribal_organization
+							power >= 0.25
+						}
+					}
+					
+					AND = {
+						in_faction = faction_independence
+						faction_power = {
+							faction = faction_independence
+							power >= 0.25
+						}
+					}
+					
+					AND = {
+						in_faction = faction_claimant
+						faction_power = {
+							faction = faction_claimant
+							power >= 0.25
+						}
+					}
+					
+					AND = {
+						in_faction = faction_increase_council_power
+						faction_power = {
+							faction = faction_increase_council_power
+							power >= 0.25
+						}
+					}
+					
+					AND = {
+						in_faction = faction_powerful_vassal_takeover
+						faction_power = {
+							faction = faction_powerful_vassal_takeover
+							power >= 0.25
+						}
+					}
+				}
+				# True believers can't be disbanded!
+				# Abrahamic revolters can't be disbanded!
+				# No Japanese faction is relevant
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				always = yes # Slow down
+			}
+			
+			mult_modifier = {
+				factor = 5
+				OR = {
+					leads_faction = faction_succ_seniority
+					leads_faction = faction_succ_primogeniture
+					leads_faction = faction_succ_gavelkind
+					leads_faction = faction_succ_feudal_elective
+					leads_faction = faction_lower_crown_authority
+					leads_faction = faction_lower_tribal_organization
+					leads_faction = faction_independence
+					leads_faction = faction_claimant
+					leads_faction = faction_increase_council_power
+					leads_faction = faction_powerful_vassal_takeover
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				FROM = {
+					trait = paranoid
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				FROM = {
+					trait = trusting
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.2
+				FROM = {
+					society_currency < 2000
+				}
+			}
+			
+			mult_modifier = {
+				factor = 2
+				OR = {
+					# All relevant factions; if any new relevant factions are added, update this
+					AND = {
+						in_faction = faction_succ_seniority
+						faction_power = {
+							faction = faction_succ_seniority
+							power >= 0.5
+						}
+					}
+					
+					AND = {
+						in_faction = faction_succ_primogeniture
+						faction_power = {
+							faction = faction_succ_primogeniture
+							power >= 0.5
+						}
+					}
+					
+					AND = {
+						in_faction = faction_succ_gavelkind
+						faction_power = {
+							faction = faction_succ_gavelkind
+							power >= 0.5
+						}
+					}
+					
+					AND = {
+						in_faction = faction_succ_feudal_elective
+						faction_power = {
+							faction = faction_succ_feudal_elective
+							power >= 0.5
+						}
+					}
+					
+					AND = {
+						in_faction = faction_lower_crown_authority
+						faction_power = {
+							faction = faction_lower_crown_authority
+							power >= 0.5
+						}
+					}
+					
+					AND = {
+						in_faction = faction_lower_tribal_organization
+						faction_power = {
+							faction = faction_lower_tribal_organization
+							power >= 0.5
+						}
+					}
+					
+					AND = {
+						in_faction = faction_independence
+						faction_power = {
+							faction = faction_independence
+							power >= 0.5
+						}
+					}
+					
+					AND = {
+						in_faction = faction_claimant
+						faction_power = {
+							faction = faction_claimant
+							power >= 0.5
+						}
+					}
+					
+					AND = {
+						in_faction = faction_increase_council_power
+						faction_power = {
+							faction = faction_increase_council_power
+							power >= 0.5
+						}
+					}
+					
+					AND = {
+						in_faction = faction_powerful_vassal_takeover
+						faction_power = {
+							faction = faction_powerful_vassal_takeover
+							power >= 0.5
+						}
+					}
+					
+					# True believers can't be disbanded!
+					# Abrahamic revolters can't be disbanded!
+					# No Japanese faction is relevant
+				}
+			}
+			
+			mult_modifier = {
+				factor = 2
+				OR = {
+					# All relevant factions; if any new relevant factions are added, update this
+					AND = {
+						in_faction = faction_succ_seniority
+						faction_power = {
+							faction = faction_succ_seniority
+							power >= 0.75
+						}
+					}
+					
+					AND = {
+						in_faction = faction_succ_primogeniture
+						faction_power = {
+							faction = faction_succ_primogeniture
+							power >= 0.75
+						}
+					}
+					
+					AND = {
+						in_faction = faction_succ_gavelkind
+						faction_power = {
+							faction = faction_succ_gavelkind
+							power >= 0.75
+						}
+					}
+					
+					AND = {
+						in_faction = faction_succ_feudal_elective
+						faction_power = {
+							faction = faction_succ_feudal_elective
+							power >= 0.75
+						}
+					}
+					
+					AND = {
+						in_faction = faction_lower_crown_authority
+						faction_power = {
+							faction = faction_lower_crown_authority
+							power >= 0.75
+						}
+					}
+					
+					AND = {
+						in_faction = faction_lower_tribal_organization
+						faction_power = {
+							faction = faction_lower_tribal_organization
+							power >= 0.75
+						}
+					}
+					
+					AND = {
+						in_faction = faction_independence
+						faction_power = {
+							faction = faction_independence
+							power >= 0.75
+						}
+					}
+					
+					AND = {
+						in_faction = faction_claimant
+						faction_power = {
+							faction = faction_claimant
+							power >= 0.75
+						}
+					}
+					
+					AND = {
+						in_faction = faction_increase_council_power
+						faction_power = {
+							faction = faction_increase_council_power
+							power >= 0.75
+						}
+					}
+					
+					AND = {
+						in_faction = faction_powerful_vassal_takeover
+						faction_power = {
+							faction = faction_powerful_vassal_takeover
+							power >= 0.75
+						}
+					}
+					
+					# True believers can't be disbanded!
+					# Abrahamic revolters can't be disbanded!
+					# No Japanese faction is relevant
+				}
+			}
+			
+			mult_modifier = {
+				factor = 5
+				OR = {
+					# All relevant factions; if any new relevant factions are added, update this
+					AND = {
+						in_faction = faction_succ_seniority
+						faction_power = {
+							faction = faction_succ_seniority
+							power >= 1.0
+						}
+					}
+					
+					AND = {
+						in_faction = faction_succ_primogeniture
+						faction_power = {
+							faction = faction_succ_primogeniture
+							power >= 1.0
+						}
+					}
+					
+					AND = {
+						in_faction = faction_succ_gavelkind
+						faction_power = {
+							faction = faction_succ_gavelkind
+							power >= 1.0
+						}
+					}
+					
+					AND = {
+						in_faction = faction_succ_feudal_elective
+						faction_power = {
+							faction = faction_succ_feudal_elective
+							power >= 1.0
+						}
+					}
+					
+					AND = {
+						in_faction = faction_lower_crown_authority
+						faction_power = {
+							faction = faction_lower_crown_authority
+							power >= 1.0
+						}
+					}
+					
+					AND = {
+						in_faction = faction_lower_tribal_organization
+						faction_power = {
+							faction = faction_lower_tribal_organization
+							power >= 1.0
+						}
+					}
+					
+					AND = {
+						in_faction = faction_independence
+						faction_power = {
+							faction = faction_independence
+							power >= 1.0
+						}
+					}
+					
+					AND = {
+						in_faction = faction_claimant
+						faction_power = {
+							faction = faction_claimant
+							power >= 1.0
+						}
+					}
+					
+					AND = {
+						in_faction = faction_increase_council_power
+						faction_power = {
+							faction = faction_increase_council_power
+							power >= 1.0
+						}
+					}
+					
+					AND = {
+						in_faction = faction_powerful_vassal_takeover
+						faction_power = {
+							faction = faction_powerful_vassal_takeover
+							power >= 1.0
+						}
+					}
+					
+					# True believers can't be disbanded!
+					# Abrahamic revolters can't be disbanded!
+					# No Japanese faction is relevant
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				FROM = {
+					is_dumb_trigger = yes
+				}
+			}
+		}
+	}
+	
+	warrior_lodge_intimidate_into_my_factions = {
+		only_playable = yes
+		is_in_society = yes
+		ai_check_interval = 12
+		filter = realm
+		ai_target_filter = realm
+		
+		from_potential = {
+			has_dlc = "Holy Fury"
+			is_adult = yes
+			society_member_of = warrior_lodge_nivkh
+			society_rank >= 3
+			OR = {
+				leads_faction = faction_succ_seniority
+				leads_faction = faction_succ_primogeniture
+				leads_faction = faction_succ_gavelkind
+				leads_faction = faction_succ_feudal_elective
+				leads_faction = faction_lower_crown_authority
+				leads_faction = faction_lower_tribal_organization
+				leads_faction = faction_independence
+				leads_faction = faction_claimant
+				leads_faction = faction_increase_council_power
+				leads_faction = faction_powerful_vassal_takeover
+			}
+		}
+		
+		potential = {
+			is_playable = yes
+			liege = {
+				any_vassal = {
+					character = FROM
+				}
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			FROM = {
+				society_currency >= 1000
+				
+				is_inaccessible_or_incapable_trigger = no
+			}
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			trigger_if = {
+				limit = {
+					controls_religion = yes
+				}
+				
+				OR = {
+					religion = FROM
+					controls_religion = no
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					i_am_appropriate_regent_trigger = yes
+				}
+				
+				always = no
+			}
+			
+			trigger_if = {
+				limit = {
+					liege = {
+						dynasty = ROOT
+					}
+				}
+				
+				FROM = {
+					dynasty = liege
+				}
+			}
+			
+			custom_tooltip = {
+				text = not_already_backing_from
+				
+				OR = {
+					trigger_if = {
+						limit = {
+							FROM = {
+								leads_faction = faction_succ_seniority
+							}
+						}
+						
+						NOT = {
+							in_faction = faction_succ_seniority
+						}
+					}
+					
+					trigger_if = {
+						limit = {
+							FROM = {
+								leads_faction = faction_succ_primogeniture
+							}
+						}
+						
+						NOT = {
+							in_faction = faction_succ_primogeniture
+						}
+					}
+					
+					trigger_if = {
+						limit = {
+							FROM = {
+								leads_faction = faction_succ_gavelkind
+							}
+						}
+						
+						NOT = {
+							in_faction = faction_succ_gavelkind
+						}
+					}
+					
+					trigger_if = {
+						limit = {
+							FROM = {
+								leads_faction = faction_succ_feudal_elective
+							}
+						}
+						
+						NOT = {
+							in_faction = faction_succ_feudal_elective
+						}
+					}
+					
+					trigger_if = {
+						limit = {
+							FROM = {
+								leads_faction = faction_lower_crown_authority
+							}
+						}
+						
+						NOT = {
+							in_faction = faction_lower_crown_authority
+						}
+					}
+					
+					trigger_if = {
+						limit = {
+							FROM = {
+								leads_faction = faction_lower_tribal_organization
+							}
+						}
+						
+						NOT = {
+							in_faction = faction_lower_tribal_organization
+						}
+					}
+					
+					trigger_if = {
+						limit = {
+							FROM = {
+								leads_faction = faction_independence
+							}
+						}
+						
+						NOT = {
+							in_faction = faction_independence
+						}
+					}
+					
+					trigger_if = {
+						limit = {
+							FROM = {
+								leads_faction = faction_claimant
+							}
+						}
+						
+						NOT = {
+							in_faction = faction_claimant
+						}
+					}
+					
+					trigger_if = {
+						limit = {
+							FROM = {
+								leads_faction = faction_increase_council_power
+							}
+						}
+						
+						NOT = {
+							in_faction = faction_increase_council_power
+						}
+					}
+					
+					trigger_if = {
+						limit = {
+							FROM = {
+								leads_faction = faction_powerful_vassal_takeover
+							}
+						}
+						
+						NOT = {
+							in_faction = faction_powerful_vassal_takeover
+						}
+					}
+				}
+			}
+			
+			NOR = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_intimidated_into_factions
+				}
+				
+				has_opinion_modifier = {
+					who = liege
+					modifier = opinion_intimidated_out_of_factions
+				}
+			}
+		}
+		
+		effect = {
+			FROM = {
+				change_society_currency = -1000
+			}
+			
+			opinion = {
+				who = FROM
+				modifier = opinion_intimidated_into_factions
+			}
+			
+			character_event = { id = soh.404 } # Inform the target
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 0.1
+				always = yes # Slow down
+			}
+			
+			mult_modifier = {
+				factor = 5
+				relative_power = {
+					who = liege
+					power >= 0.1
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				FROM = {
+					trait = ambitious
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				FROM = {
+					trait = content
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.2
+				FROM = {
+					society_currency < 2000
+				}
+			}
+			
+			mult_modifier = {
+				factor = 2
+				OR = {
+					# All relevant factions; if any new relevant factions are added, update this
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_seniority
+						}
+						faction_power = {
+							faction = faction_succ_seniority
+							power < 1.0
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_primogeniture
+						}
+						faction_power = {
+							faction = faction_succ_primogeniture
+							power < 1.0
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_gavelkind
+						}
+						faction_power = {
+							faction = faction_succ_gavelkind
+							power < 1.0
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_feudal_elective
+						}
+						faction_power = {
+							faction = faction_succ_feudal_elective
+							power < 1.0
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_lower_crown_authority
+						}
+						faction_power = {
+							faction = faction_lower_crown_authority
+							power < 1.0
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_lower_tribal_organization
+						}
+						faction_power = {
+							faction = faction_lower_tribal_organization
+							power < 1.0
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_independence
+						}
+						faction_power = {
+							faction = faction_independence
+							power < 1.0
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_claimant
+						}
+						faction_power = {
+							faction = faction_claimant
+							power < 1.0
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_increase_council_power
+						}
+						faction_power = {
+							faction = faction_increase_council_power
+							power < 1.0
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_powerful_vassal_takeover
+						}
+						faction_power = {
+							faction = faction_powerful_vassal_takeover
+							power < 1.0
+						}
+					}
+					
+					# True believers can't be disbanded!
+					# Abrahamic revolters can't be disbanded!
+					# No Japanese faction is relevant
+				}
+			}
+			
+			mult_modifier = {
+				factor = 2
+				OR = {
+					# All relevant factions; if any new relevant factions are added, update this
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_seniority
+						}
+						faction_power = {
+							faction = faction_succ_seniority
+							power < 0.75
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_primogeniture
+						}
+						faction_power = {
+							faction = faction_succ_primogeniture
+							power < 0.75
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_gavelkind
+						}
+						faction_power = {
+							faction = faction_succ_gavelkind
+							power < 0.75
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_feudal_elective
+						}
+						faction_power = {
+							faction = faction_succ_feudal_elective
+							power < 0.75
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_lower_crown_authority
+						}
+						faction_power = {
+							faction = faction_lower_crown_authority
+							power < 0.75
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_lower_tribal_organization
+						}
+						faction_power = {
+							faction = faction_lower_tribal_organization
+							power < 0.75
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_independence
+						}
+						faction_power = {
+							faction = faction_independence
+							power < 0.75
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_claimant
+						}
+						faction_power = {
+							faction = faction_claimant
+							power < 0.75
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_increase_council_power
+						}
+						faction_power = {
+							faction = faction_increase_council_power
+							power < 0.75
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_powerful_vassal_takeover
+						}
+						faction_power = {
+							faction = faction_powerful_vassal_takeover
+							power < 0.75
+						}
+					}
+					
+					# True believers can't be disbanded!
+					# Abrahamic revolters can't be disbanded!
+					# No Japanese faction is relevant
+				}
+			}
+			
+			mult_modifier = {
+				factor = 2
+				OR = {
+					# All relevant factions; if any new relevant factions are added, update this
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_seniority
+						}
+						faction_power = {
+							faction = faction_succ_seniority
+							power < 0.5
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_primogeniture
+						}
+						faction_power = {
+							faction = faction_succ_primogeniture
+							power < 0.5
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_gavelkind
+						}
+						faction_power = {
+							faction = faction_succ_gavelkind
+							power < 0.5
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_feudal_elective
+						}
+						faction_power = {
+							faction = faction_succ_feudal_elective
+							power < 0.5
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_lower_crown_authority
+						}
+						faction_power = {
+							faction = faction_lower_crown_authority
+							power < 0.5
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_lower_tribal_organization
+						}
+						faction_power = {
+							faction = faction_lower_tribal_organization
+							power < 0.5
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_independence
+						}
+						faction_power = {
+							faction = faction_independence
+							power < 0.5
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_claimant
+						}
+						faction_power = {
+							faction = faction_claimant
+							power < 0.5
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_increase_council_power
+						}
+						faction_power = {
+							faction = faction_increase_council_power
+							power < 0.5
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_powerful_vassal_takeover
+						}
+						faction_power = {
+							faction = faction_powerful_vassal_takeover
+							power < 0.5
+						}
+					}
+					
+					# True believers can't be disbanded!
+					# Abrahamic revolters can't be disbanded!
+					# No Japanese faction is relevant
+				}
+			}
+			
+			mult_modifier = {
+				factor = 2
+				OR = {
+					# All relevant factions; if any new relevant factions are added, update this
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_seniority
+						}
+						faction_power = {
+							faction = faction_succ_seniority
+							power < 0.25
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_primogeniture
+						}
+						faction_power = {
+							faction = faction_succ_primogeniture
+							power < 0.25
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_gavelkind
+						}
+						faction_power = {
+							faction = faction_succ_gavelkind
+							power < 0.25
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_succ_feudal_elective
+						}
+						faction_power = {
+							faction = faction_succ_feudal_elective
+							power < 0.25
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_lower_crown_authority
+						}
+						faction_power = {
+							faction = faction_lower_crown_authority
+							power < 0.25
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_lower_tribal_organization
+						}
+						faction_power = {
+							faction = faction_lower_tribal_organization
+							power < 0.25
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_independence
+						}
+						faction_power = {
+							faction = faction_independence
+							power < 0.25
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_claimant
+						}
+						faction_power = {
+							faction = faction_claimant
+							power < 0.25
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_increase_council_power
+						}
+						faction_power = {
+							faction = faction_increase_council_power
+							power < 0.25
+						}
+					}
+					
+					AND = {
+						FROM = {
+							leads_faction = faction_powerful_vassal_takeover
+						}
+						faction_power = {
+							faction = faction_powerful_vassal_takeover
+							power < 0.25
+						}
+					}
+					
+					# True believers can't be disbanded!
+					# Abrahamic revolters can't be disbanded!
+					# No Japanese faction is relevant
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				FROM = {
+					is_dumb_trigger = yes
+				}
+			}
+		}
+	}
+	
+	warrior_lodge_improve_relatives_opinion = {
+		only_playable = yes
+		is_in_society = yes
+		filter = close_relatives
+		ai_target_filter = close_relatives
+		ai_check_interval = 12
+		
+		from_potential = {
+			society_member_of = warrior_lodge_batak
+			society_rank >= 2
+		}
+		
+		potential = {
+			always = yes
+		}
+		
+		allow = {
+			is_inaccessible_or_incapable_trigger = no
+			
+			NOT = {
+				has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_wl_close_relative
+				}
+			}
+			
+			FROM = {
+				society_currency >= 500
+				
+				is_inaccessible_or_incapable_trigger = no
+			}
+		}
+		
+		effect = {
+			FROM = {
+				change_society_currency = -500
+			}
+			
+			opinion = {
+				who = FROM
+				modifier = opinion_wl_close_relative
+				years = 5
+			}
+			
+			character_event = { id = tianxia.405 } # Inform target
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			trigger = {
+				NOR = {
+					is_friend = FROM
+					is_rival = FROM
+					is_lover = FROM
+				}
+				
+				is_adult = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				always = yes # Slow down
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				society_currency < 1000
+			}
+			
+			mult_modifier = {
+				factor = 2
+				FROM = {
+					trait = kind
+				}
+			}
+			
+			mult_modifier = {
+				factor = 2
+				FROM = {
+					trait = ambitious
+				}
+			}
+			
+			mult_modifier = {
+				factor = 2
+				FROM = {
+					has_focus = focus_family
+				}
+			}
+			
+			mult_modifier = {
+				factor = 2
+				FROM = {
+					has_religion_feature = religion_feature_family_focus
+				}
+			}
+		}
+	}
+}

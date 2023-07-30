@@ -1,0 +1,2130 @@
+namespace = HF
+namespace = HFP
+
+# Written by Joachim
+# HF.49000 - HF.49199
+
+## Fourth Crusade Event
+# Start event (the moment the Crusade starts)
+character_event = {
+	id = HF.49000
+
+	is_triggered_only = yes # on_crusade_preparation_starts
+	hide_window = yes
+
+	has_dlc = "Holy Fury"
+
+	trigger = {
+		uses_new_crusade = yes
+
+		has_game_rule = {
+			name = fourth_crusade
+			value = on
+		}
+
+		has_global_flag = first_crusade_complete
+		NOT = { has_global_flag = fourth_crusade_launched }
+
+		e_byzantium = {
+			holder_scope = {
+				realm_size >= 50
+				religion_group = ROOT
+				NOT = { religion = ROOT }
+
+				c_constantinopolis = {
+					holder_scope = {
+						OR = {
+							character = PREVPREV
+							is_vassal_or_below_of = PREVPREV
+						}
+					}
+				}
+
+				any_dynasty_member = {
+					age >= 12
+					is_ruler = no
+					mercenary = no
+					holy_order = no
+
+					NOT = {
+						any_heir_title = {
+							always = yes
+						}
+					}
+				}
+
+				OR = {
+					has_global_flag = qa_fourth_crusade_event
+
+					trigger_if = {
+						limit = { realm_size < 100 }
+						random < 10
+					}
+					trigger_else_if = {
+						limit = { realm_size < 200 }
+						random < 15
+					}
+					trigger_else_if = {
+						limit = { realm_size < 300 }
+						random < 20
+					}
+					trigger_else = {
+						random < 25
+					}
+				}
+			}
+		}
+
+		d_thrace = {
+			de_jure_liege = k_thrace
+		}
+
+		e_latin_empire = {
+			has_holder = no
+		}
+
+		any_playable_ruler = {
+			is_merchant_republic = yes
+			religion = ROOT
+		}
+	}
+
+	immediate = {
+		e_byzantium = {
+			holder_scope = {
+				save_event_target_as = fourth_crusade_byzantine_emperor
+
+				narrative_event = {
+					id = HF.49001
+					days = 30
+				}
+			}
+		}
+	}
+}
+
+## Story Events prior to the Fourth Crusade launch
+# Part 1 - The Byzantine Prince/Princess flees Constantinople
+narrative_event = {
+	id = HF.49001
+	title = EVTTITLE_HF_49001
+	desc = EVTDESC_HF_49001
+	picture = GFX_evt_quarrel
+	border = GFX_event_narrative_frame_religion
+	portrait = event_target:fourth_crusade_byzantine_refugee
+
+	is_triggered_only = yes
+
+	religion_group = christian
+	has_dlc = "Holy Fury"
+
+	trigger = {
+		any_dynasty_member = {
+			age >= 12
+			is_ruler = no
+			mercenary = no
+			holy_order = no
+
+			NOT = {
+				any_heir_title = {
+					always = yes
+				}
+			}
+		}
+
+		any_playable_ruler = {
+			is_merchant_republic = yes
+			religion = FROM
+		}
+	}
+
+	immediate = {
+		random_playable_ruler = {
+			limit = {
+				is_merchant_republic = yes
+				religion = FROM
+			}
+
+			preferred_limit = { real_tier = EMPEROR }
+			preferred_limit = { real_tier = KING }
+			preferred_limit = { practical_age < 40 }
+
+			save_event_target_as = fourth_crusade_merchant_lord
+		}
+
+		random_dynasty_member = {
+			limit = {
+				age >= 12
+				is_ruler = no
+				mercenary = no
+				holy_order = no
+
+				NOT = {
+					any_heir_title = {
+						always = yes
+					}
+				}
+			}
+
+			preferred_limit = { is_child_of = ROOT }
+
+			save_event_target_as = fourth_crusade_byzantine_refugee
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HF_49001
+
+		event_target:fourth_crusade_merchant_lord = {
+			show_scope_change = no
+
+			narrative_event = { id = HF.49002 }
+			add_rival = ROOT
+		}
+
+		event_target:fourth_crusade_byzantine_refugee = {
+			show_scope_change = no
+
+			move_character = event_target:fourth_crusade_merchant_lord
+
+			hidden_effect = {
+				add_claim = e_byzantium
+				add_claim = k_thrace
+			}
+		}
+	}
+}
+
+# Part 2 - The Mercantile Refuge
+narrative_event = {
+	id = HF.49002
+	title = EVTTITLE_HF_49002
+	desc = EVTDESC_HF_49002
+	picture = GFX_evt_busy_trading_dock_republic
+	border = GFX_event_narrative_frame_religion
+	portrait = event_target:fourth_crusade_byzantine_refugee
+
+	is_triggered_only = yes
+
+	has_dlc = "Holy Fury"
+	religion_group = christian
+
+	trigger = {
+		event_target:fourth_crusade_byzantine_refugee = {
+			is_alive = yes
+		}
+	}
+
+	immediate = {
+		event_target:fourth_crusade_byzantine_refugee = {
+			set_character_flag = fourth_crusade_recipient
+		}
+
+		trigger_switch = {
+			on_trigger = crusade_preparation_time_remaining
+
+			550 = { narrative_event = { id = HF.49003 days = 450 } }
+			450 = { narrative_event = { id = HF.49003 days = 350 } }
+			350 = { narrative_event = { id = HF.49003 days = 250 } }
+			250 = { narrative_event = { id = HF.49003 days = 150 } }
+			150 = { narrative_event = { id = HF.49003 days = 50 } }
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HF_49002
+	}
+}
+
+# Part 3 - The Merchant Lord decides to restore the Byzantine Prince/Princess to her/his throne
+narrative_event = {
+	id = HF.49003
+	title = EVTTITLE_HF_49003
+	desc = EVTDESC_HF_49003
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_narrative_frame_religion
+	portrait = event_target:fourth_crusade_byzantine_refugee
+
+	is_triggered_only = yes
+
+	religion_group = christian
+	has_dlc = "Holy Fury"
+
+	trigger = {
+		is_preparing_crusade = yes
+		NOT = { religion = e_byzantium }
+
+		OR = {
+			religion = catholic
+			religion = fraticelli
+		}
+
+		event_target:fourth_crusade_byzantine_refugee = {
+			is_alive = yes
+
+			NOR = {
+				has_landed_title = e_byzantium
+				has_landed_title = k_thrace
+			}
+		}
+
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				event_target:fourth_crusade_byzantine_emperor = {
+					is_alive = no
+				}
+			}
+
+			e_byzantium = {
+				holder_scope = {
+					save_event_target_as = fourth_crusade_byzantine_emperor
+				}
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HF_49003
+
+		prestige = 100
+
+		if = {
+			limit = { has_pledged_crusade_participation = no }
+			pledge_crusade_participation = yes
+		}
+
+		event_target:fourth_crusade_byzantine_emperor = {
+			set_character_flag = fourth_crusade_target
+		}
+
+		scaled_wealth = {
+			value = 1.5
+			min = 300
+			max = 1200
+		}
+
+		set_global_flag = 4th_crusade_official
+
+		trigger_switch = {
+			on_trigger = crusade_preparation_time_remaining
+
+			200 = { narrative_event = { id = HF.49004 days = 180 } }
+			180 = { narrative_event = { id = HF.49004 days = 160 } }
+			160 = { narrative_event = { id = HF.49004 days = 140 } }
+			140 = { narrative_event = { id = HF.49004 days = 120 } }
+			120 = { narrative_event = { id = HF.49004 days = 100 } }
+			100 = { narrative_event = { id = HF.49004 days =  80 } }
+			 80 = { narrative_event = { id = HF.49004 days =  60 } }
+			 60 = { narrative_event = { id = HF.49004 days =  40 } }
+			 40 = { narrative_event = { id = HF.49004 days =  20 } }
+			 20 = { narrative_event = { id = HF.49004 } }
+		}
+
+		any_playable_ruler = {
+			limit = { religion = ROOT }
+
+			trigger_switch = {
+				on_trigger = crusade_preparation_time_remaining
+
+				200 = { narrative_event = { id = HF.49004 days = 180 } }
+				180 = { narrative_event = { id = HF.49004 days = 160 } }
+				160 = { narrative_event = { id = HF.49004 days = 140 } }
+				140 = { narrative_event = { id = HF.49004 days = 120 } }
+				120 = { narrative_event = { id = HF.49004 days = 100 } }
+				100 = { narrative_event = { id = HF.49004 days =  80 } }
+				 80 = { narrative_event = { id = HF.49004 days =  60 } }
+				 60 = { narrative_event = { id = HF.49004 days =  40 } }
+				 40 = { narrative_event = { id = HF.49004 days =  20 } }
+				 20 = { narrative_event = { id = HF.49004 } }
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_HF_49003
+
+		prestige = -100
+
+		ai_chance = { factor = 0 }
+	}
+}
+
+# Part 3 - Narrative event that the Merchant Lord will support the Byzantine Prince/Princess for the Throne
+narrative_event = {
+	id = HF.49004
+	title = EVTTITLE_HF_49004
+	desc = EVTDESC_HF_49004
+	picture = GFX_evt_doge_republic
+	border = GFX_event_narrative_frame_religion
+
+	is_triggered_only = yes
+
+	has_dlc = "Holy Fury"
+
+	immediate = {
+		if = {
+			limit = { character = FROM }
+
+			set_crusade_target = {
+				character = event_target:fourth_crusade_byzantine_emperor
+				title = k_thrace
+			}
+
+			set_official_crusade_recipient = event_target:fourth_crusade_byzantine_refugee
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HF_49004
+
+		custom_tooltip = { text = EVTOPTA_HF_49004_TT }
+
+		if = {
+			limit = {
+				has_pledged_crusade_participation = yes
+				NOT = { character = FROM }
+			}
+
+			scaled_wealth = {
+				value = 0.2
+				min = 50
+				max = 200
+			}
+		}
+	}
+}
+
+# The Pope declares the launch of the Fourth Crusade
+character_event = {
+	id = HF.49006
+
+	is_triggered_only = yes # on_crusade_launches
+	hide_window = yes
+
+	has_dlc = "Holy Fury"
+
+	trigger = {
+		has_global_flag = 4th_crusade_official
+
+		crusade_target_title = {
+			title = k_thrace
+		}
+
+		crusade_target_char = {
+			has_landed_title = e_byzantium
+		}
+	}
+
+	immediate = {
+		set_global_flag = fourth_crusade_launched
+
+		any_playable_ruler = {
+			narrative_event = { id = HF.49007 }
+		}
+	}
+}
+
+# The Fourth Crusade Launches
+narrative_event = {
+	id = HF.49007
+	title = EVTTITLE_HF_49007
+	desc = EVTDESC_HF_49007
+	picture = GFX_evt_mass_crusade
+	border = GFX_event_narrative_frame_religion
+
+	is_triggered_only = yes
+
+	has_dlc = "Holy Fury"
+
+	immediate = {
+		random_list = {
+			50 = { sound_effect = crusade_start_01 }
+			50 = { sound_effect = crusade_start_02 }
+		}
+	}
+
+	option = {
+		name = EVTOPTA_HF_49007
+
+		trigger = {
+			religion = FROM
+			has_pledged_crusade_participation = yes
+		}
+
+		reverse_opinion = {
+			name = fourth_crusade_crusader
+			who = FROM
+			years = 20
+		}
+	}
+
+	option = {
+		name = EVTOPTE_HF_49007
+
+		trigger = {
+			religion = FROM
+			has_pledged_crusade_participation = no
+		}
+	}
+
+	option = {
+		name = EVTOPTB_HF_49007
+
+		trigger = { has_landed_title = e_byzantium }
+	}
+
+	option = {
+		name = EVTOPTC_HF_49007
+
+		trigger = {
+			NOT = { religion_group = FROM }
+		}
+	}
+
+	option = {
+		name = EVTOPTD_HF_49007
+
+		trigger = {
+			religion_group = FROM
+
+			NOR = {
+				religion = FROM
+				has_landed_title = e_byzantium
+			}
+		}
+	}
+}
+
+# Byzantium falls
+narrative_event = {
+	id = HF.49008
+	title = EVTTITLE_HF_49008
+	desc = EVTDESC_HF_49008
+	picture = GFX_evt_mass_crusade
+	border = GFX_event_narrative_frame_religion
+	portrait = event_target:latin_empire_holder
+	sound = crusade_outcome_positive
+
+	is_triggered_only = yes # new_crusade CB
+
+	has_dlc = "Holy Fury"
+
+	immediate = {
+		e_latin_empire = {
+			holder_scope = {
+				save_event_target_as = latin_empire_holder
+			}
+		}
+
+		clr_character_flag = forced_to_crusade
+
+		if = {
+			limit = { has_landed_title = e_latin_empire }
+			sound_effect = bloodline_added
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_HF_49008
+			trigger = { religion = FROM }
+		}
+		name = {
+			text = INTERESTING
+			trigger = {
+				NOT = { religion_group = FROM }
+			}
+		}
+		name = {
+			text = EVTOPTC_HF_49008
+			trigger = {
+				religion_group = FROM
+				NOT = { religion = FROM }
+			}
+		}
+
+		if = {
+			limit = { has_landed_title = e_latin_empire }
+
+			if = {
+				limit = { is_female = yes }
+
+				create_bloodline = {
+					type = destroyer_of_byzantium
+					inheritance = matrilineal
+				}
+			}
+			else = {
+				create_bloodline = {
+					type = destroyer_of_byzantium
+				}
+			}
+		}
+	}
+}
+
+## Crusader Bloodlines
+# Grand Crusader Bloodline
+narrative_event = {
+	id = HF.49020
+	title = EVTTITLE_HF_49020
+	desc = EVTDESC_HF_49020
+	picture = GFX_evt_knight_kneeling
+	border = GFX_event_narrative_frame_religion
+
+	is_triggered_only = yes # new_crusade CB
+
+	has_dlc = "Holy Fury"
+
+	trigger = {
+		NOT = {
+			any_owned_bloodline = {
+				has_bloodline_flag = crusader_bloodline
+				bloodline_is_active_for = PREV
+				founder = { character = ROOT }
+			}
+		}
+	}
+
+	immediate = {
+		sound_effect = bloodline_added
+	}
+
+	option = {
+		name = EVTOPTA_HF_49020
+
+		if = {
+			limit = { is_female = no }
+
+			create_bloodline = {
+				type = grand_crusader
+			}
+		}
+		else = {
+			create_bloodline = {
+				type = grand_crusader
+				inheritance = matrilineal
+			}
+		}
+
+		set_bloodline_founder_religion_flag_effect = yes
+	}
+}
+
+# Crusader Commander Bloodline
+narrative_event = {
+	id = HF.49021
+	title = EVTTITLE_HF_49021
+	desc = EVTDESC_HF_49021
+	picture = GFX_evt_melee
+	border = GFX_event_narrative_frame_religion
+
+	is_triggered_only = yes # crusader_commander_counter_positive_effect
+
+	has_dlc = "Holy Fury"
+
+	trigger = {
+		NOT = {
+			any_owned_bloodline = {
+				has_bloodline_flag = crusader_bloodline
+				bloodline_is_active_for = PREV
+				founder = { character = ROOT }
+			}
+		}
+	}
+
+	immediate = {
+		event_target:enemy_commander = {
+			any_controlled_unit = {
+				morale = -1
+			}
+		}
+
+		sound_effect = bloodline_added
+	}
+
+	option = {
+		name = EVTOPTA_HF_49021
+
+		event_target:enemy_commander = {
+			if = {
+				limit = { ai = yes }
+
+				death = {
+					death_reason = death_battle
+					killer = ROOT
+				}
+			}
+		}
+
+		if = {
+			limit = { is_female = no }
+
+			create_bloodline = {
+				type = crusader_commander
+			}
+		}
+		else = {
+			create_bloodline = {
+				type = crusader_commander
+				inheritance = matrilineal
+			}
+		}
+
+		set_bloodline_founder_religion_flag_effect = yes
+	}
+}
+
+## The Northern Crusade
+# The Teutonic Order looking elsewhere - Pre event
+character_event = {
+	id = HF.49100
+
+	is_triggered_only = yes # on_yearly_pulse
+	hide_window = yes
+
+	has_dlc = "Holy Fury"
+
+	trigger = {
+		has_landed_title = d_teutonic_order
+		year >= 1150
+		is_preparing_crusade = no
+		is_alternate_start = no
+
+		has_game_rule = {
+			name = northern_crusade
+			value = on
+		}
+
+		NOR = {
+			any_war = {
+				using_cb = new_crusade
+			}
+
+			has_global_flag = northern_crusades_active
+			has_global_flag = northern_crusade_failure
+			has_global_flag = northern_crusade_success
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				any_landed_title = {
+					OR = {
+						region = world_europe_north
+						region = custom_eastern_baltic
+						region = custom_russia
+					}
+
+					higher_real_tier_than = COUNT
+
+					holder_scope = {
+						independent = yes
+						religion_group = pagan_group
+					}
+				}
+
+				NOT = {
+					any_demesne_title = {
+						real_tier = COUNT
+						is_titular = no
+
+						NOR = {
+							region = world_europe_north
+							region = custom_eastern_baltic
+							region = custom_russia
+						}
+					}
+				}
+			}
+
+			any_playable_ruler = {
+				narrative_event = { id = HF.49101 }
+			}
+
+			event_target:pulse_province = {
+				if = {
+					limit = { has_global_flag = qa_testing }
+
+					province_event = {
+						id = HF.49103
+						days = 1
+					}
+				}
+				else = {
+					province_event = {
+						id = HF.49103
+						years = 5
+						random = 1825
+					}
+				}
+			}
+		}
+	}
+}
+
+# The Teutonic Order looking elsewhere event
+narrative_event = {
+	id = HF.49101
+	desc = EVTDESC_HF_49101
+	title = EVTTITLE_HF_49101
+	picture = GFX_evt_crusaders
+	border = GFX_event_narrative_frame_religion
+
+	is_triggered_only = yes
+
+	has_dlc = "Holy Fury"
+
+	immediate = {
+		set_global_flag = northern_crusades_active
+	}
+
+	option = {
+		name = EVTOPTA_HF_49101
+
+		trigger = { religion = FROM }
+
+		if = {
+			limit = {
+				independent = yes
+
+				any_neighbor_independent_ruler = {
+					religion_group = pagan_group
+				}
+
+				any_demesne_title = {
+					higher_tier_than = DUKE
+
+					OR = {
+						region = world_europe_north
+						region = custom_eastern_baltic
+						region = custom_russia
+					}
+				}
+			}
+
+			custom_tooltip = { text = EVTOPTA_HF_49101_TT }
+		}
+	}
+
+	option = {
+		name = EVTOPTB_HF_49101
+
+		trigger = {
+			religion_group = FROM
+			NOT = { religion = FROM }
+		}
+	}
+
+	option = {
+		name = EVTOPTC_HF_49101
+
+		trigger = {
+			NOT = { religion_group = FROM }
+		}
+	}
+}
+
+# Setting up Northern Crusade
+province_event = {
+	id = HF.49103
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		OR = {
+			is_title_active = d_teutonic_order
+			is_title_active = k_teutonic_state
+		}
+
+		NOT = { has_global_flag = northern_crusade_active }
+
+		any_independent_ruler = {
+			religion_group = pagan_group
+			holy_order = no
+			mercenary = no
+
+			any_demesne_title = {
+				higher_real_tier_than = COUNT
+
+				OR = {
+					region = world_europe_north
+					region = custom_eastern_baltic
+					region = custom_russia
+				}
+			}
+		}
+	}
+
+	fail_trigger_effect = {
+		repeat_event = {
+			id = HF.49103
+			days = 100
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { is_title_active = d_teutonic_order }
+
+			d_teutonic_order = {
+				holder_scope = {
+					character_event = { id = HF.49104 }
+				}
+			}
+		}
+		else = {
+			k_teutonic_state = {
+				holder_scope = {
+					character_event = { id = HF.49104 }
+				}
+			}
+		}
+	}
+}
+
+# Potentially starting the Northern Crusade
+character_event = {
+	id = HF.49104
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		random_independent_ruler = {
+			limit = {
+				religion_group = pagan_group
+				holy_order = no
+				mercenary = no
+
+				any_demesne_title = {
+					higher_real_tier_than = COUNT
+
+					OR = {
+						region = world_europe_north
+						region = custom_eastern_baltic
+						region = custom_russia
+					}
+				}
+			}
+
+			preferred_limit = { realm_size >= 30 }
+			preferred_limit = { realm_size >= 20 }
+			preferred_limit = { realm_size >= 15 }
+			preferred_limit = { realm_size >= 10 }
+			preferred_limit = { realm_size >= 5 }
+
+			random_demesne_title = {
+				limit = {
+					higher_tier_than = COUNT
+
+					OR = {
+						region = world_europe_north
+						region = custom_eastern_baltic
+						region = custom_russia
+					}
+				}
+
+				preferred_limit = {
+					ROOT = {
+						capital_scope = {
+							county = {
+								de_jure_liege_or_above = PREVPREVPREV
+							}
+						}
+					}
+				}
+
+				kingdom = {
+					save_global_event_target_as = northern_crusade_kingdom_title
+				}
+			}
+
+			save_event_target_as = northern_crusade_target_character
+		}
+
+		set_global_flag = northern_crusade_active
+		character_event = { id = HF.49109 }
+	}
+}
+
+# Teutonic Order receives target suggestion
+character_event = {
+	id = HF.49105
+
+	is_triggered_only = yes # ask_teutonic_*, HFP_holy_order_decisions.txt
+	hide_window = yes
+
+	immediate = {
+		if = {
+			limit = { has_global_flag = northern_crusade_active }
+
+			event_target:northern_crusade_kingdom_title = {
+				random_direct_de_jure_vassal_title = {
+					limit = {
+						any_direct_de_jure_vassal_title = {
+							holder_scope = {
+								OR = {
+									character = event_target:northern_crusade_asker
+									is_vassal_or_below_of = event_target:northern_crusade_asker
+								}
+							}
+						}
+					}
+
+					save_event_target_as = northern_crusade_duchy_title
+				}
+			}
+		}
+		else = {
+			event_target:northern_crusade_potential_target = {
+				random_realm_title = {
+					limit = {
+						OR = {
+							region = world_europe_north
+							region = custom_eastern_baltic
+							region = custom_russia
+						}
+					}
+
+					kingdom = {
+						save_global_event_target_as = northern_crusade_kingdom_title
+
+						random_direct_de_jure_vassal_title = {
+							limit = {
+								any_direct_de_jure_vassal_title = {
+									holder_scope = {
+										OR = {
+											character = event_target:northern_crusade_asker
+											is_vassal_or_below_of = event_target:northern_crusade_asker
+										}
+									}
+								}
+							}
+
+							save_event_target_as = northern_crusade_duchy_title
+						}
+					}
+				}
+			}
+		}
+
+		random_list = {
+			# Asks for nothing but piety
+			10 = {
+				trigger = {
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value >= 0
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value >= 25
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value >= 50
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value >= 75
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value >= 90
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value < 10
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					OR = {
+						trait = ambitious
+						trait = greedy
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					OR = {
+						trait = humble
+						trait = content
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.1
+					is_rival = event_target:northern_crusade_asker
+				}
+
+				event_target:northern_crusade_asker = {
+					letter_event = { id = HF.49106 }
+				}
+			}
+
+			# Asks for a donation of gold
+			10 = {
+				event_target:northern_crusade_asker = {
+					letter_event = { id = HF.49107 }
+				}
+			}
+
+			# Asks for a donation of land
+			10 = {
+				trigger = {
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value < 60
+					}
+
+					event_target:northern_crusade_kingdom_title = {
+						any_de_jure_vassal_title = {
+							holder_scope = {
+								OR = {
+									is_vassal_or_below_of = event_target:northern_crusade_asker
+									character = event_target:northern_crusade_asker
+								}
+							}
+						}
+					}
+
+					event_target:northern_crusade_asker = {
+						any_demesne_title = {
+							real_tier = COUNT
+
+							location = {
+								duchy = {
+									NOT = { title = event_target:northern_crusade_duchy_title }
+								}
+							}
+						}
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value < -10
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value < 0
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value < 15
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value >= 25
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value >= 50
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value >= 75
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					opinion = {
+						who = event_target:northern_crusade_asker
+						value >= 100
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					OR = {
+						trait = ambitious
+						trait = greedy
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					OR = {
+						trait = content
+						trait = humble
+					}
+				}
+
+				mult_modifier = {
+					factor = 3
+					is_rival = event_target:northern_crusade_asker
+				}
+
+				event_target:northern_crusade_asker = {
+					letter_event = { id = HF.49108 }
+				}
+			}
+		}
+	}
+}
+
+# Piety is all that is needed
+letter_event = {
+	id = HF.49106
+	desc = EVTDESC_HF_49106
+
+	is_triggered_only = yes
+
+	# Accept offer
+	option = {
+		name = EVTOPTA_HF_49106
+
+		piety = -200
+
+		FROM = {
+			character_event = { id = HF.49109 }
+		}
+	}
+
+	# Reject the offer
+	option = {
+		name = EVTOPTB_HF_49106
+	}
+
+	after = {
+		clr_character_flag = northern_crusade_asked_for_help
+	}
+}
+
+# Some gold will be needed
+letter_event = {
+	id = HF.49107
+	desc = EVTDESC_HF_49107
+
+	is_triggered_only = yes
+
+	immediate = {
+		random_list = {
+			10 = {
+				trigger = {
+					reverse_opinion = {
+						who = FROM
+						value >= 0
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					reverse_opinion = {
+						who = FROM
+						value >= 25
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					reverse_opinion = {
+						who = FROM
+						value >= 50
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					reverse_opinion = {
+						who = FROM
+						value >= 75
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					reverse_opinion = {
+						who = FROM
+						value >= 90
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					reverse_opinion = {
+						who = FROM
+						value < 10
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					FROM = {
+						OR = {
+							trait = ambitious
+							trait = greedy
+						}
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					FROM = {
+						OR = {
+							trait = humble
+							trait = content
+						}
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.1
+					is_rival = FROM
+				}
+
+				set_character_flag = northern_crusade_small_donation
+			}
+
+			10 = {
+				set_character_flag = northern_crusade_medium_donation
+			}
+
+			10 = {
+
+				mult_modifier = {
+					factor = 1.5
+
+					reverse_opinion = {
+						who = FROM
+						value < -10
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					reverse_opinion = {
+						who = FROM
+						value < 0
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					reverse_opinion = {
+						who = FROM
+						value < 15
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					reverse_opinion = {
+						who = FROM
+						value >= 25
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					reverse_opinion = {
+						who = FROM
+						value >= 50
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					reverse_opinion = {
+						who = FROM
+						value >= 75
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					reverse_opinion = {
+						who = FROM
+						value >= 100
+					}
+				}
+
+				mult_modifier = {
+					factor = 1.5
+
+					FROM = {
+						OR = {
+							trait = ambitious
+							trait = greedy
+						}
+					}
+				}
+
+				mult_modifier = {
+					factor = 0.5
+
+					FROM = {
+						OR = {
+							trait = content
+							trait = humble
+						}
+					}
+				}
+
+				mult_modifier = {
+					factor = 3
+					is_rival = FROM
+				}
+
+				set_character_flag = northern_crusade_large_donation
+			}
+		}
+	}
+
+	# Accept offer
+	option = {
+		name = EVTOPTA_HF_49107
+
+		if = {
+			limit = { has_character_flag = northern_crusade_small_donation }
+			transfer_scaled_wealth = { to = FROM value = 0.3 min = 50 max = 200 }
+		}
+		else_if = {
+			limit = { has_character_flag = northern_crusade_medium_donation }
+			transfer_scaled_wealth = { to = FROM value = 0.6 min = 100 max = 400 }
+		}
+		else = {
+			transfer_scaled_wealth = { to = FROM value = 1 min = 200 max = 800 }
+		}
+
+		piety = -200
+
+		FROM = {
+			character_event = { id = HF.49109 }
+		}
+	}
+
+	# Reject the offer
+	option = {
+		name = EVTOPTB_HF_49107
+	}
+
+	after = {
+		clr_character_flag = northern_crusade_small_donation
+		clr_character_flag = northern_crusade_medium_donation
+		clr_character_flag = northern_crusade_large_donation
+		clr_character_flag = northern_crusade_asked_for_help
+	}
+}
+
+# Some land will be needed
+letter_event = {
+	id = HF.49108
+	desc = EVTDESC_HF_49108
+
+	is_triggered_only = yes
+
+	# Accept offer
+	option = {
+		name = EVTOPTA_HF_49108
+
+		custom_tooltip = {
+			text = EVTOPTA_HF_49108_TT
+
+			event_target:northern_crusade_duchy_title = {
+				any_de_jure_vassal_title = {
+					limit = {
+						holder_scope = {
+							OR = {
+								character = ROOT
+								is_vassal_or_below_of = ROOT
+							}
+						}
+					}
+
+					grant_title_no_opinion = FROM
+				}
+			}
+
+			FROM = {
+				if = {
+					limit = {
+						capital_scope = {
+							duchy = {
+								title = event_target:northern_crusade_duchy_title
+							}
+						}
+					}
+
+					teutonic_order_upgrade_capital_effect = yes
+
+					character_event = {
+						id = HFP.41090
+						days = 1
+					}
+				}
+
+				if = {
+					limit = { realm_size < 10 }
+					teutonic_order_upgrade_capital_effect = yes
+				}
+
+				holy_order_distribute_titles_effect = yes
+				character_event = { id = HF.49109 }
+			}
+		}
+
+		piety = -200
+	}
+
+	# Reject the offer
+	option = {
+		name = EVTOPTB_HF_49108
+	}
+
+	after = {
+		clr_character_flag = northern_crusade_asked_for_help
+	}
+}
+
+# The donation has been given to the Teutonics, and they launch the Northern Crusade
+character_event = {
+	id = HF.49109
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		if = {
+			limit = { has_global_flag = northern_crusade_active }
+
+			event_target:northern_crusade_kingdom_title = {
+				random_direct_de_jure_vassal_title = {
+					limit = {
+						any_direct_de_jure_vassal_title = {
+							holder_scope = {
+								OR = {
+									is_vassal_or_below_of = event_target:northern_crusade_target_character
+									character = event_target:northern_crusade_target_character
+								}
+							}
+						}
+					}
+
+					save_event_target_as = northern_crusade_start_duchy
+				}
+			}
+
+			unsafe_war = {
+				target = event_target:northern_crusade_target_character
+				casus_belli = northern_crusade_war
+				thirdparty_title = event_target:northern_crusade_start_duchy
+				tier = DUKE
+			}
+		}
+		else = {
+
+
+			if = {
+				limit = {
+					event_target:northern_crusade_potential_target = {
+						is_alive = yes
+					}
+				}
+
+				event_target:northern_crusade_potential_target = {
+					save_event_target_as = northern_crusade_target_character
+				}
+			}
+			else_if = {
+				limit = {
+					event_target:northern_crusade_duchy_title = {
+						holder_scope = {
+							religion_group = pagan_group
+						}
+					}
+				}
+
+				event_target:northern_crusade_duchy_title = {
+					holder_scope = {
+						save_event_target_as = northern_crusade_target_character
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					event_target:northern_crusade_duchy_title = {
+						any_direct_de_jure_vassal_title = {
+							holder_scope = {
+								religion_group = pagan_group
+							}
+						}
+					}
+				}
+
+				event_target:northern_crusade_duchy_title = {
+					random_direct_de_jure_vassal_title = {
+						limit = {
+							holder_scope = {
+								religion_group = pagan_group
+							}
+						}
+
+						holder_scope = {
+							save_event_target_as = northern_crusade_target_character
+						}
+					}
+				}
+			}
+
+			event_target:northern_crusade_kingdom_title = {
+				random_direct_de_jure_vassal_title = {
+					limit = {
+						any_de_jure_vassal_title = {
+							holder_scope = {
+								OR = {
+									character = event_target:northern_crusade_target_character
+									is_vassal_or_below_of = event_target:northern_crusade_target_character
+								}
+							}
+						}
+					}
+
+					save_event_target_as = northern_crusade_start_duchy
+				}
+			}
+
+			unsafe_war = {
+				target = event_target:northern_crusade_target_character
+				casus_belli = northern_crusade_war
+				thirdparty_title = event_target:northern_crusade_start_duchy
+				tier = DUKE
+			}
+
+			location = {
+				save_event_target_as = current_location
+			}
+
+			spawn_unit = {
+				province = event_target:current_location
+				home = event_target:current_location
+				owner = ROOT
+				attrition = 0
+				merge = yes
+				reinforces = yes
+
+				troops = {
+					archers = { 1500 1500 }
+					light_infantry = { 2500 2500 }
+					heavy_infantry = { 1500 1500 }
+					light_cavalry = { 500 500 }
+				}
+			}
+
+			spawn_unit = {
+				province = event_target:current_location
+				home = event_target:current_location
+				owner = ROOT
+				match_character = event_target:northern_crusade_target_character
+				match_mult = 0.5
+				match_min = 500
+				attrition = 0
+				merge = yes
+				reinforces = yes
+			}
+
+			spawn_fleet = {
+				province = closest
+				owner = ROOT
+				disband_on_peace = yes
+
+				troops = {
+					galleys = { 80 80 }
+				}
+			}
+
+			set_global_flag = northern_crusade_active
+
+			any_playable_ruler = {
+				narrative_event = { id = HF.49110 }
+			}
+		}
+
+		any_war = {
+			limit = { using_cb = northern_crusade_war }
+
+			event_target:northern_crusade_asker = {
+				join_attacker_wars = PREV
+			}
+		}
+
+		character_event = { id = HF.49111 }
+	}
+}
+
+# Narrative Event - Northern Crusade Launch
+narrative_event = {
+	id = HF.49110
+	title = EVTTITLE_HF_49110
+	desc = EVTDESC_HF_49110
+	picture = GFX_evt_northern_crusade
+	border = GFX_event_narrative_frame_religion
+
+	is_triggered_only = yes
+
+	option = {
+		name = {
+			text = EVTOPTA_HF_49110
+			trigger = { religion = FROM }
+		}
+		name = {
+			text = EVTOPTB_HF_49110
+			trigger = {
+				NOT = { religion_group = FROM }
+			}
+		}
+		name = {
+			text = EVTOPTC_HF_49110
+			trigger = {
+				religion_group = FROM
+				NOT = { religion = FROM }
+			}
+		}
+
+		show_portrait = event_target:northern_crusade_target_character
+	}
+}
+
+# Finding a supporter for the Northern Crusade
+character_event = {
+	id = HF.49111
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		random_playable_ruler = {
+			limit = {
+				religion = ROOT
+				higher_real_tier_than = BARON
+
+				any_demesne_province = {
+					owned_by = PREV
+
+					OR = {
+						region = world_europe_north
+						region = custom_eastern_baltic
+						region = custom_russia
+					}
+				}
+
+				NOT = {
+					any_war = {
+						using_cb = northern_crusade_war
+					}
+				}
+			}
+
+			preferred_limit = { real_tier = KING }
+			preferred_limit = { real_tier = DUKE }
+			preferred_limit = { real_tier = COUNT }
+
+			save_event_target_as = northern_crusade_support
+		}
+
+		any_war = {
+			limit = { using_cb = northern_crusade_war }
+
+			event_target:northern_crusade_support = {
+				join_attacker_wars = PREV
+			}
+		}
+	}
+}
+
+# Reward letter from Teutons after the war
+letter_event = {
+	id = HF.49112
+
+	desc = {
+		text = EVTDESC_HF_49112_A
+		trigger = {
+			NOT = { has_character_flag = northern_crusade_gold_reward }
+		}
+	}
+	desc = {
+		text = EVTDESC_HF_49112_B
+		trigger = { has_character_flag = northern_crusade_gold_reward }
+	}
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_character_flag = alternate_crusade_artifact_name_teutonic
+	}
+
+	option = {
+		name = EVTOPTA_HF_49112
+
+		piety = 150
+
+		if = {
+			limit = { has_character_flag = northern_crusade_gold_reward }
+
+			scaled_wealth = {
+				value = 0.5
+				min = 100
+			}
+		}
+
+		if = {
+			limit = { has_character_flag = northern_crusade_artifact_reward }
+			alternate_crusade_artifact_distribution_effect = yes
+		}
+
+		reverse_opinion = {
+			name = opinion_grateful
+			who = FROM
+			years = 15
+		}
+	}
+
+	after = {
+		clr_character_flag = alternate_crusade_artifact_name_teutonic
+		clr_character_flag = northern_crusade_artifact_reward
+		clr_character_flag = northern_crusade_gold_reward
+	}
+}
+
+# The Northern Crusades has failed
+narrative_event = {
+	id = HF.49113
+	desc = EVTDESC_HF_49113
+	title = EVTTITLE_HF_49113
+	picture = GFX_evt_viking_battle_oldgods
+	border = GFX_event_narrative_frame_religion
+	sound = pagan_warhorn
+
+	is_triggered_only = yes # northern_crusade_war CB
+
+	immediate = {
+		set_global_flag = northern_crusade_failure
+		clr_global_flag = northern_crusades_active
+		clear_global_event_target = northern_crusade_kingdom_title
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_HF_49113
+			trigger = { religion = FROM }
+		}
+		name = {
+			text = EVTOPTB_HF_49113
+			trigger = {
+				religion_group = FROM
+				NOT = { religion = FROM }
+			}
+		}
+		name = {
+			text = EVTOPTC_HF_49113
+			trigger = {
+				NOR = {
+					religion_group = FROM
+					religion_group = pagan_group
+				}
+			}
+		}
+		name = {
+			text = EVTOPTD_HF_49113
+			trigger = { religion_group = pagan_group }
+		}
+	}
+}
+
+# Northern Crusade Bloodline
+narrative_event = {
+	id = HF.49114
+	desc = EVTDESC_HF_49114
+	title = EVTTITLE_HF_49114
+	picture = GFX_evt_bloodlines
+	border = GFX_event_narrative_frame_religion
+
+	is_triggered_only = yes # northern_crusade_war CB
+
+	has_dlc = "Holy Fury"
+
+	trigger = {
+		NOR = {
+			any_owned_bloodline = {
+				has_bloodline_flag = northern_crusade_bloodline
+				bloodline_is_active_for = PREV
+			}
+
+			any_owned_bloodline = {
+				has_bloodline_flag = crusader_bloodline
+				bloodline_is_active_for = PREV
+				founder = { character = ROOT }
+			}
+		}
+	}
+
+	immediate = {
+		sound_effect = bloodline_added
+	}
+
+	option = {
+		name = EVTOPTA_HF_49114
+
+		add_artifact = crown_winged_helmet
+
+		if = {
+			limit = { is_female = no }
+
+			create_bloodline = {
+				type = northern_crusade_bloodline
+			}
+		}
+		else = {
+			create_bloodline = {
+				type = northern_crusade_bloodline
+				inheritance = matrilineal
+			}
+		}
+	}
+}
+
+# Northern Crusade Successful
+narrative_event = {
+	id = HF.49115
+	desc = EVTDESC_HF_49115
+	title = EVTTITLE_HF_49115
+	picture = GFX_evt_crusaders
+	border = GFX_event_narrative_frame_religion
+
+	is_triggered_only = yes # northern_crusade_war CB
+	major = yes
+
+	option = {
+		name = EVTOPTA_HF_49115
+
+		trigger = { religion = FROM }
+
+		piety = 100
+	}
+
+	option = {
+		name = EVTOPTB_HF_49115
+
+		trigger = {
+			religion_group = FROM
+			NOT = { religion = FROM }
+		}
+	}
+
+	option = {
+		name = EVTOPTC_HF_49115
+
+		trigger = {
+			NOT = { religion_group = FROM }
+		}
+	}
+}
+
+# Northern Crusade check if victory
+character_event = {
+	id = HF.49116
+
+	is_triggered_only = yes # on_yearly_pulse
+	hide_window = yes
+
+	trigger = {
+		OR = {
+			has_landed_title = d_teutonic_order
+			has_landed_title = k_teutonic_state
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				event_target:northern_crusade_kingdom_title = {
+					NOT = {
+						any_de_jure_vassal_title = {
+							holder_scope = {
+								NOT = { religion_group = christian }
+							}
+						}
+					}
+				}
+			}
+
+			religion_authority = {
+				name = northern_crusade_won
+			}
+
+			narrative_event = { id = HF.49115 }
+			set_global_flag = northern_crusade_success
+			clr_global_flag = northern_crusades_active
+		}
+	}
+}
+
+# Northern Crusade flavor event tombola
+character_event = {
+	id = HF.49120
+
+	is_triggered_only = yes # on_yearly_pulse
+	hide_window = yes
+
+	ai = no
+	religion_group = christian
+	in_command = yes
+	prisoner = no
+
+	trigger = {
+		any_war = {
+			using_cb = northern_crusade_war
+
+			any_attacker = {
+				character = ROOT
+			}
+		}
+
+		location = {
+			owner = {
+				OR = {
+					any_war = {
+						using_cb = northern_crusade_war
+
+						any_defender = {
+							character = PREVPREV
+						}
+					}
+
+					any_liege = {
+						any_war = {
+							using_cb = northern_crusade_war
+
+							any_defender = {
+								character = PREVPREV
+							}
+						}
+					}
+				}
+			}
+		}
+
+		NOT = { has_character_modifier = northern_crusade_cooldown }
+	}
+
+	immediate = {
+		set_character_flag = northern_crusade_flavor
+		crusade_flavor_event_tombola_effect = yes
+		clr_character_flag = northern_crusade_flavor
+
+		add_character_modifier = {
+			name = northern_crusade_cooldown
+			days = 25
+			hidden = yes
+		}
+	}
+}
+
+# Northern Crusade flavor event randomizer
+character_event = {
+	id = HF.49121
+
+	is_triggered_only = yes # on_battle_won_leader
+	hide_window = yes
+
+	ai = no
+	religion_group = christian
+
+	trigger = {
+		any_war = {
+			using_cb = northern_crusade_war
+		}
+	}
+
+	immediate = {
+		random = {
+			chance = 25
+
+			character_event = {
+				id = HF.49120
+				days = 1
+				random = 15
+			}
+		}
+	}
+}

@@ -1,0 +1,205 @@
+# The entry should be named in the same way that the elective succession law is named to define its voter's logic
+# ROOT 			Voter, the character voting in the election
+# FROM			Candidate, character considered for the title
+# FROMFROM		The title the nomination is for
+# FROMFROMFROM	The title owner's candidate
+# The voter will vote for the top score candidate calculated from this script
+
+elective_gavelkind = {
+	elector_vote_strength = {
+		days = 1
+	}
+
+	elector_selection = {
+		days = -5
+
+		trigger = {
+			# The title must currently exist
+			FROMFROM = {
+				has_holder = yes
+			}
+		}
+
+		additive_modifier = {
+			value = 10
+
+			FROMFROM = { # Either title is higher than Duke-tier, or must be primary
+				OR = {
+					higher_real_tier_than = DUKE
+					is_primary_holder_title = yes
+				}
+			}
+
+			vassal_of = FROMFROM
+
+			# Any vassals of one or two lower tiers than the main title are viable Electors
+			trigger_if = {
+				limit = { FROMFROM = { real_tier = EMPEROR } }
+				higher_real_tier_than = COUNT
+			}
+			trigger_else_if = {
+				limit = { FROMFROM = { real_tier = KING } }
+				higher_real_tier_than = BARON
+			}
+			trigger_else = {
+				is_ruler = yes
+			}
+		}
+
+		additive_modifier = { # Current ruler is always an elector
+			value = 10
+
+			FROMFROM = { # Either title is higher than Duke-tier, or must be primary
+				holder = ROOT
+
+				OR = {
+					higher_real_tier_than = DUKE
+					is_primary_holder_title = yes
+				}
+			}
+		}
+	}
+
+	# ROOT is current title holder
+	# FROM is candidate
+	# FROMFROM is title
+	# FROMFROMFROM is null
+	candidate_trigger = {
+		# Title must currently exist
+		FROMFROM = {
+			has_holder = yes
+		}
+
+		FROM = {
+			dynasty = ROOT
+
+			# Either the candidate is in the realm, or is landless, or the title is independent, or the realm of the title does NOT have protected inheritance
+			OR = {
+				same_realm = ROOT
+				is_ruler = no
+
+				ROOT_FROMFROM = {
+					OR = {
+						holder_scope = {
+							independent = yes
+						}
+
+						NOR = {
+							has_law = out_of_realm_inheritance_law_1
+							has_law = crown_authority_3
+							has_law = crown_authority_4
+						}
+					}
+				}
+			}
+
+			# Candidate should not be a landless Courtier who is about to inherit a Theocracy or Republic
+			trigger_if = {
+				limit = {
+					any_heir_title = {
+						OR = {
+							is_republic = yes
+							is_theocracy = yes
+						}
+					}
+				}
+
+				is_landed = yes
+				is_republic = no
+				is_theocracy = no
+			}
+
+			# If the title controls the religion, candidates must be of the same religion
+			trigger_if = {
+				limit = { ROOT = { controls_religion = yes } }
+				religion = ROOT
+			}
+
+			is_ascetic_trigger = no
+			is_theocracy = no
+			is_republic = no
+
+			NOR = {
+				trait = cat
+				trait = disinherited
+				trait = horse
+				trait = eunuch
+				trait = bastard
+				trait = crusader_king
+				trait = crusader_queen
+				character = ROOT # Not the current ruler
+				trait = bear
+				trait = dragon_bride_unmarried
+				trait = dragon_bride_married
+				trait = sent_to_china
+			}
+		}
+	}
+
+	candidate_vote_score = {
+		days = 0
+
+		### Elector voting himself ###
+		elector_self_tribal_vote = yes
+
+		### Candidate ###
+
+		# Heir
+		elector_heir_vote = yes
+
+		# Sexism
+		elector_candidate_gender_vote = yes
+
+		# Ageism - Elective Gavelkind is more biased towards younger (adult) rulers
+		elector_candidate_age_elective_gavelkind_vote = yes
+
+		# Culturism - Elective Gavelkind is a tribalistic succession, therefore malus/bonus on cultural bias are increased
+		elector_candidate_culture_bias_strong_vote = yes
+
+		# Faithism - Elective Gavelkind is more about choosing a good Dynastic member, so faith bias is slightly reduced
+		elector_candidate_religion_bias_weak_vote = yes
+
+		# Tribalism
+		elector_candidate_tribalism_vote = yes
+
+		# Nepotism - All characters are relatives, although some might not be of the same dynasty as the Elector.
+		elector_candidate_nepotism_vote = yes
+
+		# Prestige
+		elector_candidate_prestige_vote = yes
+
+		# Piety
+		elector_candidate_piety_vote = yes
+
+		# Education and lifestyle
+		elector_candidate_education_lifestyle_vote = yes
+
+		# Warrior culture prefers warriors - Elective Gavelkind also takes into consideration raw martial/combat rating
+		elector_candidate_warrior_vote = yes
+
+		# Claims - More emphasis on claimants for Elective Gavelkind (CleanSlate: doubled values compared to default feudal elective values)
+		elector_candidate_claims_bias_strong_vote = yes
+
+		# Traits
+		elector_candidate_traits_vote = yes
+		elector_candidate_traits_disfigured_vote = yes
+		elector_candidate_traits_excommunication_vote = yes
+		elector_candidate_traits_tribal_vote = yes
+		elector_candidate_traits_pagan_branch_bias_weak_vote = yes
+		elector_candidate_traits_sunni_branch_bias_weak_vote = yes
+		elector_candidate_traits_hindu_branch_bias_weak_vote = yes
+		elector_candidate_traits_buddhist_branch_bias_weak_vote = yes
+		elector_candidate_traits_jain_branch_bias_weak_vote = yes
+		elector_candidate_traits_taoist_branch_bias_weak_vote = yes
+		elector_candidate_traits_confucian_branch_bias_weak_vote = yes
+
+		# Ruler traits
+		elector_ruler_traits_vote = yes
+
+		# Candidate opinion
+		elector_candidate_opinion_vote = yes
+
+		# Ruler opinion
+		elector_ruler_opinion_vote = yes
+	}
+}
