@@ -1,0 +1,6873 @@
+###########################################
+#
+# Holy Order Events
+#
+# ID SoA 1000-2999 is reserved
+#
+###########################################
+# Written by Henrik Fåhraeus
+###########################################
+
+namespace = SoA
+
+# TIANXIATODO: Set up pagan holy orders with the same stuff as e.g. the Zun holy order
+
+### Borrowing from holy orders
+
+# The Grand Master demands one of your sons due to debt
+letter_event = {
+	id = SoA.1003
+	border = GFX_event_letter_frame_religion
+	portrait = event_target:demanding_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_1003
+		trigger = {
+			has_character_flag = demand_from_knights_templar
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1203
+		trigger = {
+			OR = {
+				has_character_flag = demand_from_bektashi
+				has_character_flag = demand_from_assassins
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_CM_4303
+		trigger = {
+			has_character_flag = demand_from_haruriyyah
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = HOLY_ORDER_DEMAND_SON_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes # on_yearly_pulse, random_events, holy_order_loan
+
+	only_playable = yes
+	min_age = 16
+
+	trigger = {
+		trigger_if = {
+			limit = { has_character_modifier = borrowed_from_knights_templar }
+
+			religion = d_knights_templar
+			has_dlc = "Sons of Abraham"
+
+			NOR = {
+				has_character_flag = sent_son_to_d_knights_templar
+				has_character_modifier = expelled_d_knights_templar
+
+				any_liege = {
+					has_character_modifier = expelled_d_knights_templar
+				}
+			}
+		}
+		trigger_else_if = {
+			limit = { has_character_modifier = borrowed_from_bektashi }
+
+			religion = d_bektashi
+			has_dlc = "Sons of Abraham"
+
+			NOR = {
+				has_character_flag = sent_son_to_d_bektashi
+				has_character_modifier = expelled_d_bektashi
+
+				any_liege = {
+					has_character_modifier = expelled_d_bektashi
+				}
+			}
+		}
+		trigger_else_if = {
+			limit = { has_character_modifier = borrowed_from_assassins }
+
+			religion = d_fedayeen
+			has_dlc = "Sons of Abraham"
+
+			NOR = {
+				has_character_flag = sent_son_to_d_hashshashin
+				has_character_modifier = expelled_d_fedayeen
+
+				any_liege = {
+					has_character_modifier = expelled_d_fedayeen
+				}
+			}
+		}
+		trigger_else = {
+			has_character_modifier = borrowed_from_haruriyyah
+			religion = d_fedayeen
+			has_dlc = "Charlemagne"
+
+			NOR = {
+				has_character_flag = sent_son_to_d_haruriyyah
+				has_character_modifier = expelled_d_haruriyyah
+
+				any_liege = {
+					has_character_modifier = expelled_d_haruriyyah
+				}
+			}
+		}
+
+		any_child = {
+			#is_female = no
+			can_be_holy_order_commander_trigger = yes
+			is_adult = yes
+			religion = ROOT
+			NOT = { is_primary_heir = ROOT }
+			is_ruler = no
+			prisoner = no
+			is_incapable = no # Fine here!
+		}
+	}
+
+	immediate = {
+		random_child = {
+			limit = {
+				#is_female = no
+				can_be_holy_order_commander_trigger = yes
+				is_adult = yes
+				religion = ROOT
+				NOT = { is_primary_heir = ROOT }
+				is_ruler = no
+				prisoner = no
+				is_incapable = no # Fine here!
+			}
+
+			save_event_target_as = demanded_child
+		}
+
+		if = {
+			limit = {
+				has_character_modifier = borrowed_from_knights_templar
+				religion = d_knights_templar
+				has_dlc = "Sons of Abraham"
+				NOT = { has_character_flag = sent_son_to_d_knights_templar }
+			}
+
+			set_character_flag = demand_from_knights_templar
+
+			d_knights_templar = {
+				save_event_target_as = demanding_holy_order
+
+				holder_scope = {
+					save_event_target_as = demanding_grandmaster
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_modifier = borrowed_from_bektashi
+				religion = d_bektashi
+				has_dlc = "Sons of Abraham"
+				NOT = { has_character_flag = sent_son_to_d_bektashi }
+			}
+
+			set_character_flag = demand_from_bektashi
+
+			d_bektashi = {
+				save_event_target_as = demanding_holy_order
+
+				holder_scope = {
+					save_event_target_as = demanding_grandmaster
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_modifier = borrowed_from_assassins
+				religion = d_fedayeen
+				has_dlc = "Sons of Abraham"
+				NOT = { has_character_flag = sent_son_to_d_hashshashin }
+			}
+
+			set_character_flag = demand_from_assassins
+
+			d_fedayeen = {
+				save_event_target_as = demanding_holy_order
+
+				holder_scope = {
+					save_event_target_as = demanding_grandmaster
+				}
+			}
+		}
+		else = {
+			set_character_flag = demand_from_haruriyyah
+
+			d_fedayeen = {
+				save_event_target_as = demanding_holy_order
+
+				holder_scope = {
+					save_event_target_as = demanding_grandmaster
+				}
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTA_SOA_1003 # Agree
+
+		set_character_flag = sent_son_to_@event_target:demanding_holy_order
+		piety = 100
+
+		event_target:demanded_child = {
+			show_scope_change = no
+
+			hidden_effect = {
+				clear_wealth = yes
+			}
+
+			# Christians divorce and become celibate
+			if = {
+				limit = { religion_group = christian }
+
+				add_trait_silently_celibate_effect = yes
+
+				any_spouse = {
+					show_scope_change = no
+
+					PREV = {
+						show_scope_change = no
+
+						remove_spouse = PREV
+					}
+
+					character_event = { id = SoA.2862 }
+				}
+
+				any_consort = {
+					show_scope_change = no
+
+					PREV = {
+						show_scope_change = no
+
+						remove_consort = PREV
+					}
+				}
+			}
+			# Muslims are disinherited instead
+			else_if = {
+				limit = { religion_group = muslim }
+				add_trait = disinherited # invisible trait
+			}
+
+			move_character = event_target:demanding_grandmaster
+			end_inaccessibility_effect = yes # removes in_hiding or in_seclusion
+		}
+
+		ai_chance = { factor = 100 }
+	}
+
+	option = {
+		name = EVTOPTB_SOA_1003 # Pay them back
+
+		transfer_scaled_wealth = {
+			to = event_target:demanding_grandmaster
+			value = 1
+			min = 300
+			max = 300
+		}
+
+		hidden_effect = {
+			remove_character_modifier = borrowed_from_knights_templar
+			remove_character_modifier = borrowed_from_bektashi
+			remove_character_modifier = borrowed_from_assassins
+			remove_character_modifier = borrowed_from_haruriyyah
+		}
+	}
+
+	option = {
+		name = EVTOPTC_SOA_1003 # Refuse
+
+		trigger = {
+			NOT = { has_character_modifier = borrowed_from_assassins }
+		}
+
+		piety = -1000
+	}
+
+	option = {
+		name = EVTOPTC_SOA_1003 # Refuse
+
+		trigger = { has_character_modifier = borrowed_from_assassins }
+
+		if = {
+			limit = { has_dlc = "Mystics" }
+
+			piety = -200
+			set_character_flag = assassins_refused_to_pay_debt
+		}
+		else = {
+			piety = -1000
+		}
+
+		ai_chance = {
+			factor = 3
+
+			trigger = { has_dlc = "Mystics" }
+
+			mult_modifier = {
+				factor = 2
+				wealth < 300
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = greedy
+			}
+
+			mult_modifier = {
+				factor = 2
+				is_impious_trigger = yes
+			}
+		}
+	}
+}
+
+# Spouse notified of divorce due to husband going off to join holy order
+character_event = {
+	id = SoA.2862
+	desc = EVTDESC_SoA_2862
+	picture = GFX_evt_melee
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = {
+			text = ALAS
+			trigger = {
+				opinion = {
+					who = event_target:demanded_child
+					value >= 0
+				}
+			}
+		}
+		name = {
+			text = GOOD_RIDDANCE
+			trigger = {
+				opinion = {
+					who = event_target:demanded_child
+					value < 0
+				}
+			}
+		}
+
+		tooltip = {
+			remove_spouse = event_target:demanded_child
+		}
+	}
+}
+
+# Notification event when borrowing money from a holy order
+letter_event = {
+	id = SoA.1011
+	border = GFX_event_letter_frame_religion
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_1011
+		trigger = {
+			event_target:target_holy_order = { title = d_knights_templar }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1211
+		trigger = {
+			event_target:target_holy_order = { title = d_bektashi }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1411
+		trigger = {
+			event_target:target_holy_order = { title = d_fedayeen }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_CM_4311
+		trigger = {
+			event_target:target_holy_order = { title = d_haruriyyah }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = HOLY_ORDER_BORROW_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes # borrow_money_*, holy_order_decisions.txt
+
+	ai = no
+
+	option = {
+		name = EXCELLENT
+	}
+}
+
+# The Grand Master demands the right to build a castle in your demesne
+letter_event = {
+	id = SoA.1020
+	border = GFX_event_letter_frame_religion
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_1023
+		trigger = {
+			event_target:target_holy_order = { title = d_knights_templar }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1223
+		trigger = {
+			event_target:target_holy_order = {
+				OR = {
+					title = d_bektashi
+					title = d_fedayeen
+				}
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_CM_4323
+		trigger = {
+			event_target:target_holy_order = { title = d_haruriyyah }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = HOLY_ORDER_BUILD_CASTLE_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes # on_yearly_pulse, random_events, holy_order_loan
+
+	only_playable = yes
+	has_dlc = "Sons of Abraham"
+	min_age = 16
+
+	trigger = {
+		trigger_if = {
+			limit = { has_character_modifier = borrowed_from_knights_templar }
+
+			d_knights_templar = {
+				holder_scope = {
+					religion = ROOT
+					wealth >= 300
+				}
+			}
+
+			NOR = {
+				has_character_flag = sent_son_to_d_knights_templar
+				has_character_modifier = expelled_d_knights_templar
+
+				any_liege = {
+					has_character_modifier = expelled_d_knights_templar
+				}
+			}
+		}
+		trigger_else_if = {
+			limit = { has_character_modifier = borrowed_from_bektashi }
+
+			d_bektashi = {
+				holder_scope = {
+					religion = ROOT
+					wealth >= 300
+				}
+			}
+
+			NOR = {
+				has_character_flag = sent_son_to_d_bektashi
+				has_character_modifier = expelled_d_bektashi
+
+				any_liege = {
+					has_character_modifier = expelled_d_bektashi
+				}
+			}
+		}
+		trigger_else_if = {
+			limit = { has_character_modifier = borrowed_from_assassins }
+
+			d_fedayeen = {
+				holder_scope = {
+					religion = ROOT
+					wealth >= 300
+				}
+			}
+
+			NOR = {
+				has_character_flag = sent_son_to_d_hashshashin
+				has_character_modifier = expelled_d_fedayeen
+
+				any_liege = {
+					has_character_modifier = expelled_d_fedayeen
+				}
+			}
+		}
+		trigger_else = {
+			has_character_modifier = borrowed_from_assassins
+
+			d_fedayeen = {
+				holder_scope = {
+					religion = ROOT
+					wealth >= 300
+				}
+			}
+
+			NOR = {
+				has_character_flag = sent_son_to_d_haruriyyah
+				has_character_modifier = expelled_d_haruriyyah
+
+				any_liege = {
+					has_character_modifier = expelled_d_haruriyyah
+				}
+			}
+		}
+
+		any_demesne_province = {
+			has_empty_holding = yes
+			owned_by = PREV
+
+			OR = {
+				has_castle = yes
+				has_temple = yes
+				has_city = yes
+				has_tribal = yes
+			}
+		}
+		
+		NOR = {
+			has_chinese_government_trigger = yes
+			has_japanese_government_trigger = yes
+			any_liege = {
+				OR = {
+					has_chinese_government_trigger = yes
+					has_japanese_government_trigger = yes
+				}
+			}
+		}
+	}
+
+	immediate = {
+		random_demesne_province = {
+			limit = {
+				has_empty_holding = yes
+				owned_by = PREV
+
+				OR = {
+					has_castle = yes
+					has_temple = yes
+					has_city = yes
+					has_tribal = yes
+				}
+			}
+
+			save_event_target_as = target_province
+		}
+
+		if = {
+			limit = {
+				has_character_modifier = borrowed_from_knights_templar
+
+				d_knights_templar = {
+					holder_scope = {
+						religion = ROOT
+						wealth >= 300
+					}
+				}
+
+				NOR = {
+					has_character_flag = sent_son_to_d_knights_templar
+					has_character_modifier = expelled_d_knights_templar
+
+					any_liege = {
+						has_character_modifier = expelled_d_knights_templar
+					}
+				}
+			}
+
+			d_knights_templar = {
+				save_event_target_as = target_holy_order
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_modifier = borrowed_from_bektashi
+
+				d_bektashi = {
+					holder_scope = {
+						religion = ROOT
+						wealth >= 300
+					}
+				}
+
+				NOR = {
+					has_character_flag = sent_son_to_d_bektashi
+					has_character_modifier = expelled_d_bektashi
+
+					any_liege = {
+						has_character_modifier = expelled_d_bektashi
+					}
+				}
+			}
+
+			d_bektashi = {
+				save_event_target_as = target_holy_order
+			}
+		}
+		else_if = {
+			limit = {
+				has_character_modifier = borrowed_from_assassins
+
+				d_fedayeen = {
+					holder_scope = {
+						religion = ROOT
+						wealth >= 300
+					}
+				}
+
+				NOR = {
+					has_character_flag = sent_son_to_d_hashshashin
+					has_character_modifier = expelled_d_fedayeen
+
+					any_liege = {
+						has_character_modifier = expelled_d_fedayeen
+					}
+				}
+			}
+
+			d_bektashi = {
+				save_event_target_as = target_holy_order
+			}
+		}
+		else = {
+			d_haruriyyah = {
+				save_event_target_as = target_holy_order
+			}
+		}
+
+		event_target:target_holy_order = {
+			holder_scope = {
+				save_event_target_as = target_grandmaster
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTA_SOA_1023 # Agree
+
+		hidden_effect = {
+			remove_character_modifier = borrowed_from_knights_templar
+			remove_character_modifier = borrowed_from_bektashi
+			remove_character_modifier = borrowed_from_assassins
+			remove_character_modifier = borrowed_from_haruriyyah
+
+			event_target:target_grandmaster = {
+				wealth = -300
+			}
+
+			event_target:target_province = {
+				province_event = { id = SoA.1024 }
+			}
+		}
+
+		piety = 100
+
+		ai_chance = { factor = 10 }
+	}
+
+	option = {
+		name = EVTOPTB_SOA_1003 # Pay them back
+
+		transfer_scaled_wealth = {
+			to = event_target:target_grandmaster
+			value = 1
+			min = 300
+			max = 300
+		}
+
+		hidden_effect = {
+			remove_character_modifier = borrowed_from_knights_templar
+			remove_character_modifier = borrowed_from_bektashi
+			remove_character_modifier = borrowed_from_assassins
+			remove_character_modifier = borrowed_from_haruriyyah
+		}
+
+		ai_chance = {
+			factor = 5
+
+			trigger = { wealth >= 300 }
+		}
+	}
+
+	option = {
+		name = EVTOPTC_SOA_1003 # Refuse
+
+		trigger = {
+			event_target:target_holy_order = {
+				NOT = { title = d_fedayeen }
+			}
+		}
+
+		piety = -1000
+	}
+
+	option = {
+		name = EVTOPTC_SOA_1003 # Refuse
+
+		trigger = {
+			event_target:target_holy_order = {
+				title = d_fedayeen
+			}
+		}
+
+		if = {
+			limit = { has_dlc = "Mystics" }
+
+			piety = -200
+			set_character_flag = assassins_refused_to_pay_debt
+		}
+		else = {
+			piety = -1000
+		}
+
+		ai_chance = {
+			factor = 3
+
+			trigger = { has_dlc = "Mystics" }
+
+			mult_modifier = {
+				factor = 2
+				wealth < 300
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = greedy
+			}
+
+			mult_modifier = {
+				factor = 2
+				is_impious_trigger = yes
+			}
+		}
+	}
+}
+
+# Castle has been erected
+province_event = {
+	id = SoA.1024
+	picture = GFX_evt_castle_construction
+	border = GFX_event_normal_frame_religion
+
+	desc = {
+		text = EVTDESC_SOA_1024
+		trigger = {
+			event_target:target_holy_order = { title = d_knights_templar }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1224
+		trigger = {
+			event_target:target_holy_order = { title = d_bektashi }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1424
+		trigger = {
+			event_target:target_holy_order = { title = d_fedayeen }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_CM_4324
+		trigger = {
+			event_target:target_holy_order = { title = d_haruriyyah }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = HOLY_ORDER_CONSTRUCTION_COMPLETE_ALT
+		trigger = {
+			event_target:target_holy_order = { title = d_fedayeen }
+
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOA_1024
+
+		build_holding = {
+			type = castle
+			holder = event_target:target_grandmaster
+		}
+	}
+}
+
+### Vassalizing holy orders
+
+# Notification event when vassalizing a holy order
+letter_event = {
+	id = SoA.1016
+	border = GFX_event_letter_frame_religion
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_1016
+		trigger = { event_target:target_holy_order = { title = d_knights_templar } }
+	}
+	desc = {
+		text = EVTDESC_SOA_1116
+		trigger = { event_target:target_holy_order = { title = d_knights_hospitaller } }
+	}
+
+	is_triggered_only = yes # vassalize_knights_*, holy_order_decisions.txt
+
+	option = {
+		name = EXCELLENT
+	}
+}
+
+### Expelling holy orders
+
+# Expelling a Holy Order confirmation event
+character_event = {
+	id = SoA.2990
+	border = GFX_event_normal_frame_religion
+	desc = EVTDESC_SOA_2990
+
+	picture = {
+		picture = GFX_evt_crusaders
+		trigger = { religion_group = christian }
+	}
+	picture = {
+		picture = GFX_evt_moors
+		trigger = {
+			OR = {
+				religion_group = muslim
+				religion_group = zoroastrian_group
+			}
+		}
+	}
+	picture = {
+		picture = GFX_evt_vikings_arriving_oldgods
+		trigger = {
+			religion_group = pagan_group
+			religion_openly_aztec_or_reformed_trigger = no
+		}
+	}
+	picture = {
+		picture = GFX_evt_battle_mesoamerican
+		trigger = { religion_openly_aztec_or_reformed_trigger = yes }
+	}
+	picture = {
+		picture = GFX_evt_synagogue
+		trigger = { religion_group = jewish_group }
+	}
+
+	title = { # Knights Templar
+		text = expel_the_knights_templar
+		trigger = { has_character_flag = expel_the_knights_templar_check }
+	}
+	title = { # Knights Hospitaler
+		text = expel_the_knights_hospitaller
+		trigger = { has_character_flag = expel_the_knights_hospitaller_check }
+	}
+	title = { # Teutonic Order
+		text = expel_the_teutonic_order
+		trigger = {
+			OR = {
+				has_character_flag = expel_the_teutonic_order_check
+				has_character_flag = expel_the_teutonic_state_check
+			}
+		}
+	}
+	title = { # Jomsvikings
+		text = expel_the_jomsvikings
+		trigger = { has_character_flag = expel_the_jomsvikings_check }
+	}
+	title = { # Hashshashin
+		text = expel_the_assassins
+		trigger = { has_character_flag = expel_the_assassins_check }
+	}
+	title = { # Bektashi
+		text = expel_the_bektashi
+		trigger = { has_character_flag = expel_the_bektashi_check }
+	}
+	title = { # Haruriyyah
+		text = expel_the_haruriyyah
+		trigger = { has_character_flag = expel_the_haruriyyah_check }
+	}
+	title = { # Holy Sepulchre
+		text = expel_the_holy_sepulchre
+		trigger = { has_character_flag = expel_the_holy_sepulchre_check }
+	}
+	title = { # Saint Anthony
+		text = expel_saint_anthony
+		trigger = { has_character_flag = expel_saint_anthony_check }
+	}
+	title = { # Immortals
+		text = expel_immortals
+		trigger = { has_character_flag = expel_immortals_check }
+	}
+	title = { # Zealots
+		text = expel_zealots
+		trigger = { has_character_flag = expel_zealots_check }
+	}
+	title = { # Sky Lords
+		text = expel_sky_lords
+		trigger = { has_character_flag = expel_sky_lords_check }
+	}
+	title = { # Spirit Guardians
+		text = expel_spirit_guardians
+		trigger = { has_character_flag = expel_spirit_guardians_check }
+	}
+	title = { # Warriors of Perun
+		text = expel_warriors_perun
+		trigger = { has_character_flag = expel_warriors_perun_check }
+	}
+	title = { # Chosen of Perkunas
+		text = expel_chosen_perkunas
+		trigger = { has_character_flag = expel_chosen_perkunas_check }
+	}
+	title = { # Sons of Kaleva
+		text = expel_sons_kaleva
+		trigger = { has_character_flag = expel_sons_kaleva_check }
+	}
+	title = { # Huitzilopochtli
+		text = expel_huitzilopochtli
+		trigger = { has_character_flag = expel_huitzilopochtli_check }
+	}
+	title = { # Knights of Santiago
+		text = expel_knights_santiago
+		trigger = { has_character_flag = expel_knights_santiago_check }
+	}
+	title = { # Knights of Calatrava
+		text = expel_knights_calatrava
+		trigger = { has_character_flag = expel_knights_calatrava_check }
+	}
+	title = { # Order of St Addai
+		text = expel_order_of_addai
+		trigger = { has_character_flag = expel_order_of_addai_check }
+	}
+	title = { # Zun Warriors
+		text = expel_zun_warriors
+		trigger = { has_character_flag = expel_zun_warriors_check }
+	}
+
+	is_triggered_only = yes # expel_*, holy_order_decisions.txt
+
+	option = {
+		name = EVTOPTA_SOA_2990
+
+		piety = -1000
+
+		religion_authority = {
+			name = holy_order_expelled
+			years = 20
+		}
+
+		if = {
+			limit = { has_character_modifier = donated_to_holy_order }
+			remove_character_modifier = donated_to_holy_order
+		}
+
+		custom_tooltip = {
+			text = expelling_holy_order_event_tooltip_a
+
+			letter_event = { id = SoA.1061 }
+
+			trigger_switch = {
+				on_trigger = has_character_flag
+
+				expel_the_knights_templar_check = {
+					add_character_modifier = {
+						name = expelled_d_knights_templar
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_the_knights_hospitaller_check = {
+					add_character_modifier = {
+						name = expelled_d_knights_hospitaller
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_the_teutonic_order_check = {
+					add_character_modifier = {
+						name = expelled_d_teutonic_order
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_the_teutonic_state_check = {
+					add_character_modifier = {
+						name = expelled_k_teutonic_state
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_the_jomsvikings_check = {
+					add_character_modifier = {
+						name = expelled_d_jomsvikings
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_the_assassins_check = {
+					add_character_modifier = {
+						name = expelled_d_fedayeen
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_the_bektashi_check = {
+					add_character_modifier = {
+						name = expelled_d_bektashi
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_the_haruriyyah_check = {
+					add_character_modifier = {
+						name = expelled_d_haruriyyah
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_the_holy_sepulchre_check = {
+					add_character_modifier = {
+						name = expelled_d_holy_sepulchre
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_saint_anthony_check = {
+					add_character_modifier = {
+						name = expelled_d_saint_anthony
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_immortals_check = {
+					add_character_modifier = {
+						name = expelled_d_immortals
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_zealots_check = {
+					add_character_modifier = {
+						name = expelled_d_zealots
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_sky_lords_check = {
+					add_character_modifier = {
+						name = expelled_d_sky_lords
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_spirit_guardians_check = {
+					add_character_modifier = {
+						name = expelled_d_spirit_guardians
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_warriors_perun_check = {
+					add_character_modifier = {
+						name = expelled_d_warriors_perun
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_chosen_perkunas_check = {
+					add_character_modifier = {
+						name = expelled_d_chosen_perkunas
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_sons_kaleva_check = {
+					add_character_modifier = {
+						name = expelled_d_sons_kaleva
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_huitzilopochtli_check = {
+					add_character_modifier = {
+						name = expelled_d_knights_santiago
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_knights_santiago_check = {
+					add_character_modifier = {
+						name = expelled_d_knights_calatrava
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_knights_calatrava_check = {
+					add_character_modifier = {
+						name = expelled_d_knights_templar
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_order_of_addai_check = {
+					add_character_modifier = {
+						name = expelled_d_saint_addai
+						duration = -1
+						inherit = yes
+					}
+				}
+
+				expel_zun_warriors_check = {
+					add_character_modifier = {
+						name = expelled_d_zun_warriors
+						duration = -1
+						inherit = yes
+					}
+				}
+			}
+		}
+
+		event_target:target_grandmaster = {
+			show_scope_change = no
+
+			opinion = {
+				name = opinion_expelled_from_realm
+				who = ROOT
+			}
+
+			if = {
+				limit = { is_vassal_or_below_of = ROOT }
+				set_defacto_liege = THIS
+			}
+
+			hidden_effect = {
+				any_title_under = {
+					show_scope_change = no # doesn't work, so tooltip is hideous, tooltip above already covers this
+
+					limit = {
+						real_tier = BARON
+
+						location = {
+							owner = {
+								OR = {
+									character = FROM
+									is_vassal_or_below_of = FROM
+								}
+							}
+						}
+					}
+
+					usurp_title = ROOT
+				}
+			}
+		}
+	}
+
+	option = { # Allow them to stay
+		name = EVTOPTB_SOA_2990
+
+		custom_tooltip = { text = expelling_holy_order_event_tooltip_b }
+	}
+
+	after = {
+		clr_character_flag = expel_the_knights_templar_check
+		clr_character_flag = expel_the_knights_hospitaller_check
+		clr_character_flag = expel_the_teutonic_order_check
+		clr_character_flag = expel_the_teutonic_state_check
+		clr_character_flag = expel_the_jomsvikings_check
+		clr_character_flag = expel_the_assassins_check
+		clr_character_flag = expel_the_bektashi_check
+		clr_character_flag = expel_the_haruriyyah_check
+		clr_character_flag = expel_the_holy_sepulchre_check
+		clr_character_flag = expel_saint_anthony_check
+		clr_character_flag = expel_immortals_check
+		clr_character_flag = expel_zealots_check
+		clr_character_flag = expel_sky_lords_check
+		clr_character_flag = expel_spirit_guardians_check
+		clr_character_flag = expel_warriors_perun_check
+		clr_character_flag = expel_chosen_perkunas_check
+		clr_character_flag = expel_sons_kaleva_check
+		clr_character_flag = expel_huitzilopochtli_check
+		clr_character_flag = expel_knights_santiago_check
+		clr_character_flag = expel_knights_calatrava_check
+		clr_character_flag = expel_order_of_addai_check
+		clr_character_flag = expel_zun_warriors_check
+	}
+}
+
+# Notification event when expelling a holy order
+letter_event = {
+	id = SoA.1061
+	border = GFX_event_letter_frame_religion
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_1061
+		trigger = {
+			event_target:target_holy_order = {
+				OR = {
+					title = d_knights_templar
+					title = d_knights_hospitaller
+					title = d_teutonic_order
+					title = k_teutonic_state
+					title = d_knights_santiago
+					title = d_knights_calatrava
+					title = d_saint_addai
+					title = d_saint_anthony
+				}
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1661
+		trigger = {
+			event_target:target_holy_order = {
+				title = d_holy_sepulchre
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1461
+		trigger = {
+			event_target:target_holy_order = {
+				OR = {
+					title = d_bektashi
+					title = d_fedayeen
+					title = d_haruriyyah
+				}
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1561
+		trigger = {
+			event_target:target_holy_order = {
+				title = d_jomsvikings
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1861
+		trigger = {
+			event_target:target_holy_order = {
+				title = d_immortals
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1961
+		trigger = {
+			event_target:target_holy_order = {
+				title = d_zealots
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2061
+		trigger = {
+			event_target:target_holy_order = {
+				title = d_sky_lords
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2161
+		trigger = {
+			event_target:target_holy_order = {
+				title = d_spirit_guardians
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2261
+		trigger = {
+			event_target:target_holy_order = {
+				title = d_warriors_perun
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2361
+		trigger = {
+			event_target:target_holy_order = {
+				title = d_chosen_perkunas
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2461
+		trigger = {
+			event_target:target_holy_order = {
+				title = d_sons_kaleva
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2561
+		trigger = {
+			event_target:target_holy_order = {
+				title = d_huitzilopochtli
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_CM_4013
+		trigger = {
+			event_target:target_holy_order = {
+				title = d_zun_warriors
+			}
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = HOLY_ORDER_EXPEL_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		# Pick a random one
+		name = EVTOPTB_SOA_1061
+		name = EVTOPTA_CM_4013
+	}
+}
+
+### Random holy order events
+
+# The son of a ruler volunteers to join a holy order
+character_event = {
+	id = SoA.1030
+
+	is_triggered_only = yes # on_bi_yearly_pulse, random_events, holy_order_volunteer
+	hide_window = yes
+
+	#only_men = yes
+	min_age = 16
+	#max_age = 45
+	only_capable = yes # Works fine here!
+	prisoner = no
+
+	trigger = {
+		is_ruler = no
+		martial >= 5
+		can_be_holy_order_commander_trigger = yes
+		practical_age < 46
+
+		### There's a holy order of ROOTs religion ###
+		# TODO: Add Dharmic holy orders <- Wouldn't that change vanilla, CleanSlate?
+
+		OR = {
+			# Christian orders
+			trigger_if = {
+				limit = { is_title_active = d_knights_templar }
+
+				religion = d_knights_templar
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_knights_templar
+
+					any_liege = {
+						has_character_modifier = expelled_d_knights_templar
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_knights_hospitaller }
+
+				religion = d_knights_hospitaller
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_knights_hospitaller
+
+					any_liege = {
+						has_character_modifier = expelled_d_knights_hospitaller
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_teutonic_order }
+
+				religion = d_teutonic_order
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_teutonic_order
+
+					any_liege = {
+						has_character_modifier = expelled_d_teutonic_order
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = k_teutonic_state }
+
+				religion = k_teutonic_state
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_k_teutonic_state
+
+					any_liege = {
+						has_character_modifier = expelled_k_teutonic_state
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_knights_santiago }
+
+				religion = d_knights_santiago
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_knights_santiago
+
+					any_liege = {
+						has_character_modifier = expelled_d_knights_santiago
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_knights_calatrava }
+
+				religion = d_knights_calatrava
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_knights_calatrava
+
+					any_liege = {
+						has_character_modifier = expelled_d_knights_calatrava
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_saint_addai }
+
+				religion = d_saint_addai
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_saint_addai
+
+					any_liege = {
+						has_character_modifier = expelled_d_saint_addai
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_holy_sepulchre }
+
+				religion = d_holy_sepulchre
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_holy_sepulchre
+
+					any_liege = {
+						has_character_modifier = expelled_d_holy_sepulchre
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_saint_anthony }
+
+				religion = d_saint_anthony
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_saint_anthony
+
+					any_liege = {
+						has_character_modifier = expelled_d_saint_anthony
+					}
+				}
+			}
+
+			# Muslim orders
+			trigger_if = {
+				limit = { is_title_active = d_bektashi }
+
+				religion = d_bektashi
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_bektashi
+
+					any_liege = {
+						has_character_modifier = expelled_d_bektashi
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_fedayeen }
+
+				religion = d_fedayeen
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_fedayeen
+
+					any_liege = {
+						has_character_modifier = expelled_d_fedayeen
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_haruriyyah }
+
+				religion = d_haruriyyah
+				has_dlc = "Charlemagne"
+
+				NOR = {
+					has_character_modifier = expelled_d_haruriyyah
+
+					any_liege = {
+						has_character_modifier = expelled_d_haruriyyah
+					}
+				}
+			}
+
+			# Zoroastrian orders
+			trigger_if = {
+				limit = { is_title_active = d_immortals }
+
+				religion = d_immortals
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_immortals
+
+					any_liege = {
+						has_character_modifier = expelled_d_immortals
+					}
+				}
+			}
+
+			# Jewish orders
+			trigger_if = {
+				limit = { is_title_active = d_zealots }
+
+				religion = d_zealots
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_zealots
+
+					any_liege = {
+						has_character_modifier = expelled_d_zealots
+					}
+				}
+			}
+
+			# Pagan orders
+			trigger_if = {
+				limit = { is_title_active = d_jomsvikings }
+
+				religion = d_jomsvikings
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_jomsvikings
+
+					any_liege = {
+						has_character_modifier = expelled_d_jomsvikings
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_sky_lords }
+
+				religion = d_sky_lords
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_sky_lords
+
+					any_liege = {
+						has_character_modifier = expelled_d_sky_lords
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_spirit_guardians }
+
+				religion = d_spirit_guardians
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_spirit_guardians
+
+					any_liege = {
+						has_character_modifier = expelled_d_spirit_guardians
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_warriors_perun }
+
+				religion = d_warriors_perun
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_warriors_perun
+
+					any_liege = {
+						has_character_modifier = expelled_d_warriors_perun
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_chosen_perkunas }
+
+				religion = d_chosen_perkunas
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_chosen_perkunas
+
+					any_liege = {
+						has_character_modifier = expelled_d_chosen_perkunas
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_sons_kaleva }
+
+				religion = d_sons_kaleva
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_sons_kaleva
+
+					any_liege = {
+						has_character_modifier = expelled_d_sons_kaleva
+					}
+				}
+			}
+
+			trigger_if = {
+				limit = { is_title_active = d_huitzilopochtli }
+
+				religion = d_huitzilopochtli
+				has_dlc = "Sons of Abraham"
+
+				NOR = {
+					has_character_modifier = expelled_d_huitzilopochtli
+
+					any_liege = {
+						has_character_modifier = expelled_d_huitzilopochtli
+					}
+				}
+			}
+
+			AND = {
+				is_title_active = d_zun_warriors
+				religion = d_zun_warriors
+				has_dlc = "Charlemagne"
+
+				NOR = {
+					has_character_modifier = expelled_d_zun_warriors
+
+					any_liege = {
+						has_character_modifier = expelled_d_zun_warriors
+					}
+				}
+			}
+		}
+
+		# Liege is in the same religion branch
+		OR = {
+			religion = liege
+			is_heresy_of = liege
+			is_parent_religion = liege
+		}
+
+		liege = {
+			# Only sons and brothers will ask
+			OR = {
+				is_parent_of = ROOT
+				sibling = ROOT
+			}
+
+			higher_real_tier_than = BARON
+		}
+
+		NOR = {
+			any_liege = {
+				holy_order = yes
+			}
+
+			any_spouse = {
+				OR = {
+					is_landed = yes
+
+					# Won't happen if spouse is pregnant with non-bastard child
+					trigger_if = {
+						limit = { is_pregnant = yes }
+						father_of_unborn = { character = ROOT }
+					}
+				}
+			}
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+
+		mult_modifier = {
+			factor = 4
+			trait = zealous
+		}
+
+		mult_modifier = {
+			factor = 2
+			trait = celibate
+		}
+
+		mult_modifier = {
+			factor = 2
+			trait = homosexual
+		}
+
+		mult_modifier = {
+			factor = 1.43
+			trait = content
+		}
+
+		mult_modifier = {
+			factor = 1.33
+			trait = chaste
+		}
+
+		mult_modifier = {
+			factor = 1.33
+			age < 25
+		}
+
+		mult_modifier = {
+			factor = 0.67
+			trait = slothful
+		}
+
+		mult_modifier = {
+			factor = 0.5
+			trait = lustful
+		}
+
+		mult_modifier = {
+			factor = 0.5
+			trait = cynical
+		}
+
+		mult_modifier = {
+			factor = 0.5
+			trait = hedonist
+		}
+
+		mult_modifier = {
+			factor = 0.5
+			trait = ambitious
+		}
+
+		mult_modifier = {
+			factor = 0.5
+			any_heir_title = { always = yes }
+		}
+
+		mult_modifier = {
+			factor = 0.5
+			is_primary_heir = yes
+		}
+
+		mult_modifier = {
+			factor = 0.5
+
+			any_spouse = {
+				reverse_opinion = {
+					who = ROOT
+					value >= 100
+				}
+			}
+		}
+	}
+
+	immediate = {
+		# Select a holy order to join
+		# TODO: Add Dharmic holy orders
+		random_list = {
+			1  = {
+				trigger = {
+					is_title_active = d_knights_templar
+					religion = d_knights_templar
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_knights_templar
+
+						any_liege = {
+							has_character_modifier = expelled_d_knights_templar
+						}
+					}
+				}
+
+				# Prefer the other holy orders
+				mult_modifier = {
+					factor = 3.0
+
+					NOR = {
+						# Teutonic Order/State
+						culture_group = north_germanic
+						culture_group = central_germanic
+						culture_group = magyar
+						culture_group = south_slavic
+						culture_group = west_slavic
+
+						# Knights of Santiago/Calatrava
+						culture_group = iberian
+						culture = andalusian_arabic
+					}
+				}
+
+				d_knights_templar = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_knights_hospitaller
+					religion = d_knights_hospitaller
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_knights_hospitaller
+
+						any_liege = {
+							has_character_modifier = expelled_d_knights_hospitaller
+						}
+					}
+				}
+
+				# Prefer the other holy orders
+				mult_modifier = {
+					factor = 3.0
+
+					NOR = {
+						# Teutonic Order/State
+						culture_group = north_germanic
+						culture_group = central_germanic
+						culture_group = magyar
+						culture_group = south_slavic
+						culture_group = west_slavic
+
+						# Knights of Santiago/Calatrava
+						culture_group = iberian
+						culture = andalusian_arabic
+					}
+				}
+
+				d_knights_hospitaller = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_teutonic_order
+					religion = d_teutonic_order
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_teutonic_order
+
+						any_liege = {
+							has_character_modifier = expelled_d_teutonic_order
+						}
+					}
+				}
+
+				# Prefer the Teutonic Order
+				mult_modifier = {
+					factor = 3.0
+
+					OR = {
+						culture_group = north_germanic
+						culture_group = central_germanic
+						culture_group = magyar
+						culture_group = south_slavic
+						culture_group = west_slavic
+					}
+				}
+
+				d_teutonic_order = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = k_teutonic_state
+					religion = k_teutonic_state
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_teutonic_order
+
+						any_liege = {
+							has_character_modifier = expelled_d_teutonic_order
+						}
+					}
+				}
+
+				# Prefer the Teutonic State
+				mult_modifier = {
+					factor = 3.0
+
+					OR = {
+						culture_group = north_germanic
+						culture_group = central_germanic
+						culture_group = magyar
+						culture_group = south_slavic
+						culture_group = west_slavic
+					}
+				}
+
+				k_teutonic_state = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_knights_santiago
+					religion = d_knights_santiago
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_knights_santiago
+
+						any_liege = {
+							has_character_modifier = expelled_d_knights_santiago
+						}
+					}
+				}
+
+				# Prefer the Knights of Santiago/Calatrava
+				mult_modifier = {
+					factor = 3.0
+
+					OR = {
+						culture_group = iberian
+						culture = andalusian_arabic
+					}
+				}
+
+				d_knights_santiago = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_knights_calatrava
+					religion = d_knights_calatrava
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_knights_calatrava
+
+						any_liege = {
+							has_character_modifier = expelled_d_knights_calatrava
+						}
+					}
+				}
+
+				# Prefer the Knights of Santiago/Calatrava
+				mult_modifier = {
+					factor = 3.0
+
+					OR = {
+						culture_group = iberian
+						culture = andalusian_arabic
+					}
+				}
+
+				d_knights_calatrava = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_saint_addai
+					religion = d_saint_addai
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_saint_addai
+
+						any_liege = {
+							has_character_modifier = expelled_d_saint_addai
+						}
+					}
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_holy_sepulchre
+					religion = d_holy_sepulchre
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_holy_sepulchre
+
+						any_liege = {
+							has_character_modifier = expelled_d_holy_sepulchre
+						}
+					}
+				}
+
+				d_holy_sepulchre = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_saint_anthony
+					religion = d_saint_anthony
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_saint_anthony
+
+						any_liege = {
+							has_character_modifier = expelled_d_saint_anthony
+						}
+					}
+				}
+
+				d_saint_anthony = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			# Muslim orders
+			1 = {
+				trigger = {
+					is_title_active = d_bektashi
+					religion = d_bektashi
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_bektashi
+
+						any_liege = {
+							has_character_modifier = expelled_d_bektashi
+						}
+					}
+				}
+
+				d_bektashi = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_fedayeen
+					religion = d_fedayeen
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_fedayeen
+
+						any_liege = {
+							has_character_modifier = expelled_d_fedayeen
+						}
+					}
+				}
+
+				d_fedayeen = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_haruriyyah
+					religion = d_haruriyyah
+					has_dlc = "Charlemagne"
+
+					NOR = {
+						has_character_modifier = expelled_d_haruriyyah
+
+						any_liege = {
+							has_character_modifier = expelled_d_haruriyyah
+						}
+					}
+				}
+
+				d_haruriyyah = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			# Zoroastrian orders
+			1 = {
+				trigger = {
+					is_title_active = d_immortals
+					religion = d_immortals
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_immortals
+
+						any_liege = {
+							has_character_modifier = expelled_d_immortals
+						}
+					}
+				}
+
+				d_immortals = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			# Jewish orders
+			1 = {
+				trigger = {
+					is_title_active = d_zealots
+					religion = d_zealots
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_zealots
+
+						any_liege = {
+							has_character_modifier = expelled_d_zealots
+						}
+					}
+				}
+
+				d_zealots = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			# Pagan orders
+			1 = {
+				trigger = {
+					is_title_active = d_jomsvikings
+					religion = d_jomsvikings
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_jomsvikings
+
+						any_liege = {
+							has_character_modifier = expelled_d_jomsvikings
+						}
+					}
+				}
+
+				d_jomsvikings = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_sky_lords
+					religion = d_sky_lords
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_sky_lords
+
+						any_liege = {
+							has_character_modifier = expelled_d_sky_lords
+						}
+					}
+				}
+
+				d_sky_lords = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_spirit_guardians
+					religion = d_spirit_guardians
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_spirit_guardians
+
+						any_liege = {
+							has_character_modifier = expelled_d_spirit_guardians
+						}
+					}
+				}
+
+				d_spirit_guardians = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_warriors_perun
+					religion = d_warriors_perun
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_warriors_perun
+
+						any_liege = {
+							has_character_modifier = expelled_d_warriors_perun
+						}
+					}
+				}
+
+				d_warriors_perun = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_chosen_perkunas
+					religion = d_chosen_perkunas
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_chosen_perkunas
+
+						any_liege = {
+							has_character_modifier = expelled_d_chosen_perkunas
+						}
+					}
+				}
+
+				d_chosen_perkunas = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_sons_kaleva
+					religion = d_sons_kaleva
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_sons_kaleva
+
+						any_liege = {
+							has_character_modifier = expelled_d_sons_kaleva
+						}
+					}
+				}
+
+				d_sons_kaleva = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_huitzilopochtli
+					religion = d_huitzilopochtli
+					has_dlc = "Sons of Abraham"
+
+					NOR = {
+						has_character_modifier = expelled_d_huitzilopochtli
+
+						any_liege = {
+							has_character_modifier = expelled_d_huitzilopochtli
+						}
+					}
+				}
+
+				d_huitzilopochtli = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+
+			1 = {
+				trigger = {
+					is_title_active = d_zun_warriors
+					religion = d_zun_warriors
+					has_dlc = "Charlemagne"
+
+					NOR = {
+						has_character_modifier = expelled_d_zun_warriors
+
+						any_liege = {
+							has_character_modifier = expelled_d_zun_warriors
+						}
+					}
+				}
+
+				d_zun_warriors = {
+					save_event_target_as = holy_order_to_join
+				}
+			}
+		}
+
+		event_target:holy_order_to_join = {
+			holder_scope = {
+				save_event_target_as = order_target
+			}
+		}
+
+		liege = {
+			character_event = { id = SoA.1031 }
+		}
+	}
+}
+
+# Son or brother asks to join a holy order
+character_event = {
+	id = SoA.1031
+	border = GFX_event_normal_frame_religion
+
+	desc = {
+		text = EVTDESC_SOA_1031
+		picture = GFX_evt_crusaders
+		trigger = { event_target:holy_order_to_join = { title = d_knights_templar } }
+	}
+	desc = {
+		text = EVTDESC_SOA_1131
+		picture = GFX_evt_crusaders
+		trigger = { event_target:holy_order_to_join = { title = d_knights_hospitaller } }
+	}
+	desc = {
+		text = EVTDESC_SOA_1331
+		picture = GFX_evt_crusaders
+		trigger = { event_target:holy_order_to_join = { title = d_teutonic_order } }
+	}
+	desc = {
+		text = EVTDESC_SOA_1331
+		picture = GFX_evt_crusaders
+		trigger = { event_target:holy_order_to_join = { title = k_teutonic_state } }
+	}
+	desc = {
+		text = EVTDESC_SOA_2631
+		picture = GFX_evt_knight_kneeling
+		trigger = { event_target:holy_order_to_join = { title = d_knights_santiago } }
+	}
+	desc = {
+		text = EVTDESC_SOA_2731
+		picture = GFX_evt_knight_kneeling
+		trigger = { event_target:holy_order_to_join = { title = d_knights_calatrava } }
+	}
+	desc = {
+		text = EVTDESC_SOA_2831
+		picture = GFX_evt_knight_kneeling
+		trigger = { event_target:holy_order_to_join = { title = d_saint_addai } }
+	}
+	desc = {
+		text = EVTDESC_SOA_1631
+		picture = GFX_evt_western_knights_byzantine
+		trigger = { event_target:holy_order_to_join = { title = d_holy_sepulchre } }
+	}
+	desc = {
+		text = EVTDESC_SOA_1731
+		picture = GFX_evt_western_knights_byzantine
+		trigger = { event_target:holy_order_to_join = { title = d_saint_anthony } }
+	}
+	desc = {
+		text = EVTDESC_SOA_1231
+		picture = GFX_evt_moors
+		trigger = { event_target:holy_order_to_join = { title = d_bektashi } }
+	}
+	desc = {
+		text = EVTDESC_SOA_1431
+		picture = GFX_evt_moors
+		trigger = { event_target:holy_order_to_join = { title = d_fedayeen } }
+	}
+	desc = {
+		text = EVTDESC_CM_4331
+		picture = GFX_evt_moors
+		trigger = { event_target:holy_order_to_join = { title = d_haruriyyah } }
+	}
+	desc = {
+		text = EVTDESC_SOA_1831
+		picture = GFX_evt_melee
+		trigger = { event_target:holy_order_to_join = { title = d_immortals } }
+	}
+	desc = {
+		text = EVTDESC_SOA_1931
+		picture = GFX_evt_melee
+		trigger = { event_target:holy_order_to_join = { title = d_zealots } }
+	}
+	desc = {
+		text = EVTDESC_SOA_1531
+		picture = GFX_evt_vikings_arriving_oldgods
+		trigger = { event_target:holy_order_to_join = { title = d_jomsvikings } }
+	}
+	desc = {
+		text = EVTDESC_SOA_2031
+		picture = GFX_evt_throne_room_altaic
+		trigger = { event_target:holy_order_to_join = { title = d_sky_lords } }
+	}
+	desc = {
+		text = EVTDESC_SOA_2131
+		picture = GFX_evt_melee
+		trigger = { event_target:holy_order_to_join = { title = d_spirit_guardians } }
+	}
+	desc = {
+		text = EVTDESC_SOA_2231
+		picture = GFX_evt_throne_room_norse_pagan
+		trigger = { event_target:holy_order_to_join = { title = d_warriors_perun } }
+	}
+	desc = {
+		text = EVTDESC_SOA_2331
+		picture = GFX_evt_throne_room_norse_pagan
+		trigger = { event_target:holy_order_to_join = { title = d_chosen_perkunas } }
+	}
+	desc = {
+		text = EVTDESC_SOA_2431
+		picture = GFX_evt_throne_room_norse_pagan
+		trigger = { event_target:holy_order_to_join = { title = d_sons_kaleva } }
+	}
+	desc = {
+		text = EVTDESC_SOA_2531
+		picture = GFX_evt_throne_room_mesoamerican
+		trigger = { event_target:holy_order_to_join = { title = d_huitzilopochtli } }
+	}
+	desc = {
+		text = EVTDESC_CM_4002
+		picture = GFX_evt_sun_temple
+		trigger = { event_target:holy_order_to_join = { title = d_zun_warriors } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOA_1031 # Agree
+
+		if = {
+			limit = { religion = FROM }
+			piety = 100
+		}
+
+		event_target:holy_order_to_join = {
+			show_scope_change = no
+
+			trigger_switch = {
+				on_trigger = title
+
+				d_knights_templar     = { custom_tooltip = { text = EVTTOOLTIP_SOA_1032 } }
+				d_knights_hospitaller = { custom_tooltip = { text = EVTTOOLTIP_SOA_1132 } }
+				d_teutonic_order      = { custom_tooltip = { text = EVTTOOLTIP_SOA_1332 } }
+				k_teutonic_state      = { custom_tooltip = { text = EVTTOOLTIP_SOA_1332 } }
+				d_knights_santiago    = { custom_tooltip = { text = EVTTOOLTIP_SOA_2632 } }
+				d_knights_calatrava   = { custom_tooltip = { text = EVTTOOLTIP_SOA_2732 } }
+				d_saint_addai         = { custom_tooltip = { text = EVTTOOLTIP_SOA_2832 } }
+				d_holy_sepulchre      = { custom_tooltip = { text = EVTTOOLTIP_SOA_1632 } }
+				d_saint_anthony       = { custom_tooltip = { text = EVTTOOLTIP_SOA_1732 } }
+				d_bektashi            = { custom_tooltip = { text = EVTTOOLTIP_SOA_1232 } }
+				d_fedayeen         = { custom_tooltip = { text = EVTTOOLTIP_SOA_1432 } }
+				d_haruriyyah          = { custom_tooltip = { text = EVTTOOLTIP_CM_4332  } }
+				d_immortals           = { custom_tooltip = { text = EVTTOOLTIP_SOA_1832 } }
+				d_zealots             = { custom_tooltip = { text = EVTTOOLTIP_SOA_1932 } }
+				d_jomsvikings         = { custom_tooltip = { text = EVTTOOLTIP_SOA_1532 } }
+				d_sky_lords           = { custom_tooltip = { text = EVTTOOLTIP_SOA_2032 } }
+				d_spirit_guardians    = { custom_tooltip = { text = EVTTOOLTIP_SOA_2132 } }
+				d_warriors_perun      = { custom_tooltip = { text = EVTTOOLTIP_SOA_2232 } }
+				d_chosen_perkunas     = { custom_tooltip = { text = EVTTOOLTIP_SOA_2332 } }
+				d_sons_kaleva         = { custom_tooltip = { text = EVTTOOLTIP_SOA_2432 } }
+				d_huitzilopochtli     = { custom_tooltip = { text = EVTTOOLTIP_SOA_2532 } }
+				d_zun_warriors        = { custom_tooltip = { text = EVTTOOLTIP_CM_4003  } }
+			}
+		}
+
+		FROM = {
+			show_scope_change = no
+
+			if = {
+				limit = { has_minor_title = title_commander }
+				remove_title = title_commander
+			}
+
+			if = {
+				limit = { has_minor_title = title_appointed_regent }
+				remove_title = title_appointed_regent
+			}
+
+			if = {
+				limit = { has_minor_title = title_patrician_heir }
+				remove_title = title_patrician_heir
+			}
+
+			# Muslims are disinherited
+			if = {
+				limit = { religion_group = muslim }
+				add_trait = disinherited
+			}
+			# All others divorce and become celibate
+			else = {
+				add_trait_silently_celibate_effect = yes
+
+				any_spouse = {
+					show_scope_change = no
+
+					PREV = {
+						show_scope_change = no
+
+						remove_spouse = PREV
+						character_event = { id = SoA.2863 }
+					}
+				}
+
+				any_consort = {
+					show_scope_change = no
+
+					PREV = {
+						show_scope_change = no
+
+						remove_consort = PREV
+					}
+				}
+			}
+
+			hidden_effect = { clear_wealth = yes }
+			move_character = event_target:order_target
+			end_inaccessibility_effect = yes # removes in_hiding or in_seclusion
+		}
+
+		ai_chance = { factor = 100 }
+	}
+
+	option = {
+		name = EVTOPTB_SOA_1031 # Refuse
+
+		if = {
+			limit = { religion = FROM }
+			piety = -100
+		}
+
+		FROM = {
+			show_scope_change = no
+
+			custom_tooltip = { text = EVTTOOLTIP_SOA_1033 }
+
+			opinion = {
+				name = opinion_refused_request_holy_order
+				who = ROOT
+			}
+		}
+	}
+}
+
+# Spouse notified of character joining holy order
+character_event = {
+	id = SoA.2863
+	desc = EVTDESC_SoA_2863
+	picture = GFX_evt_melee
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = {
+			text = ALAS
+			trigger = {
+				opinion = {
+					who = FROMFROM
+					value >= 0
+				}
+			}
+		}
+		name = {
+			text = GOOD_RIDDANCE
+			trigger = {
+				opinion = {
+					who = FROMFROM
+					value < 0
+				}
+			}
+		}
+
+		tooltip = {
+			remove_spouse = FROMFROM
+		}
+	}
+}
+
+# A Holy Grand Master humbly requests the right to build a castle in some ruler's demesne
+character_event = {
+	id = SoA.1052
+
+	is_triggered_only = yes # on_yearly_pulse, random_events, holy_order_castle
+	hide_window = yes
+
+	only_playable = yes
+
+	trigger = {
+		holy_order = yes
+		realm_size < 10
+		wealth >= 300
+		
+		# TIANXIATODO: Region checks with random worlds
+		trigger_if = {
+			limit = {
+				OR = {
+					has_landed_title = d_knights_templar
+					has_landed_title = d_knights_hospitaller
+					has_landed_title = d_knights_santiago
+					has_landed_title = d_knights_calatrava
+				#	has_landed_title = d_teutonic_order # CleanSlate: Disabled by Paradox for some unknown reason
+				#	has_landed_title = k_teutonic_state
+					has_landed_title = d_holy_sepulchre
+					has_landed_title = d_saint_anthony
+					has_landed_title = d_saint_addai
+					has_landed_title = d_bektashi
+					has_landed_title = d_fedayeen
+					has_landed_title = d_jomsvikings
+					has_landed_title = d_immortals
+					has_landed_title = d_zealots
+					has_landed_title = d_sky_lords
+					has_landed_title = d_spirit_guardians
+					has_landed_title = d_warriors_perun
+					has_landed_title = d_chosen_perkunas
+					has_landed_title = d_sons_kaleva
+					has_landed_title = d_huitzilopochtli
+				}
+			}
+
+			has_dlc = "Sons of Abraham"
+		}
+		trigger_else = {
+			OR = {
+				has_landed_title = d_haruriyyah
+				has_landed_title = d_zun_warriors
+			}
+
+			has_dlc = "Charlemagne"
+		}
+
+		# CleanSlate: Paradox didn't see fit to add this content for these holy orders
+	#	NOR = {
+	#		has_landed_title = d_livonian_order
+	#		has_landed_title = d_teutonic_order
+	#		has_landed_title = d_saint_addai
+	#		has_landed_title = d_army_light
+	#		has_landed_title = d_ashokas_chosen
+	#		has_landed_title = d_followers_arjuna
+	#		has_landed_title = d_bulls_rishabha
+	#		has_landed_title = d_myrmidons
+	#		has_landed_title = d_dralhas_children
+	#	}
+
+		any_playable_ruler = {
+			religion = ROOT
+
+			any_demesne_province = {
+				has_empty_holding = yes
+
+				OR = {
+					has_castle = yes
+					has_temple = yes
+					has_city = yes
+					has_tribal = yes
+				}
+
+				# Various Christian Holy Orders don't want their castles just anywhere
+				trigger_if = {
+					limit = { ROOT = { has_landed_title = d_knights_templar } }
+
+					OR = {
+						region = world_persia
+						region = world_middle_east
+						region = world_asia_minor
+						region = world_africa_north
+						region = world_europe_south
+						region = world_europe_west
+					}
+				}
+				trigger_else_if = {
+					limit = { ROOT = { has_landed_title = d_knights_hospitaller } }
+
+					OR = {
+						region = world_persia
+						region = world_middle_east
+						region = world_asia_minor
+						region = world_india_rajastan
+						region = world_africa_north
+					}
+				}
+			#	trigger_else_if = {
+			#		limit = {
+			#			ROOT = {
+			#				OR = {
+			#					has_landed_title = d_teutonic_order
+			#					has_landed_title = k_teutonic_state
+			#				}
+			#			}
+			#		}
+			#
+			#		OR = {
+			#			region = world_europe_east
+			#			region = world_steppe
+			#		}
+			#	}
+				trigger_else_if = {
+					limit = {
+						ROOT = {
+							OR = {
+								has_landed_title = d_knights_santiago
+								has_landed_title = d_knights_calatrava
+							}
+						}
+					}
+
+					region = world_europe_west_iberia
+				}
+				trigger_else_if = {
+					limit = {
+						ROOT = { has_landed_title = d_saint_addai }
+					}
+
+					OR = {
+						region = world_persia
+						region = world_middle_east
+						region = world_asia_minor
+						region = world_india_rajastan
+						region = world_africa_north
+					}
+				}
+				# Some orders only want coastal castles
+				trigger_else_if = {
+					limit = {
+						ROOT = {
+							OR = {
+								has_landed_title = d_bektashi
+								has_landed_title = d_fedayeen
+								has_landed_title = d_haruriyyah
+								has_landed_title = d_jomsvikings
+								# Tianxia additions:
+								has_landed_title = d_huitzilopochtli
+								has_religion_feature = religion_seafaring
+								has_religion_feature = religion_feature_maian
+								has_religion_feature = religion_feature_melanesian
+								has_religion_feature = religion_feature_ryukyuan_three_mountains
+								# TIANXIATODO: Inca Holy Order
+							}
+						}
+					}
+
+					is_coastal = yes
+				}
+			}
+		}
+		
+		NOR = {
+			has_chinese_government_trigger = yes
+			has_japanese_government_trigger = yes
+			any_liege = {
+				OR = {
+					has_chinese_government_trigger = yes
+					has_japanese_government_trigger = yes
+				}
+			}
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+
+		mult_modifier = {
+			factor = 2
+			demesne_size < 1
+		}
+
+		mult_modifier = {
+			factor = 2
+			demesne_size < 2
+		}
+
+		mult_modifier = {
+			factor = 0.5
+			realm_size >= 5
+		}
+
+		mult_modifier = {
+			factor = 0.5
+			num_of_count_titles >= 1
+		}
+	}
+
+	immediate = {
+		save_event_target_as = target_grandmaster
+
+		random_demesne_title = {
+			limit = { holy_order = yes }
+			save_event_target_as = target_holy_order
+		}
+
+		random_playable_ruler = {
+			limit = {
+				religion = ROOT
+
+				any_demesne_province = {
+					has_empty_holding = yes
+					owned_by = PREV
+
+					OR = {
+						has_castle = yes
+						has_temple = yes
+						has_city = yes
+						has_tribal = yes
+					}
+
+					trigger_if = {
+						limit = { ROOT = { has_landed_title = d_knights_templar } }
+
+						OR = {
+							region = world_persia
+							region = world_middle_east
+							region = world_asia_minor
+							region = world_africa_north
+							region = world_europe_south
+							region = world_europe_west
+						}
+					}
+					trigger_else_if = {
+						limit = { ROOT = { has_landed_title = d_knights_hospitaller } }
+
+						OR = {
+							region = world_persia
+							region = world_middle_east
+							region = world_asia_minor
+							region = world_india_rajastan
+							region = world_africa_north
+						}
+					}
+				#	trigger_else_if = {
+				#		limit = {
+				#			ROOT = {
+				#				OR = {
+				#					has_landed_title = d_teutonic_order
+				#					has_landed_title = k_teutonic_state
+				#				}
+				#			}
+				#		}
+				#
+				#		OR = {
+				#			region = world_europe_east
+				#			region = world_steppe
+				#		}
+				#	}
+					trigger_else_if = {
+						limit = {
+							ROOT = {
+								OR = {
+									has_landed_title = d_knights_santiago
+									has_landed_title = d_knights_calatrava
+								}
+							}
+						}
+
+						region = world_europe_west_iberia
+					}
+					trigger_else_if = {
+						limit = {
+							ROOT = { has_landed_title = d_saint_addai }
+						}
+
+						OR = {
+							region = world_persia
+							region = world_middle_east
+							region = world_asia_minor
+							region = world_india_rajastan
+							region = world_africa_north
+						}
+					}
+					trigger_else_if = {
+						limit = {
+							ROOT = {
+								OR = {
+									has_landed_title = d_bektashi
+									has_landed_title = d_fedayeen
+									has_landed_title = d_haruriyyah
+									has_landed_title = d_jomsvikings
+								}
+							}
+						}
+
+						is_coastal = yes
+					}
+				}
+			}
+
+			random_demesne_province = {
+				limit = {
+					has_empty_holding = yes
+					owned_by = PREV
+
+					OR = {
+						has_castle = yes
+						has_temple = yes
+						has_city = yes
+						has_tribal = yes
+					}
+
+					trigger_if = {
+						limit = { ROOT = { has_landed_title = d_knights_templar } }
+
+						OR = {
+							region = world_persia
+							region = world_middle_east
+							region = world_asia_minor
+							region = world_africa_north
+							region = world_europe_south
+							region = world_europe_west
+						}
+					}
+					trigger_else_if = {
+						limit = { ROOT = { has_landed_title = d_knights_hospitaller } }
+
+						OR = {
+							region = world_persia
+							region = world_middle_east
+							region = world_asia_minor
+							region = world_india_rajastan
+							region = world_africa_north
+						}
+					}
+				#	trigger_else_if = {
+				#		limit = {
+				#			ROOT = {
+				#				OR = {
+				#					has_landed_title = d_teutonic_order
+				#					has_landed_title = k_teutonic_state
+				#				}
+				#			}
+				#		}
+				#
+				#		OR = {
+				#			region = world_europe_east
+				#			region = world_steppe
+				#		}
+				#	}
+					trigger_else_if = {
+						limit = {
+							ROOT = {
+								OR = {
+									has_landed_title = d_knights_santiago
+									has_landed_title = d_knights_calatrava
+								}
+							}
+						}
+
+						region = world_europe_west_iberia
+					}
+					trigger_else_if = {
+						limit = {
+							ROOT = { has_landed_title = d_saint_addai }
+						}
+
+						OR = {
+							region = world_persia
+							region = world_middle_east
+							region = world_asia_minor
+							region = world_india_rajastan
+							region = world_africa_north
+						}
+					}
+					trigger_else_if = {
+						limit = {
+							ROOT = {
+								OR = {
+									has_landed_title = d_bektashi
+									has_landed_title = d_fedayeen
+									has_landed_title = d_haruriyyah
+									has_landed_title = d_jomsvikings
+								}
+							}
+						}
+
+						is_coastal = yes
+					}
+				}
+
+				save_event_target_as = target_province
+			}
+		}
+
+		letter_event = { id = SoA.1053 }
+	}
+}
+
+letter_event = {
+	id = SoA.1053
+	border = GFX_event_letter_frame_religion
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_1053
+		trigger = {
+			event_target:target_grandmaster = { title = d_knights_templar }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1153
+		trigger = {
+			event_target:target_grandmaster = { title = d_knights_hospitaller }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1053
+		trigger = {
+			event_target:target_grandmaster = { title = d_knights_santiago }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1053
+		trigger = {
+			event_target:target_grandmaster = { title = d_knights_calatrava }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1053
+		trigger = {
+			event_target:target_grandmaster = { title = d_saint_addai }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	# desc = {
+	#	text = EVTDESC_SOA_1353
+	#	trigger = {
+	#		event_target:target_grandmaster = {
+	#			OR = {
+	#				title = d_teutonic_order
+	#				title = k_teutonic_state
+	#			}
+	#		}
+	#
+	#		NOT = {
+	#			has_alternate_start_parameter = {
+	#				key = religion_names
+	#				value = random
+	#			}
+	#		}
+	#	}
+	# }
+	desc = {
+		text = EVTDESC_SOA_1253
+		trigger = {
+			event_target:target_grandmaster = { title = d_bektashi }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1253
+		trigger = {
+			event_target:target_grandmaster = { title = d_fedayeen }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_CM_4353
+		trigger = {
+			event_target:target_grandmaster = { title = d_haruriyyah }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1553
+		trigger = {
+			event_target:target_grandmaster = { title = d_jomsvikings }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1653
+		trigger = {
+			event_target:target_grandmaster = { title = d_holy_sepulchre }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1053
+		trigger = {
+			event_target:target_grandmaster = { title = d_saint_anthony }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1853
+		trigger = {
+			event_target:target_grandmaster = { title = d_immortals }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1953
+		trigger = {
+			event_target:target_grandmaster = { title = d_zealots }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2053
+		trigger = {
+			event_target:target_grandmaster = { title = d_sky_lords }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2153
+		trigger = {
+			event_target:target_grandmaster = { title = d_spirit_guardians }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2253
+		trigger = {
+			event_target:target_grandmaster = { title = d_warriors_perun }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2353
+		trigger = {
+			event_target:target_grandmaster = { title = d_chosen_perkunas }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2453
+		trigger = {
+			event_target:target_grandmaster = { title = d_sons_kaleva }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2553
+		trigger = {
+			event_target:target_grandmaster = { title = d_huitzilopochtli }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_CM_4010
+		trigger = {
+			event_target:target_grandmaster = { title = d_zun_warriors }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = HOLY_ORDER_BUILD_CASTLE_FOR_MONEY_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOA_1023 # Agree
+
+		hidden_effect = {
+			event_target:target_holy_order = {
+				trigger_switch = {
+					on_trigger = title
+
+					d_knights_templar     = { ROOT = { remove_character_modifier = expelled_d_knights_templar } }
+					d_knights_hospitaller = { ROOT = { remove_character_modifier = expelled_d_knights_hospitaller } }
+				#	d_teutonic_order      = { ROOT = { remove_character_modifier = expelled_d_teutonic_order } }
+				#	k_teutonic_state      = { ROOT = { remove_character_modifier = expelled_k_teutonic_state } }
+					d_knights_santiago    = { ROOT = { remove_character_modifier = expelled_d_knights_santiago } }
+					d_knights_calatrava   = { ROOT = { remove_character_modifier = expelled_d_knights_calatrava } }
+					d_holy_sepulchre      = { ROOT = { remove_character_modifier = expelled_d_holy_sepulchre } }
+					d_saint_anthony       = { ROOT = { remove_character_modifier = expelled_d_saint_anthony } }
+					d_saint_addai         = { ROOT = { remove_character_modifier = expelled_d_saint_addai } }
+					d_bektashi            = { ROOT = { remove_character_modifier = expelled_d_bektashi } }
+					d_fedayeen         = { ROOT = { remove_character_modifier = expelled_d_fedayeen } }
+					d_haruriyyah          = { ROOT = { remove_character_modifier = expelled_d_haruriyyah } }
+					d_jomsvikings         = { ROOT = { remove_character_modifier = expelled_d_jomsvikings } }
+					d_immortals           = { ROOT = { remove_character_modifier = expelled_d_immortals } }
+					d_zealots             = { ROOT = { remove_character_modifier = expelled_d_zealots } }
+					d_sky_lords           = { ROOT = { remove_character_modifier = expelled_d_sky_lords } }
+					d_spirit_guardians    = { ROOT = { remove_character_modifier = expelled_d_spirit_guardians } }
+					d_warriors_perun      = { ROOT = { remove_character_modifier = expelled_d_warriors_perun } }
+					d_chosen_perkunas     = { ROOT = { remove_character_modifier = expelled_d_chosen_perkunas } }
+					d_sons_kaleva         = { ROOT = { remove_character_modifier = expelled_d_sons_kaleva } }
+					d_huitzilopochtli     = { ROOT = { remove_character_modifier = expelled_d_huitzilopochtli } }
+				}
+			}
+
+			event_target:target_province = {
+				province_event = { id = SoA.1054 }
+			}
+		}
+
+		piety = 200
+		wealth = 100
+
+		ai_chance = {
+			factor = 80
+
+			trigger = {
+				trigger_if = {
+					limit = { event_target:target_holy_order = { title = d_knights_templar } }
+					NOT = { has_character_modifier = expelled_d_knights_templar }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_knights_hospitaller } }
+					NOT = { has_character_modifier = expelled_d_knights_hospitaller }
+				}
+			#	trigger_else_if = {
+			#		limit = { event_target:target_holy_order = { title = d_teutonic_order } }
+			#		NOT = { has_character_modifier = expelled_d_teutonic_order }
+			#	}
+			#	trigger_else_if = {
+			#		limit = { event_target:target_holy_order = { title = k_teutonic_state } }
+			#		NOT = { has_character_modifier = expelled_k_teutonic_state }
+			#	}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_knights_santiago } }
+					NOT = { has_character_modifier = expelled_d_knights_santiago }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_knights_calatrava } }
+					NOT = { has_character_modifier = expelled_d_knights_calatrava }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_holy_sepulchre } }
+					NOT = { has_character_modifier = expelled_d_holy_sepulchre }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_saint_anthony } }
+					NOT = { has_character_modifier = expelled_d_saint_anthony }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_saint_addai } }
+					NOT = { has_character_modifier = expelled_d_saint_addai }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_bektashi } }
+					NOT = { has_character_modifier = expelled_d_bektashi }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_fedayeen } }
+					NOT = { has_character_modifier = expelled_d_fedayeen }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_haruriyyah } }
+					NOT = { has_character_modifier = expelled_d_haruriyyah }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_immortals } }
+					NOT = { has_character_modifier = expelled_d_immortals }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_zealots } }
+					NOT = { has_character_modifier = expelled_d_zealots }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_jomsvikings } }
+					NOT = { has_character_modifier = expelled_d_jomsvikings }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_sky_lords } }
+					NOT = { has_character_modifier = expelled_d_sky_lords }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_spirit_guardians } }
+					NOT = { has_character_modifier = expelled_d_spirit_guardians }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_warriors_perun } }
+					NOT = { has_character_modifier = expelled_d_warriors_perun }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_chosen_perkunas } }
+					NOT = { has_character_modifier = expelled_d_chosen_perkunas }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_sons_kaleva } }
+					NOT = { has_character_modifier = expelled_d_sons_kaleva }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_huitzilopochtli } }
+					NOT = { has_character_modifier = expelled_d_huitzilopochtli }
+				}
+				trigger_else_if = {
+					limit = { event_target:target_holy_order = { title = d_zun_warriors } }
+					NOT = { has_character_modifier = expelled_d_zun_warriors }
+				}
+			}
+
+			mult_modifier = {
+				factor = 0.01
+
+				event_target:target_holy_order = {
+					title = d_jomsvikings
+				}
+
+				event_target:target_province = {
+					region = world_europe_north
+				}
+			}
+
+		#	mult_modifier = {
+		#		factor = 0.05
+		#
+		#		event_target:target_holy_order = {
+		#			OR = {
+		#				title = d_teutonic_order
+		#				title = k_teutonic_state
+		#			}
+		#		}
+		#
+		#		NOT = { culture_group = central_germanic }
+		#	}
+		}
+	}
+
+	option = { # Refuse
+		# Use a random one from the events Paradox created
+		name = EVTOPTB_SOA_1031
+		name = EVTOPTB_SOA_1153
+		name = EVTOPTB_SOA_1353
+		name = EVTOPTB_SOA_1553
+
+		piety = -100
+
+		ai_chance = { factor = 20 }
+	}
+}
+
+# Castle has been erected
+province_event = {
+	id = SoA.1054
+	border = GFX_event_normal_frame_religion
+
+	desc = {
+		text = EVTDESC_SOA_1054
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_knights_templar }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1154
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_knights_hospitaller }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2654
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_knights_santiago }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2754
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_knights_calatrava }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	# desc = {
+	# 	text = EVTDESC_SOA_1354
+	#	picture = GFX_evt_castle_construction
+	# 	trigger = {
+	# 		event_target:target_grandmaster = {
+	#			OR = {
+	#				title = d_teutonic_order
+	#				title = k_teutonic_state
+	#			}
+	#		}
+
+	# 		NOT = {
+	# 			has_alternate_start_parameter = {
+	# 				key = religion_names
+	# 				value = random
+	# 			}
+	# 		}
+	# 	}
+	# }
+	desc = {
+		text = EVTDESC_SOA_1654
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_holy_sepulchre }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1754
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_saint_anthony }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2854
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_saint_addai }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1224
+		picture = GFX_evt_moors
+		trigger = {
+			event_target:target_grandmaster = { title = d_bektashi }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1454
+		picture = GFX_evt_moors
+		trigger = {
+			event_target:target_grandmaster = { title = d_fedayeen }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_CM_4324
+		picture = GFX_evt_moors
+		trigger = {
+			event_target:target_grandmaster = { title = d_haruriyyah }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1554
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_jomsvikings }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1854
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_immortals }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1954
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_zealots }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2054
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_sky_lords }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2154
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_spirit_guardians }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2254
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_warriors_perun }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2354
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_chosen_perkunas }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2454
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_sons_kaleva }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2554
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_huitzilopochtli }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_CM_4011
+		picture = GFX_evt_castle_construction
+		trigger = {
+			event_target:target_grandmaster = { title = d_zun_warriors }
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = HOLY_ORDER_CONSTRUCTION_COMPLETE_ALT
+		picture = GFX_evt_castle_construction
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes
+
+	immediate = {
+		event_target:target_grandmaster = {
+			wealth = -300
+		}
+	}
+
+	option = {
+		name = EVTOPTA_SOA_1024
+
+		build_holding = {
+			type = castle
+			holder = event_target:target_grandmaster
+		}
+	}
+}
+
+### Donating to holy orders
+
+# Notification event when donating money to the a holy order
+letter_event = {
+	id = SoA.1141
+	border = GFX_event_letter_frame_religion
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_1141
+		trigger = {
+			religion_group = christian
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_CM_4399
+		trigger = {
+			religion_group = muslim
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1841
+		trigger = {
+			religion_group = zoroastrian_group
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1941
+		trigger = {
+			religion_group = jewish_group
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_1541
+		trigger = {
+			religion_openly_norse_or_reformed_trigger = yes
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2041
+		trigger = {
+			religion_openly_tengri_or_reformed_trigger = yes
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2141
+		trigger = {
+			religion_openly_slavic_or_reformed_trigger = yes
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2241
+		trigger = {
+			religion_openly_slavic_or_reformed_trigger = yes
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2341
+		trigger = {
+			religion_openly_baltic_or_reformed_trigger = yes
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2441
+		trigger = {
+			religion_openly_finnish_or_reformed_trigger = yes
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_SOA_2541
+		trigger = {
+			religion_openly_aztec_or_reformed_trigger = yes
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDESC_CM_4006
+		trigger = {
+			religion_openly_zun_or_reformed_trigger = yes
+
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = HOLY_ORDER_DONATE_MONEY_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_CM_4399
+
+		reverse_opinion = {
+			name = opinion_generous_donation
+			who = event_target:target_grandmaster
+		}
+	}
+}
+
+########################################
+# The Bektashi Order
+########################################
+
+# Birth of the Bektashi Order
+narrative_event = {
+	id = SoA.1209
+	title = EVTTITLE_SOA_1209
+	desc = EVTDESC_SOA_1209
+	picture = GFX_evt_moors
+	portrait = event_target:target_grandmaster
+
+	is_triggered_only = yes # on_yearly_pulse
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	only_men = yes
+	religion_group = muslim
+	has_global_flag = muslim_jihads_unlocked
+	has_dlc = "Sons of Abraham"
+
+	trigger = {
+		is_sunni_branch = yes
+		is_heretic = no
+
+		trigger_if = {
+			limit = { year < 1228 } # Historical
+
+			NAND = {
+				c_baghdad = {
+					holder_scope = { religion_group = muslim }
+				}
+
+				c_damascus = {
+					holder_scope = { religion_group = muslim }
+				}
+
+				c_cairo = {
+					holder_scope = { religion_group = muslim }
+				}
+
+				c_jerusalem = {
+					holder_scope = { religion_group = muslim }
+				}
+
+				c_mecca = {
+					holder_scope = { religion_group = muslim }
+				}
+			}
+		}
+
+		NOR = {
+			is_title_active = d_bektashi
+
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_bektashi
+			status = yes
+		}
+
+		d_bektashi = {
+			religion = ROOT
+
+			ROOT = {
+				religion_scope = {
+					d_bektashi = {
+						save_persistent_event_target = {
+							name = holy_order_religion
+							scope = PREV
+						}
+					}
+				}
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			name = "Bektash"
+			dynasty = random
+			religion = ROOT
+			culture = persian
+			female = no
+			age = 25
+
+			attributes = {
+				martial = 10
+				diplomacy = 9
+				stewardship = 9
+				intrigue = 7
+				learning = 9
+			}
+
+			health = 6
+			fertility = 0.5
+			add_trait = brilliant_strategist
+			add_trait = sayyid
+			add_trait = hajjaj
+			add_trait = hafiz
+			add_trait = patient
+			add_trait = zealous
+			add_trait = scholar
+			add_trait = temperate
+		}
+
+		new_character = {
+			wealth = 500
+			grant_title = d_bektashi
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = persian
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = persian
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_1209
+			trigger = { religion = ROOT }
+		}
+		name = {
+			text = EVTOPTB_SOA_1209
+			trigger = {
+				NOT = { religion = ROOT }
+			}
+		}
+	}
+}
+
+########################################
+# The Brotherhood of the Holy Sepulchre
+########################################
+
+# Brotherhood of the Holy Sepulchre becomes a Chivalric Order
+# narrative_event = {
+# 	id = SoA.1609
+# 	title = EVTTITLE_SOA_1609
+# 	desc = EVTDESC_SOA_1609
+# 	picture = GFX_evt_western_knights_byzantine
+#	portrait = event_target:target_grandmaster
+#
+# 	is_triggered_only = yes
+# 	major = yes
+# 	hide_from = yes
+#
+# 	only_playable = yes
+# 	religion_group = christian
+#
+# 	trigger = {
+#		is_orthodox_branch = yes
+# 		is_heretic = no
+# 		NOT = { is_title_active = d_holy_sepulchre }
+#
+# 		c_antioch = {
+# 			holder_scope = { religion = ROOT }
+# 			location = { religion = ROOT }
+# 		}
+#
+# 		c_jerusalem = {
+# 			holder_scope = { religion = ROOT }
+# 			location = { religion = ROOT }
+# 		}
+# 	}
+#
+# 	mean_time_to_happen = {
+# 		years = 3
+# 	 }
+#
+# 	immediate = {
+# 		activate_title = {
+#			title = d_holy_sepulchre
+#			status = yes
+#		}
+#
+#		d_holy_sepulchre = {
+#			religion = ROOT
+#
+#			ROOT = {
+#				religion_scope = {
+#					d_holy_sepulchre = {
+#						save_persistent_event_target = {
+#							name = holy_order_religion
+#							scope = PREV
+#						}
+#					}
+#				}
+#			}
+#		}
+#
+# 		create_character = {
+# 			random_traits = no
+# 			dynasty = random
+# 			religion = ROOT
+# 			culture = greek
+# 			female = no
+# 			age = 31
+# 			add_trait = brilliant_strategist
+# 			add_trait = zealous
+# 			add_trait = humble
+# 			add_trait = ambitious
+# 			add_trait = strategist
+# 			add_trait = holy_warrior
+# 		}
+#
+# 		new_character = {
+# 			wealth = 500
+#			gain_title = d_holy_sepulchre
+# 			set_government_type = order_government
+#			save_event_target_as = target_grandmaster
+#
+#			while = {
+#				count = 7
+#
+#				create_character = {
+#					random_traits = yes
+#					dynasty = random
+#					religion = ROOT
+#					culture = greek
+#					female = no
+#					age = 16
+#				}
+#
+#				new_character = {
+#					random_list = {
+#						1 = { }
+#						1 = { add_age = 1 }
+#						1 = { add_age = 2 }
+#						1 = { add_age = 3 }
+#						1 = { add_age = 4 }
+#						1 = { add_age = 5 }
+#						1 = { add_age = 6 }
+#						1 = { add_age = 7 }
+#						1 = { add_age = 8 }
+#						1 = { add_age = 9 }
+#						1 = { add_age = 10 }
+#						1 = { add_age = 11 }
+#						1 = { add_age = 12 }
+#					}
+#				}
+#			}
+#
+#			while = {
+#				count = 2
+#
+#				create_character = {
+#					random_traits = yes
+#					dynasty = random
+#					religion = ROOT
+#					culture = greek
+#					female = yes
+#					age = 16
+#				}
+#
+#				new_character = {
+#					random_list = {
+#						1 = { }
+#						1 = { add_age = 1 }
+#						1 = { add_age = 2 }
+#					}
+#				}
+#			}
+# 		}
+# 	}
+#
+# 	option = {
+# 		name = {
+#			text = EVTOPTA_SOA_1609
+# 			trigger = { religion = ROOT }
+# 		}
+# 		name = {
+# 			text = EVTOPTB_SOA_1609
+# 			trigger = {
+# 				NOT = { religion = ROOT }
+# 			}
+# 		}
+# 	}
+# }
+
+########################################
+# The Order of Saint Anthony
+########################################
+
+# The Order of Saint Anthony is reborn
+narrative_event = {
+	id = SoA.1709
+	title = EVTTITLE_SOA_1709
+	desc = EVTDESC_SOA_1709
+	picture = GFX_evt_western_knights_byzantine
+	portrait = event_target:target_grandmaster
+
+	is_triggered_only = yes # on_bi_yearly_pulse
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	religion_group = christian
+
+	trigger = {
+		is_miaphysite_branch = yes
+		is_heretic = no
+		NOT = { is_title_active = d_saint_anthony }
+
+		NOT = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+
+		c_aksum = {
+			holder_scope = { religion = ROOT }
+			location = { religion = ROOT }
+		}
+
+		c_makuria = {
+			holder_scope = { religion = ROOT }
+			location = { religion = ROOT }
+		}
+
+		c_alexandria = {
+			holder_scope = { religion = ROOT }
+			location = { religion = ROOT }
+		}
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_saint_anthony
+			status = yes
+		}
+
+		d_saint_anthony = {
+			religion = ROOT
+
+			ROOT = {
+				religion_scope = {
+					d_saint_anthony = {
+						save_persistent_event_target = {
+							name = holy_order_religion
+							scope = PREV
+						}
+					}
+				}
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = ROOT
+			culture = ethiopian
+			female = no
+			age = 33
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_saint_anthony
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = ethiopian
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = ethiopian
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_1709
+			trigger = { religion = ROOT }
+		}
+		name = {
+			text = EVTOPTB_SOA_1709
+			trigger = {
+				NOT = { religion = ROOT }
+			}
+		}
+	}
+}
+
+########################################
+# The Immortals
+########################################
+
+province_event = {
+	id = SoA.1808
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		owner = {
+			narrative_event = { id = SoA.1809 }
+		}
+	}
+}
+
+# The Immortals are reborn
+narrative_event = {
+	id = SoA.1809
+	title = EVTTITLE_SOA_1809
+	desc = EVTDESC_SOA_1809
+	picture = GFX_evt_melee
+	border = GFX_event_narrative_frame_religion
+	portrait = event_target:target_grandmaster
+
+	is_triggered_only = yes # restore_priesthood, realm_decisions.txt
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	has_global_flag = zoroastrian_priesthood_founded
+
+	trigger = {
+		NOT = { is_title_active = d_immortals }
+	}
+
+	major_trigger = {
+		ai = no
+		religion_group = zoroastrian_group
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_immortals
+			status = yes
+		}
+
+		random_playable_ruler = {
+			limit = {
+				religion_group = zoroastrian_group
+				is_heretic = no
+			}
+
+			d_immortals = {
+				religion = PREV
+
+				PREV = {
+					religion_scope = {
+						d_immortals = {
+							save_persistent_event_target = {
+								name = holy_order_religion
+								scope = PREV
+							}
+						}
+					}
+				}
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = ROOT
+			culture = persian
+			female = no
+			age = 27
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_immortals
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = persian
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = persian
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_1809
+			trigger = { religion = ROOT }
+		}
+		name = {
+			text = EVTOPTB_SOA_1809
+			trigger = {
+				NOT = { religion = ROOT }
+			}
+		}
+	}
+}
+
+########################################
+# The Zealots
+########################################
+
+province_event = {
+	id = SoA.1908
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		owner = {
+			narrative_event = { id = SoA.1909 }
+		}
+	}
+}
+
+# The Zealots are reborn
+narrative_event = {
+	id = SoA.1909
+	title = EVTTITLE_SOA_1909
+	desc = EVTDESC_SOA_1909
+	picture = GFX_evt_melee
+	portrait = event_target:target_grandmaster
+
+	is_triggered_only = yes # restore_high_priesthood, realm_decisions.txt
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	has_global_flag = jewish_priesthood_founded
+
+	trigger = {
+		NOT = { is_title_active = d_zealots }
+	}
+
+	major_trigger = {
+		ai = no
+		religion_group = jewish_group
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_zealots
+			status = yes
+		}
+
+		random_playable_ruler = {
+			limit = {
+				religion_group = jewish_group
+				is_heretic = no
+			}
+
+			d_zealots = {
+				religion = PREV
+
+				PREV = {
+					religion_scope = {
+						d_zealots = {
+							save_persistent_event_target = {
+								name = holy_order_religion
+								scope = PREV
+							}
+						}
+					}
+				}
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = ROOT
+			culture = ashkenazi
+			female = no
+			age = 29
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_zealots
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = ashkenazi
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = ashkenazi
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_1909
+			trigger = { religion = ROOT }
+		}
+		name = {
+			text = EVTOPTB_SOA_1909
+			trigger = {
+				NOT = { religion = ROOT }
+			}
+		}
+	}
+}
+
+########################################
+# The Lords of the Sky
+########################################
+
+province_event = {
+	id = SoA.2008
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		owner = {
+			narrative_event = { id = SoA.2009 }
+		}
+	}
+}
+
+# The birth of the Lords of the Sky
+narrative_event = {
+	id = SoA.2009
+	title = EVTTITLE_SOA_2009
+	picture = GFX_evt_mongols_pillage_oldgods
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_2009
+		trigger = {
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = PAGAN_HOLY_ORDER_FORMED_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes # on_reform_religion via event 670, base_on_action_events.txt
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	has_dlc = "Sons of Abraham"
+
+	trigger = {
+		tengri_pagan = { has_flag = has_been_reformed }
+		NOT = { is_title_active = d_sky_lords }
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_sky_lords
+			status = yes
+		}
+
+		d_sky_lords = {
+			religion = tengri_pagan_reformed
+
+			save_persistent_event_target = {
+				name = holy_order_religion
+				scope = tengri_pagan_reformed
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = tengri_pagan_reformed
+			culture = cuman
+			female = no
+			age = 28
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_sky_lords
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = tengri_pagan_reformed
+					culture = cuman
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = tengri_pagan_reformed
+					culture = cuman
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_2009
+			trigger = { religion = tengri_pagan_reformed }
+		}
+		name = {
+			text = EVTOPTB_SOA_2009
+			trigger = {
+				NOT = { religion = tengri_pagan_reformed }
+			}
+		}
+	}
+}
+
+########################################
+# The Spirit Guardians
+########################################
+
+province_event = {
+	id = SoA.2108
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		owner = {
+			narrative_event = { id = SoA.2109 }
+		}
+	}
+}
+
+# The birth of the Spirit Guardians
+narrative_event = {
+	id = SoA.2109
+	title = EVTTITLE_SOA_2109
+	picture = GFX_evt_melee
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_2109
+		trigger = {
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = PAGAN_HOLY_ORDER_FORMED_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes # on_reform_religion via event 670, base_on_action_events.txt
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	has_dlc = "Sons of Abraham"
+
+	trigger = {
+		west_african_pagan = { has_flag = has_been_reformed }
+		NOT = { is_title_active = d_spirit_guardians }
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_spirit_guardians
+			status = yes
+		}
+
+		d_spirit_guardians = {
+			religion = west_african_pagan_reformed
+
+			save_persistent_event_target = {
+				name = holy_order_religion
+				scope = west_african_pagan_reformed
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = west_african_pagan_reformed
+			culture = mande
+			female = no
+			age = 32
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_spirit_guardians
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = west_african_pagan_reformed
+					culture = mande
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = west_african_pagan
+					culture = mande
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_2109
+			trigger = { religion = west_african_pagan_reformed }
+		}
+		name = {
+			text = EVTOPTB_SOA_2009
+			trigger = {
+				NOT = { religion = west_african_pagan_reformed }
+			}
+		}
+	}
+}
+
+########################################
+# The Warriors of Perun
+########################################
+
+province_event = {
+	id = SoA.2208
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		owner = {
+			narrative_event = { id = SoA.2209 }
+		}
+	}
+}
+
+# The birth of the Warriors of Perun
+narrative_event = {
+	id = SoA.2209
+	title = EVTTITLE_SOA_2209
+	picture = GFX_evt_throne_room_norse_pagan
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_2209
+		trigger = {
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = PAGAN_HOLY_ORDER_FORMED_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes # on_reform_religion via event 670, base_on_action_events.txt
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	has_dlc = "Sons of Abraham"
+
+	trigger = {
+		slavic_pagan = { has_flag = has_been_reformed }
+		NOT = { is_title_active = d_warriors_perun }
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_warriors_perun
+			status = yes
+		}
+
+		d_warriors_perun = {
+			religion = slavic_pagan_reformed
+
+			save_persistent_event_target = {
+				name = holy_order_religion
+				scope = slavic_pagan_reformed
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = slavic_pagan_reformed
+			culture = russian
+			female = no
+			age = 35
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_warriors_perun
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = slavic_pagan_reformed
+					culture = russian
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = slavic_pagan_reformed
+					culture = russian
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_2209
+			trigger = { religion = slavic_pagan_reformed }
+		}
+		name = {
+			text = EVTOPTB_SOA_2009
+			trigger = {
+				NOT = { religion = slavic_pagan_reformed }
+			}
+		}
+	}
+}
+
+########################################
+# The Chosen of Perkunas
+########################################
+
+province_event = {
+	id = SoA.2308
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		owner = {
+			narrative_event = { id = SoA.2309 }
+		}
+	}
+}
+
+# The birth of the Chosen of Perkunas
+narrative_event = {
+	id = SoA.2309
+	title = EVTTITLE_SOA_2309
+	picture = GFX_evt_throne_room_norse_pagan
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_2309
+		trigger = {
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = PAGAN_HOLY_ORDER_FORMED_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes # on_reform_religion via event 670, base_on_action_events.txt
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	has_dlc = "Sons of Abraham"
+
+	trigger = {
+		baltic_pagan = { has_flag = has_been_reformed }
+		NOT = { is_title_active = d_chosen_perkunas }
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_chosen_perkunas
+			status = yes
+		}
+
+		d_chosen_perkunas = {
+			religion = baltic_pagan_reformed
+
+			save_persistent_event_target = {
+				name = holy_order_religion
+				scope = baltic_pagan_reformed
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = baltic_pagan_reformed
+			culture = latgalian
+			female = no
+			age = 26
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_chosen_perkunas
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = baltic_pagan_reformed
+					culture = latgalian
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = baltic_pagan_reformed
+					culture = latgalian
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_2309
+			trigger = { religion = baltic_pagan_reformed }
+		}
+		name = {
+			text = EVTOPTB_SOA_2009
+			trigger = {
+				NOT = { religion = baltic_pagan_reformed }
+			}
+		}
+	}
+}
+
+########################################
+# The Sons of Kaleva
+########################################
+
+province_event = {
+	id = SoA.2408
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		owner = {
+			narrative_event = { id = SoA.2409 }
+		}
+	}
+}
+
+# The birth of the Sons of Kaleva
+narrative_event = {
+	id = SoA.2409
+	title = EVTTITLE_SOA_2409
+	picture = GFX_evt_throne_room_norse_pagan
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_2409
+		trigger = {
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = PAGAN_HOLY_ORDER_FORMED_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes # on_reform_religion via event 670, base_on_action_events.txt
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	has_dlc = "Sons of Abraham"
+
+	trigger = {
+		finnish_pagan = { has_flag = has_been_reformed }
+		NOT = { is_title_active = d_sons_kaleva }
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_sons_kaleva
+			status = yes
+		}
+
+		d_sons_kaleva = {
+			religion = finnish_pagan_reformed
+
+			save_persistent_event_target = {
+				name = holy_order_religion
+				scope = finnish_pagan_reformed
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = finnish_pagan_reformed
+			culture = finnish
+			female = no
+			age = 31
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_sons_kaleva
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = finnish_pagan_reformed
+					culture = finnish
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = finnish_pagan_reformed
+					culture = finnish
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_2409
+			trigger = { religion = finnish_pagan_reformed }
+		}
+		name = {
+			text = EVTOPTB_SOA_2009
+			trigger = {
+				NOT = { religion = finnish_pagan_reformed }
+			}
+		}
+	}
+}
+
+########################################
+# The Cult of Huitzilopochtli
+########################################
+
+province_event = {
+	id = SoA.2508
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		owner = {
+			narrative_event = { id = SoA.2509 }
+		}
+	}
+}
+
+# The birth of the Cult of Huitzilopochtli
+narrative_event = {
+	id = SoA.2509
+	title = EVTTITLE_SOA_2509
+	picture = GFX_evt_bishop_aztec
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_SOA_2509
+		trigger = {
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = PAGAN_HOLY_ORDER_FORMED_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes # on_reform_religion via event 670, base_on_action_events.txt
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	has_dlc = "Sons of Abraham"
+
+	trigger = {
+		aztec_pagan = { has_flag = has_been_reformed }
+		NOT = { is_title_active = d_huitzilopochtli }
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_huitzilopochtli
+			status = yes
+		}
+
+		d_huitzilopochtli = {
+			religion = aztec_pagan_reformed
+
+			save_persistent_event_target = {
+				name = holy_order_religion
+				scope = aztec_pagan_reformed
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = aztec_pagan_reformed
+			culture = nahua
+			female = no
+			age = 37
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_huitzilopochtli
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = aztec_pagan_reformed
+					culture = nahua
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = aztec_pagan_reformed
+					culture = nahua
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_2509
+			trigger = { religion = aztec_pagan_reformed }
+		}
+		name = {
+			text = EVTOPTB_SOA_2009
+			trigger = {
+				NOT = { religion = aztec_pagan_reformed }
+			}
+		}
+	}
+}
+
+########################################
+# The Order of Santiago
+########################################
+
+# The birth of the Order of Santiago
+narrative_event = {
+	id = SoA.2609
+	title = EVTTITLE_SOA_2609
+	desc = EVTDESC_SOA_2609
+	picture = GFX_evt_knight_kneeling
+	portrait = event_target:target_grandmaster
+
+	is_triggered_only = yes # on_bi_yearly_pulse
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	religion_group = christian
+	has_global_flag = christian_crusades_unlocked
+	has_dlc = "Sons of Abraham"
+
+	trigger = {
+		is_catholic_branch = yes
+		is_heretic = no
+		NOT = { is_title_active = d_knights_santiago }
+
+		trigger_if = {
+			limit = { year < 1175 } # Historical
+
+			NAND = {
+				c_provence = {
+					holder_scope = { religion_group = christian }
+				}
+
+				c_toulouse = {
+					holder_scope = { religion_group = christian }
+				}
+
+				c_paris = {
+					holder_scope = { religion_group = christian }
+				}
+
+				c_koln = {
+					holder_scope = { religion_group = christian }
+				}
+
+				c_braunschweig = {
+					holder_scope = { religion_group = christian }
+				}
+
+				c_bordeaux = {
+					holder_scope = { religion_group = christian }
+				}
+			}
+		}
+
+		NOT = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_knights_santiago
+			status = yes
+		}
+
+		d_knights_santiago = {
+			religion = ROOT
+
+			ROOT = {
+				religion_scope = {
+					d_knights_santiago = {
+						save_persistent_event_target = {
+							name = holy_order_religion
+							scope = PREV
+						}
+					}
+				}
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = ROOT
+			culture = castilian
+			female = no
+			age = 31
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_knights_santiago
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = castilian
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = castilian
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_2609
+			trigger = { religion = ROOT }
+		}
+		name = {
+			text = EVTOPTB_SOA_2609
+			trigger = {
+				NOT = { religion = ROOT }
+			}
+		}
+	}
+}
+
+########################################
+# The Order of Calatrava
+########################################
+
+# The birth of the Order of Calatrava
+narrative_event = {
+	id = SoA.2709
+	title = EVTTITLE_SOA_2709
+	desc = EVTDESC_SOA_2709
+	picture = GFX_evt_knight_kneeling
+	portrait = event_target:target_grandmaster
+
+	is_triggered_only = yes # on_bi_yearly_pulse
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	religion_group = christian
+	has_global_flag = christian_crusades_unlocked
+	has_dlc = "Sons of Abraham"
+
+	trigger = {
+		is_catholic_branch = yes
+		is_heretic = no
+		NOT = { is_title_active = d_knights_calatrava }
+
+		trigger_if = {
+			limit = { year < 1164 } # Historical
+
+			NAND = {
+				c_provence = {
+					holder_scope = { religion_group = christian }
+				}
+
+				c_toulouse = {
+					holder_scope = { religion_group = christian }
+				}
+
+				c_paris = {
+					holder_scope = { religion_group = christian }
+				}
+
+				c_koln = {
+					holder_scope = { religion_group = christian }
+				}
+
+				c_braunschweig = {
+					holder_scope = { religion_group = christian }
+				}
+
+				c_bordeaux = {
+					holder_scope = { religion_group = christian }
+				}
+			}
+		}
+
+		NOT = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_knights_calatrava
+			status = yes
+		}
+
+		d_knights_calatrava = {
+			religion = ROOT
+
+			ROOT = {
+				religion_scope = {
+					d_knights_calatrava = {
+						save_persistent_event_target = {
+							name = holy_order_religion
+							scope = PREV
+						}
+					}
+				}
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = ROOT
+			culture = castilian
+			female = no
+			age = 31
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_knights_calatrava
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = castilian
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = castilian
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_2709
+			trigger = { religion = ROOT }
+		}
+		name = {
+			text = EVTOPTB_SOA_2709
+			trigger = {
+				NOT = { religion = ROOT }
+			}
+		}
+	}
+}
+
+########################################
+# The Order of Saint Addai
+########################################
+
+# The birth of the Order of St Addai
+narrative_event = {
+	id = SoA.2809
+	title = EVTTITLE_SOA_2809
+	desc = EVTDESC_SOA_2809
+	picture = GFX_evt_knight_kneeling
+	portrait = event_target:target_grandmaster
+
+	is_triggered_only = yes # on_bi_yearly_pulse
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	religion_group = christian
+	has_dlc = "Sons of Abraham"
+
+	trigger = {
+		is_nestorian_branch = yes
+		is_heretic = no
+		NOT = { is_title_active = d_saint_addai }
+
+		c_baghdad = {
+			holder_scope = { religion = ROOT }
+			location = { religion = ROOT }
+		}
+
+		c_jerusalem = {
+			holder_scope = { religion = ROOT }
+			location = { religion = ROOT }
+		}
+
+		NOT = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_saint_addai
+			status = yes
+		}
+
+		d_saint_addai = {
+			religion = ROOT
+
+			ROOT = {
+				religion_scope = {
+					d_saint_addai = {
+						save_persistent_event_target = {
+							name = holy_order_religion
+							scope = PREV
+						}
+					}
+				}
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = ROOT
+			culture = persian
+			female = no
+			age = 31
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_saint_addai
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = persian
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = persian
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_SOA_2809
+			trigger = { religion = ROOT }
+		}
+		name = {
+			text = EVTOPTB_SOA_2809
+			trigger = {
+				NOT = { religion = ROOT }
+			}
+		}
+	}
+}
+
+########################################
+# Knights of the Sun
+########################################
+
+province_event = {
+	id = CM.4001
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		owner = {
+			narrative_event = { id = CM.4000 }
+		}
+	}
+}
+
+# The birth of the Knights of the Sun
+narrative_event = {
+	id = CM.4000
+	title = EVTTITLE_CM_4000
+	picture = GFX_evt_sun_temple
+	border = GFX_event_narrative_frame_religion
+	portrait = event_target:target_grandmaster
+
+	desc = {
+		text = EVTDESC_CM_4000
+		trigger = {
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+		}
+	}
+	desc = {
+		text = PAGAN_HOLY_ORDER_FORMED_ALT
+		trigger = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	is_triggered_only = yes # on_reform_religion via event 670, base_on_action_events.txt
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	has_dlc = "Charlemagne"
+
+	trigger = {
+		NOT = { is_title_active = d_zun_warriors }
+		zun_pagan = { has_flag = has_been_reformed }
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_zun_warriors
+			status = yes
+		}
+
+		d_zun_warriors = {
+			religion = zun_pagan_reformed
+
+			save_persistent_event_target = {
+				name = holy_order_religion
+				scope = zun_pagan_reformed
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = zun_pagan_reformed
+			culture = afghan
+			female = no
+			age = 28
+			add_trait = brilliant_strategist
+			add_trait = zealous
+			add_trait = humble
+			add_trait = ambitious
+			add_trait = strategist
+			add_trait = holy_warrior
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_zun_warriors
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = zun_pagan_reformed
+					culture = afghan
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = zun_pagan_reformed
+					culture = afghan
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_CM_4000
+			trigger = { religion_openly_zun_or_reformed_trigger = yes }
+		}
+		name = {
+			text = EVTOPTB_SOA_2009
+			trigger = { religion_openly_zun_or_reformed_trigger = no }
+		}
+	}
+}
+
+########################################
+# The Haruriyyah
+########################################
+
+# Birth of the Haruriyyah Order
+narrative_event = {
+	id = CM.4309
+	title = EVTTITLE_CM_4309
+	desc = EVTDESC_CM_4309
+	picture = GFX_evt_moors
+	border = GFX_event_narrative_frame_religion
+	portrait = event_target:target_grandmaster
+
+	is_triggered_only = yes # on_yearly_pulse
+	major = yes
+	hide_from = yes
+
+	only_playable = yes
+	only_men = yes
+	religion_group = muslim
+	has_dlc = "Charlemagne"
+	has_global_flag = muslim_jihads_unlocked
+
+	trigger = {
+		is_ibadi_branch = yes
+		is_title_active = d_ibadi
+		is_heretic = no
+		NOT = { is_title_active = d_haruriyyah }
+
+		NAND = {
+			c_suhar = {
+				holder_scope = { religion_group = muslim }
+			}
+
+			c_damascus = {
+				holder_scope = { religion_group = muslim }
+			}
+
+			c_cairo = {
+				holder_scope = { religion_group = muslim }
+			}
+
+			c_jerusalem = {
+				holder_scope = { religion_group = muslim }
+			}
+
+			c_mecca = {
+				holder_scope = { religion_group = muslim }
+			}
+		}
+
+		NOT = {
+			has_alternate_start_parameter = {
+				key = religion_names
+				value = random
+			}
+		}
+	}
+
+	immediate = {
+		activate_title = {
+			title = d_haruriyyah
+			status = yes
+		}
+
+		d_haruriyyah = {
+			religion = ROOT
+
+			ROOT = {
+				religion_scope = {
+					d_haruriyyah = {
+						save_persistent_event_target = {
+							name = holy_order_religion
+							scope = PREV
+						}
+					}
+				}
+			}
+		}
+
+		create_character = {
+			random_traits = no
+			dynasty = random
+			religion = ROOT
+			culture = persian
+			female = no
+			age = 25
+			health = 6
+			fertility = 0.5
+			add_trait = brilliant_strategist
+			add_trait = sayyid
+			add_trait = hajjaj
+			add_trait = hafiz
+			add_trait = patient
+			add_trait = zealous
+			add_trait = scholar
+			add_trait = temperate
+
+			attributes = {
+				martial = 10
+				diplomacy = 9
+				stewardship = 9
+				intrigue = 7
+				learning = 9
+			}
+		}
+
+		new_character = {
+			wealth = 500
+			gain_title = d_haruriyyah
+			set_government_type = order_government
+			save_event_target_as = target_grandmaster
+
+			while = {
+				count = 7
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = persian
+					female = no
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+						1 = { add_age = 3 }
+						1 = { add_age = 4 }
+						1 = { add_age = 5 }
+						1 = { add_age = 6 }
+						1 = { add_age = 7 }
+						1 = { add_age = 8 }
+						1 = { add_age = 9 }
+						1 = { add_age = 10 }
+						1 = { add_age = 11 }
+						1 = { add_age = 12 }
+					}
+				}
+			}
+
+			while = {
+				count = 2
+
+				create_character = {
+					random_traits = yes
+					dynasty = random
+					religion = ROOT
+					culture = persian
+					female = yes
+					age = 16
+				}
+
+				new_character = {
+					random_list = {
+						1 = { }
+						1 = { add_age = 1 }
+						1 = { add_age = 2 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = {
+			text = EVTOPTA_CM_4309
+			trigger = { religion = ROOT }
+		}
+		name = {
+			text = EVTOPTB_CM_4309
+			trigger = {
+				NOT = { religion = ROOT }
+			}
+		}
+	}
+}

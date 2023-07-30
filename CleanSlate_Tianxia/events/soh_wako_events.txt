@@ -1,0 +1,357 @@
+# Wako (Wokou) events
+# By Silverswee(e)per
+
+namespace = soh
+
+# soh.7301-7400 reserved
+
+
+
+##### Wako events
+
+### Wako culture flip + pirate havens
+
+# Low chance of a Yamato or Japanese island or coastal province swapping to Wako culture
+province_event = {
+	id = soh.7301
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_SOH_7301
+	
+	trigger = {
+		OR = {
+			# In Japan or Korea
+			region = world_greater_japan
+			region = world_korea
+		}
+		
+		port = yes
+		
+		OR = {
+			culture = japanese
+			culture = yamato
+		}
+		
+		OR = {
+			has_japanese_religion_trigger = yes
+			religion = buddhist
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 2000
+		
+		# Is not an island or "island"
+		mult_modifier = {
+			factor = 5
+			any_neighbor_province = {
+				count = 2
+				is_land = yes
+			}
+		}
+		
+		# Is really not an island
+		mult_modifier = {
+			factor = 10
+			any_neighbor_province = {
+				is_land = yes
+				port = no
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.9
+			any_neighbor_province = {
+				culture = wako # More common if adjacent
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				NOT = {
+					culture = wako
+				}
+			}
+		}
+		
+		name = EVTOPTA_SOH_7301 # Let's hope they behave...
+		
+		culture = wako
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				culture = wako
+			}
+		}
+		
+		name = EVTOPTB_SOH_7301 # That's... good?
+		
+		culture = wako
+	}
+}
+
+# Low chance of a Pirate Haven spawning in a Wako province
+province_event = {
+	id = soh.7302
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_SOH_7302
+	
+	trigger = {
+		culture = wako
+		
+		port = yes
+		
+		owner = {
+			NOR = {
+				AND = {
+					culture = wako
+					independent = yes
+				}
+				top_liege = {
+					culture = wako
+				}
+			}
+		}
+		
+		OR = {
+			has_japanese_religion_trigger = yes
+			religion = buddhist
+		}
+		
+		NOT = {
+			has_province_modifier = pirate_haven
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 120
+		
+		# Is not an island or "island"
+		mult_modifier = {
+			factor = 5
+			any_neighbor_province = {
+				count = 2
+				is_land = yes
+			}
+		}
+		
+		# Is really not an island
+		mult_modifier = {
+			factor = 10
+			any_neighbor_province = {
+				is_land = yes
+				port = no
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_7302 # Let's hope they know not to raid my coasts!
+		
+		add_province_modifier = {
+			modifier = pirate_haven
+			duration = -1
+		}
+	}
+}
+
+# Pirate Haven modifier removed
+province_event = {
+	id = soh.7303
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_SOH_7303
+	
+	trigger = {
+		port = yes
+		
+		has_province_modifier = pirate_haven
+	}
+	
+	mean_time_to_happen = {
+		months = 240
+		
+		# Isn't a Wako province
+		mult_modifier = {
+			factor = 0.1
+			NAND = {
+				culture = wako
+				OR = {
+					religion = shinto
+					religion = shugendo
+					religion = koshin
+					religion = buddhist
+				}
+			}
+		}
+		
+		# Owner or liege is Wako
+		mult_modifier = {
+			factor = 0.1
+			owner = {
+				OR = {
+					culture = wako
+					any_liege = {
+						culture = wako
+					}
+				}
+			}
+		}
+		
+		# Owner has high stewardship
+		mult_modifier = {
+			factor = 0.8
+			owner = {
+				stewardship >= 12
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.8
+			owner = {
+				stewardship >= 16
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.8
+			owner = {
+				stewardship >= 20
+			}
+		}
+		
+		mult_modifier = {
+			factor = 0.8
+			owner = {
+				stewardship >= 24
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				NOT = {
+					culture = wako
+				}
+			}
+		}
+		
+		name = EVTOPTA_SOH_7303 # Good riddance!
+		
+		remove_province_modifier = pirate_haven
+	}
+	
+	option = {
+		trigger = {
+			owner = {
+				culture = wako
+			}
+		}
+		
+		name = EVTOPTB_SOH_7303 # I can organize my own raids!
+		
+		remove_province_modifier = pirate_haven
+	}
+}
+
+
+
+### Wako raiders
+
+# Low chance of a Wako raid spawning in a province with a Pirate Haven
+character_event = {
+	id = soh.7304
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_SOH_7304
+	
+	is_triggered_only = yes # on_decade_pulse -> random_events
+	
+	only_playable = yes
+	
+	has_dlc = "Horse Lords" # Raiding adventurers
+		
+	trigger = {
+		any_demesne_province = {
+			culture = wako
+			has_province_modifier = pirate_haven
+		}
+	}
+	
+	immediate = {
+		random_demesne_province = {
+			limit = {
+				culture = wako
+				has_province_modifier = pirate_haven
+			}
+			
+			save_event_target_as = wako_province
+		}
+		
+		create_wako_raider_and_forces_effect = yes
+		
+		reverse_opinion = {
+			who = event_target:wako_raider
+			modifier = forbidden_raid_target
+		}
+		
+		any_liege = {
+			reverse_opinion = {
+				who = event_target:wako_raider
+				modifier = forbidden_raid_target
+			}
+		}
+		
+		event_target:wako_raider = {
+			character_event = { id = soh.7305 months = 120 random = 60 } # Stand down
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				culture = wako
+			}
+		}
+		
+		name = EVTOPTA_SOH_7304 # Be gone!
+	}
+	
+	option = {
+		trigger = {
+			culture = wako
+		}
+		
+		name = EVTOPTB_SOH_7304 # I don't need them!
+	}
+}
+
+# Raiders disband
+character_event = {
+	id = soh.7305
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_war
+	desc = EVTDESC_SOH_7305
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_7305 # I don't need them!
+		
+		disband_event_forces = wako_raiders
+		
+		any_demesne_title = {
+			limit = {
+				adventurer = yes
+			}
+			
+			unsafe_destroy_landed_title = THIS
+		}
+	}
+}
