@@ -1,5 +1,6 @@
 name = "Tianxia"
 path = "mod/Tianxia"
+user_dir = "Tianxia"
 dependencies = { "CleanSlate" }
 
 replace_path = "history/offmap_powers"

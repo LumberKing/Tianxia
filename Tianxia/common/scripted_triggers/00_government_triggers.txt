@@ -4,39 +4,52 @@
 # Overarching triggers for feudal sub-groups
 
 is_any_bureaucrat_trigger = {
-	OR = {
-		government = japanese_imperial_government
-		government = divine_imperial_government
-		government = japanese_bureaucracy_government
-		government = chinese_imperial_government
-		government = eastern_imperial_government
-		government = chinese_vassal_government
-		AND = {
+	trigger_if = {
+		limit = {
+			is_landed = yes
+		}
+		
+		OR = {
+			government = japanese_imperial_government
+			government = divine_imperial_government
+			government = japanese_bureaucracy_government
+			government = chinese_imperial_government
+			government = eastern_imperial_government
+			government = chinese_vassal_government
+		}
+	}
+	
+	trigger_else_if = {
+		limit = {
 			could_have_japanese_government_trigger = yes
-			is_landed = no
-			employer = {
-				OR = {
-					government = japanese_imperial_government
-					government = divine_imperial_government
-					government = japanese_bureaucracy_government
-				}
-			}
-			NOR = {
-				trait = japanese_feudal_trait
-				trait = japanese_monastic_trait
+		}
+		
+		employer = {
+			OR = {
+				government = japanese_imperial_government
+				government = divine_imperial_government
+				government = japanese_bureaucracy_government
 			}
 		}
-		AND = {
+		
+		NOR = {
+			trait = japanese_feudal_trait
+			trait = japanese_monastic_trait
+		}
+	}
+	
+	trigger_else_if = {
+		limit = {
 			could_have_chinese_government_trigger = yes
-			is_landed = no
-			employer = {
-				OR = {
-					government = chinese_imperial_government
-					government = eastern_imperial_government
-					government = chinese_vassal_government
-				}
-			}
 		}
+		
+		employer = {
+			has_chinese_government_trigger = yes
+		}
+	}
+	
+	trigger_else = {
+		always = no
 	}
 }
 
@@ -81,7 +94,7 @@ has_chinese_government_trigger = {
 		}
 	}
 }
-	
+
 
 # Feudal Group
 feudal_group_potential_trigger = {}
@@ -89,16 +102,23 @@ feudal_group_allow_trigger = {}
 
 # Japanese Imperial
 japanese_imperial_government_potential_trigger = {
-	OR = {
-		AND = {
-			religion = shinto
-			OR = {
-				controls_religion = yes
-				has_character_flag = temporarily_japanese_imperial
-			}
+	trigger_if = {
+		limit = {
+			trait = dead_tenno
 		}
-		trait = dead_tenno
+		
+		always = yes
 	}
+	
+	trigger_else = {
+		religion = shinto
+		
+		OR = {
+			controls_religion = yes
+			has_character_flag = temporarily_japanese_imperial
+		}
+	}
+	
 	is_patrician = no
 }
 
@@ -106,7 +126,9 @@ japanese_imperial_government_allow_trigger = {}
 
 is_the_tenno_trigger = {
 	government = japanese_imperial_government
+	
 	religion = shinto
+	
 	OR = {
 		controls_religion = yes
 		has_character_flag = temporarily_japanese_imperial
@@ -116,20 +138,31 @@ is_the_tenno_trigger = {
 # Divine Imperial
 divine_imperial_government_potential_trigger = {
 	has_dlc = "Holy Fury"
-	religion = ryukyuan_pagan_reformed
-	OR = {
-		controls_religion = yes
-		trait = dead_ryukyuan_tenno
+	
+	trigger_if = {
+		limit = {
+			trait = dead_ryukyuan_tenno
+		}
+		
+		always = yes
 	}
-	religion_has_divine_imperial_reformation_trigger = yes
+	
+	trigger_else = {
+		religion = ryukyuan_pagan_reformed
+		controls_religion = yes
+		religion_has_divine_imperial_reformation_trigger = yes
+	}
+	
 	is_patrician = no
 }
 
 religion_has_divine_imperial_reformation_trigger = {
 	custom_tooltip = {
 		text = has_divine_imperial_reformation # TIANXIATODO
+		
 		has_religion_feature = religion_tolerant
 		has_religion_feature = religion_divine_ancestry
+		
 		NOR = {
 			has_religion_feature = religion_harems # Okay for other Japanese governments
 			has_religion_feature = religion_holy_family
@@ -164,32 +197,49 @@ japanese_bureaucracy_government_potential_trigger = {
 }
 
 can_have_japanese_bureaucracy_and_feudal_trigger = {
-	OR = {
-		AND = {
-			religion = shinto
-			controls_religion = no
+	trigger_if = {
+		limit = {
+			has_japanese_religion_trigger = yes
 		}
-		AND = {
-			culture_group = japonic
+		
+		controls_religion = no
+	}
+	
+	trigger_else_if = {
+		limit = {
 			religion = buddhist
 		}
-		religion = shugendo
-		religion = koshin
-		religion = ryukyuan_pagan
-		AND = {
-			has_dlc = "Holy Fury"
-			religion = ryukyuan_pagan_reformed
-			OR = {
-				controls_religion = no
-				NOT = {
-					religion_has_divine_imperial_reformation_trigger = yes
-				}
+		
+		culture_group = japonic
+	}
+	
+	trigger_else_if = {
+		limit = {
+			religion_openly_ryukyuan_or_reformed_trigger = yes
+		}
+		
+		trigger_if = {
+			limit = {
+				religion = ryukyuan_pagan
 			}
+			
+			always = yes
+		}
+		
+		trigger_else = {
+			has_dlc = "Holy Fury"
+			
+			controls_religion = no
+			
 			OR = {
 				religion_has_japanese_government_reformation_trigger = yes
 				religion_has_divine_imperial_reformation_trigger = yes
 			}
 		}
+	}
+	
+	trigger_else = {
+		always = no
 	}
 }
 
@@ -197,12 +247,14 @@ religion_has_japanese_government_reformation_trigger = {
 	custom_tooltip = {
 		text = has_japanese_government_reformation # TIANXIATODO
 		has_religion_feature = religion_tolerant # We don't want GHWs!
+		
 		OR = {
 			has_religion_feature = religion_no_leader
 			has_religion_feature = religion_spiritual
 			has_religion_feature = religion_temporal_head
 			has_religion_feature = religion_divine_ancestry
 		}
+		
 		NOR = {
 			has_religion_feature = religion_holy_family
 			has_religion_feature = religion_jizya
@@ -233,36 +285,57 @@ japanese_feudal_government_allow_trigger = {}
 japanese_monastic_feudal_government_potential_trigger = {
 	is_patrician = no
 	holy_order = no
-	OR = {
-		religion = shinto
-		religion_has_japanese_government_reformation_trigger = yes
-		religion_has_divine_imperial_reformation_trigger = yes
+	controls_religion = no
+	
+	trigger_if = {
+		limit = {
+			religion = shinto
+		}
+		
+		always = yes
 	}
+	
+	trigger_else_if = {
+		limit = {
+			religion = ryukyuan_pagan_reformed
+		}
+		
+		OR = {
+			religion_has_japanese_government_reformation_trigger = yes
+			religion_has_divine_imperial_reformation_trigger = yes
+		}
+	}
+	
+	trigger_else = {
+		always = no
+	}
+	
 	trait = japanese_monastic_trait
 	# NOTE: Getting or losing a trait does NOT automatically update your government unless you save and reload
 	# ALWAYS use an explicit set_government_type in addition to adding/removing traits
 }
 
 can_have_japanese_monastic_feudal_trigger = {
-	OR = {
-		AND = {
+	controls_religion = no
+	
+	trigger_if = {
+		limit = {
 			religion = shinto
-			controls_religion = no
 		}
-		#religion = ryukyuan_pagan # Religion was considered something for women
-		AND = {
+		
+		always = yes
+	}
+	
+	trigger_else_if = {
+		limit = {
 			has_dlc = "Holy Fury"
+			
 			religion = ryukyuan_pagan_reformed
-			OR = {
-				controls_religion = no
-				NOT = {
-					religion_has_divine_imperial_reformation_trigger = yes
-				}
-			}
-			OR = {
-				religion_has_japanese_government_reformation_trigger = yes
-				religion_has_divine_imperial_reformation_trigger = yes
-			}
+		}
+		
+		OR = {
+			religion_has_japanese_government_reformation_trigger = yes
+			religion_has_divine_imperial_reformation_trigger = yes
 		}
 	}
 }
@@ -274,6 +347,7 @@ chinese_imperial_government_potential_trigger = {
 	can_have_chinese_imperial_trigger = yes
 	tier = emperor
 	is_patrician = no
+	
 	OR = {
 		AND = {
 			is_save_game = no
@@ -297,7 +371,9 @@ chinese_imperial_government_potential_trigger = {
 				}
 			}
 		}
+		
 		primary_title = { has_title_flag = pretender_chinese_empire }
+		
 		has_landed_title = e_china
 	}
 }
@@ -305,64 +381,102 @@ chinese_imperial_government_potential_trigger = {
 can_have_chinese_imperial_trigger = {
 	custom_tooltip = {
 		text = chinese_imperial_culture_religion_trigger
-		OR = {
-			religion = taoist
-			religion = confucian
-			AND = {
-				religion = buddhist
-				has_chinese_or_historical_culture_for_chinese_imperial_trigger = yes
+		
+		trigger_if = {
+			limit = {
+				has_chinese_eastern_religion_trigger = yes
 			}
-			religion = chinese_pagan
-			religion = korean_pagan
-			religion = viet_pagan
-			religion = bai_pagan
-			religion = miao_pagan
-			religion = yi_pagan
-			religion = zhuang_pagan
-			AND = {
-				has_dlc = "Holy Fury" # Pagan religions would be crusading (and thus non-Chinese) without HF, so HF is required
+			
+			always = yes
+		}
+		
+		trigger_else_if = {
+			limit = {
+				religion = buddhist
+			}
+			
+			has_chinese_or_historical_culture_for_chinese_imperial_trigger = yes
+		}
+		
+		trigger_else_if = {
+			limit = {
 				OR = {
-					religion = chinese_pagan_reformed
-					religion = korean_pagan_reformed
-					religion = viet_pagan_reformed
-					religion = bai_pagan_reformed
-					religion = miao_pagan_reformed
-					religion = yi_pagan_reformed
-					religion = zhuang_pagan_reformed
+					religion_openly_chinese_or_reformed_trigger = yes
+					religion_openly_korean_or_reformed_trigger = yes
+					religion_openly_viet_or_reformed_trigger = yes
+					religion_openly_bai_or_reformed_trigger = yes
+					religion_openly_miao_or_reformed_trigger = yes
+					religion_openly_yi_or_reformed_trigger = yes
+					religion_openly_zhuang_or_reformed_trigger = yes
 				}
+			}
+			
+			trigger_if = {
+				limit = {
+					is_reformed_religion = no
+				}
+				
+				always = yes
+			}
+			
+			trigger_else = {
+				has_dlc = "Holy Fury" # Pagan religions would be crusading (and thus non-Chinese) without HF, so HF is required
+				
 				religion_has_chinese_imperial_reformation_trigger = yes
 			}
+		}
+		
+		trigger_else = {
+			always = no
 		}
 	}
 }
 
 can_have_chinese_imperial_only_religion_trigger = {
 	custom_tooltip = {
-		text = chinese_imperial_religion_trigger
-		OR = {
-			religion = taoist
-			religion = confucian
-			religion = buddhist
-			religion = chinese_pagan
-			religion = korean_pagan
-			religion = viet_pagan
-			religion = bai_pagan
-			religion = miao_pagan
-			religion = yi_pagan
-			religion = zhuang_pagan
-			AND = {
-				has_dlc = "Holy Fury" # Pagan religions would be crusading (and thus non-Chinese) without HF, so HF is required
+		text = chinese_imperial_religion_trigger # TIANXIATODO 
+		
+		trigger_if = {
+			limit = {
 				OR = {
-					religion = chinese_pagan_reformed
-					religion = korean_pagan_reformed
-					religion = viet_pagan_reformed
-					religion = bai_pagan_reformed
-					religion = miao_pagan_reformed
-					religion = yi_pagan_reformed
-					religion = zhuang_pagan_reformed
+					has_chinese_eastern_religion_trigger = yes
+					religion = buddhist
 				}
+			}
+			
+			always = yes
+		}
+		
+		trigger_else_if = {
+			limit = {
+				OR = {
+					religion_openly_chinese_or_reformed_trigger = yes
+					religion_openly_korean_or_reformed_trigger = yes
+					religion_openly_viet_or_reformed_trigger = yes
+					religion_openly_bai_or_reformed_trigger = yes
+					religion_openly_miao_or_reformed_trigger = yes
+					religion_openly_yi_or_reformed_trigger = yes
+					religion_openly_zhuang_or_reformed_trigger = yes
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					is_reformed_religion = no
+				}
+				
+				always = yes
+			}
+			
+			trigger_else = {
+				has_dlc = "Holy Fury" # Pagan religions would be crusading (and thus non-Chinese) without HF, so HF is required
+				
 				religion_has_chinese_imperial_reformation_trigger = yes
 			}
+		}
+		
+		trigger_else = {
+			always = no
 		}
 	}
 }
@@ -370,6 +484,7 @@ can_have_chinese_imperial_only_religion_trigger = {
 has_chinese_or_historical_culture_for_chinese_imperial_trigger = {
 	custom_tooltip = {
 		text = chinese_imperial_culture_trigger
+		
 		OR = {
 			culture_group = chinese_group
 			culture = khitan # Liao
@@ -391,12 +506,15 @@ has_chinese_or_historical_culture_for_chinese_imperial_trigger = {
 religion_has_chinese_imperial_reformation_trigger = {
 	custom_tooltip = {
 		text = religion_has_chinese_imperial_reformation_trigger_text # TIANXIATODO
+		
 		has_religion_feature = religion_tolerant
+		
 		OR = {
 			has_religion_feature = religion_no_leader
 			has_religion_feature = religion_spiritual
 			# Maybe Divine Ancestry too; something to consider down the line...
 		}
+		
 		NOR = {
 			has_religion_feature = religion_no_leader
 			has_religion_feature = religion_holy_family
@@ -432,72 +550,111 @@ eastern_imperial_government_potential_trigger = {
 
 can_have_confucian_bureaucracy_and_eastern_imperial_trigger = {
 	custom_tooltip = {
-		text = confucian_bureaucracy_culture_religion_trigger
-		OR = {
-			religion = taoist
-			religion = confucian
-			AND = {
-				religion = buddhist
-				has_chinese_or_historical_culture_trigger = yes
+		text = confucian_bureaucracy_culture_religion_trigger # TIANXIATODO
+		
+		trigger_if = {
+			limit = {
+				has_chinese_eastern_religion_trigger = yes
 			}
-			religion = chinese_pagan
-			religion = korean_pagan
-			religion = viet_pagan
-			religion = bai_pagan
-			religion = yi_pagan
-			religion = miao_pagan
-			religion = zhuang_pagan
-			AND = {
-				has_dlc = "Holy Fury" # Pagan religions would be crusading (and thus non-Chinese) without HF, so HF is required
+			
+			always = yes
+		}
+		
+		trigger_else_if = {
+			limit = {
+				religion = buddhist
+			}
+			
+			has_chinese_or_historical_culture_trigger = yes
+		}
+		
+		trigger_else_if = {
+			limit = {
 				OR = {
-					religion = chinese_pagan_reformed
-					religion = korean_pagan_reformed
-					religion = viet_pagan_reformed
-					religion = bai_pagan_reformed
-					religion = yi_pagan_reformed
-					religion = miao_pagan_reformed
-					religion = zhuang_pagan_reformed
+					religion_openly_chinese_or_reformed_trigger = yes
+					religion_openly_korean_or_reformed_trigger = yes
+					religion_openly_viet_or_reformed_trigger = yes
+					religion_openly_bai_or_reformed_trigger = yes
+					religion_openly_miao_or_reformed_trigger = yes
+					religion_openly_yi_or_reformed_trigger = yes
+					religion_openly_zhuang_or_reformed_trigger = yes
 				}
+			}
+			
+			trigger_if = {
+				limit = {
+					is_reformed_religion = no
+				}
+				
+				always = yes
+			}
+			
+			trigger_else = {
+				has_dlc = "Holy Fury" # Pagan religions would be crusading (and thus non-Chinese) without HF, so HF is required
+				
 				religion_has_confucian_bureaucracy_reformation_trigger = yes
 			}
+		}
+		
+		trigger_else = {
+			always = no
 		}
 	}
 }
 
-can_have_confucian_bureaucracy_and_eastern_imperial_only_religion_trigger = {
+can_have_confucian_bureaucracy_and_eastern_imperial_only_religion_trigger = { 
 	custom_tooltip = {
-		text = confucian_bureaucracy_religion_trigger
-		OR = {
-			religion = taoist
-			religion = confucian
-			religion = buddhist
-			religion = chinese_pagan
-			religion = korean_pagan
-			religion = viet_pagan
-			religion = bai_pagan
-			religion = yi_pagan
-			religion = miao_pagan
-			religion = zhuang_pagan
-			AND = {
-				has_dlc = "Holy Fury" # Pagan religions would be crusading (and thus non-Chinese) without HF, so HF is required
+		text = confucian_bureaucracy_religion_trigger # TIANXIATODO
+		
+		trigger_if = {
+			limit = {
 				OR = {
-					religion = chinese_pagan_reformed
-					religion = korean_pagan_reformed
-					religion = viet_pagan_reformed
-					religion = bai_pagan_reformed
-					religion = yi_pagan_reformed
-					religion = miao_pagan_reformed
-					religion = zhuang_pagan_reformed
+					has_chinese_eastern_religion_trigger = yes
+					religion = buddhist
 				}
+			}
+			
+			always = yes
+		}
+		
+		trigger_else_if = {
+			limit = {
+				OR = {
+					religion_openly_chinese_or_reformed_trigger = yes
+					religion_openly_korean_or_reformed_trigger = yes
+					religion_openly_viet_or_reformed_trigger = yes
+					religion_openly_bai_or_reformed_trigger = yes
+					religion_openly_miao_or_reformed_trigger = yes
+					religion_openly_yi_or_reformed_trigger = yes
+					religion_openly_zhuang_or_reformed_trigger = yes
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					is_reformed_religion = no
+				}
+				
+				always = yes
+			}
+			
+			trigger_else = {
+				has_dlc = "Holy Fury" # Pagan religions would be crusading (and thus non-Chinese) without HF, so HF is required
+				
 				religion_has_confucian_bureaucracy_reformation_trigger = yes
 			}
+		}
+		
+		trigger_else = {
+			always = no
 		}
 	}
 }
 
 has_chinese_or_historical_culture_trigger = {
 	custom_tooltip = {
-		text = historical_chinese_culture_trigger
+		text = historical_chinese_culture_trigger # TIANXIATODO
+		
 		OR = {
 			culture_group = chinese_group
 			culture = khitan # Liao
@@ -519,12 +676,15 @@ has_chinese_or_historical_culture_trigger = {
 religion_has_confucian_bureaucracy_reformation_trigger = {
 	custom_tooltip = {
 		text = religion_has_confucian_bureaucracy_reformation_trigger_text # TIANXIATODO
+		
 		has_religion_feature = religion_tolerant
+		
 		OR = {
 			has_religion_feature = religion_no_leader
 			has_religion_feature = religion_spiritual
 			# Maybe Divine Ancestry too; something to consider down the line...
 		}
+		
 		NOR = {
 			has_religion_feature = religion_no_leader
 			has_religion_feature = religion_holy_family
@@ -542,9 +702,11 @@ eastern_imperial_government_allow_trigger = {}
 chinese_vassal_government_potential_trigger = {
 	is_patrician = no
 	holy_order = no
+	
 	NOT = {
 		real_tier = emperor
 	}
+	
 	can_have_confucian_bureaucracy_and_eastern_imperial_trigger = yes
 	
 	NOR = {
