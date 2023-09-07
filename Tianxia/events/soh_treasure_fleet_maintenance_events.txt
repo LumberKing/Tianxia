@@ -5,25 +5,23 @@ namespace = soh
 
 # IDs 7701-7800 reserved
 
+# TIANXIATODO: Logging
+
 ##### Start + big loop event
-# TODO: Logging
-# TODO: Flags
-# TODO: Effects and triggers
-# TODO: Set and check treasure_fleet_active where applicable
 
 # Reset the Treasure Fleet
 character_event = {
 	id = soh.7701
 	hide_window = yes
 	
-	is_triggered_only = yes
+	is_triggered_only = yes # TF decision - TIANXIATODO
 	
 	immediate = {
-		clean_up_all_treasure_fleet_flags_and_variables_effect = yes # In case something didn't get cleaned up properly when the Treasure Fleet ended (for whatever reason)
+		clean_up_all_treasure_fleet_flags_and_variables_effect = yes
 		
 		set_up_new_treasure_fleet_effect = yes # Initial setup
 		
-		narrative_event = { id = soh.7801 } # Inform the world
+		narrative_event = { id = soh.7801 } # Inform ROOT and then the world
 		
 		2753 = { # Hangzhou
 			save_persistent_event_target = { # Keep track of the sender; it's important
@@ -34,7 +32,7 @@ character_event = {
 			province_event = { id = soh.7702 days = 30 random = 5 } # Start the loop
 		}
 	}
-}		
+}
 
 # Hidden loop checking if the Treasure Fleet still is ongoing and whether it still should keep going in that case
 province_event = {
@@ -48,8 +46,10 @@ province_event = {
 			limit = {
 				has_global_flag = treasure_fleet_has_returned # The Treasure Fleet returned to China
 			}
+			
 			clr_global_flag = treasure_fleet_has_returned # Just end the loop
 		}
+		
 		else_if = {
 			limit = {
 				OR = {
@@ -58,7 +58,14 @@ province_event = {
 						has_holder = no # In case China was destroyed in some unexpected manner
 					}
 				}
+				
+				NOR = {
+					has_global_flag = treasure_fleet_pacific
+					has_global_flag = treasure_fleet_new_world4
+					has_global_flag = treasure_fleet_invasion_ongoing
+				}
 			}
+			
 			# Interrupt Treasure Fleet in the appropriate manner
 			if = {
 				limit = {
@@ -69,91 +76,144 @@ province_event = {
 						}
 					}
 				}
-				narrative_event = { id = soh.7703 } # Treasure Fleet aborted - China no longer exists
+				
+				event_target:pulse_province = {
+					owner = {
+						narrative_event = { id = soh.7703 } # Treasure Fleet aborted - China no longer exists
+					}
+				}
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = abort_treasure_fleet_new_dynasty
 					has_global_flag = abort_treasure_fleet_china_not_ci
 				}
-				narrative_event = { id = soh.7704 } # Treasure Fleet aborted - China taken over by non-CI ruler
+				
+				event_target:pulse_province = {
+					owner = {
+						narrative_event = { id = soh.7704 } # Treasure Fleet aborted - China taken over by non-CI ruler
+					}
+				}
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = abort_treasure_fleet_new_dynasty
 				}
-				narrative_event = { id = soh.7705 } # Treasure Fleet aborted - China taken over by another CI dynasty
+				
+				event_target:pulse_province = {
+					owner = {
+						narrative_event = { id = soh.7705 } # Treasure Fleet aborted - China taken over by another CI dynasty
+					}
+				}
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = abort_treasure_fleet_china_not_ci
 				}
-				narrative_event = { id = soh.7706 } # Treasure Fleet aborted - China no longer CI
+				
+				event_target:pulse_province = {
+					owner = {
+						narrative_event = { id = soh.7706 } # Treasure Fleet aborted - China no longer CI
+					}
+				}
 			}
+			
 			else = {
-				narrative_event = { id = soh.7707 } # Treasure Fleet interrupted for unknown reasons - fallback
+				event_target:pulse_province = {
+					owner = {
+						narrative_event = { id = soh.7707 } # Treasure Fleet interrupted for unknown reasons - fallback
+					}
+				}
 			}
 		}
+		
 		else_if = {
 			limit = {
 				has_global_flag = treasure_fleet_destroyed # Treasure Fleet already known to have been destroyed
 			}
+			
 			clean_up_all_treasure_fleet_flags_and_variables_effect = yes
 		}
+		
 		else_if = {
 			limit = {
 				NOT = {
 					has_global_flag = treasure_fleet_invasion_ongoing
 				}
 			}
+			
 			# Business as usual - continue to the right event
 			if = {
 				limit = {
 					has_global_flag = treasure_fleet_preparation
 				}
+				
 				if = {
 					limit = {
-						NOT = {
-							check_variable = {
-								which = treasure_fleet_preparation
-								value = 20
-							}
+						check_variable = {
+							which = treasure_fleet_preparation
+							value < 20
 						}
 					}
+					
 					province_event = { id = soh.7804 } 	# Go to preparation event selection
 				}
+				
 				else_if = {
 					limit = {
-						NOT = {
-							check_variable = {
-								which = treasure_fleet_preparation
-								value = 30
+						check_variable = {
+							which = treasure_fleet_preparation
+							value < 30
+						}
+					}
+					
+					random_list = {
+						25 = {
+							province_event = { id = soh.7804 } 	# Go to preparation event selection
+						}
+						
+						75 = {
+							clr_global_flag = treasure_fleet_preparation
+							
+							set_global_flag = treasure_fleet_leaving_china
+							
+							e_china = {
+								holder_scope = {
+									save_event_target_as = treasure_fleet_original_sender
+									
+									character_event = { id = soh.8001 } # Go to departure event selection
+								}
 							}
 						}
 					}
-					random_list = {
-						50 = {
-							province_event = { id = soh.7804 } 	# Go to preparation event selection
-						}
-						50 = {
-							clr_global_flag = treasure_fleet_preparation
-							set_global_flag = treasure_fleet_leaving_china
-							province_event = { id = soh.8001 } 	# Go to departure event selection
+				}
+				
+				else = {
+					clr_global_flag = treasure_fleet_preparation
+					
+					set_global_flag = treasure_fleet_leaving_china
+							
+					e_china = {
+						holder_scope = {
+							save_event_target_as = treasure_fleet_original_sender
+							
+							character_event = { id = soh.8001 } # Go to departure event selection
 						}
 					}
 				}
-				else = {
-					clr_global_flag = treasure_fleet_preparation
-					set_global_flag = treasure_fleet_leaving_china
-					province_event = { id = soh.8001 } 	# Go to departure event selection
-				}
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = treasure_fleet_voyage
 				}
+				
 				province_event = { id = soh.8101 } # Go to voyage event selection
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = treasure_fleet_arrival
@@ -161,89 +221,131 @@ province_event = {
 						has_province_flag = treasure_fleet_going_to_china
 					}
 				}
+				
 				province_event = { id = soh.8501 } # Go to arrival event selection
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = treasure_fleet_port_locals
 				}
+				
+				clr_global_flag = treasure_fleet_port_locals
+				
+				set_global_flag = treasure_fleet_port_visitors
+				
 				province_event = { id = soh.8601 } # Go to port events for locals
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = treasure_fleet_port_visitors
 				}
+				
 				clr_global_flag = treasure_fleet_sabotage_opportunity
+				
+				clr_global_flag = treasure_fleet_port_visitors
+				
+				set_global_flag = treasure_fleet_departure
+				
 				province_event = { id = soh.8801 } # Go to port events for visitors
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = treasure_fleet_departure
 				}
-				set_global_flag = treasure_fleet_departure
-				province_event = { id = soh.9001 } # Go to departure event selection
+				
+				clr_global_flag = treasure_fleet_departure
+				
+				set_global_flag = treasure_fleet_voyage
+				
+				province_event = { id = soh.9101 } # Go to departure event selection
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = treasure_fleet_eastern_islands
 				}
+				
 				clr_global_flag = treasure_fleet_eastern_islands
+				
 				set_global_flag = treasure_fleet_pacific
-				province_event = { id = soh.9101 } # Go to island events
+				
+				province_event = { id = soh.9201 } # Go to island events
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = treasure_fleet_pacific
 				}
+				
 				# Clear and set flags as part of the crossing event here!
-				province_event = { id = soh.9201 } # Go to special Pacific events
+				
+				province_event = { id = soh.9301 } # Go to special Pacific events
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = treasure_fleet_new_world
 				}
+				
 				if = {
 					limit = {
-						NOT = {
+						NOR = {
 							has_global_flag = treasure_fleet_inca_encounter
+							has_province_flag = treasure_fleet_new_world_ongoing
 						}
 					}
-					province_event = { id = soh.9401 } # Go to New World event selection
+					
+					province_event = { id = soh.9501 } # Go to New World event selection
 				}
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = treasure_fleet_pacific_return
 				}
+				
 				clr_global_flag = treasure_fleet_pacific_return
+				
 				set_global_flag = treasure_fleet_next_stop_china
 			}
+			
 			else_if = {
 				limit = {
 					has_global_flag = treasure_fleet_next_stop_china
 				}
+				
 				province_event = { id = soh.9601 } # Go to return event selection
 			}
 			
 			# Continue the loop
 			repeat_event = { id = soh.7702 days = 25 random = 5 }
 		}
+		
 		else = {
 			# Invasion may or may not be ongoing
 			if = {
 				limit = {
+					has_global_flag = treasure_fleet_invasion_ongoing
+					
 					NOT = {
 						any_independent_ruler = {
 							any_war = {
-								using_cb = tf_invasion
+								using_cb = treasure_fleet_invasion
 							}
 						}
 					}
 				}
+				
 				# Invasion over - clean up anything that remains
+				
 				clr_global_flag = treasure_fleet_invasion_ongoing
+				
 				clean_up_all_treasure_fleet_flags_and_variables_effect = yes
 			}
+			
 			else = {
 				# Continue the loop
 				repeat_event = { id = soh.7702 days = 30 random = 5 }
@@ -261,7 +363,7 @@ narrative_event = {
 	id = soh.7703
 	title = EVTTITLE_SOH_7703
 	desc = EVTDESC_SOH_7703
-	picture = GFX_evt_treasure_fleet # TODO
+	picture = GFX_evt_treasure_fleet # TIANXIATODO
 	window = EventWindowOffmap
 	background = GFX_event_window_news_from_china
 	
@@ -271,6 +373,7 @@ narrative_event = {
 	
 	major_trigger = {
 		OR = {
+			ai = no
 			trait = treasure_fleet_voyage
 			trait = treasure_fleet_preparation
 			any_realm_province = {
@@ -295,7 +398,9 @@ narrative_event = {
 			limit = {
 				trait = treasure_fleet_preparation
 			}
+			
 			prestige = -100
+			
 			remove_trait = treasure_fleet_preparation
 		}
 	}
@@ -318,14 +423,17 @@ narrative_event = {
 	id = soh.7704
 	title = EVTTITLE_SOH_7704
 	desc = EVTDESC_SOH_7704
-	picture = GFX_evt_treasure_fleet # TODO
+	picture = GFX_evt_treasure_fleet # TIANXIATODO
 	window = EventWindowOffmap
 	background = GFX_event_window_news_from_china
 	
 	is_triggered_only = yes
 	
+	major = yes
+	
 	major_trigger = {
 		OR = {
+			ai = no
 			trait = treasure_fleet_voyage
 			trait = treasure_fleet_preparation
 			any_realm_province = {
@@ -359,7 +467,9 @@ narrative_event = {
 			limit = {
 				trait = treasure_fleet_preparation
 			}
+			
 			prestige = -100
+			
 			remove_trait = treasure_fleet_preparation
 		}
 	}
@@ -390,7 +500,9 @@ narrative_event = {
 			limit = {
 				trait = treasure_fleet_preparation
 			}
+			
 			prestige = -100
+			
 			remove_trait = treasure_fleet_preparation
 		}
 		
@@ -413,6 +525,7 @@ narrative_event = {
 			limit = {
 				trait = treasure_fleet_preparation
 			}
+			
 			remove_trait = treasure_fleet_preparation
 		}
 	}
@@ -423,14 +536,17 @@ narrative_event = {
 	id = soh.7705
 	title = EVTTITLE_SOH_7705
 	desc = EVTDESC_SOH_7705
-	picture = GFX_evt_treasure_fleet # TODO
+	picture = GFX_evt_treasure_fleet # TIANXIATODO
 	window = EventWindowOffmap
 	background = GFX_event_window_news_from_china
 	
 	is_triggered_only = yes
 	
+	major = yes
+	
 	major_trigger = {
 		OR = {
+			ai = no
 			trait = treasure_fleet_voyage
 			trait = treasure_fleet_preparation
 			any_realm_province = {
@@ -464,7 +580,9 @@ narrative_event = {
 			limit = {
 				trait = treasure_fleet_preparation
 			}
+			
 			prestige = -100
+			
 			remove_trait = treasure_fleet_preparation
 		}
 	}
@@ -495,15 +613,16 @@ narrative_event = {
 			limit = {
 				trait = treasure_fleet_preparation
 			}
+			
 			remove_trait = treasure_fleet_preparation
 		}
 		
-		if = {
+		else_if = {
 			limit = {
 				trait = treasure_fleet_voyage
 			}
+			
 			remove_trait = treasure_fleet_voyage
-			clr_character_flag = do_not_disturb
 		}
 	}
 	
@@ -524,6 +643,7 @@ narrative_event = {
 			limit = {
 				trait = treasure_fleet_preparation
 			}
+			
 			remove_trait = treasure_fleet_preparation
 		}
 	}
@@ -534,14 +654,17 @@ narrative_event = {
 	id = soh.7706
 	title = EVTTITLE_SOH_7706
 	desc = EVTDESC_SOH_7706
-	picture = GFX_evt_treasure_fleet # TODO
+	picture = GFX_evt_treasure_fleet # TIANXIATODO
 	window = EventWindowOffmap
 	background = GFX_event_window_news_from_china
 	
 	is_triggered_only = yes
 	
+	major = yes
+	
 	major_trigger = {
 		OR = {
+			ai = no
 			trait = treasure_fleet_voyage
 			trait = treasure_fleet_preparation
 			any_realm_province = {
@@ -575,7 +698,9 @@ narrative_event = {
 			limit = {
 				trait = treasure_fleet_preparation
 			}
+			
 			prestige = -100
+			
 			remove_trait = treasure_fleet_preparation
 		}
 	}
@@ -616,14 +741,16 @@ narrative_event = {
 			limit = {
 				trait = treasure_fleet_preparation
 			}
+			
 			remove_trait = treasure_fleet_preparation
 		}
-		if = {
+		
+		else_if = {
 			limit = {
 				trait = treasure_fleet_voyage
 			}
+			
 			remove_trait = treasure_fleet_voyage
-			clr_character_flag = do_not_disturb
 		}
 	}
 }
@@ -633,14 +760,17 @@ narrative_event = {
 	id = soh.7707
 	title = EVTTITLE_SOH_7707
 	desc = EVTDESC_SOH_7707
-	picture = GFX_evt_treasure_fleet # TODO
+	picture = GFX_evt_treasure_fleet # TIANXIATODO
 	window = EventWindowOffmap
 	background = GFX_event_window_news_from_china
 	
 	is_triggered_only = yes
 	
+	major = yes
+	
 	major_trigger = {
 		OR = {
+			ai = no
 			trait = treasure_fleet_voyage
 			trait = treasure_fleet_preparation
 			any_realm_province = {
@@ -674,7 +804,9 @@ narrative_event = {
 			limit = {
 				trait = treasure_fleet_preparation
 			}
+			
 			prestige = -100
+			
 			remove_trait = treasure_fleet_preparation
 		}
 	}
@@ -715,14 +847,16 @@ narrative_event = {
 			limit = {
 				trait = treasure_fleet_preparation
 			}
+			
 			remove_trait = treasure_fleet_preparation
 		}
-		if = {
+		
+		else_if = {
 			limit = {
 				trait = treasure_fleet_voyage
 			}
+			
 			remove_trait = treasure_fleet_voyage
-			clr_character_flag = do_not_disturb
 		}
 	}
 }
@@ -738,7 +872,6 @@ character_event = {
 	
 	is_triggered_only = yes
 	
-	only_playable = yes
 	only_independent = yes
 	
 	has_global_flag = treasure_fleet_active
@@ -762,19 +895,22 @@ character_event = {
 					scope = PREVPREV
 				}
 			}
+			
 			if = {
 				limit = {
 					trait = treasure_fleet_voyage
 				}
+				
 				remove_trait = treasure_fleet_voyage
-				clr_character_flag = do_not_disturb
 			}
-			if = {
+			
+			else_if = {
 				limit = {
 					ROOT = {
 						trait = treasure_fleet_preparation
 					}
 				}
+				
 				add_trait = treasure_fleet_preparation
 			}
 		}
@@ -788,7 +924,6 @@ character_event = {
 	
 	is_triggered_only = yes
 	
-	only_playable = yes
 	only_independent = yes
 	
 	has_global_flag = treasure_fleet_active
@@ -799,9 +934,11 @@ character_event = {
 				character = FROMFROM
 			}
 		}
+		
 		FROM = {
 			title = e_china
 		}
+		
 		dynasty = FROMFROM
 	}
 	
@@ -812,20 +949,24 @@ character_event = {
 				scope = ROOT
 			}
 		}
+		
 		if = {
 			limit = {
 				trait = treasure_fleet_voyage
 			}
+			
 			remove_trait = treasure_fleet_voyage
-			clr_character_flag = do_not_disturb
 		}
-		if = {
+		
+		else_if = {
 			limit = {
 				FROMFROM = {
 					trait = treasure_fleet_preparation
 				}
 			}
+			
 			add_trait = treasure_fleet_preparation
+			
 			FROMFROM = {
 				remove_trait = treasure_fleet_preparation
 			}
@@ -840,7 +981,6 @@ character_event = {
 	
 	is_triggered_only = yes
 	
-	only_playable = yes
 	only_independent = yes
 	
 	has_global_flag = treasure_fleet_active
@@ -863,20 +1003,24 @@ character_event = {
 				scope = ROOT
 			}
 		}
+		
 		if = {
 			limit = {
 				trait = treasure_fleet_voyage
 			}
+			
 			remove_trait = treasure_fleet_voyage
-			clr_character_flag = do_not_disturb
 		}
-		if = {
+		
+		else_if = {
 			limit = {
 				FROMFROM = {
 					trait = treasure_fleet_preparation
 				}
 			}
+			
 			add_trait = treasure_fleet_preparation
+			
 			FROMFROM = {
 				remove_trait = treasure_fleet_preparation
 			}
@@ -891,7 +1035,6 @@ character_event = {
 	
 	is_triggered_only = yes
 	
-	only_playable = yes
 	only_independent = yes
 	
 	has_global_flag = treasure_fleet_active
@@ -914,20 +1057,24 @@ character_event = {
 				scope = ROOT
 			}
 		}
+		
 		if = {
 			limit = {
 				trait = treasure_fleet_voyage
 			}
+			
 			remove_trait = treasure_fleet_voyage
-			clr_character_flag = do_not_disturb
 		}
-		if = {
+		
+		else_if = {
 			limit = {
 				FROMFROM = {
 					trait = treasure_fleet_preparation
 				}
 			}
+			
 			add_trait = treasure_fleet_preparation
+			
 			FROMFROM = {
 				remove_trait = treasure_fleet_preparation
 			}
@@ -939,7 +1086,7 @@ character_event = {
 
 ##### Cleanup of treasure_fleet_preparation and treasure_fleet_voyage traits
 
-# Character is no longer a vassal or below of China - clean up trait and DND on_yearly_pulse
+# Character is no longer a vassal or below of China - clean up trait on_yearly_pulse
 character_event = {
 	id = soh.7712
 	hide_window = yes
@@ -959,21 +1106,17 @@ character_event = {
 	
 	immediate = {
 		remove_trait = treasure_fleet_voyage
-		clr_character_flag = do_not_disturb
 		
 		any_child = {
 			limit = {
 				is_landed = no
-				NOT = {
-					age = 10
-				}
-				trait = treasure_fleet_voyage
-				employer = {
+				host = {
 					character = ROOT
 				}
+				trait = treasure_fleet_voyage
 			}
+			
 			remove_trait = treasure_fleet_voyage
-			clr_character_flag = do_not_disturb
 		}
 	}
 }
@@ -982,7 +1125,7 @@ character_event = {
 character_event = {
 	id = soh.7713
 	desc = EVTDESC_SOH_7713
-	picture = GFX_evt_treasure_fleet # TODO
+	picture = GFX_evt_treasure_fleet # TIANXIATODO
 	border = GFX_event_normal_frame_diplomacy
 	
 	is_triggered_only = yes
@@ -995,21 +1138,19 @@ character_event = {
 		name = EVTDESC_SOH_7713 # Home at last!
 		
 		remove_trait = treasure_fleet_voyage
-		clr_character_flag = do_not_disturb
+		
+		clr_character_flag = left_treasure_fleet_voyage
 		
 		any_child = {
 			limit = {
 				is_landed = no
-				NOT = {
-					age = 10
-				}
 				trait = treasure_fleet_voyage
-				employer = {
-					character = ROOT
-				}
+				has_character_flag = left_treasure_fleet_voyage
 			}
+			
 			remove_trait = treasure_fleet_voyage
-			clr_character_flag = do_not_disturb
+			
+			clr_character_flag = left_treasure_fleet_voyage
 		}
 	}
 }
@@ -1018,7 +1159,7 @@ character_event = {
 character_event = {
 	id = soh.7714
 	desc = EVTDESC_SOH_7714
-	picture = GFX_evt_treasure_fleet # TODO
+	picture = GFX_evt_treasure_fleet # TIANXIATODO
 	border = GFX_event_normal_frame_diplomacy
 	
 	is_triggered_only = yes
@@ -1031,21 +1172,19 @@ character_event = {
 		name = EVTDESC_SOH_7714 # Home at last!
 		
 		remove_trait = treasure_fleet_voyage
-		clr_character_flag = do_not_disturb
+		
+		clr_character_flag = left_treasure_fleet_voyage
 		
 		any_child = {
 			limit = {
 				is_landed = no
-				NOT = {
-					age = 10
-				}
 				trait = treasure_fleet_voyage
-				employer = {
-					character = ROOT
-				}
+				has_character_flag = left_treasure_fleet_voyage
 			}
+			
 			remove_trait = treasure_fleet_voyage
-			clr_character_flag = do_not_disturb
+		
+			clr_character_flag = left_treasure_fleet_voyage
 		}
 	}
 }
@@ -1054,7 +1193,7 @@ character_event = {
 character_event = {
 	id = soh.7715
 	desc = EVTDESC_SOH_7715
-	picture = GFX_evt_treasure_fleet # TODO
+	picture = GFX_evt_treasure_fleet # TIANXIATODO
 	border = GFX_event_normal_frame_diplomacy
 	
 	is_triggered_only = yes
@@ -1069,24 +1208,22 @@ character_event = {
 		prestige = -100
 		
 		remove_trait = treasure_fleet_voyage
-		clr_character_flag = do_not_disturb
+		
+		clr_character_flag = left_treasure_fleet_voyage
 		
 		any_child = {
 			limit = {
 				is_landed = no
-				NOT = {
-					age = 10
-				}
 				trait = treasure_fleet_voyage
+				has_character_flag = left_treasure_fleet_voyage
 			}
+			
 			remove_trait = treasure_fleet_voyage
-			clr_character_flag = do_not_disturb
-				employer = {
-					character = ROOT
-				}
+		
+			clr_character_flag = left_treasure_fleet_voyage
 		}
 		
-		# TODO: Maybe let the EoC punish the people returning for their failure to prevent the invasion?
+		# TIANXIATODO: Maybe let the EoC punish the people returning for their failure to prevent the invasion?
 	}
 }
 
@@ -1101,7 +1238,6 @@ character_event = {
 	
 	is_triggered_only = yes
 	
-	only_playable = yes
 	only_independent = yes
 	
 	has_global_flag = treasure_fleet_active
@@ -1117,7 +1253,9 @@ character_event = {
 					has_global_flag = treasure_fleet_destroyed
 				}
 			}
+			
 			create_new_court_eunuch_effect = yes
+			
 			new_character = {
 				change_diplomacy = 2
 				change_martial = 2
@@ -1131,6 +1269,7 @@ character_event = {
 				grant_title = d_treasure_fleet
 				set_defacto_liege = THIS
 			}
+			
 			# Make sure that artifacts are kept
 			any_artifact = {
 				transfer_artifact = {
@@ -1138,6 +1277,7 @@ character_event = {
 					to = event_target:new_treasure_fleet_commander
 				}
 			}
+			
 			# Make sure that wealth is kept
 			transfer_scaled_wealth = {
 				from = ROOT
@@ -1145,13 +1285,14 @@ character_event = {
 				value = all
 			}
 		}
+		
 		else = {
 			unsafe_destroy_landed_title = d_treasure_fleet
 		}
 	}
 }
 
-# on_birth, add treasure_fleet_voyage + DND if mother has it
+# on_birth, add treasure_fleet_voyage if mother has it
 character_event = {
 	id = soh.7719
 	hide_window = yes
@@ -1169,6 +1310,17 @@ character_event = {
 	
 	immediate = {
 		add_trait = treasure_fleet_voyage
-		set_character_flag = do_not_disturb
+		
+		if = {
+			limit = {
+				mother = {
+					has_character_flag = left_treasure_fleet_voyage
+				}
+			}
+			
+			set_character_flag = left_treasure_fleet_voyage
+			
+			character_event = { id = soh.7713 days = 181 } # Return home
+		}
 	}
 }
