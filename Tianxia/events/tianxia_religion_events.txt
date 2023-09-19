@@ -104,7 +104,9 @@ character_event = {
 			mult_modifier = {
 				factor = 10
 				has_global_flag = neoconfucian_orthodoxy_china
-				top_liege = { culture_group = chinese_group }
+				top_liege = {
+					culture_group = chinese_group
+				}
 			}
 		}
 	}
@@ -168,7 +170,12 @@ character_event = {
 		}
 		
 		add_trait = traditionalist_confucian
+		
+		ai_chance = {
+			factor = 100
+		}
 	}
+	
 	option = {
 		name = {
 			text = EVTOPTB_tianxia_1
@@ -197,24 +204,48 @@ character_event = {
 		}
 		
 		add_trait = neoconfucian_confucian
+		
+		ai_chance = { # TIANXIATODO: Dynamic Neo-Confucianism? The seeds of the movement were laid down by Tang-era philosophers by the 867 start date (and arguably can be traced back to developments that were already present in the 769 start date).
+			factor = 25
+			
+			trigger = {
+				has_global_flag = rise_of_neoconfucianism
+			}
+			
+			mult_modifier = {
+				factor = 10
+				has_global_flag = neoconfucian_orthodoxy_china
+				top_liege = {
+					culture_group = chinese_group
+				}
+			}
+		}
 	}
 }
 
 # Branch trait assignment for those without it
-# TIANXIATODO: possibly remove? Currently unused, pending further consideration - alternatively, split?
 # Thank you Paradox for your 10/10 game design on Eastern religions for RoI
 character_event = {
 	id = tianxia.3
 	hide_window = yes
-	only_rulers = yes
 	
-	is_triggered_only = yes
+	only_rulers = yes
+	min_age = 16
+	prisoner = no
+	ai = yes
+	
+	is_triggered_only = yes # on_five_year_pulse
 	
 	trigger = {
-		is_ruler = yes
+		is_actually_incapable_trigger = no
 		
 		OR = {
-			has_dharmic_religion_trigger = yes
+			AND = {
+				has_dharmic_religion_trigger = yes
+				NOT = {
+					religion = kejawen
+				}
+			}
 			religion = confucian
 			religion = taoist
 			AND = {
@@ -227,43 +258,159 @@ character_event = {
 	}
 	
 	immediate = {
+		log = "tianxia.3 fired for [This.GetBestName]!"
+		
 		trigger_switch = {
 			on_trigger = religion
 		
 			buddhist  = {
 				random_list = {
-					100 = {
+					1 = {
+						mult_modifier = {
+							factor = 20
+							OR = {
+								culture = sinhala
+								culture_group = tai_kadai_group
+								culture = pyu
+								culture = rakhine
+								culture = kayin
+								culture = mon
+								AND = {
+									culture = bamar
+									has_global_flag = bamar_adopted_theravada
+								}
+								AND = {
+									culture = khmer
+									has_global_flag = khmer_adopted_theravada
+								}
+								culture_group = mekong_group
+							}
+						}
+						
+						mult_modifier = {
+							factor = 5
+							culture_group = indo_aryan_group
+							NOT = { culture = sinhala }
+						}
+						
 						add_trait = theravada_buddhist
 						
 						any_courtier = {
 							limit = {
 								religion = buddhist
 								has_buddhist_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							add_trait = theravada_buddhist
 						}
 					}
 					
-					100 = {
+					1 = {
+						mult_modifier = {
+							factor = 20
+							OR = {
+								culture_group = tibetan_group
+								culture = mongol
+								culture = bai
+								culture = yi
+								AND = {
+									culture = bamar
+									NOT = { has_global_flag = bamar_adopted_theravada }
+								}
+								AND = {
+									culture_group = indo_aryan_group
+									NOT = { culture = sinhala }
+									NOT = { culture = bengali }
+								}
+							}
+						}
+						
+						mult_modifier = {
+							factor = 10
+							OR = {
+								culture_group = chamic
+								culture = bengali
+							}
+						}
+						
+						mult_modifier = {
+							factor = 5
+							OR = {
+								AND = {
+									culture_group = chinese_group
+									NOT = { culture = bai } # Vajrayana
+								}
+								culture_group = vietic
+								culture_group = koreanic
+								culture_group = japonic
+							}
+						}
+						
 						add_trait = vajrayana_buddhist
 						
 						any_courtier = {
 							limit = {
 								religion = buddhist
 								has_buddhist_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = vajrayana_buddhist
 						}
 					}
 					
-					100 = {
+					1 = {
+						mult_modifier = {
+							factor = 20
+							OR = {
+								AND = {
+									culture_group = chinese_group
+									NOT = { culture = bai } # Vajrayana
+								}
+								culture_group = vietic
+								culture_group = koreanic
+								culture_group = japonic
+								culture_group = chamic # Secondarily Vajrayana/Tantric
+								AND = {
+									culture = khmer
+									NOT = { has_global_flag = khmer_adopted_theravada }
+								}
+								culture_group = malay_group
+								culture_group = javanese_group
+								culture_group = iranian
+								AND = {
+									culture_group = altaic
+									NOT = { culture = mongol } # Vajrayana
+								}
+								culture = bengali
+							}
+						}
+						
+						mult_modifier = {
+							factor = 10
+							OR = {
+								culture = oriya
+								culture = assamese
+								culture = hindustani
+								culture = tangut
+								culture = qiang
+								culture = nakhi
+							}
+						}
+						
 						add_trait = mahayana_buddhist
 						
 						any_courtier = {
 							limit = {
 								religion = buddhist
 								has_buddhist_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = mahayana_buddhist
@@ -274,39 +421,72 @@ character_event = {
 			
 			hindu = {
 				random_list = {
-					100 = {
+					75 = {
+						mult_modifier = {
+							factor = 3
+							OR = {
+								culture_group = mon_khmer_group
+								culture_group = chamic
+							}
+						}
+						
 						add_trait = shaivist_hindu
 						
 						any_courtier = {
 							limit = {
 								religion = hindu
 								has_hindu_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = shaivist_hindu
 						}
 					}
 					
-					100 = {
+					25 = {
+						mult_modifier = {
+							factor = 3
+							OR = {
+								culture = bengali
+								culture = assamese
+							}
+						}
+						
 						add_trait = shaktist_hindu
 						
 						any_courtier = {
 							limit = {
 								religion = hindu
 								has_hindu_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = shaktist_hindu
 						}
 					}
 					
-					100 = {
+					50 = {
+						mult_modifier = {
+							factor = 0.4
+							NOT = {
+								culture_group = indo_aryan_group
+								culture_group = dravidian_group
+							}
+						}
+						
 						add_trait = smartist_hindu
 						
 						any_courtier = {
 							limit = {
 								religion = hindu
 								has_hindu_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = smartist_hindu
@@ -314,12 +494,20 @@ character_event = {
 					}
 					
 					100 = {
+						mult_modifier = {
+							factor = 2
+							culture_group = dravidian_group
+						}
+						
 						add_trait = vaishnavist_hindu
 						
 						any_courtier = {
 							limit = {
 								religion = hindu
 								has_hindu_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = vaishnavist_hindu
@@ -330,26 +518,49 @@ character_event = {
 			
 			jain = {
 				random_list = {
-					100 = {
+					10 = {
+						mult_modifier = {
+							factor = 10
+							OR = {
+								culture = marathi
+								culture = kannada
+							}
+						}
+						
 						add_trait = digambara_jain
 							
 						any_courtier = {
 							limit = {
 								religion = jain
 								has_jain_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = digambara_jain
 						}
 					}
 					
-					100 = {
+					40 = {
+						mult_modifier = {
+							factor = 3
+							OR = {
+								culture = hindustani
+								culture = rajput
+								culture = gujurati
+							}
+						}
+						
 						add_trait = svetambara_jain
 						
 						any_courtier = {
 							limit = {
 								religion = jain
 								has_jain_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = svetambara_jain
@@ -367,19 +578,37 @@ character_event = {
 							limit = {
 								religion = confucian
 								has_confucian_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = traditionalist_confucian
 						}
 					}
 					
-					100 = {
+					25 = {
+						trigger = {
+							has_global_flag = rise_of_neoconfucianism
+						}
+						
+						mult_modifier = {
+							factor = 10
+							has_global_flag = neoconfucian_orthodoxy_china
+							top_liege = {
+								culture_group = chinese_group
+							}
+						}
+						
 						add_trait = neoconfucian_confucian
 						
 						any_courtier = {
 							limit = {
 								religion = confucian
 								has_confucian_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = neoconfucian_confucian
@@ -391,37 +620,68 @@ character_event = {
 			taoist = {
 				random_list = {
 					100 = {
+						mult_modifier = {
+							factor = 1.5
+							has_global_flag = zhengyi_alliance_established
+						}
+						
 						add_trait = zhengyi_taoist
 						
 						any_courtier = {
 							limit = {
 								religion = taoist
 								has_taoist_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = zhengyi_taoist
 						}
 					}
 					
-					100 = {
+					150 = {
+						trigger = {
+							has_global_flag = rise_of_quanzhen
+						}
+						
+						mult_modifier = {
+							factor = 0.3
+							NOT = { has_global_flag = spread_of_quanzhen }
+							top_liege = { culture_group = chinese_group } # Southern Song
+						}
+						
 						add_trait = quanzhen_taoist
 						
 						any_courtier = {
 							limit = {
 								religion = taoist
 								has_taoist_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = quanzhen_taoist
 						}
 					}
-					100 = {
+					
+					50 = {
+						trigger = {
+							NOT = {
+								has_global_flag = zhengyi_alliance_established
+							}
+						}
+						
 						add_trait = shangqing_taoist
 						
 						any_courtier = {
 							limit = {
 								religion = taoist
 								has_taoist_branch_trait_trigger = no
+								employer = {
+									character = ROOT
+								}
 							}
 							
 							add_trait = shangqing_taoist
@@ -430,58 +690,144 @@ character_event = {
 				}
 			}
 		}
+		
 		if = {
 			limit = {
 				religion_group = pagan_group
 			}
 			
 			random_list = {
-				100 = {
+				5 = {
+					mult_modifier = {
+						factor = 0.1
+						OR = {
+							has_religion_feature = religion_jizya
+							has_religion_feature = religion_feature_west_african
+						}
+					}
+					
 					add_trait = pagan_branch_1
 					
 					any_courtier = {
 						limit = {
-							religion = PREV
+							religion = ROOT
 							has_pagan_branch_trait_trigger = no
+							is_adult = yes
+							employer = {
+								character = ROOT
+							}
 						}
 						
 						add_trait = pagan_branch_1
 					}
 				}
 				
-				100 = {
+				25 = {
+					mult_modifier = {
+						factor = 1.5
+						OR = {
+							trait = scholar
+							trait = theologian
+							trait = mystic
+							trait = zealous
+							has_focus = focus_scholarship
+							has_focus = focus_theology
+							has_education_learning_trigger = yes
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.5
+						OR = {
+							trait = lustful
+							trait = hedonist
+							trait = gluttonous
+							trait = drunkard
+							has_focus = focus_seduction
+							has_focus = focus_carousing
+						}
+					}
+					
 					add_trait = pagan_branch_2
 					
 					any_courtier = {
 						limit = {
-							religion = PREV
+							religion = ROOT
 							has_pagan_branch_trait_trigger = no
+							is_adult = yes
+							employer = {
+								character = ROOT
+							}
 						}
 						
 						add_trait = pagan_branch_2
 					}
 				}
 				
-				100 = {
+				25 = {
+					mult_modifier = {
+						factor = 1.5
+						OR = {
+							trait = duelist
+							trait = hunter
+							trait = strategist
+							trait = zealous
+							has_focus = focus_war
+							has_focus = focus_hunting
+							has_education_martial_trigger = yes
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.5
+						OR = {
+							trait = craven
+							trait = paranoid
+							trait = shy
+						}
+					}
+					
 					add_trait = pagan_branch_3
 					
 					any_courtier = {
 						limit = {
-							religion = PREV
+							religion = ROOT
 							has_pagan_branch_trait_trigger = no
+							is_adult = yes
+							employer = {
+								character = ROOT
+							}
 						}
 						
 						add_trait = pagan_branch_3
 					}
 				}
 				
-				100 = {
+				25 = {
+					mult_modifier = {
+						factor = 1.5
+						OR = {
+							any_child = {
+								is_adult = no
+								count >= 3
+							}
+
+							has_focus = focus_family
+							has_focus = focus_carousing
+							has_education_diplomacy_trigger = yes
+						}
+					}
+					
 					add_trait = pagan_branch_4
 					
 					any_courtier = {
 						limit = {
-							religion = PREV
+							religion = ROOT
 							has_pagan_branch_trait_trigger = no
+							is_adult = yes
+							employer = {
+								character = ROOT
+							}
 						}
 						
 						add_trait = pagan_branch_4
@@ -677,7 +1023,7 @@ character_event = {
 				factor = 0.3
 				NOT = { has_global_flag = spread_of_quanzhen }
 				top_liege = { culture_group = chinese_group } # Southern Song
-			}			
+			}
 		}
 	}
 	
@@ -776,6 +1122,15 @@ character_event = {
 		}
 		
 		add_trait = zhengyi_taoist
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 1.5
+				has_global_flag = zhengyi_alliance_established
+			}
+		}
 	}
 	
 	option = {
@@ -806,6 +1161,20 @@ character_event = {
 		}
 		
 		add_trait = quanzhen_taoist
+		
+		ai_chance = { # TIANXIATODO: Dynamic Quanzhen spawning/spread? It historically arose and was more popular in Jin due to specific dynamics of anti-Han discrimination, and didn't really find a place in Southern Song until the Yuan dynasty invaded.
+			factor = 150
+			
+			trigger = {
+				has_global_flag = rise_of_quanzhen
+			}
+			
+			mult_modifier = {
+				factor = 0.3
+				NOT = { has_global_flag = spread_of_quanzhen }
+				top_liege = { culture_group = chinese_group } # Southern Song
+			}
+		}
 	}
 	
 	option = {
@@ -836,5 +1205,15 @@ character_event = {
 		}
 		
 		add_trait = shangqing_taoist
+		
+		ai_chance = {
+			factor = 50
+			
+			trigger = {
+				NOT = {
+					has_global_flag = zhengyi_alliance_established
+				}
+			}
+		}
 	}
 }
