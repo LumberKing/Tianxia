@@ -1,7 +1,10 @@
 # set_up_new_treasure_fleet_effect
 
+# finalize_treasure_fleet_setup_effect
+
 # clear_all_global_treasure_fleet_flags_effect
 # clear_all_province_treasure_fleet_flags_effect
+# clear_all_character_treasure_fleet_flags_effect
 
 # set_chinese_name_for_treasure_fleet_effect
 
@@ -129,6 +132,8 @@ set_up_new_treasure_fleet_effect = {
 		}
 		
 		# Initial setup
+		clean_up_treasure_fleet_effect = yes
+		
 		set_global_flag = treasure_fleet_active
 		
 		set_global_flag = treasure_fleet_preparation # Correct phase
@@ -177,6 +182,60 @@ set_up_new_treasure_fleet_effect = {
 	}
 }
 
+finalize_treasure_fleet_setup_effect = {
+	hidden_tooltip = {
+		activate_title = {
+			title = d_treasure_fleet
+			status = yes
+		}
+		
+		2753 = { # Hangzhou
+			if = {
+				limit = {
+					persistent_event_target:treasure_fleet_commander = {
+						is_alive = yes
+					}
+				}
+			
+				persistent_event_target:treasure_fleet_commander = {
+					grant_title = d_treasure_fleet
+					
+					set_defacto_liege = THIS
+				}
+			}
+			
+			else = {
+				e_china = {
+					holder_scope = {
+						create_new_court_eunuch_effect = yes
+						
+						new_character = {
+							change_diplomacy = 2
+							change_martial = 2
+							change_stewardship = 2
+							change_intrigue = 2
+							change_learning = 2
+							
+							save_event_target_as = new_treasure_fleet_commander
+							
+							2753 = { # Hangzhou
+								save_persistent_event_target = {
+									name = treasure_fleet_commander
+									scope = event_target:new_treasure_fleet_commander
+								}
+							}
+							
+							grant_title = d_treasure_fleet
+							
+							set_defacto_liege = THIS
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 clear_all_global_treasure_fleet_flags_effect = {
 	# Make sure to update this if any global flags (that should be cleared) are added!
 	clr_global_flag = treasure_fleet_arrival
@@ -219,6 +278,12 @@ clear_all_province_treasure_fleet_flags_effect = {
 	2753 = { # Hangzhou
 		clear_flags_with_prefix = treasure_fleet_
 	}
+}
+
+clear_all_character_treasure_fleet_flags_effect = {
+	clear_flags_with_prefix = treasure_fleet_
+	
+	remove_trait = treasure_fleet_voyage
 }
 
 set_chinese_name_for_treasure_fleet_effect = {
@@ -2252,7 +2317,49 @@ clean_up_all_treasure_fleet_flags_and_variables_effect = {
 		
 		zero_all_treasure_fleet_variables_effect = yes
 		
-		# TIANXIATODO: Character flags
+		e_china = {
+			holder_scope = {
+				any_realm_character = {
+					limit = {
+						trait = treasure_fleet_voyage
+						NOR = {
+							has_character_flag = left_treasure_fleet_voyage
+							any_war = {
+								attacker = {
+									character = PREV
+								}
+								using_cb = treasure_fleet_invasion
+							}
+						}
+					}
+					
+					clear_all_character_treasure_fleet_flags_effect = yes
+				}
+				
+				save_event_target_as = eoc
+			}
+		}
+		
+		activate_title = {
+			title = d_treasure_fleet
+			status = no
+		}
+		
+		2753 = { # Hangzhou
+			persistent_event_target:treasure_fleet_commander = {
+				if = {
+					limit = {
+						is_alive = yes
+					}
+					
+					clear_all_character_treasure_fleet_flags_effect = yes
+					
+					move_character = event_target:eoc
+					
+					force_host = event_target:eoc
+				}
+			}
+		}
 	}
 }
 
@@ -2267,7 +2374,37 @@ clean_up_treasure_fleet_effect = {
 		
 		zero_all_negative_treasure_fleet_variables_effect = yes
 		
-		# TIANXIATODO: Character flags
+		e_china = {
+			holder_scope = {
+				any_realm_character = {
+					limit = {
+						trait = treasure_fleet_voyage
+						NOT = {
+							has_character_flag = left_treasure_fleet_voyage
+						}
+					}
+					
+					clear_all_character_treasure_fleet_flags_effect = yes
+				}
+				
+				save_event_target_as = eoc
+			}
+		}
+		
+		activate_title = {
+			title = d_treasure_fleet
+			status = no
+		}
+		
+		2753 = { # Hangzhou
+			persistent_event_target:treasure_fleet_commander = {
+				clear_all_character_treasure_fleet_flags_effect = yes
+				
+				move_character = event_target:eoc
+				
+				force_host = event_target:eoc
+			}
+		}
 	}
 }
 
