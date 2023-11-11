@@ -4582,7 +4582,7 @@ character_event = {
 	trigger = {
 		is_ill = no
 		is_inaccessible_trigger = no
-		NOT = { has_character_flag = is_child_of_destiny }
+		NOT = { has_character_flag = is_child_of_destiny } # They have their own special events
 	}
 
 	immediate = {
@@ -4590,6 +4590,38 @@ character_event = {
 			70 = { } # No events
 
 			15 = {
+				mult_modifier = {
+					factor = 2
+					NOT = {
+						educator = {
+							any_courtier = {
+								#is_opposite_sex = ROOT
+								#is_adult = yes
+								practical_age < 35
+								is_incapable = no
+								
+								OR = {
+									NOT = {
+										is_close_relative = ROOT
+									}
+									ROOT = {
+										true_religion_has_incest = yes
+									}
+								}
+					
+								NOR = {
+									trait = ugly
+									trait = blinded
+									trait = celibate
+									trait = eunuch
+									has_character_modifier = the_oubliette
+									has_character_modifier = the_dungeon
+								}
+							}
+						}
+					}
+				}
+				
 				character_event = {
 					id = ZE.13610 # Romance at court
 					months = 1
@@ -4601,11 +4633,20 @@ character_event = {
 				trigger = {
 					educator = {
 						any_courtier = {
-							is_opposite_sex = ROOT
-							is_adult = yes
+							#is_opposite_sex = ROOT
+							#is_adult = yes
 							practical_age < 35
 							is_incapable = no
-
+							
+							OR = {
+								NOT = {
+									is_close_relative = ROOT
+								}
+								ROOT = {
+									true_religion_has_incest = yes
+								}
+							}
+				
 							NOR = {
 								trait = ugly
 								trait = blinded
@@ -4647,10 +4688,18 @@ character_event = {
 	trigger = {
 		educator = {
 			any_courtier = {
-				is_opposite_sex = ROOT
+				#is_opposite_sex = ROOT
 				is_adult = yes
 				practical_age < 35
 				is_incapable = no
+				OR = {
+					NOT = {
+						is_close_relative = ROOT
+					}
+					ROOT = {
+						true_religion_has_incest = yes
+					}
+				}
 
 				NOR = {
 					trait = ugly
@@ -4668,10 +4717,18 @@ character_event = {
 		educator = {
 			random_courtier = {
 				limit = {
-					is_opposite_sex = ROOT
+					#is_opposite_sex = ROOT
 					is_adult = yes
 					is_incapable = no
 					practical_age < 35
+					OR = {
+						NOT = {
+							is_close_relative = ROOT
+						}
+						ROOT = {
+							true_religion_has_incest = yes
+						}
+					}
 
 					NOR = {
 						trait = ugly
@@ -4689,7 +4746,7 @@ character_event = {
 	}
 
 	option = {
-		name = EVTOPTA_ZE_13700 # Homosexual version
+		name = EVTOPTA_ZE_13700 # Non-character, non-Lustful/Chaste version
 
 		character_event = { id = ZE.13701 }
 
@@ -4704,20 +4761,20 @@ character_event = {
 		ai_chance = { factor = 78 }
 	}
 
-	# option = {
+	#option = {
 	#	name = EVTOPTC_ZE_13700 # Celibate version
 	#
 	#	character_event = { id = ZE.13703 }
 	#
 	#	ai_chance = { factor = 2 }
 	#
-	# }
-
-	option = {
-		name = EVTOPTD_ZE_13700 # Don't know don't care
-
-		ai_chance = { factor = 0 }
-	}
+	#}
+	#
+	#option = {
+	#	name = EVTOPTD_ZE_13700 # Don't know don't care
+	#
+	#	ai_chance = { factor = 0 }
+	#}
 }
 
 character_event = {
@@ -4773,13 +4830,13 @@ character_event = {
 		ai_chance = { factor = 10 }
 	}
 
-	option = {
-		name = EVTOPTD_ZE_13701 # I'm corrupted
-
-		prestige = -50
-
-		ai_chance = { factor = 10 }
-	}
+	#option = {
+	#	name = EVTOPTD_ZE_13701 # I'm corrupted
+	#
+	#	prestige = -50
+	#
+	#	ai_chance = { factor = 10 }
+	#}
 }
 
 character_event = {
@@ -4792,6 +4849,17 @@ character_event = {
 	option = {
 		name = EVTOPTA_ZE_13702 # Chaste
 
+		if = {
+			limit = {
+				same_sex = ROOT
+				NOT = {
+					trait = homosexual
+				}
+			}
+
+			add_trait = homosexual
+		}
+
 		opinion = {
 			name = teenage_infatuation
 			who = event_target:lustful_target
@@ -4799,9 +4867,26 @@ character_event = {
 		}
 
 		event_target:lustful_target = {
-			character_event = {
-				id = ZE.13704
-				days = 2
+			if = {
+				limit = {
+					OR = {
+						AND = {
+							is_opposite_sex = ROOT
+							NOT = {
+								trait = homosexual
+							}
+						}
+						AND = {
+							same_sex = ROOT
+							trait = homosexual
+						}
+					}
+				}
+				
+				character_event = {
+					id = ZE.13704
+					days = 2
+				}
 			}
 		}
 
@@ -4812,6 +4897,17 @@ character_event = {
 
 	option = {
 		name = EVTOPTB_ZE_13702 # Lustful
+
+		if = {
+			limit = {
+				same_sex = ROOT
+				NOT = {
+					trait = homosexual
+				}
+			}
+
+			add_trait = homosexual
+		}
 
 		add_trait_fully_silently_lustful_effect = yes
 
@@ -4894,11 +4990,34 @@ character_event = {
 	border = GFX_event_normal_frame_diplomacy
 
 	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				NOR = {
+					has_character_flag = farrier
+					has_character_flag = carpenter
+				}
+			}
+			
+			random_list = {
+				50 = {
+					set_character_flag = farrier
+				}
+				50 = {
+					set_character_flag = carpenter
+				}
+			}
+		}
+	}
 
 	option = { # Farrier's apprentice
 		name = EVTOPTA_ZE_13610
 
-		trigger = { is_female = yes }
+		trigger = {
+			is_female = yes
+			has_character_flag = farrier
+		}
 
 		set_character_flag = ZE_13610_farrier
 
@@ -4913,7 +5032,10 @@ character_event = {
 	option = { # Carpenter's daughter male
 		name = EVTOPTA_ZE_13610_MALE
 
-		trigger = { is_female = no }
+		trigger = {
+			is_female = no
+			has_character_flag = carpenter
+		}
 
 		set_character_flag = ZE_13610_carpenter_male
 
@@ -4928,7 +5050,10 @@ character_event = {
 	option = { # Carpenter's daughter
 		name = EVTOPTB_ZE_13610
 
-		trigger = { is_female = yes }
+		trigger = {
+			is_female = yes
+			has_character_flag = carpenter
+		}
 
 		add_trait = homosexual
 		set_character_flag = ZE_13610_carpenter
@@ -4944,7 +5069,10 @@ character_event = {
 	option = { # Farrier's apprentice Male
 		name = EVTOPTB_ZE_13610_MALE
 
-		trigger = { is_female = no }
+		trigger = {
+			is_female = no
+			has_character_flag = farrier
+		}
 
 		add_trait = homosexual
 		set_character_flag = ZE_13610_farrier_male
@@ -4959,6 +5087,23 @@ character_event = {
 
 	option = { # I don't have time for this
 		name = EVTOPTC_ZE_13610
+		
+		if = {
+			limit = {
+				OR = {
+					AND = {
+						is_female = yes
+						has_character_flag = carpenter
+					}
+					AND = {
+						is_female = no
+						has_character_flag = farrier
+					}
+				}
+			}
+			
+			add_trait = homosexual
+		}
 
 		ai_chance = { factor = 30 }
 	}
