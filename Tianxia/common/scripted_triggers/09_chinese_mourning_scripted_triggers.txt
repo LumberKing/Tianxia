@@ -1,0 +1,107 @@
+# should_mourn_trigger
+# can_start_mourning_trigger
+
+# can_mourn_days_trigger
+# can_mourn_year_trigger
+# can_mourn_full_trigger
+# must_mourn_strict_trigger
+
+should_mourn_trigger = {
+	OR = { # Has Confucian customs and thus eligible for mourning (to avoid weird chinese_group combinations)
+		has_chinese_government_trigger = yes
+		AND = {
+			is_ruler = no
+			OR = {
+				can_have_chinese_imperial_trigger = yes
+				can_have_confucian_bureaucracy_and_eastern_imperial_trigger = yes
+			}
+			employer = {
+				has_chinese_government_trigger = yes # Filter out e.g. Tanguts with Monastic Feudal
+			}
+		}
+	}
+	OR = { # Chinese/appropriately "Chinese" religion to avoid weird situations like Mongol Buddhist Kublai Khan with Chinese mourning
+		culture_group = chinese_group
+		religion_openly_chinese_or_reformed_trigger = yes
+		religion = confucian
+		# potentially offer it to religions with Ancestor Veneration/Focus on Family
+		# but the issue is e.g. players in vanilla regions may go for ancestor veneration and have it be ahistorically applied
+		# and i'm not sure whether any religions for whom mourning would be ahistorical might get focus on family
+		# this also makes it quite hard to implement anything that draws on reformation doctrines as flavour in this event chain
+		# since it would only apply to reformed Chinese folk, not any of the other groups in this situation
+		# and off the top of my head i don't think any mourning events should be specifically tied to (reformed) Chinese folk
+		# since mourning was fairly universally applied to all chinese_group and confucians
+	}
+}
+
+can_start_mourning_trigger = {
+	is_actually_incapable_trigger = no
+	prisoner = no
+	liege_before_war = {
+		always = no
+	}
+	NOT = {
+		any_war = {
+			OR = {
+				attacker = {
+					character = ROOT
+				}
+				defender = {
+					character = ROOT
+				}
+			}
+		}
+	}
+	NOR = {
+		is_pilgrim = yes # Also covers anyone with a PR (not that they're eligible...), anyone taking part in the TF's voyage, and anyone already mourning
+		has_character_modifier = out_traveling
+		in_seclusion = yes
+		trait = in_hiding
+		trait = troubled_pregnancy
+		trait = pregnancy_finishing
+		has_character_flag = do_not_disturb
+		has_character_flag = flag_holding_great_tribal_festival
+		has_character_modifier = mother_minor_rest
+		has_character_modifier = in_meditation
+		has_character_modifier = doing_penance
+	}
+}
+
+can_mourn_days_trigger = {
+	OR = {
+		independent = yes
+		any_demesne_title = {
+			tier = KING
+			temporary = no
+			is_vice_royalty = no
+		}
+		has_minor_title = title_grand_chancellor
+	}
+}
+
+can_mourn_year_trigger = {
+	can_mourn_days_trigger = no
+	OR = {
+		any_demesne_title = {
+			tier = KING
+			temporary = no
+		}
+		any_demesne_title = {
+			tier = DUKE
+			temporary = no
+			is_vice_royalty = no
+		}
+	}
+}
+
+can_mourn_full_trigger = {
+	can_mourn_days_trigger = no
+	can_mourn_year_trigger = no
+	higher_tier_than = BARON
+}
+
+must_mourn_strict_trigger = {
+	can_mourn_days_trigger = no
+	can_mourn_year_trigger = no
+	can_mourn_full_trigger = no
+}

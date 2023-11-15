@@ -1,0 +1,5734 @@
+namespace = soh
+
+##### Chinese mournin
+
+### Setup
+
+# on_death event firing for descendants
+character_event = {
+	id = soh.5701
+	hide_window = yes
+	
+	is_triggered_only = yes # on_death
+	
+	immediate = {
+		save_event_target_as = new_character_to_mourn
+		
+		any_close_relative = {
+			limit = {
+				is_descendant_of = ROOT
+				OR = { # Same family/parent
+					dynasty = ROOT
+					is_child_of = ROOT
+				}
+				should_mourn_trigger = yes
+			}
+			
+			character_event = { id = soh.5702 days = 1 } # Check if we can mourn
+		}
+	}
+}
+
+# Determine if ROOT can start mourning
+character_event = {
+	id = soh.5702
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		should_mourn_trigger = yes
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				can_start_mourning_trigger = yes
+				
+				trigger_if = {
+					limit = {
+						independent = yes
+					}
+					
+					NOT = {
+						trait = treasure_fleet_preparation
+					}
+				}
+			}
+			
+			if = {
+				limit = {
+					is_playable = yes
+				}
+				
+				character_event = { id = soh.5703 } # You should mourn right away!
+			}
+			
+			else = {
+				set_character_flag = chinese_mourning_full
+				
+				remove_character_modifiers = {
+					name = failure_to_mourn
+					amount = 100
+				}
+				
+				character_event = { id = soh.5725 days = 180 } # Flavour loop
+			}
+		}
+		
+		else_if = {
+			# Extended mourning
+			limit = {
+				trait = in_mourning
+			}
+			
+			trigger_switch = {
+				on_trigger = has_character_flag
+				
+				chinese_mourning_full = {
+					clr_character_flag = chinese_mourning_full
+					set_character_flag = chinese_mourning_full
+				}
+				
+				chinese_mourning_year = {
+					clr_character_flag = chinese_mourning_year
+					set_character_flag = chinese_mourning_year
+				}
+				
+				chinese_mourning_days = {
+					clr_character_flag = chinese_mourning_days
+					set_character_flag = chinese_mourning_days
+				}
+			}
+			
+			clr_character_flag = chinese_mourning_extended
+			
+			update_my_mourning_target_effect = yes
+			
+			if = {
+				limit = {
+					ai = no
+				}
+				
+				character_event = { id = soh.5706 } # Mourning extended - inform player
+			}
+		}
+		
+		else = {
+			# Valid(ish) reason to postpone mourning
+			if = {
+				limit = {
+					is_ruler = yes # To avoid e.g. a pregnant mother that inherits many years down the line counting as nont having mourned
+				}
+				
+				if = {
+					limit = {
+						FROM = {
+							is_female = no
+							any_child = {
+								character = ROOT
+							}
+						}
+					}
+					
+					set_character_flag = chinese_mourning_unmourned_father
+				}
+				
+				else_if = {
+					limit = {
+						FROM = {
+							is_female = yes
+							any_child = {
+								character = ROOT
+							}
+						}
+					}
+					
+					set_character_flag = chinese_mourning_unmourned_mother
+				}
+				
+				else_if = {
+					limit = {
+						FROM = {
+							is_female = no
+							any_child_even_if_dead = {
+								any_child = {
+									character = ROOT
+								}
+							}
+						}
+					}
+					
+					if = {
+						limit = {
+							FROM = {
+								any_child_even_if_dead = {
+									is_female = no
+									any_child = {
+										character = ROOT
+									}
+								}
+							}
+						}
+						
+						set_character_flag = chinese_mourning_unmourned_pat_grandfather
+					}
+					
+					else = {
+						set_character_flag = chinese_mourning_unmourned_mat_grandfather
+					}
+				}
+				
+				else = {
+					if = {
+						limit = {
+							FROM = {
+								any_child_even_if_dead = {
+									is_female = yes
+									any_child = {
+										character = ROOT
+									}
+								}
+							}
+						}
+						
+						set_character_flag = chinese_mourning_unmourned_mat_grandmother
+					}
+					
+					else = {
+						set_character_flag = chinese_mourning_unmourned_pat_grandmother
+					}
+				}
+			}
+			
+			if = {
+				limit = {
+					ai = no
+				}
+				
+				character_event = { id = soh.5707 } # Mourn at a later time - inform player
+			}
+		}
+	}
+}
+
+# Not mourning and fully capable of mourning - decide whether to mourn
+character_event = {
+	id = soh.5703
+	
+	desc = {
+		trigger = { can_mourn_days_trigger = yes }
+		text = EVTDESCA_SOH_5703
+	}
+	
+	desc = {
+		trigger = { can_mourn_year_trigger = yes }
+		text = EVTDESCB_SOH_5703
+	}
+	
+	desc = {
+		trigger = { can_mourn_full_trigger = yes }
+		text = EVTDESCC_SOH_5703
+	}
+	
+	desc = {
+		trigger = { must_mourn_strict_trigger = yes }
+		text = EVTDESCD_SOH_5703 # should never trigger for playable characters, but will put a debugging message here just to make sure
+	}
+	
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5703 # I will mourn properly
+		add_trait = in_mourning
+		
+		if = {
+			limit = {
+				OR = {
+					can_mourn_days_trigger = yes
+					can_mourn_year_trigger = yes
+				}
+			}
+			
+			piety = 100
+		}
+		
+		if = {
+			limit = {
+				government = chinese_imperial_government
+			}
+			
+			mandate_boost_medium_effect = yes
+		}
+		
+		set_character_flag = chinese_mourning_full
+		
+		ai_chance = {
+			trigger = {
+				NAND = {
+					trait = ambitious
+					OR = {
+						can_mourn_days_trigger = yes
+						can_mourn_year_trigger = yes
+					}
+				}
+			}
+			
+			factor = 10
+			
+			mult_modifier = {
+				factor = 0.1
+				OR = {
+					can_mourn_days_trigger = yes
+					can_mourn_year_trigger = yes
+				}
+				NOR = {
+					trait = zealous
+					trait = kind
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5703 # Three years is too much, a year is sufficient
+		
+		add_trait = in_mourning
+		
+		set_character_flag = chinese_mourning_year
+		
+		if = {
+			limit = {
+				can_mourn_days_trigger = yes
+			}
+			
+			piety = 50
+		}
+		
+		if = {
+			limit = {
+				government = chinese_imperial_government
+			}
+			
+			mandate_boost_small_effect = yes
+		}
+		
+		if = {
+			limit = {
+				OR = {
+					can_mourn_full_trigger = yes
+					must_mourn_strict_trigger = yes
+				}
+			}
+			
+			custom_tooltip = {
+				text = MOURNING_REPUTATION_HIT_TOOLTIP
+				add_character_modifier = {
+					name = unfilial_descendant
+					duration = -1
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				must_mourn_strict_trigger = yes
+				independent = no
+				liege = {
+					has_chinese_government_trigger = yes
+					is_actually_incapable_trigger = no
+					is_inaccessible_minor_trigger = no
+					prisoner = no
+					has_regent = no
+				}
+			}
+			
+			liege = {
+				custom_tooltip = {
+					text = MOURNING_GAINS_REVOKE_TOOLTIP
+					character_event = { id = soh.5704 } # Inform the liege that revocation can happen
+				}
+			}
+		}
+		
+		ai_chance = {
+			trigger = {
+				NOR = {
+					AND = {
+						must_mourn_strict_trigger = yes
+						OR = {
+							NAND = {
+								OR = {
+									trait = cynical
+									trait = ambitious
+								}
+								trait = arbitrary
+							}
+							liege = {
+								has_chinese_government_trigger = yes
+								is_actually_incapable_trigger = no
+								is_inaccessible_minor_trigger = no
+								prisoner = no
+								has_regent = no
+								relative_power = {
+									who = ROOT
+									power >= 1.5
+								}
+							}
+						}
+					}
+					
+					AND = {
+						can_mourn_days_trigger = yes
+						trait = ambitious
+					}
+				}
+			}
+							
+			factor = 10
+			
+			mult_modifier = { 
+				factor = 0.1
+				# Characters should be hesitant to take the reputation hit unless their personality is against mourning
+				can_mourn_full_trigger = yes
+				NOR = {
+					trait = cynical
+					trait = ambitious
+					trait = arbitrary
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				can_mourn_days_trigger = yes
+				NOR = {
+					trait = zealous
+					trait = kind
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_5703 # I will substitute months with days
+		
+		add_trait = in_mourning
+		
+		set_character_flag = chinese_mourning_days
+		
+		if = {
+			limit = {
+				can_mourn_days_trigger = no
+			}
+			
+			custom_tooltip = {
+				text = MOURNING_REPUTATION_HIT_TOOLTIP
+				add_character_modifier = {
+					name = unfilial_descendant
+					duration = -1
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				government = chinese_imperial_government
+			}
+			
+			mandate_boost_trivial_effect = yes
+		}
+		
+		if = {
+			limit = {
+				can_mourn_full_trigger = yes
+				must_mourn_strict_trigger = no
+				independent = no
+				liege = {
+					has_chinese_government_trigger = yes
+					is_actually_incapable_trigger = no
+					is_inaccessible_minor_trigger = no
+					prisoner = no
+					has_regent = no
+				}
+			}
+			
+			liege = {
+				custom_tooltip = {
+					text = MOURNING_GAINS_REVOKE_TOOLTIP
+					character_event = { id = soh.5704 } # Inform the liege that revocation can happen
+				}
+			}
+		}
+		
+		else_if = {
+			limit = {
+				must_mourn_strict_trigger = yes
+				independent = no
+				liege = {
+					government = chinese_imperial_government
+					is_actually_incapable_trigger = no
+					is_inaccessible_minor_trigger = no
+					prisoner = no
+					has_regent = no
+				}
+			}
+			
+			liege = {
+				custom_tooltip = {
+					text = MOURNING_GAINS_IMPRISON_TOOLTIP
+					character_event = { id = soh.5705 } # Inform the liege that imprisonment can happen
+				}
+			}
+		}
+		
+		ai_chance = {
+			trigger = {
+				NOR = {
+					AND = {
+						OR = {
+							can_mourn_full_trigger = yes
+							must_mourn_strict_trigger = yes
+						}
+						OR = {
+							NAND = {
+								OR = {
+									trait = cynical
+									trait = ambitious
+								}
+								trait = arbitrary
+							}
+							liege = {
+								has_chinese_government_trigger = yes
+								is_actually_incapable_trigger = no
+								is_inaccessible_minor_trigger = no
+								prisoner = no
+								has_regent = no
+								relative_power = {
+									who = ROOT
+									power >= 1.5
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			factor = 10
+			
+			mult_modifier = {
+				# Characters should be hesitant to take the reputation hit unless their personality is against mourning
+				factor = 0.1
+				can_mourn_year_trigger = yes
+				NOR = {
+					trait = cynical
+					trait = ambitious
+					trait = arbitrary
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTD_SOH_5703 # I refuse to mourn!
+		
+		tiered_piety_negative_effect = yes
+		
+		custom_tooltip = {
+			text = MOURNING_REPUTATION_HIT_TOOLTIP
+			add_character_modifier = {
+				name = unfilial_descendant
+				duration = -1
+			}
+		}
+		
+		if = {
+			limit = {
+				government = chinese_imperial_government
+			}
+			
+			mandate_penalty_medium_effect = yes
+		}
+		
+		if = {
+			limit = {
+				can_mourn_year_trigger = yes
+				independent = no
+				liege = {
+					has_chinese_government_trigger = yes
+					is_actually_incapable_trigger = no
+					is_inaccessible_minor_trigger = no
+					prisoner = no
+					has_regent = no
+				}
+			}
+			
+			liege = {
+				custom_tooltip = {
+					text = MOURNING_GAINS_REVOKE_TOOLTIP
+					character_event = { id = soh.5704 } # Inform the liege that revocation can happen
+				}
+			}
+		}
+		
+		else_if = {
+			limit = { 
+				OR = { 
+					can_mourn_full_trigger = yes
+					must_mourn_strict_trigger = yes
+				}
+				independent = no
+				liege = {
+					has_chinese_government_trigger = yes
+					is_actually_incapable_trigger = no
+					is_inaccessible_minor_trigger = no
+					prisoner = no
+					has_regent = no
+				}
+			}
+			
+			liege = {
+					custom_tooltip = {
+					text = MOURNING_GAINS_IMPRISON_TOOLTIP
+					character_event = { id = soh.5705 } # Inform the liege that imprisonment can happen
+				}
+			}
+		}
+		
+		ai_chance = {
+			trigger = {
+				NAND = {
+					can_mourn_days_trigger = yes
+					OR = {
+						NAND = {
+							OR = {
+								trait = cynical
+								trait = ambitious
+							}
+							trait = arbitrary
+						}
+						liege = {
+							has_chinese_government_trigger = yes
+							is_actually_incapable_trigger = no
+							is_inaccessible_minor_trigger = no
+							prisoner = no
+							has_regent = no
+							relative_power = {
+								who = ROOT
+								power >= 1.5
+							}
+						}
+					}
+				}
+			}
+			
+			factor = 10
+			
+			mult_modifier = { # Characters should be hesitant to take the reputation hit unless their personality is against mourning
+				factor = 0.1
+				independent = yes
+				NOR = {
+					trait = cynical
+					trait = ambitious
+					trait = arbitrary
+				}
+			}
+		}
+	}
+	
+	after = {
+		go_to_mourning_loop_effect = yes
+	}
+}
+
+# Liege is informed - revoke!
+character_event = {
+	id = soh.5704
+	desc = EVTDESC_SOH_5704
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5704 # I should take action...
+		
+		opinion = {
+			modifier = opinion_unfilial_revoke
+			who = FROM
+		}
+		
+		ai_chance = {
+			factor = 3
+			
+			mult_modifier = {
+				factor = 27
+				trait = just
+			}
+			
+			mult_modifier = {
+				factor = 27
+				trait = zealous
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = in_mourning
+			}
+			
+			mult_modifier = {
+				factor = 27
+				opinion = {
+					who = FROM
+					value < -50
+				}
+			}
+			
+			mult_modifier = {
+				factor = 9
+				is_rival = FROM
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5704 # I literally don't care...
+		
+		if = {
+			limit = {
+				government = chinese_imperial_government
+			}
+			
+			if = {
+				limit = {
+					dynasty = FROM
+				}
+				
+				mandate_penalty_small_effect = yes
+			}
+			
+			else = {
+				mandate_penalty_trivial_effect = yes
+			}
+		}
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_ignore_lack_of_mourning
+		}
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 3
+				trait = arbitrary
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 27
+				has_character_modifier = unfilial_descendant
+			}
+			
+			mult_modifier = {
+				factor = 9
+				opinion = {
+					who = FROM
+					value >= 25
+				}
+			}
+			
+			mult_modifier = {
+				factor = 9
+				is_friend = FROM
+			}
+			
+			mult_modifier = {
+				factor = 9
+				is_lover = FROM
+			}
+		}
+	}
+}
+
+# Liege is informed - imprison!
+character_event = {
+	id = soh.5705
+	desc = EVTDESC_SOH_5705
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5705 # I should take action...
+		
+		opinion = {
+			modifier = opinion_unfilial_imprison
+			who = FROM
+		}
+		
+		ai_chance = {
+			factor = 9
+			
+			mult_modifier = {
+				factor = 27
+				trait = just
+			}
+			
+			mult_modifier = {
+				factor = 27
+				trait = zealous
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = in_mourning
+			}
+			
+			mult_modifier = {
+				factor = 27
+				opinion = {
+					who = FROM
+					value < 0
+				}
+			}
+			
+			mult_modifier = {
+				factor = 9
+				is_rival = FROM
+			}
+		}
+	}
+	option = {
+		name = EVTOPTB_SOH_5705 # I literally don't care...
+		
+		if = {
+			limit = {
+				government = chinese_imperial_government
+			}
+			
+			if = {
+				limit = {
+					dynasty = FROM
+				}
+				
+				mandate_penalty_medium_effect = yes
+			}
+			
+			else = {
+				mandate_penalty_small_effect = yes
+			}
+		}
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_ignore_lack_of_mourning
+		}
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 3
+				trait = arbitrary
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 27
+				has_character_modifier = unfilial_descendant
+			}
+			
+			mult_modifier = {
+				factor = 9
+				opinion = {
+					who = FROM
+					value >= 80
+				}
+			}
+			
+			mult_modifier = {
+				factor = 9
+				is_friend = FROM
+			}
+			
+			mult_modifier = {
+				factor = 9
+				is_lover = FROM
+			}
+		}
+	}
+}
+
+# Already mourning - extend mourning
+character_event = {
+	id = soh.5706
+	desc = EVTDESC_SOH_5706
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5706 # I will extend my mourning...
+	}
+}
+
+# Have a valid reason not to mounr
+character_event = {
+	id = soh.5707
+	
+	desc = {
+		text = EVTDESCA_SOH_5707 # Incapable
+		trigger = {
+			is_actually_incapable_trigger = yes
+		}
+	}
+	
+	desc = {
+		text = EVTDESCB_SOH_5707 # Imprisoned
+		trigger = {
+			is_actually_incapable_trigger = no
+			prisoner = yes
+		}
+	}
+	
+	desc = {
+		text = EVTDESCC_SOH_5707 # At war
+		trigger = {
+			is_actually_incapable_trigger = no
+			prisoner = no
+			OR = {
+				liege_before_war = {
+					always = yes
+				}
+				any_war = {
+					OR = {
+						attacker = {
+							character = ROOT
+						}
+						defender = {
+							character = ROOT
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	desc = {
+		text = EVTDESCD_SOH_5707 # Off with the Treasure Fleet
+		trigger = {
+			is_actually_incapable_trigger = no
+			prisoner = no
+			NOR = {
+				liege_before_war = {
+					always = yes
+				}
+				any_war = {
+					OR = {
+						attacker = {
+							character = ROOT
+						}
+						defender = {
+							character = ROOT
+						}
+					}
+				}
+			}
+			trait = treasure_fleet_voyage
+		}
+	}
+	
+	desc = {
+		text = EVTDESCE_SOH_5707 # Away from home
+		trigger = {
+			is_actually_incapable_trigger = no
+			prisoner = no
+			NOR = {
+				liege_before_war = {
+					always = yes
+				}
+				any_war = {
+					OR = {
+						attacker = {
+							character = ROOT
+						}
+						defender = {
+							character = ROOT
+						}
+					}
+				}
+				trait = treasure_fleet_voyage
+			}
+			OR = {
+				is_pilgrim = yes # Also covers anyone with a PR (not that they're eligible...), anyone taking part in the TF's voyage, and anyone already mourning
+				has_character_modifier = out_traveling
+			}
+		}
+	}
+	
+	desc = {
+		text = EVTDESCF_SOH_5707 # In seclusion
+		trigger = {
+			is_actually_incapable_trigger = no
+			prisoner = no
+			NOR = {
+				liege_before_war = {
+					always = yes
+				}
+				any_war = {
+					OR = {
+						attacker = {
+							character = ROOT
+						}
+						defender = {
+							character = ROOT
+						}
+					}
+				}
+				is_pilgrim = yes # Also covers anyone with a PR (not that they're eligible...), anyone taking part in the TF's voyage, and anyone already mourning
+				has_character_modifier = out_traveling
+			}
+			in_seclusion = yes
+		}
+	}
+	
+	desc = {
+		text = EVTDESCG_SOH_5707 # In hiding
+		trigger = {
+			is_actually_incapable_trigger = no
+			prisoner = no
+			NOR = {
+				liege_before_war = {
+					always = yes
+				}
+				any_war = {
+					OR = {
+						attacker = {
+							character = ROOT
+						}
+						defender = {
+							character = ROOT
+						}
+					}
+				}
+				is_pilgrim = yes # Also covers anyone with a PR (not that they're eligible...), anyone taking part in the TF's voyage, and anyone already mourning
+				has_character_modifier = out_traveling
+				in_seclusion = yes
+			}
+			trait = in_hiding
+		}
+	}
+	
+	desc = {
+		text = EVTDESCH_SOH_5707 # Troubled or late stage pregnancy
+		trigger = {
+			is_actually_incapable_trigger = no
+			prisoner = no
+			NOR = {
+				liege_before_war = {
+					always = yes
+				}
+				any_war = {
+					OR = {
+						attacker = {
+							character = ROOT
+						}
+						defender = {
+							character = ROOT
+						}
+					}
+				}
+				is_pilgrim = yes # Also covers anyone with a PR (not that they're eligible...), anyone taking part in the TF's voyage, and anyone already mourning
+				has_character_modifier = out_traveling
+				in_seclusion = yes
+				trait = in_hiding
+			}
+			OR = {
+				trait = troubled_pregnancy
+				trait = pregnancy_finishing
+			}
+		}
+	}
+	
+	desc = {
+		text = EVTDESCI_SOH_5707 # Any other reason
+		trigger = {
+			is_actually_incapable_trigger = no
+			prisoner = no
+			NOR = {
+				liege_before_war = {
+					always = yes
+				}
+				any_war = {
+					OR = {
+						attacker = {
+							character = ROOT
+						}
+						defender = {
+							character = ROOT
+						}
+					}
+				}
+				is_pilgrim = yes # Also covers anyone with a PR (not that they're eligible...), anyone taking part in the TF's voyage, and anyone already mourning
+				has_character_modifier = out_traveling
+				in_seclusion = yes
+				trait = in_hiding
+				trait = troubled_pregnancy
+				trait = pregnancy_finishing
+			}
+		}
+	}
+	
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			is_actually_incapable_trigger = no
+		}
+		
+		name = EVTOPTA_SOH_5707 # I should mourn later...
+	}
+	
+	option = {
+		trigger = {
+			is_actually_incapable_trigger = yes
+		}
+		
+		name = EVTOPTB_SOH_5707 # I should mourn later...
+	}
+}
+
+### Failure to mourn
+
+# on_yearly_pulse, increase the counter and see what else happens
+character_event = {
+	id = soh.5708
+	hide_window = yes
+	
+	is_triggered_only = yes # on_yearly_pulse
+	
+	only_playable = yes
+	
+	prisoner = no
+	
+	trigger = {
+		is_actually_incapable_trigger = no
+		is_decision_potential = delayed_mourning_decision
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				# Rebels and primary war defenders have an excuse
+				NOR = {
+					liege_before_war = {
+						always = yes
+					}
+					any_war = {
+						defender = {
+							character = ROOT
+						}
+					}
+				}
+				
+				has_instances_of_character_modifier = {
+					name = failure_to_mourn
+					amount < 100
+				}
+			}
+			
+			add_character_modifier = {
+				name = failure_to_mourn
+				duration = -1
+				stacking = yes
+			}
+		}
+		
+		if = {
+			limit = {
+				is_decision_allowed = delayed_mourning_decision
+				ai = yes
+			}
+			
+			character_event = { id = soh.5710 } # Give AI rulers the opportunity to mourn if they could take the decision
+		}
+		
+		else_if = {
+			limit = {
+				is_decision_allowed = delayed_mourning_decision
+			}
+			
+			if = {
+				limit = {
+					independent = no
+					liege = {
+						has_chinese_government_trigger = yes
+						is_actually_incapable_trigger = no
+						is_inaccessible_minor_trigger = no
+						prisoner = no
+						has_regent = no
+						NOR = {
+							has_opinion_modifier = {
+								who = ROOT
+								modifier = opinion_unfilial_revoke
+							}
+							has_opinion_modifier = {
+								who = ROOT
+								modifier = opinion_unfilial_imprison
+							}
+							has_opinion_modifier = {
+								who = ROOT
+								modifier = opinion_ignore_lack_of_mourning
+							}
+						}
+					}
+				}
+				
+				random_list = {
+					25 = {
+						liege = {
+							character_event = { id = soh.5711 } # Inform liege
+						}
+					}
+					
+					75 = {
+						character_event = { id = soh.5715 } # Lack of mourning flavour
+					}
+				}
+			}
+			
+			else = {
+				character_event = { id = soh.5715 } # Lack of mourning flavour
+			}
+		}
+	}
+}
+
+# AI only - do you want to mourn?
+character_event = {
+	id = soh.5710
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_list = {
+			50 = {
+				trigger = {
+					NOR = {
+						NAND = {
+							OR = {
+								trait = cynical
+								trait = ambitious
+							}
+							trait = arbitrary
+						}
+						liege = {
+							has_chinese_government_trigger = yes
+							is_actually_incapable_trigger = no
+							is_inaccessible_minor_trigger = no
+							prisoner = no
+							has_regent = no
+							relative_power = {
+								who = ROOT
+								power >= 1.5
+							}
+						}
+					}
+				}
+				
+				# Mourn
+				remove_character_modifiers = {
+					name = uncrowned_modifier
+					amount = 30
+				}
+				
+				add_trait = in_mourning
+		
+				if = {
+					limit = {
+						can_mourn_days_trigger = yes
+					}
+					
+					set_character_flag = chinese_mourning_year
+				}
+				
+				else = {
+					set_character_flag = chinese_mourning_full
+				}
+			}
+			
+			50 = {
+				trigger = {
+					NAND = {
+						OR = {
+							trait = zealous
+							trait = kind
+						}
+						NOT = {
+							trait = ambitious
+						}
+					}
+				}
+				
+				# Do not mourn
+				if = {
+					limit = {
+						independent = no
+						liege = {
+							has_chinese_government_trigger = yes
+							is_actually_incapable_trigger = no
+							is_inaccessible_minor_trigger = no
+							prisoner = no
+							has_regent = no
+							NOR = {
+								has_opinion_modifier = {
+									who = ROOT
+									modifier = opinion_unfilial_revoke
+								}
+								has_opinion_modifier = {
+									who = ROOT
+									modifier = opinion_ignore_lack_of_mourning
+								}
+							}
+						}
+					}
+					
+					random_list = {
+						25 = {
+							liege = {
+								character_event = { id = soh.5711 } # Inform liege
+							}
+						}
+						
+						75 = {
+							character_event = { id = soh.5715 } # Lack of mourning flavour
+						}
+					}
+				}
+				
+				else = {
+					character_event = { id = soh.5715 } # Lack of mourning flavour
+				}
+			}
+		}
+	}
+	
+	after = {
+		go_to_mourning_loop_effect = yes
+	}
+}
+
+# Your vassal has failed to mourn - tell them to mourn?
+character_event = {
+	id = soh.5711
+	desc = EVTDESC_SOH_5711
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5711 # I should take action...
+		
+		FROM = {
+			character_event = { id = soh.5712 } # Inform vassal
+		}
+		
+		ai_chance = {
+			factor = 3
+			
+			mult_modifier = {
+				factor = 27
+				trait = just
+			}
+			
+			mult_modifier = {
+				factor = 27
+				trait = zealous
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = in_mourning
+			}
+			
+			mult_modifier = {
+				factor = 27
+				opinion = {
+					who = FROM
+					value < -50
+				}
+			}
+			
+			mult_modifier = {
+				factor = 9
+				is_rival = FROM
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5711 # I literally don't care...
+		
+		if = {
+			limit = {
+				government = chinese_imperial_government
+			}
+			
+			if = {
+				limit = {
+					dynasty = FROM
+				}
+				
+				mandate_penalty_small_effect = yes
+			}
+			
+			else = {
+				mandate_penalty_trivial_effect = yes
+			}
+		}
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_ignore_lack_of_mourning
+		}
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 3
+				trait = arbitrary
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 27
+				has_character_modifier = unfilial_descendant
+			}
+			
+			mult_modifier = {
+				factor = 9
+				opinion = {
+					who = FROM
+					value >= 25
+				}
+			}
+			
+			mult_modifier = {
+				factor = 9
+				is_friend = FROM
+			}
+			
+			mult_modifier = {
+				factor = 9
+				is_lover = FROM
+			}
+		}
+	}
+}
+
+# Told to mourn - do it?
+character_event = {
+	id = soh.5712
+	desc = EVTDESC_SOH_5712
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5712 # I was just about to start! Honest!
+		
+		add_trait = in_mourning
+				
+		set_best_mourning_target_effect = yes
+		
+		if = {
+			limit = {
+				can_mourn_days_trigger = yes
+			}
+			
+			set_character_flag = chinese_mourning_year
+		}
+		
+		else = {
+			set_character_flag = chinese_mourning_full
+		}
+		
+		FROM = {
+			character_event = { id = soh.5713 } # Inform liege
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				OR = {
+					trait = cynical
+					trait = ambitious
+					trait = arbitrary
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5712 # Me, mourn? Ha!
+		
+		tiered_piety_negative_effect = yes
+		
+		custom_tooltip = {
+			text = MOURNING_REPUTATION_HIT_TOOLTIP
+			add_character_modifier = {
+				name = unfilial_descendant
+				duration = -1
+			}
+			
+			clear_flags_with_prefix = chinese_mourning_unmourned_
+		}
+		
+		liege = {
+			custom_tooltip = {
+				text = MOURNING_GAINS_IMPRISON_TOOLTIP
+				character_event = { id = soh.5714 } # Inform the liege that imprisonment can happen
+			}
+		}
+		
+		ai_chance = {
+			trigger = {
+				NAND = {
+					can_mourn_days_trigger = yes
+					OR = {
+						NAND = {
+							OR = {
+								trait = cynical
+								trait = ambitious
+							}
+							trait = arbitrary
+						}
+						liege = {
+							has_chinese_government_trigger = yes
+							is_actually_incapable_trigger = no
+							is_inaccessible_minor_trigger = no
+							prisoner = no
+							has_regent = no
+							relative_power = {
+								who = ROOT
+								power >= 1.5
+							}
+						}
+					}
+				}
+			}
+			
+			factor = 10
+		}
+	}
+	
+	after = {
+		go_to_mourning_loop_effect = yes
+	}
+}
+
+# Vassal now mourning
+character_event = {
+	id = soh.5713
+	desc = EVTDESC_SOH_5713
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5713 # Good to hear!
+	}
+}
+
+# Vassal refused to mourn
+character_event = {
+	id = soh.5714
+	desc = EVTDESC_SOH_5714
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5714 # I gave you every opportunity...
+		
+		opinion = {
+			modifier = opinion_unfilial_imprison
+			who = FROM
+		}
+	}
+}
+
+# Lack of mourning flavour
+character_event = {
+	id = soh.5715
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				has_instances_of_character_modifier = {
+					name = failure_to_mourn
+					amount >= 5
+				}
+			}
+			
+			random_list = {
+				10 = {
+					trigger = {
+						any_close_relative = {
+							should_mourn_trigger = yes
+							NOR = {
+								has_character_modifier = unfilial_descendant
+								has_character_modifier = failure_to_mourn
+							}
+						}
+					}
+					
+					# Relatives upset
+					character_event = { id = soh.5716 }
+				}
+				
+				10 = {
+					# Confucians upset
+					character_event = { id = soh.5717 }
+				}
+				
+				10 = {
+					trigger = {
+						has_dlc = "Conclave"
+						is_council_content = yes
+					}
+					
+					# Council discontent
+					character_event = { id = soh.5718 }
+				}
+				
+				10 = {
+					trigger = {
+						any_vassal = {
+							should_mourn_trigger = yes
+							NOR = {
+								has_character_modifier = unfilial_descendant
+								has_character_modifier = failure_to_mourn
+							}
+						}
+					}
+					
+					# Vassals upset
+					character_event = { id = soh.5719 }
+				}
+				
+				10 = {
+					# Loss of tiered Te
+					character_event = { id = soh.5720 }
+				}
+				
+				100 = {
+					mult_modifier = {
+						factor = 0.1
+						has_instances_of_character_modifier = {
+							name = failure_to_mourn
+							amount >= 10
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# You have failed to mourn - relatives upset
+character_event = {
+	id = soh.5716
+	desc = EVTDESC_SOH_5716
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5716 # I was just about to start! Honest!
+		
+		add_trait = in_mourning
+				
+		set_best_mourning_target_effect = yes
+		
+		if = {
+			limit = {
+				can_mourn_days_trigger = yes
+			}
+			
+			set_character_flag = chinese_mourning_year
+		}
+		
+		else = {
+			set_character_flag = chinese_mourning_full
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				OR = {
+					trait = cynical
+					trait = ambitious
+					trait = arbitrary
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5716 # It's not the right time!
+		
+		add_character_modifier = {
+			modifier = relative_not_mourning
+			years = 5
+		}
+		
+		ai_chance = {
+			trigger = {
+				NAND = {
+					can_mourn_days_trigger = yes
+					NAND = {
+						OR = {
+							trait = cynical
+							trait = ambitious
+						}
+						trait = arbitrary
+					}
+				}
+			}
+			
+			factor = 10
+		}
+	}
+	
+	after = {
+		go_to_mourning_loop_effect = yes
+	}
+}
+
+# You have failed to mourn - Confucians upset
+character_event = {
+	id = soh.5717
+	desc = EVTDESC_SOH_5717
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5717 # I was just about to start! Honest!
+		
+		add_trait = in_mourning
+				
+		set_best_mourning_target_effect = yes
+		
+		if = {
+			limit = {
+				can_mourn_days_trigger = yes
+			}
+			
+			set_character_flag = chinese_mourning_year
+		}
+		
+		else = {
+			set_character_flag = chinese_mourning_full
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				OR = {
+					trait = cynical
+					trait = ambitious
+					trait = arbitrary
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5717 # It's not the right time!
+		
+		add_character_modifier = {
+			modifier = confucian_not_mourning
+			years = 5
+		}
+		
+		ai_chance = {
+			trigger = {
+				NAND = {
+					can_mourn_days_trigger = yes
+					NAND = {
+						OR = {
+							trait = cynical
+							trait = ambitious
+						}
+						trait = arbitrary
+					}
+				}
+			}
+			
+			factor = 10
+		}
+	}
+	
+	after = {
+		go_to_mourning_loop_effect = yes
+	}
+}
+
+# You have failed to mourn - council discontent
+character_event = {
+	id = soh.5718
+	desc = EVTDESC_SOH_5718
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5718 # I was just about to start! Honest!
+		
+		add_trait = in_mourning
+				
+		set_best_mourning_target_effect = yes
+		
+		if = {
+			limit = {
+				can_mourn_days_trigger = yes
+			}
+			
+			set_character_flag = chinese_mourning_year
+		}
+		
+		else = {
+			set_character_flag = chinese_mourning_full
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				OR = {
+					trait = cynical
+					trait = ambitious
+					trait = arbitrary
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5718 # It's not the right time!
+		
+		set_council_malcontent = yes
+		
+		ai_chance = {
+			trigger = {
+				NAND = {
+					can_mourn_days_trigger = yes
+					NAND = {
+						OR = {
+							trait = cynical
+							trait = ambitious
+						}
+						trait = arbitrary
+					}
+				}
+			}
+			
+			factor = 10
+		}
+	}
+	
+	after = {
+		go_to_mourning_loop_effect = yes
+	}
+}
+
+# You have failed to mourn - vassals upset
+character_event = {
+	id = soh.5719
+	desc = EVTDESC_SOH_5719
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5719 # I was just about to start! Honest!
+		
+		add_trait = in_mourning
+				
+		set_best_mourning_target_effect = yes
+		
+		if = {
+			limit = {
+				can_mourn_days_trigger = yes
+			}
+			
+			set_character_flag = chinese_mourning_year
+		}
+		
+		else = {
+			set_character_flag = chinese_mourning_full
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				OR = {
+					trait = cynical
+					trait = ambitious
+					trait = arbitrary
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5719 # It's not the right time!
+		
+		add_character_modifier = {
+			modifier = liege_not_mourning
+			years = 5
+		}
+		
+		ai_chance = {
+			trigger = {
+				NAND = {
+					can_mourn_days_trigger = yes
+					NAND = {
+						OR = {
+							trait = cynical
+							trait = ambitious
+						}
+						trait = arbitrary
+					}
+				}
+			}
+			
+			factor = 10
+		}
+	}
+	
+	after = {
+		go_to_mourning_loop_effect = yes
+	}
+}
+
+# You have failed to mourn - loss of tiered Te
+character_event = {
+	id = soh.5720
+	desc = EVTDESC_SOH_5720
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5720 # I was just about to start! Honest!
+		
+		add_trait = in_mourning
+				
+		set_best_mourning_target_effect = yes
+		
+		if = {
+			limit = {
+				can_mourn_days_trigger = yes
+			}
+			
+			set_character_flag = chinese_mourning_year
+		}
+		
+		else = {
+			set_character_flag = chinese_mourning_full
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				OR = {
+					trait = cynical
+					trait = ambitious
+					trait = arbitrary
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5720 # It's not the right time!
+		
+		tiered_piety_negative_effect = yes
+		
+		ai_chance = {
+			trigger = {
+				NAND = {
+					can_mourn_days_trigger = yes
+					NAND = {
+						OR = {
+							trait = cynical
+							trait = ambitious
+						}
+						trait = arbitrary
+					}
+				}
+			}
+			
+			factor = 10
+		}
+	}
+	
+	after = {
+		go_to_mourning_loop_effect = yes
+	}
+}
+
+### Interrupts and related
+
+# Became primary war defender - mourning cancelled
+character_event = {
+	id = soh.5721
+	desc = EVTDESC_SOH_5721
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes # on_war_started
+	
+	trigger = {
+		trait = in_mourning
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_5721 # The good of the realm has to come first...
+		
+		end_mourning_effect = yes
+	}
+}
+
+# Became imprisoned - mourning cancelled
+character_event = {
+	id = soh.5722
+	desc = EVTDESC_SOH_5722
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes # on_became_imprisoned_any_reason
+	
+	trigger = {
+		trait = in_mourning
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_5722 # It's not my fault...
+		
+		end_mourning_effect = yes
+	}
+}
+
+# Converted religion and no longer capable of mourning
+character_event = {
+	id = soh.5723
+	hide_window = yes
+	
+	is_triggered_only = yes # on_character_convert_religion/on_character_convert_culture
+	
+	trigger = {
+		OR = {
+			trait = in_mourning
+			has_character_modifier = failure_to_mourn
+		}
+		should_mourn_trigger = no
+	}
+	
+	immediate = {
+		clear_flags_with_prefix = chinese_mourning_unmourned_
+		
+		remove_character_modifiers = {
+			name = failure_to_mourn
+			amount = 100
+		}
+		
+		if = {
+			limit = {
+				trait = in_mourning
+			}
+			
+			character_event = { id = soh.5724 } # Inform about end of mourning
+		}
+	}
+}
+
+# Informed about end of mourning
+character_event = {
+	id = soh.5724
+	desc = EVTDESC_SOH_5724
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5724 # I no longer care!
+		
+		end_mourning_effect = yes
+	}
+}
+
+### Mourning flavour
+
+# Select mourning event
+character_event = {
+	id = soh.5725
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		trait = in_mourning
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				is_actually_incapable_trigger = yes
+			}
+			
+			character_event = { id = soh.5726 } # End mourning early
+		}
+		
+		else_if = {
+			limit = {
+				had_character_flag = { flag = chinese_mourning_extended years >= 1 }
+			}
+			
+			character_event = { id = soh.5784 } # End mourning
+		}
+		
+		else_if = {
+			limit = {
+				had_character_flag = { flag = chinese_mourning_days days >= 36 }
+			}
+			
+			character_event = { id = soh.5784 } # End mourning
+		}
+		
+		else_if = {
+			limit = {
+				had_character_flag = { flag = chinese_mourning_year years >= 1 }
+			}
+			
+			character_event = { id = soh.5784 } # End mourning
+		}
+		
+		else_if = {
+			limit = {
+				had_character_flag = { flag = chinese_mourning_full years >= 3 }
+			}
+			
+			character_event = { id = soh.5784 } # End mourning
+		}
+		
+		else = {
+			if = {
+				limit = {
+					is_playable = yes
+				}
+				
+				random_list = {
+					5 = {
+						trigger = {
+							NOT = {
+								has_character_flag = chinese_mourning_shack
+							}
+							age >= 12
+						}
+								
+						set_character_flag = chinese_mourning_shack
+						
+						character_event = { id = soh.5727 } # Build a shack
+					}
+					
+					5 = {
+						trigger = {
+							NOT = {
+								has_character_flag = chinese_mourning_diet
+							}
+							age >= 12
+						}
+								
+						set_character_flag = chinese_mourning_diet
+						
+						character_event = { id = soh.5728 } # Diet
+					}
+					
+					5 = {
+						trigger = {
+							NOT = {
+								has_character_flag = chinese_mourning_sangfu
+							}
+						}
+								
+						set_character_flag = chinese_mourning_sangfu
+						
+						character_event = { id = soh.5729 } # Mourning clothes
+					}
+					
+					5 = {
+						trigger = {
+							NOT = {
+								has_character_flag = chinese_mourning_hair
+							}
+							age >= 6
+							NOT = {
+								trait = uncouth
+							}
+						}
+								
+						set_character_flag = chinese_mourning_hair
+						
+						character_event = { id = soh.5730 } # Unkempt hair
+					}
+					
+					5 = {
+						trigger = {
+							NOT = {
+								has_character_flag = chinese_mourning_offering
+							}
+							age >= 12
+						}
+								
+						set_character_flag = chinese_mourning_offering
+						
+						character_event = { id = soh.5731 } # Small offering
+					}
+					
+					5 = {
+						trigger = {
+							NOT = {
+								has_character_flag = chinese_mourning_mystic
+							}
+							is_adult = yes
+							lifestyle_traits < 1
+						}
+								
+						set_character_flag = chinese_mourning_mystic
+						
+						character_event = { id = soh.5732 } # Mysticism
+					}
+					
+					5 = {
+						trigger = {
+							NOR = {
+								has_character_flag = chinese_mourning_depression
+								trait = depressed
+							}
+							age >= 6
+						}
+								
+						set_character_flag = chinese_mourning_depression
+						
+						character_event = { id = soh.5735 } # Become depressed
+					}
+					
+					5 = {
+						trigger = {
+							NOR = {
+								has_character_flag = chinese_mourning_carefree
+								trait = stressed
+							}
+							age >= 6
+						}
+								
+						set_character_flag = chinese_mourning_carefree
+						
+						character_event = { id = soh.5736 } # Become less stressed (and possibly more slothful)
+					}
+					
+					5 = {
+						trigger = {
+							NOR = {
+								has_character_flag = chinese_mourning_sympathy
+								persistent_event_target:ancestor_to_mourn = {
+									ROOT = {
+										OR = {
+											true_religion_group = PREV
+											religion_group = PREV # Does nothing
+											# TIANXIATODO: Does not already have the relevant trait
+										}
+									}
+								}
+							}
+							age >= 12
+						}
+								
+						set_character_flag = chinese_mourning_sympathy
+						
+						character_event = { id = soh.5738 } # Sympathy
+					}
+					
+					5 = {
+						trigger = {
+							NOT = {
+								has_character_flag = chinese_mourning_sacrifice
+							}
+							age >= 12
+						}
+								
+						set_character_flag = chinese_mourning_sacrifice
+						
+						character_event = { id = soh.5739 } # Large offering
+					}
+					
+					5 = {
+						trigger = {
+							NOT = {
+								has_character_flag = chinese_mourning_commiseration
+							}
+							any_close_relative = {
+								trait = in_mourning
+								NOR = {
+									is_friend = ROOT
+									is_lover = ROOT
+									is_rival = ROOT
+								}
+								OR = {
+									at_location = ROOT
+									AND = {
+										is_adult = yes
+										ROOT = {
+											is_adult = yes
+										}
+									}
+								}
+							}
+						}
+						
+						random_close_relative = {
+							limit = {
+								trait = in_mourning
+								NOR = {
+									is_friend = ROOT
+									is_lover = ROOT
+									is_rival = ROOT
+								}
+								OR = {
+									at_location = ROOT
+									AND = {
+										is_adult = yes
+										ROOT = {
+											is_adult = yes
+										}
+									}
+								}
+							}
+							
+							save_event_target_as = also_mourning_relative
+						}
+								
+						set_character_flag = chinese_mourning_commiseration
+						
+						character_event = { id = soh.5740 } # Family member is also mourning
+					}
+					
+					5 = {
+						trigger = {
+							NOR = {
+								has_character_flag = chinese_mourning_pondering
+								trait = stressed
+							}
+							age >= 12
+						}
+								
+						set_character_flag = chinese_mourning_pondering
+						
+						character_event = { id = soh.5744 } # Pondering death
+					}
+					
+					5 = {
+						trigger = {
+							NOT = {
+								has_character_flag = chinese_mourning_emulation
+							}
+							age >= 12
+						}
+								
+						set_character_flag = chinese_mourning_emulation
+						
+						character_event = { id = soh.5752 } # Emulating dead relative
+					}
+					
+					5 = {
+						trigger = {
+							NOR = {
+								has_character_flag = chinese_mourning_celibacy
+								trait = celibate
+							}
+							is_adult = yes
+						}
+								
+						set_character_flag = chinese_mourning_celibacy
+						
+						character_event = { id = soh.5783 } # Celibacy
+					}
+					
+					50 = {
+						trigger = {
+							OR = {
+								NOT = {
+									has_character_flag = chinese_mourning_days
+								}
+								has_character_flag = chinese_mourning_extended
+							}
+						}
+						
+						mult_modifier = {
+							factor = 2
+							has_character_flag = chinese_mourning_full
+						}
+						
+						# Nothing
+					}
+				}
+		
+				if = {
+					limit = {
+						has_character_flag = chinese_mourning_days
+						NOT = {
+							has_character_flag = chinese_mourning_extended
+						}
+					}
+					
+					repeat_event = { id = soh.5725 days = 18 } # More flavour
+				}
+				
+				else = {
+					repeat_event = { id = soh.5725 days = 90 } # More flavour
+				}
+			}
+			
+			else = {
+				repeat_event = { id = soh.5725 days = 180 } # More flavour
+			}
+		}
+	}
+}
+
+# End of mourning due to being Incapable
+character_event = {
+	id = soh.5726
+	desc = EVTDESC_SOH_5726
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_5726 # ...
+		
+		end_mourning_effect = yes
+	}
+}
+
+# Maybe living in a literal palace miles from your parent's dead bodies is disrespectful?
+character_event = {
+	id = soh.5727
+	desc = EVTDESC_SOH_5727
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5727 # Fine, I will build the hut
+		prestige = -25
+		
+		add_character_modifier = {
+			name = mourning_shack
+			duration = -1
+		}
+		
+		ai_chance = {
+			factor = 10
+			
+			mult_modifier = {
+				factor = 10
+				trait = humble
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = zealous
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5727 # Live like a peasant? Is this a joke?
+		
+		piety = -20
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 20
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = cynical
+			}
+		}
+	}
+}
+
+# Stop eating like five exotic foods every meal?
+character_event = {
+	id = soh.5728
+	desc = EVTDESC_SOH_5728
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5728 # Okay, what about four?
+		
+		add_character_modifier = {
+			name = mourning_diet
+			duration = -1
+		}
+		
+		random = {
+			chance = 10
+			add_trait_partially_temperate_effect = yes
+		}
+		
+		ai_chance = {
+			trigger = {
+				NOT = {
+					trait = gluttonous
+				}
+			}
+			
+			factor = 10
+			
+			mult_modifier = {
+				factor = 10
+				trait = humble
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = zealous
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5728 # Six it is, then!
+		
+		piety = -20
+		
+		random = {
+			chance = 10
+			add_trait_partially_gluttonous_effect = yes
+		}
+		
+		ai_chance = {
+			trigger = {
+				NOT = {
+					trait = temperate
+				}
+			}
+			
+			factor = 1
+			
+			mult_modifier = {
+				factor = 20
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = cynical
+			}
+		}
+	}
+}
+
+# These clothes are uncomfortable
+character_event = {
+	id = soh.5729
+	desc = EVTDESC_SOH_5729
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5729 # Back to silks it is!
+		
+		prestige = 25
+		piety = -20
+		
+		add_character_modifier = {
+			name = not_in_sangfu
+			duration = -1
+		}
+		
+		random = {
+			chance = 10
+			add_trait_partially_proud_effect = yes
+		}
+		
+		ai_chance = {
+			trigger = {
+				NOT = {
+					trait = humble
+				}
+			}
+			
+			factor = 1
+			
+			mult_modifier = {
+				factor = 3
+				trait = cynical
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5729# It is to show respect!
+		
+		piety = 10
+		
+		random = {
+			chance = 10
+			add_trait_partially_humble_effect = yes
+		}
+		
+		ai_chance = {
+			trigger = {
+				NOT = {
+					trait = proud
+				}
+			}
+			
+			factor = 10
+			
+			mult_modifier = {
+				factor = 3
+				trait = zealous
+			}
+		}
+	}
+}
+
+# Unkempt hair
+character_event = {
+	id = soh.5730
+	desc = EVTDESC_SOH_5730
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5730 # I'll fix my hair
+		
+		prestige = 10
+		piety = -20
+		
+		random = {
+			chance = 10
+			add_trait_partially_groomed_effect = yes
+		}
+		
+		ai_chance = {
+			trigger = {
+				NOT = {
+					trait = humble
+				}
+			}
+			
+			factor = 1
+			
+			mult_modifier = {
+				factor = 3
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = groomed
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5730 # My looks do not matter
+		
+		piety = 10
+		
+		random = {
+			chance = 10
+			add_trait_partially_uncouth_effect = yes
+		}
+		
+		ai_chance = {
+			trigger = {
+				NOT = {
+					trait = proud
+				}
+			}
+			
+			factor = 10
+			
+			mult_modifier = {
+				factor = 3
+				trait = zealous
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = uncouth
+			}
+		}
+	}
+}
+
+# Small offering
+character_event = {
+	id = soh.5731
+	desc = EVTDESC_SOH_5731
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5731 # I will make an offering!
+		
+		scaled_wealth = {
+			value = -0.1
+			max = -25
+		}
+		
+		piety = 10
+		
+		ai_chance = {
+			trigger = {
+				NOT = {
+					trait = greedy
+				}
+				scaled_wealth = { value = 0.1 max = 25 } 
+			}
+			
+			factor = 10
+			
+			mult_modifier = {
+				factor = 3
+				trait = zealous
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = charitable
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5731 # I can't afford this!
+		
+		piety = -20
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 3
+				trait = cynical
+			}
+		}
+	}
+}
+
+# Mystic
+character_event = {
+	id = soh.5732
+	desc = EVTDESC_SOH_5732
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5732 # Embrace the mystic arts
+		
+		scaled_wealth = {
+			value = -1
+			max = -1000
+		}
+		
+		piety = -10
+		
+		add_trait = mystic
+		
+		if = {
+			# Only bother with success/failure if supernatural events are enabled
+			limit = {
+				OR = {
+					AND = {
+						ai = yes
+						has_game_rule = {
+							name = supernatural_events
+							value = unrestricted
+						}
+					}
+					AND = {
+						ai = no
+						NOT = {
+							has_game_rule = {
+								name = supernatural_events
+								value = off
+							}
+						}
+					}
+				}
+			}
+			
+			random_list = {
+				1 = {
+					mult_modifier = {
+						factor = 2
+						trait = shrewd
+					}
+					
+					mult_modifier = {
+						factor = 4
+						trait = quick
+					}
+					
+					mult_modifier = {
+						factor = 10
+						trait = genius
+					}
+					
+					mult_modifier = {
+						factor = 3
+						learning >= 12
+					}
+					
+					mult_modifier = {
+						factor = 3
+						learning >= 16
+					}
+					
+					mult_modifier = {
+						factor = 2
+						trait = zealous
+					}
+					
+					character_event = { id = soh.5733 days = 10 random = 20 } # Success
+				}
+				
+				10 = {
+					mult_modifier = {
+						factor = 2
+						trait = dull
+					}
+					
+					mult_modifier = {
+						factor = 4
+						trait = slow
+					}
+					
+					mult_modifier = {
+						factor = 10
+						trait = imbecile
+					}
+					
+					mult_modifier = {
+						factor = 5
+						learning < 8
+					}
+					
+					mult_modifier = {
+						factor = 5
+						learning < 4
+					}
+					
+					mult_modifier = {
+						factor = 2
+						trait = cynical
+					}
+					
+					character_event = { id = soh.5734 days = 10 random = 20 } # Failure
+				}
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			
+			trigger = {
+				scaled_wealth = { value = 1 max = 1000 }
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = cynical
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5732 # Do not attempt
+		
+		piety = 10
+		
+		ai_chance = {
+			factor = 100 # The AI really shouldn't consider necromancy too often
+			
+			mult_modifier = {
+				factor = 5
+				trait = zealous
+			}
+		}
+	}
+}
+
+# Mystic - successful communication!
+character_event = {
+	id = soh.5733
+	desc = EVTDESC_SOH_5733
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5733 # Excellent!
+		
+		prestige = 200
+		piety = 100
+		
+		remove_trait_stressed_effect = yes
+		remove_trait_depressed_effect = yes
+	}
+}
+
+# Mystic - failed communication
+character_event = {
+	id = soh.5734
+	desc = EVTDESC_SOH_5734
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5734 # That didn't work...
+		
+		prestige = -20
+		
+		random = {
+			chance = 50
+			add_trait_stressed_effect = yes
+		}
+		
+		random = {
+			chance = 25
+			add_trait_depressed_effect = yes
+		}
+	}
+}
+
+# Depression
+character_event = {
+	id = soh.5735
+	desc = EVTDESC_SOH_5735
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5735 # Life without them might not be worth living...
+		
+		add_trait_depressed_effect = yes
+	}
+}
+
+# Carefree
+character_event = {
+	id = soh.5736
+	desc = EVTDESC_SOH_5736
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5736
+		
+		remove_trait_stressed_effect = yes
+		
+		if = {
+			limit = {
+				NOT = {
+					trait = stressed
+				}
+			}
+			
+			random = {
+				chance = 30
+				character_event = { id = soh.5737 days = 10 random = 20 }
+			}
+		}
+	}
+}
+
+# Become lazier
+character_event = {
+	id = soh.5737
+	desc = EVTDESC_SOH_5737
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5737 # I guess...
+		
+		add_trait_partially_slothful_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 20
+				trait = content
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = humble
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5737 # No! I must work harder!
+		
+		add_trait_stressed_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 20
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = proud
+			}
+		}
+	}
+}
+
+# Sympathy for religion
+character_event = {
+	id = soh.5738
+	desc = EVTDESC_SOH_5738
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		trigger = {
+			NOT = {
+				trait = zealous
+			}
+		}
+		
+		name = EVTOPTA_SOH_5738 # It is worth considering
+		
+		prestige = 10
+		
+		persistent_event_target:ancestor_to_mourn = {
+			ROOT = {
+				add_sympathy_for_prevs_open_religion_effect = yes
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 6
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = humble
+			}
+		}
+		
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5738 # No! I must remain steadfast!
+		
+		piety = 10
+		
+		add_trait_partially_zealous_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 6
+				trait = stubborn
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = proud
+			}
+		}
+	}
+}
+
+# Large offering
+character_event = {
+	id = soh.5739
+	desc = EVTDESC_SOH_5739
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5739 # I must make an offering!
+		
+		scaled_wealth = {
+			value = -2
+			max = -500
+		}
+		
+		prestige = 100
+		piety = 50
+		
+		ai_chance = {
+			trigger = {
+				scaled_wealth = { value = 2 max = 500 }
+			}
+			
+			factor = 1
+			
+			mult_modifier = {
+				factor = 3
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = charitable
+			}
+			
+			mult_modifier = {
+				factor = 50
+				trait = zealous
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5739 # This is too expensive
+		
+		ai_chance = {
+			trigger = {
+				NAND = {
+					scaled_wealth = { value = 2 max = 500 }
+					trait = zealous
+				}
+			}
+			
+			factor = 1
+			
+			mult_modifier = {
+				factor = 3
+				trait = humble
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = greedy
+			}
+			
+			mult_modifier = {
+				factor = 50
+				trait = cynical
+			}
+		}
+	}
+}
+
+# Commiseration
+character_event = {
+	id = soh.5740
+	desc = EVTDESC_SOH_5740
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5740 # Perhaps we could get along?
+		
+		event_target:also_mourning_relative = {
+			character_event = { id = soh.5741 days = 1 }
+		}
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 3
+				trait = kind
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = gregarious
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = trusting
+			}
+			
+			mult_modifier = {
+				factor = 5
+				opinion = {
+					who = event_target:also_mourning_relative
+					value >= 0
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5740 # I don't care for them!
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 3
+				trait = cruel
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = shy
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = paranoid
+			}
+			
+			mult_modifier = {
+				factor = 5
+				opinion = {
+					who = event_target:also_mourning_relative
+					value < -50
+				}
+			}
+		}
+	}
+}
+
+# Commiseration - relative pinged
+character_event = {
+	id = soh.5741
+	desc = EVTDESC_SOH_5741
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5741 # Thank you!
+		
+		piety = 10
+		
+		opinion = {
+			modifier = opinion_friendly_relative
+			who = FROM
+		}
+		
+		FROM = {
+			opinion = {
+				modifier = opinion_friendly_relative
+				who = ROOT
+			}
+			
+			character_event = { id = soh.5742 days = 1 }
+		}
+		
+		ai_chance = {
+			factor = 5
+			
+			mult_modifier = {
+				factor = 3
+				trait = kind
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = gregarious
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = trusting
+			}
+			
+			mult_modifier = {
+				factor = 5
+				opinion = {
+					who = FROM
+					value >= 0
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5741 # Don't bother me!
+		
+		piety = -10
+		
+		opinion = {
+			modifier = opinion_unfriendly_relative
+			who = FROM
+		}
+		
+		FROM = {
+			opinion = {
+				modifier = opinion_unfriendly_relative
+				who = ROOT
+			}
+			
+			character_event = { id = soh.5743 days = 1 }
+		}
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 3
+				trait = cruel
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = shy
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = paranoid
+			}
+			
+			mult_modifier = {
+				factor = 5
+				opinion = {
+					who = event_target:also_mourning_relative
+					value < -50
+				}
+			}
+		}
+	}
+}
+
+# Commiseration - success
+character_event = {
+	id = soh.5742
+	desc = EVTDESC_SOH_5742
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5742 # Great!
+		
+		prestige = 10
+		
+		piety = 10
+	}
+}
+
+# Commiseration - failure
+character_event = {
+	id = soh.5743
+	desc = EVTDESC_SOH_5743
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5743 # Not good!
+		
+		prestige = -10
+		
+		piety = -10
+	}
+}
+
+# The Reality of Life and Death
+character_event = {
+	id = soh.5744
+	
+	is_triggered_only = yes
+
+	hide_window = yes
+	
+	immediate = {
+		random_list = {
+			1 = {
+				trigger = {
+					NOR = {
+						trait = brave
+						trait = content
+						trait = paranoid
+					}
+				}
+				
+				character_event = { id = soh.5745 } # Fear of death
+				
+				mult_modifier = {
+					factor = 5
+					trait = craven
+				}
+			}
+			
+			1 = {
+				trigger = {
+					NOR = {
+						trait = content
+						trait = diligent
+						trait = lustful
+					}
+				}
+				
+				character_event = { id = soh.5746 } # Motivation
+				
+				mult_modifier = {
+					factor = 5
+					trait = ambitious
+				}
+			}
+			
+			1 = {
+				trigger = {
+					NOR = {
+						trait = cruel
+						trait = charitable
+						trait = patient
+					}
+				}
+				
+				character_event = { id = soh.5747 } # Doing good
+				
+				mult_modifier = {
+					factor = 5
+					trait = kind
+				}
+			}
+			
+			1 = {
+				trigger = {
+					NOR = {
+						trait = proud
+						trait = zealous
+						trait = just
+					}
+				}
+				
+				character_event = { id = soh.5748 } # Accepting one's place
+				
+				mult_modifier = {
+					factor = 5
+					trait = humble
+				}
+			}
+			
+			1 = {
+				trigger = {
+					NOR = {
+						trait = zealous
+						trait = arbitrary
+						trait = stubborn
+					}
+				}
+				
+				character_event = { id = soh.5749 } # Doubts about my faith
+				
+				mult_modifier = {
+					factor = 5
+					trait = cynical
+				}
+			}
+			
+			1 = {
+				trigger = {
+					NOR = {
+						trait = gregarious
+						trait = chaste
+						trait = cruel
+					}
+				}
+				
+				character_event = { id = soh.5750 } # Distancing myself
+				
+				mult_modifier = {
+					factor = 5
+					trait = shy
+				}
+			}
+			
+			1 = {
+				trigger = {
+					NOT = {
+						trait = lunatic
+					}
+				}
+				character_event = { id = soh.5751 } # Mental breakdown
+			}
+			
+			15 = {
+				# Nothing
+			}
+		}
+	}
+}
+
+# Fear of death
+character_event = {
+	id = soh.5745
+	desc = EVTDESC_SOH_5745
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		trigger = {
+			NOT = {
+				trait = paranoid
+			}
+		}
+		
+		name = EVTOPTA_SOH_5745 # Paranoia
+		
+		add_trait_partially_paranoid_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = trusting
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				trait = content
+			}
+		}
+		
+		name = EVTOPTB_SOH_5745 # Less ambitious
+		
+		add_trait_partially_content_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = ambitious
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_5745 # Stressing out
+		
+		random_list = {
+			80 = {
+				add_trait_stressed_effect = yes
+			}
+			
+			20 = {
+				add_trait_partially_brave_effect = yes
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = craven
+				}
+			}
+		}
+	}
+}
+
+# Motivated by death
+character_event = {
+	id = soh.5746
+	desc = EVTDESC_SOH_5746
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		trigger = {
+			NOT = {
+				trait = diligent
+			}
+		}
+		
+		name = EVTOPTA_SOH_5746 # Working harder
+		
+		add_trait_partially_diligent_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = slothful
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOR = {
+				trait = lustful
+				trait = celibate
+				trait = homosexual
+			}
+			is_adult = yes
+		}
+		
+		name = EVTOPTB_SOH_5746 # "Motivated"
+		
+		add_trait_partially_lustful_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = chaste
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_5746 # Stressing out
+		
+		random_list = {
+			80 = {
+				add_trait_stressed_effect = yes
+			}
+			
+			20 = {
+				add_trait_partially_ambitious_effect = yes
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = ambitious
+				}
+			}
+		}
+	}
+}
+
+# Doing good
+character_event = {
+	id = soh.5747
+	desc = EVTDESC_SOH_5747
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		trigger = {
+			NOT = {
+				trait = charitable
+			}
+		}
+		
+		name = EVTOPTA_SOH_5747 # Charity
+		
+		add_trait_partially_charitable_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = greedy
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				trait = patient
+			}
+		}
+		
+		name = EVTOPTB_SOH_5747 # Patience
+		
+		add_trait_partially_patient_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = wroth
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_5747 # Stressing out
+		
+		random_list = {
+			80 = {
+				add_trait_stressed_effect = yes
+			}
+			
+			20 = {
+				add_trait_partially_kind_effect = yes
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = kind
+				}
+			}
+		}
+	}
+}
+
+# Accepting one's place
+character_event = {
+	id = soh.5748
+	desc = EVTDESC_SOH_5748
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		trigger = {
+			NOT = {
+				trait = zealous
+			}
+		}
+		
+		name = EVTOPTA_SOH_5748 # Faith
+		
+		add_trait_partially_zealous_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = cynical
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				trait = just
+			}
+		}
+		
+		name = EVTOPTB_SOH_5748 # Justice
+		
+		add_trait_partially_just_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = arbitrary
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_5748 # Stressing out
+		
+		random_list = {
+			80 = {
+				add_trait_stressed_effect = yes
+			}
+			
+			20 = {
+				add_trait_partially_proud_effect = yes
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = humble
+				}
+			}
+		}
+	}
+}
+
+# Doubts
+character_event = {
+	id = soh.5749
+	desc = EVTDESC_SOH_5749
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		trigger = {
+			NOT = {
+				trait = arbitrary
+			}
+		}
+		
+		name = EVTOPTA_SOH_5749 # Arbitrary
+		
+		add_trait_partially_arbitrary_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = just
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				trait = stubborn
+			}
+		}
+		
+		name = EVTOPTB_SOH_5749 # Stubbornness
+		
+		add_trait_stubborn_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_5749 # Stressing out
+		
+		random_list = {
+			80 = {
+				add_trait_stressed_effect = yes
+			}
+			
+			20 = {
+				add_trait_partially_zealous_effect = yes
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = cynical
+				}
+			}
+		}
+	}
+}
+
+# Distancing myself
+character_event = {
+	id = soh.5750
+	desc = EVTDESC_SOH_5750
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		trigger = {
+			NOT = {
+				trait = chaste
+			}
+			has_lover = no
+		}
+		
+		name = EVTOPTA_SOH_5750 # Chastity
+	
+		add_trait_partially_chaste_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOR = {
+					trait = lustful
+					trait = master_seducer
+					trait = master_seductress
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = celibate
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				trait = cruel
+			}
+		}
+		
+		name = EVTOPTA_SOH_5750 # Cruelty
+		
+		add_trait_partially_cruel_effect = yes
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = kind
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_5750 # Stressing out
+		
+		random_list = {
+			80 = {
+				add_trait_stressed_effect = yes
+			}
+			
+			20 = {
+				add_trait_partially_gregarious_effect = yes
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 5
+				NOT = {
+					trait = shy
+				}
+			}
+		}
+	}
+}
+
+# Mental breakdown
+character_event = {
+	id = soh.5751
+	desc = EVTDESC_SOH_5751
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5751 # I'm not crazy, right?
+		
+		add_trait_lunatic_effect = yes
+	}
+}
+
+# Emulating ancestor
+character_event = {
+	id = soh.5752
+	
+	is_triggered_only = yes
+
+	hide_window = yes
+	
+	immediate = {
+		random_list = {
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = lustful
+					}
+					NOT = {
+						trait = lustful
+					}
+				}
+				
+				character_event = { id = soh.5753 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = gluttonous
+					}
+					NOT = {
+						trait = gluttonous
+					}
+				}
+				
+				character_event = { id = soh.5754 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = greedy
+					}
+					NOT = {
+						trait = greedy
+					}
+				}
+				
+				character_event = { id = soh.5755 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = slothful
+					}
+					NOT = {
+						trait = slothful
+					}
+				}
+				
+				character_event = { id = soh.5756 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = wroth
+					}
+					NOT = {
+						trait = wroth
+					}
+				}
+				
+				character_event = { id = soh.5757 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = envious
+					}
+					NOT = {
+						trait = envious
+					}
+				}
+				
+				character_event = { id = soh.5758 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = proud
+					}
+					NOT = {
+						trait = proud
+					}
+				}
+				
+				character_event = { id = soh.5759 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = chaste
+					}
+					NOT = {
+						trait = chaste
+					}
+				}
+				
+				character_event = { id = soh.5760 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = temperate
+					}
+					NOT = {
+						trait = temperate
+					}
+				}
+				
+				character_event = { id = soh.5761 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = charitable
+					}
+					NOT = {
+						trait = charitable
+					}
+				}
+				
+				character_event = { id = soh.5762 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = diligent
+					}
+					NOT = {
+						trait = diligent
+					}
+				}
+				
+				character_event = { id = soh.5763 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = patient
+					}
+					NOT = {
+						trait = patient
+					}
+				}
+				
+				character_event = { id = soh.5764 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = kind
+					}
+					NOT = {
+						trait = kind
+					}
+				}
+				
+				character_event = { id = soh.5765 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = humble
+					}
+					NOT = {
+						trait = humble
+					}
+				}
+				
+				character_event = { id = soh.5766 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = ambitious
+					}
+					NOT = {
+						trait = ambitious
+					}
+				}
+				
+				character_event = { id = soh.5767 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = arbitrary
+					}
+					NOT = {
+						trait = arbitrary
+					}
+				}
+				
+				character_event = { id = soh.5768 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = brave
+					}
+					NOT = {
+						trait = brave
+					}
+				}
+				
+				character_event = { id = soh.5769 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = content
+					}
+					NOT = {
+						trait = content
+					}
+				}
+				
+				character_event = { id = soh.5770 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = craven
+					}
+					NOT = {
+						trait = craven
+					}
+				}
+				
+				character_event = { id = soh.5771 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = cruel
+					}
+					NOT = {
+						trait = cruel
+					}
+				}
+				
+				character_event = { id = soh.5772 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = cynical
+					}
+					NOT = {
+						trait = cynical
+					}
+				}
+				
+				character_event = { id = soh.5773 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = deceitful
+					}
+					NOT = {
+						trait = deceitful
+					}
+				}
+				
+				character_event = { id = soh.5774 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = gregarious
+					}
+					NOT = {
+						trait = gregarious
+					}
+				}
+				
+				character_event = { id = soh.5775 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = honest
+					}
+					NOT = {
+						trait = honest
+					}
+				}
+				
+				character_event = { id = soh.5776 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = just
+					}
+					NOT = {
+						trait = just
+					}
+				}
+				
+				character_event = { id = soh.5777 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = paranoid
+					}
+					NOT = {
+						trait = paranoid
+					}
+				}
+				
+				character_event = { id = soh.5778 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = shy
+					}
+					NOT = {
+						trait = shy
+					}
+				}
+				
+				character_event = { id = soh.5779 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = stubborn
+					}
+					NOT = {
+						trait = stubborn
+					}
+				}
+				
+				character_event = { id = soh.5780 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = trusting
+					}
+					NOT = {
+						trait = trusting
+					}
+				}
+				
+				character_event = { id = soh.5781 }
+			}
+			
+			1 = {
+				trigger = {
+					persistent_event_target:ancestor_to_mourn = {
+						trait = zealous
+						ROOT = {
+							true_religion = PREV
+						}
+					}
+					NOT = {
+						trait = zealous
+					}
+				}
+				
+				character_event = { id = soh.5782 }
+			}
+			
+			1 = {
+				# Nothing; fallback
+			}
+		}
+	}
+}
+
+# Emulating lustful
+character_event = {
+	id = soh.5753
+	desc = EVTDESC_SOH_5753
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5753 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_lustful_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5753 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = chaste
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = celibate
+			}
+		}
+	}
+}
+
+# Emulating gluttonous
+character_event = {
+	id = soh.5754
+	desc = EVTDESC_SOH_5754
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5754 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_gluttonous_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5754 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = temperate
+			}
+		}
+	}
+}
+
+# Emulating greedy
+character_event = {
+	id = soh.5755
+	desc = EVTDESC_SOH_5755
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5755 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_greedy_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5755 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = charitable
+			}
+		}
+	}
+}
+
+# Emulating slothful
+character_event = {
+	id = soh.5756
+	desc = EVTDESC_SOH_5756
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5756 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_slothful_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5756 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = diligent
+			}
+		}
+	}
+}
+
+# Emulating wroth
+character_event = {
+	id = soh.5757
+	desc = EVTDESC_SOH_5757
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5757 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_wroth_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5757 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = patient
+			}
+		}
+	}
+}
+
+# Emulating envious
+character_event = {
+	id = soh.5758
+	desc = EVTDESC_SOH_5758
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5758 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_envious_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5758 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = kind
+			}
+		}
+	}
+}
+
+# Emulating proud
+character_event = {
+	id = soh.5759
+	desc = EVTDESC_SOH_5759
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5759 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_proud_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5759 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = humble
+			}
+		}
+	}
+}
+
+# Emulating chaste
+character_event = {
+	id = soh.5760
+	desc = EVTDESC_SOH_5760
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5760 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_chaste_effect = yes
+		
+		ai_chance = {
+			factor = 5
+			
+			mult_modifier = {
+				factor = 10
+				trait = celibate
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5760 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = lustful
+			}
+			
+			mult_modifier = {
+				factor = 10
+				OR = {
+					trait = master_seducer
+					trait = master_seductress
+				}
+			}
+		}
+	}
+}
+
+# Emulating temperate
+character_event = {
+	id = soh.5761
+	desc = EVTDESC_SOH_5761
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5761 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_temperate_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5761 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = gluttonous
+			}
+		}
+	}
+}
+
+# Emulating charity
+character_event = {
+	id = soh.5762
+	desc = EVTDESC_SOH_5762
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5762 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_charitable_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5762 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = greedy
+			}
+		}
+	}
+}
+
+# Emulating diligent
+character_event = {
+	id = soh.5763
+	desc = EVTDESC_SOH_5763
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5763 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_diligent_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5763 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = slothful
+			}
+		}
+	}
+}
+
+# Emulating patient
+character_event = {
+	id = soh.5764
+	desc = EVTDESC_SOH_5764
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5764 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_patient_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5764 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = wroth
+			}
+		}
+	}
+}
+
+# Emulating kind
+character_event = {
+	id = soh.5765
+	desc = EVTDESC_SOH_5765
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5765 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_kind_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5765 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = envious
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = cruel
+			}
+		}
+	}
+}
+
+# Emulating humble
+character_event = {
+	id = soh.5766
+	desc = EVTDESC_SOH_5766
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5766 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_humble_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5766 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = proud
+			}
+		}
+	}
+}
+
+# Emulating ambitious
+character_event = {
+	id = soh.5767
+	desc = EVTDESC_SOH_5767
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5767 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_ambitious_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5767 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = content
+			}
+		}
+	}
+}
+
+# Emulating arbitrary
+character_event = {
+	id = soh.5768
+	desc = EVTDESC_SOH_5768
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5768 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_arbitrary_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5768 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = just
+			}
+		}
+	}
+}
+
+# Emulating brave
+character_event = {
+	id = soh.5769
+	desc = EVTDESC_SOH_5769
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5769 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_brave_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5769 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = craven
+			}
+		}
+	}
+}
+
+# Emulating content
+character_event = {
+	id = soh.5770
+	desc = EVTDESC_SOH_5770
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5770 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_content_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5770 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = ambitious
+			}
+		}
+	}
+}
+
+# Emulating craven
+character_event = {
+	id = soh.5771
+	desc = EVTDESC_SOH_5771
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5771 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_craven_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5771 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = brave
+			}
+		}
+	}
+}
+
+# Emulating cruel
+character_event = {
+	id = soh.5772
+	desc = EVTDESC_SOH_5772
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5772 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_cruel_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5772 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = kind
+			}
+		}
+	}
+}
+
+# Emulating cynical
+character_event = {
+	id = soh.5773
+	desc = EVTDESC_SOH_5773
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5773 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_cynical_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5773 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = zealous
+			}
+		}
+	}
+}
+
+# Emulating deceitful
+character_event = {
+	id = soh.5774
+	desc = EVTDESC_SOH_5774
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5774 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_deceitful_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5774 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = honest
+			}
+		}
+	}
+}
+
+# Emulating gregarious
+character_event = {
+	id = soh.5775
+	desc = EVTDESC_SOH_5775
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5775 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_gregarious_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5775 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = shy
+			}
+		}
+	}
+}
+
+# Emulating honest
+character_event = {
+	id = soh.5776
+	desc = EVTDESC_SOH_5776
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5776 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_honest_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5776 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = deceitful
+			}
+		}
+	}
+}
+
+# Emulating just
+character_event = {
+	id = soh.5777
+	desc = EVTDESC_SOH_5777
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5777 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_just_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5777 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = arbitrary
+			}
+		}
+	}
+}
+
+# Emulating paranoid
+character_event = {
+	id = soh.5778
+	desc = EVTDESC_SOH_5778
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5778 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_paranoid_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5778 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = trusting
+			}
+		}
+	}
+}
+
+# Emulating shy
+character_event = {
+	id = soh.5779
+	desc = EVTDESC_SOH_5779
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5779 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_shy_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5779 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = gregarious
+			}
+		}
+	}
+}
+
+# Emulating stubborn
+character_event = {
+	id = soh.5780
+	desc = EVTDESC_SOH_5780
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5780 # Yes
+		
+		piety = 10
+		
+		add_trait_stubborn_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5780 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+}
+
+# Emulating trusting
+character_event = {
+	id = soh.5781
+	desc = EVTDESC_SOH_5781
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5781 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_trusting_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5781 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = paranoid
+			}
+		}
+	}
+}
+
+# Emulating zealous
+character_event = {
+	id = soh.5782
+	desc = EVTDESC_SOH_5782
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5782 # Yes
+		
+		piety = 10
+		
+		add_trait_partially_cynical_effect = yes
+		
+		ai_chance = {
+			factor = 5
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5782 # No
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 10
+				trait = cynical
+			}
+		}
+	}
+}
+
+# Become (temporarily) celibate while mourning?
+character_event = {
+	id = soh.5783
+	desc = EVTDESC_SOH_5783
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_SOH_5783 # Celibacy it is
+		
+		add_character_modifier = {
+			name = mourning_celibate
+			duration = -1
+		}
+		
+		ai_chance = {
+			factor = 10
+			
+			mult_modifier = {
+				factor = 10
+				trait = chaste
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = zealous
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5783 # Never!
+		piety = -20
+		
+		ai_chance = {
+			factor = 1
+			mult_modifier = {
+				factor = 20
+				trait = lustful
+			}
+			
+			mult_modifier = {
+				factor = 100
+				OR = {
+					trait = master_seducer
+					trait = master_seductress
+				}
+			}
+			
+			mult_modifier = {
+				factor = 3
+				trait = cynical
+			}
+		}
+	}
+}
+
+### End of mourning
+
+# Normal end of mourning
+character_event = {
+	id = soh.5784
+	desc = EVTDESC_SOH_5784
+	picture = GFX_evt_chinese_bureaucrat
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		trait = in_mourning
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_5784 # Finally, I am free of my grief
+		
+		piety = 100
+		
+		end_mourning_effect = yes
+		
+		ai_chance = {
+			factor = 10
+			
+			mult_modifier = {
+				factor = 4
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 4
+				trait = ambitious
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_5784 # I'm not ready yet... another couple of years, perhaps?
+		
+		trigger = {
+			NOT = { has_character_flag = chinese_mourning_extended }
+		}
+		
+		prestige = 50
+		piety = 50
+		
+		character_event = { id = soh.5725 days = 90 } # More flavour
+		
+		set_character_flag = chinese_mourning_extended
+		
+		ai_chance = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 4
+				trait = zealous
+			}
+		}
+	}
+}
