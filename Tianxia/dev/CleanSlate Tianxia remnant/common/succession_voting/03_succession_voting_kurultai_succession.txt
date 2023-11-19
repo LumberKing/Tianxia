@@ -1,0 +1,274 @@
+# The entry should be named in the same way that the elective succession law is named to define its voter's logic
+# ROOT 			Voter, the character voting in the election
+# FROM			Candidate, character considered for the title
+# FROMFROM		The title the nomination is for
+# FROMFROMFROM	The title owner's candidate
+# The voter will vote for the top score candidate calculated from this script
+
+kurultai = {
+	elector_vote_strength = {
+		days = 1
+		
+		kurultai_vote_strength_score = yes
+	}
+
+	elector_selection = {
+		days = -5
+
+		trigger = {
+			FROMFROM = {
+				has_holder = yes
+			}
+		}
+
+		additive_modifier = { # Current ruler is always an elector
+			value = 30
+
+			FROMFROM = {
+				holder = ROOT
+			}
+		}
+
+		additive_modifier = { # Nomadic vassals get to vote
+			value = 10
+			
+			FROMFROM = {
+				holder_scope = {
+					any_vassal = {
+						is_nomadic = yes
+						character = ROOT
+					}
+				}
+			}
+		}
+
+		additive_modifier = { # Councillors get to vote, even if non-nomadic
+			value = 10
+			
+			FROMFROM = {
+				holder_scope = {
+					any_voter = {
+						character = ROOT
+					}
+				}
+			}
+		}
+
+		additive_modifier = { # Spouses and consorts of the holder get to vote
+			value = 10
+			
+			FROMFROM = {
+				holder_scope = {
+					OR = {
+						any_spouse = {
+							character = ROOT
+						}
+						any_consort = {
+							character = ROOT
+						}
+					}
+				}
+			}
+		}
+		
+		# No voting if you're not capable of ruling!
+		additive_modifier = {
+			value = -1000
+			is_actually_incapable_trigger = yes
+		}
+		
+		additive_modifier = {
+			value = -1000
+			prisoner = yes
+		}
+		
+		# Pacifists need not apply
+		additive_modifier = {
+			value = -1000
+			FROMFROM = {
+				holder_scope = {
+					pacifist = no
+				}
+			}
+			pacifist = yes
+		}
+	}
+
+	# ROOT is current title holder
+	# FROM is candidate
+	# FROMFROM is title
+	# FROMFROMFROM is null
+	candidate_trigger = {
+		# The title must currently exist
+		FROMFROM = {
+			has_holder = yes
+		}
+
+		FROM = {
+			is_adult = yes # Only adults; this is not for the Mongol Empire itself!
+			
+			trigger_if = {
+				limit = {
+					ROOT = {
+						pacifist = no
+					}
+				}
+				pacifist = no # Pacifists need not apply!
+			}
+			
+			# In general, must be either 1) a nomad, 2) unlanded with a nomadic liege, 3) a close relative of the current holder or a nomadic vassal thereof AND either a nomadic merc or unlanded
+			OR = {
+				is_nomadic = yes
+				AND = {
+					is_landed = no
+					employer = {
+						is_nomadic = yes
+					}
+				}
+				AND = {
+					OR = {
+						is_close_relative = ROOT
+						ROOT = {
+							any_vassal = {
+								is_nomadic = yes
+								is_close_relative = FROM
+							}
+						}
+					}
+					OR = {
+						AND = {
+							mercenary = yes
+							has_character_flag = nomadic_mercenary
+						}
+						is_landed = no
+					}
+				}
+			}
+			
+			OR = {
+				# Title claimant
+				has_claim = ROOT_FROMFROM
+
+				# Family relations
+				trigger_if = {
+					limit = { is_close_relative = ROOT }
+
+					OR = {
+						dynasty = ROOT
+
+						AND = {
+							is_landed = yes
+							higher_real_tier_than = BARON
+						}
+					}
+				}
+				
+				trigger_if = {
+					limit = { vassal_of = ROOT }
+					is_nomadic = yes
+				}
+			}
+
+			# Candidate should not be a landless Courtier who is about to inherit a Theocracy or Republic
+			trigger_if = {
+				limit = {
+					any_heir_title = {
+						OR = {
+							is_republic = yes
+							is_theocracy = yes
+						}
+					}
+				}
+
+				is_landed = yes
+				is_republic = no
+				is_theocracy = no
+			}
+
+			# If the current ruler controls the religion, candidates must be of the same religion
+			trigger_if = {
+				limit = { ROOT = { controls_religion = yes } }
+				religion = ROOT
+			}
+
+			is_ascetic_trigger = no
+			is_theocracy = no
+			is_republic = no
+
+			NOR = {
+				# Uncommenting this condition provokes that a ruler's son is not a valid candidate if the parent is married to the ruler and a candidate
+				# mother = {
+				#	is_alive = yes
+				#	is_married = ROOT
+				#	parent_for_elective_succession_trigger = yes
+				# }
+				# father = {
+				#	is_alive = yes
+				#	is_married = ROOT
+				#	parent_for_elective_succession_trigger = yes
+				# }
+
+				trait = cat
+				trait = disinherited
+				trait = horse
+				trait = eunuch
+				trait = crusader_king
+				trait = crusader_queen
+				character = ROOT # Not the current ruler
+				trait = bear
+				trait = dragon_bride_unmarried
+				trait = dragon_bride_married
+				trait = sent_to_china
+			}
+		}
+	}
+
+	# ROOT = Elector
+	# FROM = Candidate
+	# FROMFROM = Title
+	# FROMFROMFROM = Null
+	candidate_vote_score = {
+		days = 0
+
+		### Elector voting himself ###
+		elector_self_tribal_vote = yes
+
+		### Candidate ###
+
+		# Heir
+		elector_heir_vote = yes
+
+		## All candidates
+		# TODO: Add relevant
+
+		# Sexism
+		elector_candidate_gender_vote = yes
+
+		# Ageism
+		elector_candidate_age_vote = yes
+
+		# Culturism
+		elector_candidate_culture_vote = yes
+
+		# Faithism
+		elector_candidate_religion_vote = yes
+
+		# Branch traits - some impact
+		elector_candidate_traits_pagan_branch_bias_weak_vote = yes
+		elector_candidate_traits_sunni_branch_bias_weak_vote = yes
+		elector_candidate_traits_hindu_branch_bias_weak_vote = yes
+		elector_candidate_traits_buddhist_branch_bias_weak_vote = yes
+		elector_candidate_traits_jain_branch_bias_weak_vote = yes
+		elector_candidate_traits_taoist_branch_bias_weak_vote = yes
+		elector_candidate_traits_confucian_branch_bias_weak_vote = yes
+		
+		# Ruler traits
+		elector_ruler_traits_vote = yes
+
+		# Candidate opinion
+		elector_candidate_opinion_vote = yes
+
+		# Ruler opinion
+		elector_ruler_opinion_vote = yes
+	}
+}

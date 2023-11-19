@@ -1,0 +1,146 @@
+# Angkor Wat events
+
+namespace = mr
+
+# IDs 201-300 reserved
+
+# Angkor Wat conversion, based on the Hagia Sophia conversion event; loc is generic and works as such
+
+character_event = {
+	id = mr.201
+	title = wonder_angkor_wat
+	picture = GFX_evt_angkor_wat
+	border = GFX_event_normal_frame_religion
+
+	desc = {
+		text = EVTDESC_LT_20900_chaplain
+		trigger = { job_spiritual = { always = yes } }
+	}
+	desc = {
+		text = EVTDESC_LT_20900
+		trigger = { NOT = { job_spiritual = { always = yes } } }
+	}
+
+	is_triggered_only = yes # on_new_holder(_inheritance/usurpation)
+
+    only_independent = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { religion = hindu }
+
+			any_realm_wonder = {
+				NOT = { has_wonder_flag = Angkor_Wat_hindu }
+				has_wonder_flag = Angkor_Wat_buddhist
+			}
+		}
+		
+		trigger_else = {
+			religion = buddhist
+
+			any_realm_wonder = {
+				NOT = { has_wonder_flag = Angkor_Wat_buddhist }
+				has_wonder_flag = Angkor_Wat_hindu
+			}
+		}
+		NOT = {
+			has_character_flag = ignore_angkor_wat # Should prevent spam
+		}
+   	}
+
+	immediate = {
+		random_realm_wonder = {
+			limit = { has_wonder = wonder_angkor_wat }
+			save_event_target_as = target_wonder
+
+			if = {
+				limit = {
+					trigger_if = {
+						limit = { has_wonder_flag = Angkor_Wat_hindu }
+    					location = { religion = hindu }
+					}
+					trigger_else = {
+						has_wonder_flag = Angkor_Wat_buddhist
+						location = { religion = buddhist }
+					}
+				}
+				
+				event_target:target_wonder = { location = { set_province_flag = people_had_angkor_wat } }
+			}
+		}
+	}
+
+	option = { # Convert
+		name = EVTOPTA_LT_20900
+
+		event_target:target_wonder = { clear_flags_with_prefix = Angkor_Wat_ }
+
+		if = {
+			limit = { religion = hindu }
+
+			event_target:target_wonder = {
+				set_wonder_flag = Angkor_Wat_hindu
+			}
+		}
+		
+		else = {
+			event_target:target_wonder = {
+				set_wonder_flag = Angkor_Wat_buddhist
+			}
+		}
+
+		piety = 200
+
+		reverse_opinion = {
+			name = opinion_religious_tract
+			who = job_spiritual
+			years = 5
+		}
+
+		event_target:target_wonder = {
+			show_scope_change = no
+
+			location = {
+				show_scope_change = no
+
+				if = {
+					limit = { has_province_flag = people_had_angkor_wat }
+
+					add_province_modifier = {
+						name = religious_tension
+						years = 5
+					}
+				}
+			}
+		}
+	}
+
+	option = { # Don't Convert
+		name = EVTOPTB_LT_20900
+
+		piety = -50
+
+		reverse_opinion = {
+			name = opinion_angry
+			who = job_spiritual
+			years = 5
+		}
+
+		event_target:target_wonder = {
+			show_scope_change = no
+
+			location = {
+				show_scope_change = no
+
+				if = {
+					limit = { has_province_flag = people_had_angkor_wat }
+
+					add_province_modifier = {
+						name = religious_tolerance
+						years = 10
+					}
+				}
+			}
+		}
+	}
+}
