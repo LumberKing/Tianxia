@@ -1,0 +1,356 @@
+decisions = {
+	# Draught of Healing
+	use_draught_of_healing = {
+		ai_check_interval = 120
+		is_high_prio = yes
+		only_playable = yes
+		
+		potential = {
+			has_artifact = draught_of_healing
+			NOT = {
+				has_character_flag = using_draught_of_healing
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			# Make sure the AI doesn't waste it
+			trigger_if = {
+				limit = {
+					ai = yes
+				}
+				has_epidemic_disease_trigger = yes
+				is_maimed_trigger = yes
+			}
+		}
+		
+		effect = {
+			set_character_flag = using_draught_of_healing
+			
+			character_event = { id = tianxia.1101 } # Confirmation
+		}
+		
+		ai_will_do = {
+			trigger = {
+				health < 6
+			}
+			
+			factor = 1
+			
+			mult_modifier = {
+				factor = 0.001
+				health >= 3
+			}
+		}
+	}
+	
+	# Vial of Immortality
+	use_vial_of_immortality = {
+		ai_check_interval = 12 # Important to use it before you die...
+		is_high_prio = yes
+		only_playable = yes
+		
+		potential = {
+			has_artifact = vial_of_immortality
+			NOT = {
+				has_character_flag = using_vial_of_immortality
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_adult = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			NOR = {
+				trait = immortal
+				trait = depressed
+			}
+		}
+		
+		effect = {
+			set_character_flag = using_vial_of_immortality
+			
+			character_event = { id = tianxia.1101 } # Confirmation
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 1000
+				has_ambition = obj_become_immortal
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = content
+			}
+		}
+	}
+	
+	# Living Flame
+	unleash_living_flame = {
+		ai = no
+		only_playable = yes
+		is_high_prio = yes
+		
+		potential = {
+			has_artifact = living_flame
+			NOT = {
+				has_character_flag = unleashing_living_flame
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			location = {
+				holder_scope = {
+					OR = {
+						war_with = ROOT # The province is an enemy province
+						
+						ROOT = { # I am crazy!
+							OR = {
+								trait = lunatic
+								trait = possessed
+							}
+						}
+					}
+				}
+					
+				is_any_holy_site_trigger = no # Protection from Evil (and Chaos)!
+			}
+		}
+		
+		effect = {
+			set_character_flag = unleashing_living_flame
+			
+			character_event = { id = tianxia.1103 } # Burninate the province!
+		}
+		
+		ai_will_do = {
+			factor = 0 # The AI can't be trusted with this power...
+		}
+	}
+	
+	# Deed to the Dragon Throne
+	use_deed_to_the_dragon_throne = {
+		only_independent = yes # Maybe relax a bit?
+		ai_check_interval = 12 # Quite important
+		is_high_prio = yes
+		
+		potential = {
+			is_feudal = yes
+			NOR = {
+				has_landed_title = e_china # Already the real EoC
+				e_china = {
+					claimed_by = ROOT
+				}
+			}
+			holy_order = no
+			has_artifact = deed_to_the_dragon_throne
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_adult = yes
+			
+			OR = {
+				higher_real_tier_than = duke
+				controls_religion = yes
+			}
+			
+			war = no
+			
+			is_tributary = no
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			has_regent = no
+			
+			# Cannot be the heir to e_china
+			e_china = {
+				holder_scope = {
+					NOR = {
+						current_heir = {
+							character = ROOT
+						}
+					}
+					# The AI should not do this if it shares the dynasty of the EoC
+					OR = {
+						ROOT = {
+							ai = no
+						}
+						NOT = {
+							dynasty = ROOT
+						}
+					}
+				}
+			}
+			
+			NOT = {
+				has_character_modifier = peace_deal_with_china # If you have a Chinese Peace Deal, you need to break it or wait for it to expire
+			}
+		}
+		
+		effect = {
+			unsafe_destroy_artifact = deed_to_the_dragon_throne
+			
+			e_china = {
+				add_pressed_claim = ROOT
+				holder_scope = {
+					character_event = { id = tianxia.1105 } # Notify the EoC
+				}
+			}
+			
+			if = {
+				limit = {
+					e_china = {
+						holder_scope = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				
+				if = { # If we have positive Grace, zero it out!
+					limit = {
+						check_variable = {
+							which = grace
+							value > 0
+						}
+					}
+					
+					set_variable = {
+						which = grace
+						value = 0
+					}
+				}
+				
+				detract_grace_super_huge_effect = yes # China is VERY upset with you for doing this!
+				
+				detract_grace_super_huge_effect = yes # China is VERY upset with you for doing this!
+				
+				hidden_tooltip = {
+					e_china = {
+						holder_scope = {
+							mandate_penalty_large_effect = yes
+						}
+					}
+				}
+			}
+		}
+		
+		ai_will_do = {
+			trigger = {
+				e_china = {
+					has_holder = yes
+					holder_scope = {
+						is_within_diplo_range = ROOT
+						relative_power_including_allies_defender = {
+							who = ROOT
+							power < 1.0
+						}
+					}
+				}
+				NOT = {
+					trait = content
+				}
+			}
+			
+			factor = 1
+		}
+	}
+	
+	# Incomplete Deck of Cards
+	draw_a_card = {
+		ai = no
+		only_playable = yes
+		is_high_prio = yes
+		
+		potential = {
+			has_artifact = incomplete_deck_of_cards
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+		}
+		
+		effect = {
+			character_event = { id = tianxia.1106 } # Draw a card!
+		}
+		
+		ai_will_do = {
+			factor = 0 # The AI wouldn't understand it
+		}
+	}
+	
+	# Lost Eagle of the Lost Legion
+	restore_lost_legion = {
+		is_high_prio = yes
+		only_independent = yes
+		ai_check_interval = 12
+		
+		potential = {
+			has_artifact = lost_roman_eagle
+			NOT = {
+				has_earmarked_regiments = lost_roman_legion
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_adult = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			has_regent = no
+			
+			OR = {
+				prestige >= 1000
+				culture = roman
+			}
+		}
+		
+		effect = {
+			custom_tooltip = {
+				text = create_roman_legion
+				capital_scope = {
+					PREV = {
+						spawn_unit = {
+							owner = ROOT
+							province = PREV
+							home = PREV
+							troops = {
+								heavy_infantry = { 6100 6100 } # 1105 + 9 * 555
+								knights = { 726 726 } # 132 + 9 * 66
+							}
+							attrition = 1.0
+							maintenance_multiplier = 1.0
+							can_toggle_looting = no
+							is_looter = no
+							reinforces = yes
+							reinforce_rate_multiplier = 1.0
+							earmark = lost_roman_legion
+						}
+					}
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+		}
+	}
+}
