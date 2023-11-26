@@ -43816,6 +43816,8 @@ narrative_event = {
 	}
 }
 
+##### Misc CI
+
 # Cleanup of Imperial Guard regiments on peace
 character_event = {
 	id = soh.5664
@@ -43925,5 +43927,228 @@ character_event = {
 		remove_character_modifier = tianwu_guard_raised
 		remove_character_modifier = longwei_guard_raised
 		remove_character_modifier = shenwei_guard_raised
+	}
+}
+
+# Handling of CI rulers (at least of China) sometimes going way above their demesne limit and not understanding what to do
+character_event = {
+	id = soh.5666
+	hide_window = yes
+	
+	is_triggered_only = yes # on_new_holder/on_new_holder_inheritance/on_new_holder_usurpation
+	
+	only_independent = yes
+	ai = yes
+	
+	trigger = {
+		government = chinese_imperial_government
+		over_max_demesne_size >= 2
+		FROM = {
+			OR = {
+				tier = count
+				tier = baron
+			}
+		}
+	}
+	
+	immediate = {
+		# Pick a suitable title
+		random_demesne_title = {
+			limit = {
+				OR = {
+					tier = baron
+					tier = count
+				}
+				NOT = {
+					ROOT = {
+						capital_scope = {
+							county = {
+								title = PREVPREVPREV
+							}
+						}
+					}
+				}
+			}
+			
+			preferred_limit = {
+				tier = baron
+			}
+			
+			preferred_limit = {
+				NOT = {
+					de_jure_liege_or_above = ROOT
+				}
+			}
+			
+			save_event_target_as = title_to_give_away
+		}
+		# Hand the title to someone suitable
+		if = {
+			limit = {
+				any_courtier = {
+					same_sex = ROOT # Probably good enough
+					is_adult = yes
+					prisoner = no
+					is_ascetic_trigger = no
+				}
+			}
+			
+			random_courtier = {
+				limit = {
+					same_sex = ROOT # Probably good enough
+					is_adult = yes
+					prisoner = no
+				}
+				
+				preferred_limit = {
+					culture = ROOT
+					religion = ROOT
+				}
+				
+				preferred_limit = {
+					could_have_chinese_government_trigger = yes
+				}
+				
+				grant_title = event_target:title_to_give_away
+			}
+		}
+		
+		else_if = {
+			limit = {
+				any_realm_lord = {
+					any_courtier = {
+						same_sex = ROOT # Probably good enough
+						is_adult = yes
+						prisoner = no
+						is_ascetic_trigger = no
+					}
+				}
+			}
+			
+			random_realm_lord = {
+				limit = {
+					any_courtier = {
+						same_sex = ROOT # Probably good enough
+						is_adult = yes
+						prisoner = no
+						is_ascetic_trigger = no
+					}
+				}
+				
+				random_courtier = {
+					limit = {
+						same_sex = ROOT # Probably good enough
+						is_adult = yes
+						prisoner = no
+					}
+					
+					preferred_limit = {
+						culture = ROOT
+						religion = ROOT
+					}
+					
+					preferred_limit = {
+						could_have_chinese_government_trigger = yes
+					}
+					
+					grant_title = event_target:title_to_give_away
+				}
+			}
+		}
+		
+		else = {
+			create_character = {
+				age = 30
+				dynasty = culture
+				culture = ROOT
+				religion = ROOT
+				is_female = no
+				random_traits = yes
+			}
+			
+			new_character = {
+				grant_title = event_target:title_to_give_away
+			}
+		}
+	}
+}
+
+# Handling of dynasty members being where they shouldn't be
+character_event = {
+	id = soh.5667
+	hide_window = yes
+	
+	is_triggered_only = yes # on_startup
+	
+	only_playable = yes
+	
+	trigger = {
+		owns = event_target:pulse_province
+		NOT = {
+			has_global_flag = courtiers_moved
+		}
+	}
+	
+	immediate = {
+		set_global_flag = courtiers_moved
+		
+		any_independent_ruler = {
+			limit = {
+				government = chinese_imperial_government
+			}
+			
+			character_event = { id = soh.5668 } # Fire the event for CI rulers
+		}
+		
+		k_chrysanthemum_throne = {
+			holder_scope = {
+				character_event = { id = soh.5668 } # Fire the event for CI rulers
+			}
+		}
+	}
+}
+
+# Actual event
+character_event = {
+	id = soh.5668
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		any_dynasty_member = {
+			limit = {
+				is_landed = no
+				prisoner = no
+				employer = {
+					NOR = {
+						character = ROOT
+						is_close_relative = PREV
+						is_consort =  PREV
+						any_close_relative = {
+							employer = {
+								character = PREV
+							}
+							OR = {
+								is_married = PREVPREV
+								is_consort = PREVPREV
+							}
+						}
+						is_descendant_of = PREV
+					}
+				}
+			}
+			
+			move_character = ROOT
+			force_host = ROOT
+		}
+		
+		if = {
+			limit = {
+				is_chinese_emperor_trigger = yes
+			}
+			
+			set_up_chinese_dynasty_effect = yes
+		}
 	}
 }

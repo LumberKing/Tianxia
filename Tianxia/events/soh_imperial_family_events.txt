@@ -643,6 +643,40 @@ character_event = {
 	}
 	
 	immediate = {
+		FROMFROM = {
+			diplomatic_immunity = no
+			
+			if = {
+				limit = {
+					is_dying = no
+				}
+				
+				add_trait = retired_emperor
+			}
+		}
+		
+		if = {
+			limit = {
+				independent = no
+				liege = {
+					could_have_japanese_government_trigger = yes
+				}
+			}
+			
+			diplomatic_immunity = yes
+			
+			if = {
+				limit = {
+					prisoner = yes
+					host = {
+						could_have_japanese_government_trigger = yes
+					}
+				}
+				
+				character_event = { id = soh.7022 } # Free the Tenno
+			}
+		}
+		
 		if = {
 			limit = {
 				ai = yes
@@ -3912,7 +3946,7 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SOH_3513 # Banzai! Banzai! Banzai!
+		name = EVTOPTA_SOH_7012 # Banzai! Banzai! Banzai!
 		
 		remove_trait = retired_emperor
 		
@@ -3923,10 +3957,6 @@ character_event = {
 					is_dying = no
 					can_have_japanese_bureaucracy_and_feudal_trigger = yes
 				}
-			}
-			
-			FROMFROM = {
-				add_trait = retired_emperor
 			}
 		}
 	}
@@ -3974,5 +4004,592 @@ character_event = {
 		set_government_type = divine_imperial_government
 		
 		set_special_character_title = CHIFI_UFUJIN
+	}
+}
+
+##### The "Get Out Of Jail Free Card" for the Tenno
+
+# on_startup, check if the Tenno needs diplomatic_immunity = yes
+character_event = {
+	id = soh.7015
+	hide_window = yes
+	
+	is_triggered_only = yes # on_startup
+	
+	only_playable = yes
+	
+	trigger = {
+		is_the_tenno_trigger = yes
+		independent = no
+		liege = {
+			could_have_japanese_government_trigger = yes
+		}
+	}
+	
+	immediate = {
+		diplomatic_immunity = yes
+	}
+}
+
+# on_yearly_pulse, clean up diplomatic_immunity for the Tenno if he should not have it
+character_event = {
+	id = soh.7016
+	hide_window = yes
+	
+	is_triggered_only = yes # on_yearly_pulse
+	
+	only_playable = yes
+	
+	trigger = {
+		is_the_tenno_trigger = yes
+		liege = {
+			could_have_japanese_government_trigger = no
+		}
+	}
+	
+	immediate = {
+		diplomatic_immunity = no
+	}
+}
+
+# Check if the Tenno is a vassal on any on_war_ended on_action and apply diplomatic_immunity
+character_event = {
+	id = soh.7017
+	hide_window = yes
+	
+	is_triggered_only = yes # any on_war_ended
+	
+	only_rulers = yes
+	
+	trigger = {
+		k_chrysanthemum_throne = {
+			holder_scope = {
+				independent = no
+			}
+		}
+	}
+	
+	immediate = {
+		k_chrysanthemum_throne = {
+			holder_scope = {
+				if = {
+					limit = {
+						liege = {
+							could_have_japanese_government_trigger = yes
+						}
+					}
+					
+					diplomatic_immunity = yes
+				}
+				
+				else = {
+					diplomatic_immunity = no
+				}
+			}
+		}
+	}
+}
+
+# Any on_new_holder on_action check for the Tenno being a prisoner or vassal
+character_event = {
+	id = soh.7018
+	hide_window = yes
+	
+	is_triggered_only = yes # on_new_holder/_inheritance/_usurpation
+	
+	only_independent = yes
+	
+	trigger = {
+		OR = {
+			FROM = {
+				tier = emperor
+			}
+			any_courtier = {
+				prisoner = yes
+				is_the_tenno_trigger = yes
+			}
+		}
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				any_vassal = {
+					is_the_tenno_trigger = yes
+				}
+			}
+			
+			if = {
+				limit = {
+					could_have_japanese_government_trigger = yes
+				}
+				
+				k_chrysanthemum_throne = {
+					holder_scope = {
+						diplomatic_immunity = yes
+					}
+				}
+			}
+			
+			else = {
+				k_chrysanthemum_throne = {
+					holder_scope = {
+						diplomatic_immunity = no
+					}
+				}
+			}
+		}
+		
+		else_if = {
+			limit = {
+				any_independent_ruler = {
+					is_the_tenno_trigger = yes
+					diplomatic_immunity = yes
+				}
+			}
+			
+			k_chrysanthemum_throne = {
+				holder_scope = {
+					diplomatic_immunity = no
+				}
+			}
+		}
+		
+		k_chrysanthemum_throne = {
+			holder_scope = {
+				if = {
+					limit = {
+						prisoner = yes
+						host = {
+							character = ROOT
+							could_have_japanese_government_trigger = yes
+						}
+					}
+					
+					character_event = { id = soh.7022 } # Free the Tenno
+				}
+			}
+		}
+	}
+}
+
+# Religious conversion check for the Tenno being a prisoner or vassal
+character_event = {
+	id = soh.7019
+	hide_window = yes
+	
+	is_triggered_only = yes # on_character_convert_religion
+	
+	only_playable = yes
+	
+	trigger = {
+		OR = {
+			any_vassal = {
+				is_the_tenno_trigger = yes
+			}
+			any_courtier = {
+				prisoner = yes
+				is_the_tenno_trigger = yes
+			}
+		}
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				any_vassal = {
+					is_the_tenno_trigger = yes
+				}
+			}
+			
+			if = {
+				limit = {
+					could_have_japanese_government_trigger = yes
+				}
+				
+				k_chrysanthemum_throne = {
+					holder_scope = {
+						diplomatic_immunity = yes
+						
+						if = {
+							limit = {
+								prisoner = yes
+								host = {
+									character = ROOT
+								}
+							}
+							
+							character_event = { id = soh.7022 } # Free the Tenno
+						}
+					}
+				}
+			}
+			
+			else = {
+				k_chrysanthemum_throne = {
+					holder_scope = {
+						diplomatic_immunity = no
+					}
+				}
+			}
+		}
+	}
+}
+
+# Culture conversion check for the Tenno being a prisoner or vassal
+character_event = {
+	id = soh.7020
+	hide_window = yes
+	
+	is_triggered_only = yes # on_character_convert_culture
+	
+	only_playable = yes
+	
+	trigger = {
+		OR = {
+			any_vassal = {
+				is_the_tenno_trigger = yes
+			}
+			any_courtier = {
+				prisoner = yes
+				is_the_tenno_trigger = yes
+			}
+		}
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				any_vassal = {
+					is_the_tenno_trigger = yes
+				}
+			}
+			
+			if = {
+				limit = {
+					could_have_japanese_government_trigger = yes
+				}
+				
+				k_chrysanthemum_throne = {
+					holder_scope = {
+						diplomatic_immunity = yes
+						
+						if = {
+							limit = {
+								prisoner = yes
+								host = {
+									character = ROOT
+								}
+							}
+							
+							character_event = { id = soh.7022 } # Free the Tenno
+						}
+					}
+				}
+			}
+			
+			else = {
+				k_chrysanthemum_throne = {
+					holder_scope = {
+						diplomatic_immunity = no
+					}
+				}
+			}
+		}
+	}
+}
+
+# on_become_imprisoned_any_reason for the Tenno - check if valid imprisonment
+character_event = {
+	id = soh.7021
+	hide_window = yes
+	
+	is_triggered_only = yes # on_become_imprisoned_any_reason
+	
+	only_playable = yes
+	
+	trigger = {
+		is_the_tenno_trigger = yes
+		FROM = {
+			could_have_japanese_government_trigger = yes
+		}
+	}
+	
+	immediate = {
+		character_event = { id = soh.7022 } # Free the Tenno
+	}
+}
+
+# The Tenno is a prisoner and shouldn't be - determine proper handling of possible release
+character_event = {
+	id = soh.7022
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		host = {
+			save_event_target_as = jailer
+		}
+		
+		if = {
+			limit = {
+				NOT = {
+					any_war = {
+						OR = {
+							AND = {
+								attacker = {
+									character = ROOT
+								}
+								any_defender = {
+									character = event_target:jailer
+								}
+							}
+							AND = {
+								defender = {
+									character = ROOT
+								}
+								any_attacker = {
+									character = event_target:jailer
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			prisoner = no
+			
+			character_event = { id = soh.7023 } # Tenno freed - Tenno
+			
+			event_target:jailer = {
+				character_event = { id = soh.7024 } # Tenno freed - former jailer
+			}
+		}
+		
+		else_if = {
+			limit = {
+				any_war = {
+					attacker = {
+						character = ROOT
+					}
+					any_defender = {
+						character = event_target:jailer
+					}
+				}
+			}
+			
+			any_war = {
+				limit = {
+					attacker = {
+						character = ROOT
+					}
+					any_defender = {
+						character = event_target:jailer
+					}
+				}
+				
+				end_war = reverse_demand
+			}
+			
+			if = {
+				limit = {
+					is_the_tenno_trigger = yes
+				}
+				
+				prisoner = no
+				
+				character_event = { id = soh.7025 } # Tenno freed - Tenno
+				
+				event_target:jailer = {
+					character_event = { id = soh.7026 } # Tenno freed - former jailer
+				}
+			}
+			
+			else = {
+				character_event = { id = soh.7027 } # Former Tenno remains prisoner - former Tenno
+				
+				event_target:jailer = {
+					character_event = { id = soh.7028 } # Former Tenno remains prisoner - jailer
+				}
+			}
+		}
+		
+		else = {
+			any_war = {
+				limit = {
+					defender = {
+						character = ROOT
+					}
+					any_attacker = {
+						character = event_target:jailer
+					}
+				}
+				
+				end_war = success
+			}
+			
+			if = {
+				limit = {
+					is_the_tenno_trigger = yes
+				}
+				
+				prisoner = no
+				
+				character_event = { id = soh.7029 } # Tenno freed - Tenno
+				
+				event_target:jailer = {
+					character_event = { id = soh.7030 } # Tenno freed - former jailer
+				}
+			}
+			
+			else = {
+				character_event = { id = soh.7031 } # Former Tenno remains prisoner - former Tenno
+				
+				event_target:jailer = {
+					character_event = { id = soh.7032 } # Former Tenno remains prisoner - jailer
+				}
+			}
+		}
+	}
+}
+
+# No war - Tenno released - Tenno
+character_event = {
+	id = soh.7023
+	desc = EVTDESC_SOH_7023
+	picture = GFX_evt_china_golden_age
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_7023 # As it should be!
+	}
+}
+
+# No war - Tenno released - former jailer
+character_event = {
+	id = soh.7024
+	desc = EVTDESC_SOH_7024
+	picture = GFX_evt_china_golden_age
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_7024 # As it should be!
+	}
+}
+
+# Offensive war ended in defeat, Tenno still the Tenno - Tenno
+character_event = {
+	id = soh.7025
+	desc = EVTDESC_SOH_7025
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_7025 # Very well...
+	}
+}
+
+# Defensive war ended in victory, Tenno still the Tenno - former jailer
+character_event = {
+	id = soh.7026
+	desc = EVTDESC_SOH_7026
+	picture = GFX_evt_china_diplomatic_success
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_7026 # Acceptable terms!
+	}
+}
+
+# Offensive war ended in defeat, no longer the Tenno - former Tenno
+character_event = {
+	id = soh.7027
+	desc = EVTDESC_SOH_7027
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_7027 # Curses!
+	}
+}
+
+# Defensive war ended in victory, former Tenno no longer the Tenno - jailer
+character_event = {
+	id = soh.7028
+	desc = EVTDESC_SOH_7028
+	picture = GFX_evt_china_diplomatic_success
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_7028 # Great!
+	}
+}
+
+# Defensive war ended in defeat, Tenno still the Tenno - Tenno
+character_event = {
+	id = soh.7029
+	desc = EVTDESC_SOH_7029
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_7029 # Very well...
+	}
+}
+
+# Offensive war ended in victory, Tenno still the Tenno, former jailer
+character_event = {
+	id = soh.7030
+	desc = EVTDESC_SOH_7030
+	picture = GFX_evt_china_diplomatic_success
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_7030 # Acceptable terms!
+	}
+}
+
+# Defensive war ended in defeat, no longer the Tenno - former Tenno
+character_event = {
+	id = soh.7031
+	desc = EVTDESC_SOH_7031
+	picture = GFX_evt_china_diplomatic_incident
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_7031 # Curses!
+	}
+}
+
+# Offensive war ended in victory, former Tenno no longer the Tenno - jailer
+character_event = {
+	id = soh.7032
+	desc = EVTDESC_SOH_7032
+	picture = GFX_evt_china_diplomatic_success
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_7032 # Great!
 	}
 }
