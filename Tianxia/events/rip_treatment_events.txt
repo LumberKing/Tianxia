@@ -1738,17 +1738,16 @@ character_event = {
 	prisoner = no
 
 	trigger = {
-		trigger_if = {
-			limit = { is_playable = yes }
-			has_assigned_minor_title = title_court_physician
-		}
-		trigger_else = {
-			OR = {
-				host = { has_assigned_minor_title = title_court_physician }
-				has_minor_title = title_court_physician # So unlanded court physicians can treat themselves
-			}
-		}
-
+		#trigger_if = {
+		#	limit = { is_playable = yes }
+		#	has_assigned_minor_title = title_court_physician
+		#}
+		#trigger_else = {
+		#	OR = {
+		#		host = { has_assigned_minor_title = title_court_physician }
+		#		has_minor_title = title_court_physician # So unlanded court physicians can treat themselves
+		#	}
+		#}
 		OR = {
 			character_disease_trigger = yes
 
@@ -1780,6 +1779,7 @@ character_event = {
 	}
 
 	immediate = {
+		#log = "Treatment event fired for [This.GetBestName]!"
 		if = {
 			limit = { is_playable = no }
 
@@ -1806,57 +1806,70 @@ character_event = {
 				save_event_target_as = court_physician
 			}
 		}
-
+	
 		if = {
 			limit = {
-				has_epidemic_disease_trigger = yes
-				in_seclusion = yes
-				NOT = { has_character_flag = seclusion_treatment_approved }
+				event_target:court_physician = {
+					always = yes
+				}
+			}
+			#log = "There is a Court Physician: [court_physician.GetBestName]!"
+			
+			if = {
+				limit = {
+					has_epidemic_disease_trigger = yes
+					in_seclusion = yes
+					NOT = { has_character_flag = seclusion_treatment_approved }
+
+					host = {
+						NOT = { character = ROOT }
+					}
+				}
+
+				save_event_target_as = epidemic_victim
 
 				host = {
-					NOT = { character = ROOT }
+					character_event = { id = RIP.12014 } # Ask to approve treatment
 				}
 			}
+			else = {
+				set_character_flag = being_treated
 
-			save_event_target_as = epidemic_victim
+				if = {
+					limit = { has_any_symptom = yes }
 
-			host = {
-				character_event = { id = RIP.12014 } # Ask to approve treatment
+					character_event = {
+						id = RIP.11045 # Symptom treatment
+						days = 1
+						random = 2
+					}
+				}
+				else_if = {
+					limit = { character_disease_trigger = yes }
+
+					character_event = {
+						id = RIP.11035 # Disease treatment
+						days = 2
+						random = 4
+					}
+				}
+				else_if = {
+					limit = {
+						trait = leper
+						has_character_flag = new_leper_character
+					}
+
+					character_event = {
+						id = RIP.11062 # Inform of leprosy
+						days = 2
+						random = 4
+					}
+				}
 			}
 		}
+		
 		else = {
-			set_character_flag = being_treated
-
-			if = {
-				limit = { has_any_symptom = yes }
-
-				character_event = {
-					id = RIP.11045 # Symptom treatment
-					days = 1
-					random = 2
-				}
-			}
-			else_if = {
-				limit = { character_disease_trigger = yes }
-
-				character_event = {
-					id = RIP.11035 # Disease treatment
-					days = 2
-					random = 4
-				}
-			}
-			else_if = {
-				limit = {
-					trait = leper
-					has_character_flag = new_leper_character
-				}
-
-				character_event = {
-					id = RIP.11062 # Inform of leprosy
-					days = 2
-					random = 4
-				}
-			}
+			#log = "No court physician!"
 		}
 	}
 }
@@ -7832,10 +7845,8 @@ character_event = {
 					e_china = {
 						holder_scope = {
 							is_chinese_emperor_trigger = yes
-							AND = {
-								is_close_relative = event_target:court_physician
-								dynasty = event_target:court_physician
-							}
+							is_close_relative = event_target:court_physician
+							dynasty = event_target:court_physician
 							NOT = {
 								character = ROOT
 							}
@@ -7876,10 +7887,8 @@ character_event = {
 					e_china = {
 						holder_scope = {
 							is_chinese_emperor_trigger = yes
-							AND = {
-								is_close_relative = event_target:court_physician
-								dynasty = event_target:court_physician
-							}
+							is_close_relative = event_target:court_physician
+							dynasty = event_target:court_physician
 							NOT = {
 								character = ROOT
 							}
@@ -7924,10 +7933,8 @@ character_event = {
 					e_china = {
 						holder_scope = {
 							is_chinese_emperor_trigger = yes
-							AND = {
-								is_close_relative = event_target:court_physician
-								dynasty = event_target:court_physician
-							}
+							is_close_relative = event_target:court_physician
+							dynasty = event_target:court_physician
 							NOT = {
 								character = ROOT
 							}
