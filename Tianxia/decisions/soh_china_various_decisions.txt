@@ -1,16 +1,17 @@
 decisions = {
 	create_china = {
-		only_playable = yes
 		only_independent = yes
 		is_high_prio = yes
+		ai_check_interval = 3 # Very important!
 		
 		potential = {
 			# Should NOT require Jade Dragon
-			tier = emperor
+			government = chinese_imperial_government
+			
 			e_china = {
 				has_holder = no
 			}
-			government = chinese_imperial_government
+			
 			any_realm_province = {
 				OR = {
 					county = {
@@ -22,11 +23,21 @@ decisions = {
 		}
 		
 		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			has_regent = no
+			
+			war = no
+			
 			# A sizeable portion of China is controlled
+			realm_size >= 150
+			
 			custom_tooltip = {
 				text = holds_a_lot_of_china
 				any_realm_province = {
-					count = 150 # Lowered from 200 to be more realistic during Iron Century
+					count = 100 # Lowered from 200 to be more realistic during Iron Century
 					OR = {
 						county = {
 							de_jure_liege_or_above = e_china
@@ -35,6 +46,7 @@ decisions = {
 					}
 				}
 			}
+			
 			# No other pretender currently holds a significant portion of China
 			custom_tooltip = {
 				text = no_other_pretender_holds_too_much_of_china
@@ -54,320 +66,434 @@ decisions = {
 					}
 				}
 			}
-			OR = {
-				ai = yes # The AI isn't guaranteed to save up money, so we want to keep it from being screwed over
-				wealth = 1000
-			}
+			
 			# Average or better Mandate is required (should be easy enough)
 			NOR = {
 				has_character_modifier = mandate_of_heaven_2
 				has_character_modifier = mandate_of_heaven_1
 			}
-			prestige = 1000
+			
+			prestige >= 2000
 		}
 		
 		effect = {
-			wealth = -1000
-			set_character_flag = recreated_china # Avoids getting nameofchina.32
-			set_global_flag = china_recreated # Blocks artefact creation on game start if the title is recreated from the IC start (do not set this flag in the history files as that'll break Song and Yuan!)
-			
-			# Clear out Grace, Grace-related modifiers, and Chinese Princesses (even if ROOT happens to share the dynasty of the last EoC)
-			hidden_tooltip = {
-				# Clear out Chinese princesses that somehow had that trait
-				any_character = { # Performance-intensitve, but necessary here
-					limit = {
-						NOT = {
-							dynasty = ROOT
-						}
-					}
-					remove_trait = dragon_bride_unmarried
-					#remove_trait = dragon_bride_married
-				}
-				# Clear all Grace and stop tracking Grace characters
-				any_character = {
-					limit = {
-						has_character_flag = grace_character
-					}
-					set_variable = {
-						which = grace
-						value = 0
-					}
-					clr_character_flag = grace_character
-				}
-				
-				#log = "All Grace has been removed from all characters!"
-				
-				# Revoke all Chinese Trade Contracts
-				any_character = {
-					limit = {
-						has_character_modifier = china_send_relief
-					}
-					remove_character_modifier = china_send_relief
-				}
-				
-				#log = "All relief expeditions have been ended!"
-				
-				## Terminate all "Supply Horses" agreements
-				#any_character = {
-				#	limit = {
-				#		has_character_modifier = china_supply_horses
-				#	}
-				#	remove_character_modifier = china_supply_horses
-				#}
-				#
-				##log = "All agreements to supply horses have been ended!"
-				
-				# Revoke all Chinese Trade Contracts
-				any_character = {
-					limit = {
-						has_character_modifier = chinese_imperial_trade_contract
-					}
-					remove_character_modifier = chinese_imperial_trade_contract
-				}
-				
-				#log = "All Chinese Trade Contracts have been ended!"
-				
-				# Remove all Chinese Peace Deals
-				any_character = {
-					limit = {
-						has_character_modifier = peace_deal_with_china
-					}
-					remove_character_modifier = peace_deal_with_china
-				}
-			}
-			
-			# Clear out the old name of China and grant it to ROOT
-			e_china = {
-				clr_title_flag = tang_china
-				clr_title_flag = jin_china
-				clr_title_flag = wei_china
-				clr_title_flag = qi_china
-				clr_title_flag = zhou_china
-				clr_title_flag = han_china
-				clr_title_flag = qin_china
-				clr_title_flag = yan_china
-				clr_title_flag = zhao_china
-				clr_title_flag = liao_china
-				clr_title_flag = yuan_china
-				clr_title_flag = xia_china
-				clr_title_flag = qing_china
-				clr_title_flag = dai_china
-				clr_title_flag = cheng_china
-				clr_title_flag = liang_china
-				clr_title_flag = song_china
-				clr_title_flag = ming_china
-				clr_title_flag = shu_china
-				clr_title_flag = wu_china
-				clr_title_flag = chu_china
-				clr_title_flag = yue_china
-				clr_title_flag = yin_china
-				clr_title_flag = shun_china
-				clr_title_flag = sui_china
-				clr_title_flag = min_china
-				set_name = ""
-				adjective = ""
-				grant_title = ROOT
-				# Rename China
-				rename_china_after_pretender_title_or_bloodline_effect = yes
-				make_primary_title = yes
-			}
-			
-			# Move any personally held kingdoms in the China region into China, if they've drifted elsewhere
-			any_demesne_title = {
-				limit = {
-					tier = king
-					any_de_jure_vassal_title = {
-						region = world_china
-					}
-					ROOT = {
-						completely_controls = PREV
-					}
-				}
-				de_jure_liege = e_china
-			}
-			
-			# Clear out the name of any held pretender title and destroy it
-			any_demesne_title = {
-				limit = {
-					tier = emperor
-					NOT = {
-						title = e_china
-					}
-				}
-				# Also move any parts of China that have drifted elsewhere back into e_china
-				any_direct_de_jure_vassal_title = {
-					limit = {
-						any_de_jure_vassal_title = {
-							region = world_china
-						}
-						ROOT = {
-							completely_controls = PREV
-						}
-					}
-					de_jure_liege = e_china
-				}
-				remove_global_pretender_china_name_flag_effect = yes
-				set_name = ""
-				adjective = ""
-				clr_title_flag = tang_china
-				clr_title_flag = jin_china
-				clr_title_flag = wei_china
-				clr_title_flag = qi_china
-				clr_title_flag = zhou_china
-				clr_title_flag = han_china
-				clr_title_flag = qin_china
-				clr_title_flag = yan_china
-				clr_title_flag = zhao_china
-				clr_title_flag = liao_china
-				clr_title_flag = yuan_china
-				clr_title_flag = xia_china
-				clr_title_flag = qing_china
-				clr_title_flag = dai_china
-				clr_title_flag = cheng_china
-				clr_title_flag = liang_china
-				clr_title_flag = song_china
-				clr_title_flag = ming_china
-				clr_title_flag = shu_china
-				clr_title_flag = wu_china
-				clr_title_flag = chu_china
-				clr_title_flag = yue_china
-				clr_title_flag = yin_china
-				clr_title_flag = shun_china
-				clr_title_flag = sui_china
-				clr_title_flag = min_china
-				clr_title_flag = pretender_chinese_empire
-				clr_title_flag = five_dynasties_and_ten_kingdoms
-				unsafe_destroy_landed_title = THIS
-			}
-			
-			any_independent_ruler = {
-				limit = {
-					tier = emperor # Should be unnecessary, but...
-					government = chinese_imperial_government
-					NOR = {
-						character = ROOT
-						suzerain = {
-							character = ROOT
-						}
-					}
-					any_realm_province = {
-						OR = {
-							region = world_china
-							county = {
-								de_jure_liege_or_above = e_china
-							}
-						}
-					}
-				}
-				e_china = {
-					add_weak_pressed_claim = PREV # All other Chinese Imperial rulers with land in China get a free inheritable weak claim on China
-				}
-			}
-			
-			# Assign traits to new Chinese princesses
 			if = {
 				limit = {
-					has_game_rule = {
-						name = imperial_marriages
-						value = enabled
+					primary_title = {
+						has_law = succ_chinese_imperial_succession
 					}
 				}
-				if = {
-					limit = {
-						ROOT = {
-							is_chinese_emperor_trigger = yes
-						}
-						e_china = {
-							NOR = {
-								has_law = cognatic_succession # Ag-Cog; princesses could be heirs!
-								has_law = true_cognatic_succession
-								has_law = enatic_succession
-								has_law = enatic_cognatic_succession; En-Cog; princesses could be heirs!
-								has_law = status_of_women_4
-							}
-						}
-					}
-					any_dynasty_member = {
-						limit = {
-							is_female = yes
-							is_married = no
-							is_consort = no
-							NOR = {
-								trait = dragon_bride_unmarried
-								trait = dragon_bride_married # If married off but no longer married, don't add the trait again!
-							}
-							host = {
-								OR = {
-									character = ROOT
-									any_liege = {
-										OR = {
-											character = ROOT
-											liege_before_war = {
-												character = ROOT
-											}
-										}
-									}
-									liege_before_war = {
-										character = ROOT
-									}
-								}
-							}
-						}
-						add_trait = dragon_bride_unmarried
-					}
-					any_dynasty_member = {
-						limit = {
-							is_female = yes
-							is_married = yes
-						}
-						add_trait = dragon_bride_married
-					}
-				}
+				
+				set_character_flag = succ_chinese_imperial_succession
 			}
 			
-			# Create a Chinese Imperial Bloodline, if we only have a pretender one
-			if = {
-				limit = {
-					NOT = {
-						any_owned_bloodline = {
-							has_bloodline_flag = real_chinese_imperial_bloodline
-						}
-					}
-				}
-				custom_tooltip = {
-					text = CREATE_CI_BLOODLINE
-					create_real_chinese_imperial_bloodline_effect = yes
-				}
-			}
-			
-			update_global_china_name_flag_effect = yes
+			set_character_flag = recreating_china
 			
 			# Change the Mandate of Heaven level to Unquestioned
+			
 			remove_character_modifier = mandate_of_heaven_4
 			remove_character_modifier = mandate_of_heaven_3
 			remove_character_modifier = mandate_of_heaven_2
 			remove_character_modifier = mandate_of_heaven_1
+			
 			add_character_modifier = {
 				modifier = mandate_of_heaven_5
 				duration = -1
 			}
 			
-			e_china = {
-				add_law = {
-					law = succ_primogeniture
-					cooldown = no
-					opinion_effect = no
+			character_event = { id = soh.5503 } # Copy the pretender empire
+		}
+		
+		ai_will_do = {
+			factor = 1000
+		}
+	}
+	
+	adopt_chinese_imperialism_king = {
+		only_independent = yes
+		is_high_prio = yes
+		ai_check_interval = 60
+		
+		potential = {
+			independent = yes
+			tier = king
+			has_dlc = "Jade Dragon"
+			OR = {
+				can_have_chinese_imperial_trigger = yes
+				culture_group = chinese_group
+			}
+			is_feudal = yes
+			holy_order = no
+			mercenary = no
+			controls_religion = no
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			real_tier = king
+			is_tributary = no
+			is_adult = yes
+			prisoner = no
+			is_incapable = no
+			has_regent = no # Can't do this while having a regent
+			war = no
+			
+			OR = {
+				any_demesne_title = {
+					count = 2
+					tier = king
 				}
+				
+				custom_tooltip = {
+					text = led_moh_revolt
+					has_character_flag = mandate_of_heaven_uprising
+				}
+				
+				has_artifact = heirloom_seal_of_the_realm
+			}
+			
+			OR = {
+				custom_tooltip = {
+					text = has_chinese_foothold
+					
+					any_demesne_title = {
+						tier = king
+						
+						OR = {
+							capital_scope = {
+								region = world_china
+							}
+							de_jure_liege = e_china
+						}
+					}
+				}
+				
+				has_artifact = heirloom_seal_of_the_realm
+			}
+			
+			trigger_if = {
+				limit = {
+					OR = {
+						any_owned_bloodline = {
+							has_bloodline_flag = pretender_chinese_imperial_bloodline
+						}
+						any_owned_bloodline = {
+							has_bloodline_flag = real_chinese_imperial_bloodline
+						}
+						has_character_flag = mandate_of_heaven_uprising
+						has_artifact = heirloom_seal_of_the_realm
+						e_china = {
+							claimed_by = ROOT
+						}
+					}
+				}
+				
+				OR = {
+					trigger_if = {
+						limit = {
+							e_china = {
+								has_holder = no
+							}
+						}
+						
+						prestige >= 1000
+						realm_size >= 50
+					}
+					
+					trigger_else_if = {
+						limit = {
+							e_china = {
+								holder_scope = {
+									has_chinese_government_trigger = no
+								}
+							}
+						}
+						
+						prestige >= 2000
+						realm_size >= 50
+					}
+					
+					trigger_else_if = {
+						limit = {
+							e_china = {
+								holder_scope = {
+									government = eastern_imperial_government
+								}
+							}
+						}
+						
+						prestige >= 3000
+						realm_size >= 50
+					}
+					
+					trigger_else_if = {
+						limit = {
+							e_china = {
+								holder_scope = {
+									has_character_modifier = mandate_of_heaven_1
+								}
+							}
+						}
+						
+						prestige >= 4000
+						realm_size >= 50
+					}
+					
+					trigger_else_if = {
+						limit = {
+							e_china = {
+								holder_scope = {
+									has_character_modifier = mandate_of_heaven_2
+								}
+							}
+						}
+						
+						prestige >= 5000
+						realm_size >= 75
+					}
+					
+					trigger_else_if = {
+						limit = {
+							e_china = {
+								holder_scope = {
+									has_character_modifier = mandate_of_heaven_3
+								}
+							}
+						}
+						
+						prestige >= 6000
+						realm_size >= 100
+					}
+					
+					trigger_else_if = {
+						limit = {
+							e_china = {
+								holder_scope = {
+									has_character_modifier = mandate_of_heaven_4
+								}
+							}
+						}
+						
+						prestige >= 8000
+						realm_size >= 150
+					}
+					
+					trigger_else_if = {
+						limit = {
+							e_china = {
+								holder_scope = {
+									has_character_modifier = mandate_of_heaven_5
+								}
+							}
+						}
+						
+						prestige >= 10000
+						realm_size >= 200
+					}
+					
+					has_artifact = heirloom_seal_of_the_realm
+				}
+			}
+			
+			trigger_else = {
+				trigger_if = {
+					limit = {
+						e_china = {
+							has_holder = no
+						}
+					}
+					
+					prestige >= 2000
+					realm_size >= 50
+				}
+				
+				trigger_else_if = {
+					limit = {
+						e_china = {
+							holder_scope = {
+								has_chinese_government_trigger = no
+							}
+						}
+					}
+					
+					prestige >= 4000
+					realm_size >= 50
+				}
+				
+				trigger_else_if = {
+					limit = {
+						e_china = {
+							holder_scope = {
+								government = eastern_imperial_government
+							}
+						}
+					}
+					
+					prestige >= 6000
+					realm_size >= 50
+				}
+				
+				trigger_else_if = {
+					limit = {
+						e_china = {
+							holder_scope = {
+								has_character_modifier = mandate_of_heaven_1
+							}
+						}
+					}
+					
+					prestige >= 8000
+					realm_size >= 50
+				}
+				
+				trigger_else_if = {
+					limit = {
+						e_china = {
+							holder_scope = {
+								has_character_modifier = mandate_of_heaven_2
+							}
+						}
+					}
+					
+					prestige >= 10000
+					realm_size >= 75
+				}
+				
+				trigger_else_if = {
+					limit = {
+						e_china = {
+							holder_scope = {
+								has_character_modifier = mandate_of_heaven_3
+							}
+						}
+					}
+					
+					prestige >= 12000
+					realm_size >= 100
+				}
+				
+				trigger_else_if = {
+					limit = {
+						e_china = {
+							holder_scope = {
+								has_character_modifier = mandate_of_heaven_4
+							}
+						}
+					}
+					
+					prestige >= 16000
+					realm_size >= 150
+				}
+				
+				trigger_else_if = {
+					limit = {
+						e_china = {
+							holder_scope = {
+								has_character_modifier = mandate_of_heaven_5
+							}
+						}
+					}
+					
+					prestige >= 20000
+					realm_size >= 200
+				}
+			}
+			
+			OR = {
+				AND = {
+					OR = {
+						has_chinese_eastern_religion_trigger = yes
+						religion_openly_chinese_or_reformed_trigger = yes
+						culture_group = chinese_group
+					}
+					
+					wealth >= 1000
+				}
+				
+				wealth >= 2000
+			}
+			
+			trigger_if = {
+				limit = {
+					e_china = {
+						has_holder = yes
+					}
+				}
+				
+				e_china = {
+					holder_scope = {
+						NOR = {
+							current_heir = {
+								character = ROOT
+							}
+							dynasty = ROOT
+						}
+					}
+				}
+				
+				NOT = {
+					has_character_modifier = peace_deal_with_china # If you have a Chinese Peace Deal, you need to break it or wait for it to expire
+				}
+			}
+			
+			piety >= 500 # A bit more than it costs to create a regular empire
+		}
+		
+		effect = {
+			piety = -500
+			
+			if = {
+			    limit = {
+					OR = {
+						has_chinese_eastern_religion_trigger = yes
+						religion_openly_chinese_or_reformed_trigger = yes
+						culture_group = chinese_group
+					}
+				}
+				
+			    wealth = -1000
+			}
+			
+			else = {
+			    wealth = -2000
+			}
+			
+			give_random_pretender_empire_effect = yes
+			
+			# Bloodline handled in naming event
+			
+			# Custom titles are NOT used in Tianxia!
+			
+			primary_title = {
+				set_title_flag = pretender_chinese_empire
+				
+				if = {
+					limit = {
+						NOT = {
+							has_law = succ_chinese_imperial_succession
+						}
+					}
+					
+					add_law = {
+						law = succ_primogeniture
+						cooldown = no
+						opinion_effect = no
+					}
+				}
+				
 				if = {
 					limit = {
 						has_dlc = "Conclave"
 					}
+					
 					add_law = {
 						law = ze_administration_laws_2
 						cooldown = no
 						opinion_effect = no
 					}
 				}
+				
 				else = {
 					add_law = {
 						law = imperial_administration
@@ -375,10 +501,12 @@ decisions = {
 						opinion_effect = no
 					}
 				}
+				
 				if = {
 					limit = {
 						has_dlc = "Charlemagne"
 					}
+					
 					add_law = {
 						law = vice_royalty_2
 						cooldown = no
@@ -387,846 +515,441 @@ decisions = {
 				}
 			}
 			
-			# Inform the world
-			any_player = {
+			any_demesne_title = {
 				limit = {
-					OR = {
-						is_within_diplo_range = ROOT
-						any_realm_province = {
-							trade_route = silk_road
-						}
-					}
-					NOT = {
-						character = ROOT
-					}
+					tier = EMPEROR
+					NOT = { has_title_flag = pretender_chinese_empire }
 				}
-				narrative_event = { id = nameofchina.4 }
+				destroy_landed_title = THIS
 			}
-			clr_character_flag = recreated_china
-		}
-		
-		ai_will_do = {
-			factor = 1
-		}
-	}
-	
-	get_new_court_eunuch = {
-		only_playable = yes
-		ai = no # Handles it on_yearly_pulse
-		potential = {
-			has_dlc = "Jade Dragon"
-			has_dlc = "Zeus"
-			tier = emperor
-			government = chinese_imperial_government
-			NOT = {
-				primary_title = {
-					has_law = law_voting_power_0
-				}
-			}
-		}
-		
-		allow = {
-			OR = {
-				AND = {
-					primary_title = {
-						has_law = law_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch
-						}
-					}
-				}
-				AND = {
-					primary_title = {
-						has_law = war_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch_2
-						}
-					}
-				}
-				AND = {
-					primary_title = {
-						has_law = revoke_title_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch_3
-						}
-					}
-				}
-				AND = {
-					primary_title = {
-						has_law = imprison_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch_4
-						}
-					}
-				}
-				AND = {
-					primary_title = {
-						has_law = grant_title_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch_5
-						}
-					}
-				}
-				AND = {
-					primary_title = {
-						has_law = banish_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch_6
-						}
-					}
-				}
-				AND = {
-					primary_title = {
-						has_law = execution_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch_7
-						}
-					}
-				}
-			}
-		}
-		
-		effect = {
-			if = {
-				limit = {
-					has_landed_title = e_china
-				}
-				wealth = -100 # Should discourage NOT picking someone already in your court
-			}
-			if = {
-				limit = {
-					primary_title = {
-						has_law = law_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch
-						}
-					}
-				}
-				create_new_court_eunuch_effect = yes
-				new_character = {
-					give_minor_title = title_councilmember_eunuch
-				}
-			}
-			if = {
-				limit = {
-					primary_title = {
-						has_law = war_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch_2
-						}
-					}
-				}
-				create_new_court_eunuch_effect = yes
-				new_character = {
-					give_minor_title = title_councilmember_eunuch_2
-				}
-			}
-			if = {
-				limit = {
-					primary_title = {
-						has_law = revoke_title_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch_3
-						}
-					}
-				}
-				create_new_court_eunuch_effect = yes
-				new_character = {
-					give_minor_title = title_councilmember_eunuch_3
-				}
-			}
-			if = {
-				limit = {
-					primary_title = {
-						has_law = imprison_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch_4
-						}
-					}
-				}
-				create_new_court_eunuch_effect = yes
-				new_character = {
-					give_minor_title = title_councilmember_eunuch_4
-				}
-			}
-			if = {
-				limit = {
-					primary_title = {
-						has_law = grant_title_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch_5
-						}
-					}
-				}
-				create_new_court_eunuch_effect = yes
-				new_character = {
-					give_minor_title = title_councilmember_eunuch_5
-				}
-			}
-			if = {
-				limit = {
-					primary_title = {
-						has_law = banish_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch_6
-						}
-					}
-				}
-				create_new_court_eunuch_effect = yes
-				new_character = {
-					give_minor_title = title_councilmember_eunuch_6
-				}
-			}
-			if = {
-				limit = {
-					primary_title = {
-						has_law = execution_voting_power_1
-					}
-					NOT = {
-						any_courtier_or_vassal = {
-							has_minor_title = title_councilmember_eunuch_7
-						}
-					}
-				}
-				create_new_court_eunuch_effect = yes
-				new_character = {
-					give_minor_title = title_councilmember_eunuch_7
-				}
-			}
-		}
-		
-		ai_will_do = {
-			factor = 0
-		}
-	}
-	
-	take_dejure_capital = {
-		ai_check_interval = 12
-		is_high_prio = yes
-		only_playable = yes
-		
-		potential = {
-			higher_tier_than = count
-			is_feudal = yes
-			OR = {
-				government = chinese_imperial_government
-				government = chinese_vassal_government
-				government = japanese_imperial_government
-			}
-			primary_title = {
-				capital_scope = {
-					county = {
-						holder_scope = {
-							NOT = {
-								character = ROOT
-							}
-							any_liege = {
-								character = ROOT
-							}
-							war = no
-							OR = {
-								ai = yes
-								any_demesne_title = {
-									tier = count
-									NOT = {
-										title = PREVPREV
-									}
-								}
-							}
-							OR = { # The Shogun should never revoke the Tenno's capital, unless he is a claimant
-								NOT = {
-									has_landed_title = k_chrysanthemum_throne
-								}
-								ROOT = {
-									OR = {
-										NOR = {
-											religion = shinto
-											AND = {
-												religion = buddhist
-												culture_group = japonic
-											}
-										}
-										has_claim = k_chrysanthemum_throne
-									}
-								}
-							}
-							NAND = {
-								trait = japanese_regent
-								ROOT = {
-									trait = under_regency
-								}
-							}
-							NAND = {
-								trait = japanese_regent2
-								ROOT = {
-									trait = under_regency2
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		allow = {
-			war = no
-			has_actual_regency_trigger = no
-			prestige = 500
-			is_inaccessible_or_incapable_trigger = no
-		}
-		effect = {
-			prestige = -500
-			# As in the case of the decision to revoke Rome/Constantinople, the vassal is forced to comply
-			primary_title = {
-				capital_scope = {
-					county = {
-						usurp_title_plus_barony_if_unlanded_and_vassals = ROOT
-					}
-				}
-			}
-		}
-		ai_will_do = {
-			factor = 1
-		}
-	}
-	
-	celebrate_lny = {
-		only_playable = yes
-		ai_check_interval = 12
-		potential = {
-			OR = {
-				is_feudal = yes
-				is_tribal = yes
-				is_republic = yes
-			}
-			prisoner = no
-			OR = {
-				religion = taoist
-				religion = chinese_pagan
-				religion = chinese_pagan_reformed
-				AND = {
-					# Intentionally excludes non-Chinese Buddhists
-					culture_group = chinese_group
-					religion = buddhist
-				}
-				# Intentionally excludes religions that are "Chinese enough" unless Chinese Imperial
-				government = chinese_imperial_government # Overridse religion restrictions not part of the government type
-			}
-			NOT = {
-				has_character_modifier = lny_in_progress
-			}
-			#NOT = {
-			#	has_character_modifier = lny_timer
-			#}
-			OR = {
-				NOT = {
-					has_character_flag = recent_lny
-				}
-				had_character_flag = { flag = recent_lny days = 365 }
-			}
-			NOT = {
-				liege = {
-					has_character_modifier = lny_in_progress
-				}
-			}			
-			num_of_vassals = 1
-		}
-		allow = {
-			war = no
-			custom_tooltip = {
-				text = UNOCCUPIED_DEMESNE_TITLE
-				hidden_tooltip = {
-					any_demesne_title = {
-						NOT = { higher_tier_than = count }
-						is_occupied = no
-					}
-				}
-			}
-			is_adult = yes # Important!
-			NOT = {
-				trait = incapable # Important!
-			}
-			prisoner = no
-			NOT = { is_inaccessible_trigger = yes }
-			wealth = 25
-			NOT = {
-				month = 2 # Before March
-			}
-			prestige = 100
-			custom_tooltip = {
-				text = is_not_busy_trigger_tooltip
-				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
-			}
-			NOT = {
-				trait = treasure_fleet_preparation # We don't want anyone to become busy with the LNY during the TF preparation...
-			}
-		}
-		effect = {
-			wealth = -25
-			add_character_modifier = {
-				name = lny_in_progress
-				duration = -1
-			}
-			set_character_flag = recent_minor_decision
-			set_character_flag = do_not_disturb
-			hidden_tooltip = { character_event = { id = LNY.214 days = 150 } } # Safety catch flag clearing
+
+			set_government_type = chinese_imperial_government
 			
-			hidden_tooltip = {
-				character_event = { id = LNY.1 }
-			}
-			if = {
-				limit = {
-					has_dlc = "Reapers"
-				}
-				custom_tooltip = {
-					text = capital_prospers_custom_tooltip
-					hidden_tooltip = {
-						capital_scope = {
-							change_variable = { which = prosperity_value value = 8 }
-						}
-					}
-				}
-			}
-		}
-		ai_will_do = {
-			factor = 1
+			custom_tooltip = { text = adopt_chinese_imperialism_gov_tt }
+
+			# Temple names are rewarded on_death
 			
-			modifier = {
-				factor = 0
-				NOT = {
-					wealth = 200
-				}
-			}
-			modifier = {
-				factor = 0
-				trait = shy
-			}
-			modifier = {
-				factor = 0
-				NOT = { diplomacy = 10 }
-			}	
-			modifier = {
-				factor = 0
-				has_character_flag = recent_minor_decision
-				NOT = {
-					had_character_flag = {
-						flag = recent_minor_decision
-						days = 730
-					}
-				}
-			}
-		}
-	}
-	
-	hunt_down_dragon = {
-		only_playable = yes
-		ai_check_interval = 120
-		potential = {
-			OR = {
-				has_game_rule = {
-					name = supernatural_events
-					value = unrestricted
-				}
-				ai = no
-			}
-			OR = {
-				ai = no
-				independent = yes
-				tier = king
-			}
-			has_global_flag = first_dragon_attack # There is a dragon to hunt (or at least a lair to loot...)
-			NOT = {
-				has_global_flag = dragons_lair_looted
-			}
-		}
-		
-		allow = {
-			has_actual_regency_trigger = no
-			is_incapable = no
-			is_adult = yes
-			war = no
-			is_ill_trigger = no
-			OR = {
-				ai = no
-				is_maimed_trigger = no
-			}
-			custom_tooltip = {
-				text = is_not_busy_trigger_tooltip
-				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
-			}
-			NOT = {
-				trait = treasure_fleet_preparation # We don't want anyone to become busy with the LNY during the TF preparation...
-			}
-			custom_tooltip = {
-				text = not_too_far_to_fredak
-				any_independent_ruler = {
-					any_realm_province = {
-						has_province_flag = dragons_lair_province
-						ROOT = {
-							any_realm_province = {
-								NOT = {
-									distance = {
-										where = PREVPREV
-										value = 1000
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			NOR = {
-				trait = hunting_dragons
-				has_character_modifier = recent_dragon_hunt # Prevents spamming it (which could let you try to collect a ton of dragonslayers before actually going for the kill)
-			}
-		}
-		
-		effect = {
-			add_character_modifier = {
-				modifier = recent_dragon_hunt
-				months = 120
-			}
-			character_event = { id = dragon.4 days = 7 random = 7 } # Confirm dragon hunt
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0.001
-				always = yes
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					combat_rating = 25 # Do you have a death wish?
-				}
-				NOT = {
-					has_global_flag = dragon_slain
-				}
-				is_dumb_trigger = no
-			}
-			modifier = {
-				factor = 0.1
-				NOT = {
-					combat_rating = 50 # Probably all but impossible
-				}
-				NOT = {
-					has_global_flag = dragon_slain
-				}
-				is_dumb_trigger = no
-			}
-			modifier = {
-				factor = 0.25
-				NOT = {
-					combat_rating = 75 # Unlikely to be a good idea
-				}
-				NOT = {
-					has_global_flag = dragon_slain
-				}
-				is_dumb_trigger = no
-			}
-			modifier = {
-				factor = 2
-				combat_rating = 100 # Decent chance
-			}
-			modifier = {
-				factor = 0
-				trait = craven
-				NOT = {
-					has_global_flag = dragon_slain
-				}
-			}
-			modifier = {
-				factor = 10
-				trait = brave
-			}
-			modifier = {
-				factor = 0
-				NOT = {
-					any_independent_ruler = {
-						any_realm_province = {
-							has_province_flag = dragons_lair_province
-							ROOT = {
-								any_realm_province = {
-									NOT = {
-										distance = {
-											where = PREVPREV
-											value = 500
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 0.1
-				is_female = yes
-				female_can_hold_minor_commander_title_trigger = no
-				NOT = {
-					has_global_flag = dragon_slain
-				}
-			}
-		}
-	}
-	
-	prepare_treasure_fleet = { # Not DLC-locked, so various parts of it need to be locked separately!
-		ai_check_interval = 60
-		only_playable = yes
-		only_independent = yes
-		is_high_prio = yes
-		
-		potential = {
-			NOR = {
-				has_global_flag = preparing_treasure_fleet
-				has_global_flag = treasure_fleet_is_active
-				has_global_flag = treasure_fleet_invasion_ongoing
-			}
-			NOT = {
-				2753 = { # Hangzhou
-					has_province_flag = abort_treasure_fleet_asap
-				}
-			}
-			is_chinese_emperor_trigger = yes # Only for the EoC!
-			NOR = {
-				AND = { # Sunrise Invasion takes precedence
-					has_global_flag = sunrise_invasion_happened
-					NOT = {
-						has_global_flag = inca_defeated
-					}
-				}
-				e_treasure_fleet = { # If someone used the Treasure Fleet to create an empire, deal with that!
-					has_holder = yes
-				}
-			}
-		}
-		
-		allow = {
-			war = no # Can't be done if at war!
-			has_regent = no # Can't have a regent!
-			is_inaccessible_or_incapable_trigger = no # If regencies are disabled, you still can't do it if you should have a regent!
-			completely_controls_region = custom_treasure_fleet
-			any_realm_province = { # A coastal province needs to have high enough Shipbuilding tech
-				any_province_holding = {
-					OR = {
-						holding_type = castle
-						holding_type = city
-					}
-				}
-				region = custom_treasure_fleet
-				port = yes
-				owner = {
-					top_liege = {
-						character = ROOT
-					}
-				}
-				TECH_NAVAL = 5
-			}
-			capital_scope = { # Your capital needs high enough Shipbuilding tech - yes, even if it is inland!
-				TECH_NAVAL = 5
-			}
-			OR = { # Can't have sub-Average MoH
-				has_character_modifier = mandate_of_heaven_5
-				has_character_modifier = mandate_of_heaven_4
-				has_character_modifier = mandate_of_heaven_3
-			}
-			prestige = 1000
-			wealth = 5000
-			custom_tooltip = {
-				text = is_not_busy_trigger_tooltip
-				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
-			}
-			NOT = {
-				trait = treasure_fleet_preparation # Should be impossible...
-			}
-		}
-		
-		effect = {
-			wealth = -5000
-			prestige = -1000
-			narrative_event = { id = treasurefleet.1 } # Confirmation
-			any_realm_lord = {
-				limit = {
-					ai = no
-				}
-				narrative_event = { id = treasurefleet.2 } # Inform vassals
-			}
-			any_player = {
-				limit = {
-					NOR = {
-						character = ROOT
-						any_liege = {
-							character = ROOT
-						}
-					}
-				}
-				narrative_event = { id = treasurefleet.3 } # Inform others
-			}
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0.01 # Slow it down
-				always = yes
-			}
-			modifier = {
-				factor = 0.1 # Reconquer China instead!
-				any_province = {
-					any_province_holding = {
-						OR = {
-							holding_type = castle
-							holding_type = city
-						}
-					}
-					OR = {
-						region = world_china
-						county = {
-							de_jure_liege_or_above = e_china
-						}
-					}
-					owner = {
-						NOR = {
-							suzerain = {
-								character = ROOT
-							}
-							top_liege = {
-								character = ROOT
-							}
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 0.8
-				NOT = {
-					year = 1400
-				}
-			}
-			modifier = {
-				factor = 0.8
-				NOT = {
-					year = 1300
-				}
-			}
-			modifier = {
-				factor = 0.8
-				NOT = {
-					year = 1200
-				}
-			}
-			modifier = {
-				factor = 0.8
-				NOT = {
-					year = 1100
-				}
-			}
-			modifier = {
-				factor = 0.8
-				NOT = {
-					year = 1000
-				}
-			}
-			modifier = {
-				factor = 0.8
-				NOT = {
-					year = 900
-				}
-			}
-			modifier = {
-				factor = 0.8
-				NOT = {
-					year = 800
-				}
-			}
-			modifier = {
-				factor = 0.1
-				NOT = {
-					wealth = 6000
-				}
-			}
-			modifier = {
-				factor = 0.1
-				NOT = {
-					prestige = 2000
-				}
-			}
-		}
-	}
-	
-	ask_to_join_treasure_fleet = {
-		ai_check_interval = 12
-		only_playable = yes
-		is_high_prio = yes
-		potential = {
-			has_global_flag = preparing_treasure_fleet
-			is_feudal = yes
-			top_liege = {
-				is_chinese_emperor_trigger = yes
-			}
-			is_chinese_emperor_trigger = no # Blocks the EoC
-		}
-		
-		allow = {
-			war = no
-			is_adult = yes
-			is_inaccessible_or_incapable_trigger = no
-			NOR = {
-				trait = treasure_fleet_preparation
-				has_character_modifier = tf_join_request
-				has_character_modifier = tf_joining_refused
-			}
-			custom_tooltip = {
-				text = is_not_busy_trigger_tooltip
-				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
-			}
-		}
-		
-		effect = {
-			add_character_modifier = {
-				modifier = tf_join_request
-				months = 1
-			}
 			if = {
 				limit = {
 					e_china = {
 						holder_scope = {
-							owes_favor_to = ROOT
+							is_chinese_emperor_trigger = yes
 						}
 					}
 				}
-				character_event = { id = treasurefleet.29 } # Use favor or not?
+				
+				if = { # If we have positive Grace, zero it out!
+					limit = {
+						check_variable = {
+							which = grace
+							value > 0
+						}
+					}
+					
+					set_variable = {
+						which = grace
+						value = 0
+					}
+				}
+				
+				detract_grace_super_huge_effect = yes # China is VERY upset with you for doing this!
+				
+				detract_grace_super_huge_effect = yes # China is VERY upset with you for doing this!
+				
+				hidden_tooltip = {
+					e_china = {
+						holder_scope = {
+							mandate_penalty_large_effect = yes
+						}
+					}
+				}
 			}
+		
+			# Claim China
+			if = {
+				limit = {
+					has_artifact = heirloom_seal_of_the_realm
+				}
+				
+				e_china = {
+					add_pressed_claim = PREV
+				}
+			}
+			
 			else = {
 				e_china = {
+					add_weak_pressed_claim = PREV
+				}
+			}
+			
+			narrative_event = { id = soh.5505 } # Naming the pretender empire
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			trigger = {
+				NOR = {
+					trait = content
+					AND = {
+						trait = humble
+						NOR = {
+							trait = ambitious
+							trait = envious
+							has_claim = e_china
+							e_china = {
+								holder_scope = {
+									is_rival = ROOT
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.001
+				has_chinese_or_historical_culture_for_chinese_imperial_trigger = no
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				realm_size < 100
+				e_china = {
 					holder_scope = {
-						letter_event = { id = treasurefleet.31 } # Ask the EoC
+						government = chinese_imperial_government
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					culture_group = chinese_group
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOR = {
+					culture_group = chinese_group
+					trait = ambitious
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.2
+				any_independent_ruler = {
+					government = chinese_imperial_government
+					
+					relative_power = {
+						who = ROOT
+						power >= 5.0
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.5
+				any_independent_ruler = {
+					government = chinese_imperial_government
+					
+					relative_power = {
+						who = ROOT
+						power >= 2.0
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					any_realm_province = {
+						region = world_china
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 2
+				trait = envious
+			}
+			
+			mult_modifier = {
+				factor = 10
+				any_owned_bloodline = {
+					OR = {
+						has_bloodline_flag = pretender_chinese_imperial_bloodline
+						has_bloodline_flag = real_chinese_imperial_bloodline
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				e_china = {
+					OR = {
+						has_holder = no
+						holder_scope = {
+							has_chinese_government_trigger = no
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_5
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_4
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.5
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_3
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_2
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 5
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_1
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				has_character_flag = mandate_of_heaven_uprising
+			}
+		}
+	}
+	
+	claim_li_surname = {
+		only_independent = yes
+		ai_check_interval = 12
+		
+		potential = {
+			tier = emperor
+			government = chinese_imperial_government
+			has_character_flag = is_li_bian
+			NOT = {
+				has_character_flag = li_bian_name_change
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			prestige >= 1000
+			
+			# Must be at peace and not have a regent
+			
+			war = no
+			
+			has_regent = no
+			
+			# If there's some other Tang realm running around (even with another name) you can't do it
+			custom_tooltip = {
+				text = no_other_li_chinese_imperial_emperor
+				NOR = {
+					any_independent_ruler = {
+						tier = emperor
+						government = chinese_imperial_government
+						dynasty = 1051150 # Li - ruling Tang dynasty
+					}
+					
+					primary_title = {
+						has_title_flag = tang_china
+					}
+				}
+			}
+		}
+		
+		effect = {
+			set_character_flag = li_bian_name_change
+			
+			dynasty = 1051150 # Li - ruling Tang dynasty
+			
+			set_name = "Bian"
+			
+			# All descendants that are part of the current (Xu) dynasty
+			any_dynasty_member_even_if_dead = {
+				limit = {
+					is_descendant_of = ROOT
+				}
+				
+				dynasty = 1051150 # Li - ruling Tang dynasty
+			}
+			
+			hidden_tooltip = {
+				# Being able to claim to be the successor of Tang helps a little with the Mandate
+				mandate_boost_small_effect = yes
+			}
+			
+			if = {
+				limit = {
+					NOT = {
+						has_global_flag = tang_china_exists
+					}
+				}
+				
+				primary_title = {
+					clear_all_chinese_dynasty_flags_and_update_global_flags_effect = yes
+					
+					set_name = TANG
+					adjective = TANG
+					set_title_flag = tang_china
+					
+					set_global_flag = tang_china_exists
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1000 # We want the AI to do this if at all possible
+		}
+	}
+	
+	claim_china_with_heirloom_seal_of_the_realm = {
+		only_playable = yes
+		ai_check_interval = 12 # Important
+		is_high_prio = yes
+		
+		potential = {
+			is_feudal = yes
+			higher_real_tier_than = count
+			can_have_chinese_imperial_trigger = yes
+			NOR = {
+				government = chinese_imperial_government
+				has_claim = e_china
+			}
+			has_artifact = heirloom_seal_of_the_realm
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			war = no
+			
+			has_regent = no
+			
+			is_adult = yes
+			
+			prisoner = no
+			
+			is_incapable = no
+			
+			is_tributary = no
+			
+			e_china = {
+				holder_scope = {
+					NOR = {
+						current_heir = {
+							character = ROOT
+						}
+						dynasty = ROOT
+					}
+				}
+			}
+			
+			NOT = {
+				has_character_modifier = peace_deal_with_china # If you have a Chinese Peace Deal, you need to break it or wait for it to expire
+			}
+			
+			OR = {
+				independent = yes
+				real_tier = king
+				
+				AND = {
+					liege = {
+						has_landed_title = e_china
+					}
+					
+					OR = {
+						is_powerful_vassal = yes
+						is_voter = yes
+					}
+				}
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					e_china = {
+						holder_scope = {
+							is_chinese_emperor_trigger = yes
+						}
+					}
+				}
+				
+				detract_grace_super_huge_effect = yes # China is VERY upset with you for doing this!
+				
+				hidden_tooltip = {
+					e_china = {
+						holder_scope = {
+							mandate_penalty_large_effect = yes
+						}
+					}
+				}
+			}
+			
+			# Claim China
+			e_china = {
+				add_pressed_claim = PREV
+			}
+			
+			if = {
+				limit = {
+					top_liege = {
+						has_landed_title = e_china
+					}
+				}
+				
+				top_liege = {
+					opinion = {
+						who = ROOT
+						modifier = opinion_traitor
 					}
 				}
 			}
@@ -1234,77 +957,285 @@ decisions = {
 		
 		ai_will_do = {
 			factor = 1
-			modifier = {
-				factor = 0.05
-				always = yes
-			}
-			modifier = {
-				factor = 0.1
-				in_faction = yes
-			}
-			modifier = {
-				factor = 0.01
-				leads_faction = yes
-			}
-			modifier = {
-				factor = 0.1
-				trait = content
-			}
-			modifier = {
-				factor = 0.1
-				trait = slothful
-			}
-		}
-	}
-	
-	end_treasure_fleet_preparation_participation = {
-		only_playable = yes
-		ai = no
-		potential = {
-			trait = treasure_fleet_preparation
-		}
-		allow = {
-			always = yes
-		}
-		effect = {
-			prestige = -100
-			remove_trait = treasure_fleet_preparation
-		}
-		ai_will_do = {
-			factor = 0
-		}
-	}
-	
-	end_treasure_fleet_voyage_participation = {
-		only_playable = yes
-		ai = no
-		potential = {
-			trait = treasure_fleet_voyage
-		}
-		allow = {
-			custom_tooltip = {
-				text = tresure_fleet_is_in_port
-				2753 = { # Hangzhou
-					has_province_flag = treasure_fleet_port_flag
+			
+			trigger = {
+				NOR = {
+					trait = content
+					AND = {
+						trait = humble
+						NOR = {
+							trait = ambitious
+							trait = envious
+							has_claim = e_china
+							e_china = {
+								holder_scope = {
+									is_rival = ROOT
+								}
+							}
+						}
+					}
 				}
 			}
-			NOT = {
-				has_character_flag = abort_treasure_fleet
+			
+			mult_modifier = {
+				factor = 0.001
+				has_chinese_or_historical_culture_for_chinese_imperial_trigger = no
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				realm_size < 100
+				e_china = {
+					holder_scope = {
+						government = chinese_imperial_government
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					culture_group = chinese_group
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOR = {
+					culture_group = chinese_group
+					trait = ambitious
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.2
+				any_independent_ruler = {
+					government = chinese_imperial_government
+					
+					relative_power = {
+						who = ROOT
+						power >= 5.0
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.5
+				any_independent_ruler = {
+					government = chinese_imperial_government
+					
+					relative_power = {
+						who = ROOT
+						power >= 2.0
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					any_realm_province = {
+						region = world_china
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 2
+				trait = envious
+			}
+			
+			mult_modifier = {
+				factor = 10
+				any_owned_bloodline = {
+					OR = {
+						has_bloodline_flag = pretender_chinese_imperial_bloodline
+						has_bloodline_flag = real_chinese_imperial_bloodline
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				e_china = {
+					OR = {
+						has_holder = no
+						holder_scope = {
+							has_chinese_government_trigger = no
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_5
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_4
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.5
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_3
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 2
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_2
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 5
+				e_china = {
+					holder_scope = {
+						has_character_modifier = mandate_of_heaven_1
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				has_character_flag = mandate_of_heaven_uprising
 			}
 		}
-		effect = {
-			prestige = -100
-			set_character_flag = abort_treasure_fleet
+	}
+	
+	refound_luojuzi = {
+		only_independent = yes
+		ai_check_interval = 120
+		is_high_prio = yes
+		
+		potential = {
+			has_landed_title = k_dali
+			
+			d_luojuzi = {
+				has_holder = no
+			}
+			
+			OR = {
+				culture = bai
+				culture = yi
+				religion_openly_bai_or_reformed_trigger = yes
+				religion_openly_yi_or_reformed_trigger = yes
+			}
 		}
+		
+		allow = {
+			war = no
+			has_regent = no
+			prestige >= 1000
+			wealth >= 500
+		}
+		
+		effect = {
+			activate_title = { title = d_luojuzi status = yes }
+			
+			prestige = -1000
+			wealth = -500
+			
+			hidden_tooltip = {
+				if = {
+					limit = {
+						gender_equality_trigger = yes
+					}
+					
+					create_character = {
+						random_traits = yes
+						religion = ROOT
+						culture = ROOT
+						dynasty = NONE
+						female = 50
+						age = 34
+						trait = skilled_tactician
+					}
+				}
+				
+				else_if = {
+					limit = {
+						OR = {
+							has_religion_feature = religion_matriarchal
+							has_religion_feature = religion_feature_minangkabau
+						}
+					}
+					
+					create_character = {
+						random_traits = yes
+						religion = ROOT
+						culture = ROOT
+						dynasty = NONE
+						female = yes
+						age = 34
+						trait = skilled_tactician
+					}
+				}
+				
+				else = {
+					create_character = {
+						random_traits = yes
+						religion = ROOT
+						culture = ROOT
+						dynasty = NONE
+						female = no
+						age = 34
+						trait = skilled_tactician
+					}
+				}
+				
+				new_character = {
+					d_luojuzi = {
+						grant_title = PREV
+					}
+					
+					set_defacto_liege = ROOT
+				}
+			}
+		}
+		
 		ai_will_do = {
-			factor = 0
+			factor = 10
 		}
 	}
 }
 
 title_decisions = {
 	move_chinas_capital = {
-		ai_check_interval = 1200
+		ai = no
+		only_independent = yes
+		filter = realm_owned
 		
 		potential = {
 			OR = {
@@ -1318,11 +1249,10 @@ title_decisions = {
 						}
 					}
 				}
+				
 				title = c_luoyang # The only historical capital that's not the capital of some de jure kingdom
-				FROM = {
-					ai = no
-				}
 			}
+			
 			e_china = {
 				capital_scope = {
 					county = {
@@ -1332,33 +1262,36 @@ title_decisions = {
 					}
 				}
 			}
+			
 			de_jure_liege_or_above = e_china
 		}
 		
 		from_potential = {
 			is_chinese_emperor_trigger = yes
-			is_inaccessible_or_incapable_trigger = no
 		}
 		
 		allow = {
-			ROOT = {
-				holder_scope = {
-					top_liege = {
-						character = FROM
-					}
-				}
-			}
+			show_only_failed_conditions = yes
 			FROM = {
+				is_inaccessible_or_incapable_trigger = no
+				
 				war = no
-				OR = {
-					ai = no
-					NOT = {
+				
+				has_regent = no
+				
+				trigger_if = {
+					limit = {
 						has_character_flag = moved_chinas_capital
 					}
-					had_character_flag = { flag = moved_chinas_capital days = 7300 }
+					
+					custom_tooltip = {
+						text = did_not_recently_move_chinas_capital
+						had_character_flag = { flag = moved_chinas_capital days = 7300 }
+					}
 				}
-				prestige = 5000
-				wealth = 1000
+				
+				prestige >= 5000
+				wealth >= 1000
 			}
 		}
 		
@@ -1366,11 +1299,14 @@ title_decisions = {
 			FROM = {
 				clr_character_flag = moved_chinas_capital
 				set_character_flag = moved_chinas_capital
+				
 				wealth = -1000
+				
 				ROOT = {
 					e_china = {
 						set_preferred_capital = PREV
 					}
+					
 					if = {
 						limit = {
 							holder_scope = {
@@ -1379,8 +1315,10 @@ title_decisions = {
 								}
 							}
 						}
+						
 						usurp_title = FROM
 					}
+					
 					FROM = {
 						capital = PREV
 					}
@@ -1389,162 +1327,7 @@ title_decisions = {
 		}
 		
 		ai_will_do = {
-			factor = 1
-			# If the dynasty isn't historical, don't move the capital as much
-			modifier = {
-				factor = 0.001
-				FROM = {
-					NOR = {
-						dynasty = 11100 # Borjigin (Yuan)
-						dynasty = 1051150 # Li (Tang)
-						dynasty = 1051151 # Zhao (Song)
-						dynasty = 1051153 # Wanayan (Jurchen Jin)
-						dynasty = 1000156607 # Yang (Wu)
-						dynasty = 1000156610 # Qian (Wuyue)
-						dynasty = 1000156611 # Wang (Min)
-						dynasty = 1000156612 # Ma (Chu)
-						dynasty = 1000156613 # Liu (Southern Han)
-						dynasty = 1000156606 # Meng (Later Shu)
-						dynasty = 1000156614 # Gao (Jingnan)
-					}
-				}
-			}
-			# If the dynasty is historical, prefer moving the capital to the historical capital
-			modifier = {
-				factor = 0.05
-				FROM = {
-					dynasty = 11100 # Borjigin (Yuan)
-				}
-				NOT = {
-					title = c_dadu
-				}
-			}
-			modifier = {
-				factor = 0.05
-				FROM = {
-					dynasty = 1051150 # Li (Tang)
-				}
-				NOR = {
-					title = c_changan
-					AND = {
-						e_china = {
-							capital_scope = {
-								county = {
-									NOT = {
-										title = c_changan
-									}
-								}
-							}
-						}
-						title = c_luoyang
-					}
-				}
-			}
-			modifier = {
-				factor = 0.05
-				FROM = {
-					dynasty = 1051151 # Zhao (Song)
-				}
-				NOR = {
-					title = c_bianjing
-					AND = {
-						e_china = {
-							capital_scope = {
-								county = {
-									NOT = {
-										title = c_bianjing
-									}
-								}
-							}
-						}
-						title = c_hangzhou
-					}
-				}
-			}
-			modifier = {
-				factor = 0.05
-				FROM = {
-					dynasty = 1051153 # Wanayan (Jurchen Jin)
-				}
-				NOR = {
-					title = c_bianjing
-					AND = {
-						e_china = {
-							capital_scope = {
-								county = {
-									NOT = {
-										title = c_bianjing
-									}
-								}
-							}
-						}
-						title = c_dadu
-					}
-				}
-			}
-			modifier = {
-				factor = 0.05
-				FROM = {
-					dynasty = 1000156607 # Yang (Wu)
-				}
-				NOT = {
-					title = c_guangling
-				}
-			}
-			modifier = {
-				factor = 0.05
-				FROM = {
-					dynasty = 1000156610 # Qian (Wuyue)
-				}
-				NOT = {
-					title = c_hangzhou
-				}
-			}
-			modifier = {
-				factor = 0.05
-				FROM = {
-					dynasty = 1000156611 # Wang (Min)
-				}
-				NOT = {
-					title = c_fuzhou
-				}
-			}
-			modifier = {
-				factor = 0.05
-				FROM = {
-					dynasty = 1000156612 # Ma (Chu)
-				}
-				NOT = {
-					title = c_tanzhou
-				}
-			}
-			modifier = {
-				factor = 0.05
-				FROM = {
-					dynasty = 1000156613 # Liu (Southern Han)
-				}
-				NOT = {
-					title = c_guangzhou
-				}
-			}
-			modifier = {
-				factor = 0.05
-				FROM = {
-					dynasty = 1000156606 # Meng (Later Shu)
-				}
-				NOT = {
-					title = c_chengdu
-				}
-			}
-			modifier = {
-				factor = 0.05
-				FROM = {
-					dynasty = 1000156614 # Gao (Jingnan)
-				}
-				NOT = {
-					title = c_jiangling
-				}
-			}
+			factor = 0 # on_decade_pulse 
 		}
 	}
 }

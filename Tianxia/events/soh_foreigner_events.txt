@@ -1,0 +1,7023 @@
+# Foreigner in Japan events
+# by Silverswee(e)per
+
+namespace = soh
+
+# IDs 4401-4500 reserved
+
+##### Foreigners on your Shores
+
+### Arrival + event selection
+
+# Foreigners arrive
+character_event = {
+	id = soh.4401
+	desc = EVTDESC_SOH_4401
+	picture = GFX_evt_kraken
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	only_playable = yes
+	
+	min_age = 16
+	
+	trigger = {
+		is_inaccessible_or_incapable_trigger = no
+		# You're "Japanese enough"
+		could_have_japanese_government_trigger = yes
+		
+		# You have a port in Japan
+		any_realm_province = {
+			port = yes
+			region = world_greater_japan
+		}
+		
+		# There's a foreign province the foreigner can come from
+		any_independent_ruler = {
+			NOR = {
+				character = ROOT
+				any_realm_lord = {
+					character = ROOT
+				}
+			}
+			
+			any_realm_province = {
+				port = yes
+				can_naval_path_to = c_ise # Doesn't matter which coastal province we pick...
+				
+				NOR = { # More interesting to use this instead of the normal check
+					has_japanese_religion_trigger = yes
+					culture_group = japonic
+					religion = buddhist
+					religion_openly_ryukyuan_or_reformed_trigger = yes
+				}
+				
+				NOT = {
+					region = world_greater_japan
+				}
+			}
+		}
+		
+		NOT = {
+			has_character_flag = got_japanese_foreigner_event
+		}
+	}
+	
+	immediate = {
+		set_character_flag = got_japanese_foreigner_event
+		# Select the province where the foreigner arrived
+		random_realm_province = {
+			limit = {
+				port = yes
+				region = world_greater_japan
+			}
+			
+			save_event_target_as = foreigner_landfall_province
+		}
+		
+		# Select the province the foreigner came from
+		random_independent_ruler = {
+			limit = {
+				NOR = {
+					character = ROOT
+					any_realm_lord = {
+						character = ROOT
+					}
+				}
+				
+				any_realm_province = {
+					port = yes
+					can_naval_path_to = c_ise # Doesn't matter which coastal province we pick...
+					
+					NOR = { # More interesting to use this instead of the normal check
+						has_japanese_religion_trigger = yes
+						culture_group = japonic
+						religion = buddhist
+						religion_openly_ryukyuan_or_reformed_trigger = yes
+					}
+					
+					NOT = {
+						region = world_greater_japan
+					}
+				}
+			}
+			
+			preferred_limit = {
+				any_realm_province = {
+					port = yes
+					can_naval_path_to = c_ise # Doesn't matter which coastal province we pick...
+				
+					NOR = { # More interesting to use this instead of the normal check
+						has_japanese_religion_trigger = yes
+						culture_group = japonic
+						religion = buddhist
+						religion_openly_ryukyuan_or_reformed_trigger = yes
+					}
+					
+					NOT = {
+						region = world_greater_japan
+					}
+					
+					OR = {
+						religion_group = christian
+						religion_group = muslim
+						religion_group = jewish_group
+						religion_group = zoroastrian_group
+						religion = hindu
+					}
+				}
+			}
+			random_realm_province = {
+				limit = {
+					port = yes
+					can_naval_path_to = c_ise # Doesn't matter which coastal province we pick...
+				
+					NOR = { # More interesting to use this instead of the normal check
+						has_japanese_religion_trigger = yes
+						culture_group = japonic
+						religion = buddhist
+						religion_openly_ryukyuan_or_reformed_trigger = yes
+					}
+					
+					NOT = {
+						region = world_greater_japan
+					}
+				}
+				
+				# Some preferences regarding religion/culture
+				
+				preferred_limit = {
+					OR = {
+						religion_group = christian
+						religion_group = jewish_group
+						religion_group = muslim
+						religion_group = zoroastrian_group
+						religion = hindu
+					}
+					
+					NOR = {
+						culture_group = paleosiberian
+						culture_group = altaic
+						culture_group = chinese_group
+						culture_group = koreanic
+					}
+				}
+				
+				preferred_limit = {
+					OR = {
+						religion_group = christian
+						religion_group = jewish_group
+						religion_group = muslim
+						religion_group = zoroastrian_group
+						religion = hindu
+					}
+				}
+				
+				preferred_limit = {
+					NOR = {
+						culture_group = paleosiberian
+						culture_group = altaic
+						culture_group = chinese_group
+						culture_group = koreanic
+					}
+				}
+				
+				save_event_target_as = foreigner_origin_province
+			}
+		}
+		
+		# Create the foreigner
+		create_character = {
+			age = 25
+			female = 50
+			dynasty = random
+			culture = event_target:foreigner_origin_province
+			religion = event_target:foreigner_origin_province
+			attributes = {
+				diplomacy = 4
+				martial = 4
+				stewardship = 4
+				intrigue = 4
+				learning = 4
+			}
+			random_traits = no
+		}
+		
+		new_character = {
+			save_event_target_as = foreigner_in_japan
+			set_character_flag = ai_flag_refuse_concubinage
+			set_character_flag = ai_flag_refuse_marriage
+			set_character_flag = ai_flag_refuse_conversion
+			set_character_flag = no_court_invites
+			
+			if = {
+				limit = {
+					has_caste_traits_trigger = yes
+				}
+				add_trait = kshatriya
+			}
+			
+			# Randomize the actual foreigner we get
+			random_list = {
+				10 = {
+					set_character_flag = foreigner_is_warrior
+					# Stats
+					change_diplomacy = 1
+					change_martial = 4
+					change_stewardship = 1
+					change_intrigue = -3
+					change_learning = -3
+					
+					# Education
+					random_list = {
+						40 = {
+							add_trait = brilliant_strategist
+						}
+						30 = {
+							add_trait = skilled_tactician
+						}
+						20 = {
+							add_trait = tough_soldier
+						}
+						10 = {
+							add_trait = misguided_warrior
+						}
+					}
+					
+					# Some guaranteed traits
+					add_trait = brave
+					add_trait = strong
+					add_trait = ambitious
+					add_random_commander_trait_effect = yes
+					add_one_duel_experience_modifier = yes
+					random_list = {
+						1 = {
+							add_trait = duelist
+						}
+						1 = {
+							add_trait = strategist
+						}
+					}
+					
+					# And some possible random extras
+					random_list = {
+						1 = {
+							add_trait = lefthanded
+						}
+						1 = {
+							add_trait = ugly
+						}
+						1 = {
+							add_trait = giant
+						}
+						1 = {
+							add_trait = poet
+						}
+						1 = {
+							add_trait = shrewd
+						}
+						1 = {
+							add_trait = wroth
+						}
+						1 = {
+							add_trait = patient
+						}
+						1 = {
+							add_trait = chaste
+						}
+						1 = {
+							add_trait = envious
+						}
+						1 = {
+							add_trait = proud
+						}
+						1 = {
+							add_trait = arbitrary
+						}
+						1 = {
+							add_trait = cruel
+						}
+						1 = {
+							add_trait = deceitful
+						}
+						1 = {
+							add_trait = just
+						}
+						1 = {
+							add_trait = zealous
+						}
+						1 = {
+							add_trait = wounded
+						}
+						1 = {
+							add_maimed_trait_effect = yes
+						}
+						1 = {
+							add_random_commander_trait_effect = yes
+						}
+						1 = {
+							add_one_duel_experience_modifier = yes
+						}
+					}
+				}
+				
+				10 = {
+					set_character_flag = foreigner_is_scholar
+					# Stats
+					change_diplomacy = 1
+					change_martial = 2
+					change_stewardship = 1
+					change_intrigue = -3
+					change_learning = -1
+					
+					# Education
+					random_list = {
+						40 = {
+							add_trait = mastermind_theologian
+						}
+						30 = {
+							add_trait = scholarly_theologian
+						}
+						20 = {
+							add_trait = dutiful_cleric
+						}
+						10 = {
+							add_trait = detached_priest
+						}
+					}
+					
+					# Some guaranteed traits
+					add_trait = diligent
+					add_trait = patient
+					add_trait = shy
+					random_list = {
+						1 = {
+							add_trait = scholar
+						}
+						1 = {
+							add_trait = mystic
+						}
+					}
+					
+					# And some possible random extras
+					random_list = {
+						1 = {
+							add_trait = weak
+						}
+						1 = {
+							add_trait = attractive
+						}
+						1 = {
+							add_trait = poet
+						}
+						1 = {
+							add_trait = celibate
+						}
+						1 = {
+							add_trait = chaste
+						}
+						1 = {
+							add_trait = humble
+						}
+						1 = {
+							add_trait = proud
+						}
+						1 = {
+							add_trait = envious
+						}
+						1 = {
+							add_trait = erudite
+						}
+						1 = {
+							add_trait = craven
+						}
+						1 = {
+							add_trait = trusting
+						}
+					}
+				}
+				
+				5 = {
+					set_character_flag = foreigner_is_zealot
+					# Stats
+					change_diplomacy = -1
+					change_martial = 2
+					change_stewardship = -2
+					change_intrigue = -2
+					change_learning = 3
+					
+					# Education
+					random_list = {
+						40 = {
+							add_trait = mastermind_theologian
+						}
+						30 = {
+							add_trait = scholarly_theologian
+						}
+						20 = {
+							add_trait = dutiful_cleric
+						}
+						10 = {
+							add_trait = detached_priest
+						}
+					}
+					
+					# Some guaranteed traits
+					add_trait = zealous
+					add_trait = erudite
+					add_trait = ambitious
+					random_list = {
+						1 = {
+							add_trait = scholar
+						}
+						1 = {
+							add_trait = theologian
+						}
+					}
+					
+					# And some possible random extras
+					random_list = {
+						1 = {
+							add_trait = genius
+						}
+						1 = {
+							add_trait = weak
+						}
+						1 = {
+							add_trait = groomed
+						}
+						1 = {
+							add_trait = celibate
+						}
+						1 = {
+							add_trait = poet
+						}
+						1 = {
+							add_trait = chaste
+						}
+						1 = {
+							add_trait = temperate
+						}
+						1 = {
+							add_trait = charitable
+						}
+						1 = {
+							add_trait = diligent
+						}
+						1 = {
+							add_trait = patient
+						}
+						1 = {
+							add_trait = kind
+						}
+						1 = {
+							add_trait = humble
+						}
+						1 = {
+							add_trait = lustful
+						}
+						1 = {
+							add_trait = greedy
+						}
+						1 = {
+							add_trait = wroth
+						}
+						1 = {
+							add_trait = envious
+						}
+						1 = {
+							add_trait = proud
+						}
+						1 = {
+							add_trait = arbitrary
+						}
+						1 = {
+							add_trait = brave
+						}
+						1 = {
+							add_trait = cruel
+						}
+						1 = {
+							add_trait = deceitful
+						}
+						1 = {
+							add_trait = gregarious
+						}
+						1 = {
+							add_trait = honest
+						}
+						1 = {
+							add_trait = just
+						}
+						1 = {
+							add_trait = paranoid
+						}
+						1 = {
+							add_trait = stubborn
+						}
+						1 = {
+							add_random_commander_trait_effect = yes
+						}
+					}
+				}
+				
+				1 = {
+					set_character_flag = foreigner_is_spy
+					# Stats
+					change_diplomacy = 1
+					change_martial = -1
+					change_stewardship = -3
+					change_intrigue = 4
+					change_learning = -1
+					
+					# Education
+					random_list = {
+						40 = {
+							add_trait = elusive_shadow
+						}
+						30 = {
+							add_trait = intricate_webweaver
+						}
+						20 = {
+							add_trait = flamboyant_schemer
+						}
+						10 = {
+							add_trait = amateurish_plotter
+						}
+					}
+					
+					# Some guaranteed traits
+					add_trait = deceitful
+					add_trait = paranoid
+					add_trait = quick
+					random_list = {
+						1 = {
+							add_trait = master_schemer
+						}
+						1 = {
+							add_trait = socializer
+						}
+					}
+					
+					# And some possible random extras
+					random_list = {
+						1 = {
+							add_trait = lunatic
+						}
+						1 = {
+							add_trait = attractive
+						}
+						1 = {
+							add_trait = lefthanded
+						}
+						1 = {
+							add_trait = patient
+						}
+						1 = {
+							add_trait = diligent
+						}
+						1 = {
+							remove_trait = quick
+							add_trait = genius
+						}
+						1 = {
+							add_trait = greedy
+						}
+						1 = {
+							add_trait = envious
+						}
+						1 = {
+							add_trait = ambitious
+						}
+						1 = {
+							add_trait = brave
+						}
+						1 = {
+							add_trait = craven
+						}
+						1 = {
+							add_trait = content
+						}
+						1 = {
+							add_trait = cynical
+						}
+						1 = {
+							add_trait = gregarious
+						}
+						1 = {
+							add_trait = shy
+						}
+					}
+				}
+				
+				1 = {
+					set_character_flag = foreigner_is_thief
+					# Stats
+					change_diplomacy = 2
+					change_martial = -3
+					change_stewardship = 1
+					change_intrigue = 3
+					change_learning = -3
+					
+					# Education
+					random_list = {
+						40 = {
+							add_trait = elusive_shadow
+						}
+						30 = {
+							add_trait = intricate_webweaver
+						}
+						20 = {
+							add_trait = flamboyant_schemer
+						}
+						10 = {
+							add_trait = amateurish_plotter
+						}
+					}
+					
+					# Some guaranteed traits
+					add_trait = ambitious
+					add_trait = greedy
+					add_trait = craven
+					random_list = {
+						1 = {
+							add_trait = master_schemer
+						}
+						1 = {
+							add_trait = architect
+						}
+					}
+					
+					# And some possible random extras
+					random_list = {
+						1 = {
+							add_trait = genius
+						}
+						1 = {
+							add_trait = quick
+						}
+						1 = {
+							add_trait = diligent
+						}
+						1 = {
+							add_trait = patient
+						}
+						1 = {
+							add_trait = envious
+						}
+						1 = {
+							add_trait = arbitrary
+						}
+						1 = {
+							add_trait = cynical
+						}
+						1 = {
+							add_trait = paranoid
+						}
+						1 = {
+							add_trait = shy
+						}
+					}
+				}
+				
+				5 = {
+					set_character_flag = foreigner_is_seducer
+					# Stats
+					change_diplomacy = 3
+					change_martial = -2
+					change_stewardship = -2
+					change_intrigue = 4
+					change_learning = -3
+					
+					# Education
+					random_list = {
+						40 = {
+							add_trait = elusive_shadow
+						}
+						30 = {
+							add_trait = intricate_webweaver
+						}
+						20 = {
+							add_trait = flamboyant_schemer
+						}
+						10 = {
+							add_trait = amateurish_plotter
+						}
+						40 = {
+							add_trait = grey_eminence
+						}
+						30 = {
+							add_trait = charismatic_negotiator
+						}
+						20 = {
+							add_trait = underhanded_rogue
+						}
+						10 = {
+							add_trait = naive_appeaser
+						}
+					}
+					
+					# Some guaranteed traits
+					add_trait = lustful
+					add_trait = deceitful
+					add_trait = attractive
+					random_list = {
+						1 = {
+							add_trait = hedonist
+						}
+						1 = {
+							modifier = {
+								factor = 0
+								is_female = yes
+							}
+							add_trait = master_seducer
+						}
+						1 = {
+							modifier = {
+								factor = 0
+								is_female = no
+							}
+							add_trait = master_seductress
+						}
+						1 = {
+							add_trait = socializer
+						}
+					}
+					
+					# And some possible random extras
+					random_list = {
+						1 = {
+							add_trait = genius
+						}
+						1 = {
+							add_trait = quick
+						}
+						1 = {
+							add_trait = strong
+						}
+						1 = {
+							add_trait = poet
+						}
+						1 = {
+							add_trait = patient
+						}
+						1 = {
+							add_trait = envious
+						}
+						1 = {
+							add_trait = proud
+						}
+						1 = {
+							add_trait = ambitious
+						}
+						1 = {
+							add_trait = brave
+						}
+						1 = {
+							add_trait = craven
+						}
+						1 = {
+							add_trait = cynical
+						}
+						1 = {
+							add_trait = gregarious
+						}
+						1 = {
+							add_trait = paranoid
+						}
+					}
+				}
+				
+				10 = {
+					set_character_flag = foreigner_is_merchant
+					# Stats
+					change_diplomacy = 2
+					change_martial = -2
+					change_stewardship = 4
+					change_intrigue = -2
+					change_learning = -2
+					
+					# Education
+					random_list = {
+						40 = {
+							add_trait = midas_touched
+						}
+						30 = {
+							add_trait = fortune_builder
+						}
+						20 = {
+							add_trait = thrifty_clerk
+						}
+						10 = {
+							add_trait = indulgent_wastrel
+						}
+						40 = {
+							add_trait = grey_eminence
+						}
+						30 = {
+							add_trait = charismatic_negotiator
+						}
+						20 = {
+							add_trait = underhanded_rogue
+						}
+						10 = {
+							add_trait = naive_appeaser
+						}
+					}
+					
+					# Some guaranteed traits
+					add_trait = greedy
+					add_trait = gregarious
+					add_trait = cynical
+					random_list = {
+						1 = {
+							add_trait = socializer
+						}
+						1 = {
+							add_trait = administrator
+						}
+					}
+					
+					# And some possible random extras
+					random_list = {
+						1 = {
+							add_trait = drunkard
+						}
+						1 = {
+							add_trait = quick
+						}
+						1 = {
+							add_trait = genius
+						}
+						1 = {
+							add_trait = ugly
+						}
+						1 = {
+							add_trait = fat
+						}
+						1 = {
+							add_trait = diligent
+						}
+						1 = {
+							add_trait = temperate
+						}
+						1 = {
+							add_trait = humble
+						}
+						1 = {
+							add_trait = gluttonous
+						}
+						1 = {
+							add_trait = slothful
+						}
+						1 = {
+							add_trait = envious
+						}
+						1 = {
+							add_trait = proud
+						}
+						1 = {
+							add_trait = ambitious
+						}
+						1 = {
+							add_trait = arbitrary
+						}
+						1 = {
+							add_trait = brave
+						}
+						1 = {
+							add_trait = content
+						}
+						1 = {
+							add_trait = craven
+						}
+						1 = {
+							add_trait = deceitful
+						}
+						1 = {
+							add_trait = honest
+						}
+						1 = {
+							add_trait = just
+						}
+						1 = {
+							add_trait = stubborn
+						}
+					}
+				}
+				
+				10 = {
+					set_character_flag = foreigner_is_troublemaker
+					# Stats
+					change_diplomacy = -2
+					change_martial = 3
+					change_stewardship = -2
+					change_intrigue = 3
+					change_learning = -2
+					
+					# Education
+					random_list = {
+						40 = {
+							add_trait = skilled_tactician
+						}
+						30 = {
+							add_trait = intricate_webweaver
+						}
+						20 = {
+							add_trait = tough_soldier
+						}
+						10 = {
+							add_trait = flamboyant_schemer
+						}
+					}
+					
+					# Some guaranteed traits
+					add_trait = arbitrary
+					add_trait = wroth
+					add_trait = envious
+					random_list = {
+						1 = {
+							add_trait = master_schemer
+						}
+						1 = {
+							add_trait = mystic
+						}
+						1 = {
+							add_trait = duelist
+						}
+						1 = {
+							add_trait = hedonist
+						}
+					}
+					
+					# And some possible random extras
+					random_list = {
+						1 = {
+							add_trait = shrewd
+						}
+						1 = {
+							add_trait = lunatic
+						}
+						1 = {
+							add_trait = lustful
+						}
+						1 = {
+							add_trait = greedy
+						}
+						1 = {
+							add_trait = proud
+						}
+						1 = {
+							add_trait = ambitious
+						}
+						1 = {
+							add_trait = brave
+						}
+						1 = {
+							add_trait = cruel
+						}
+						1 = {
+							add_trait = cynical
+						}
+						1 = {
+							add_trait = deceitful
+						}
+						1 = {
+							add_trait = gregarious
+						}
+						1 = {
+							add_trait = paranoid
+						}
+						1 = {
+							add_trait = zealous
+						}
+					}
+				}
+				
+				10 = {
+					set_character_flag = foreigner_is_fool
+					# Stats
+					change_diplomacy = -2
+					change_martial = -2
+					change_stewardship = -2
+					change_intrigue = -2
+					change_learning = -2
+					
+					# Education
+					random_list = {
+						20 = {
+							add_trait = naive_appeaser
+						}
+						20 = {
+							add_trait = misguided_warrior
+						}
+						20 = {
+							add_trait = indulgent_wastrel
+						}
+						20 = {
+							add_trait = amateurish_plotter
+						}
+						20 = {
+							add_trait = detached_priest
+						}
+					}
+					
+					# Some guaranteed traits
+					add_trait = slothful
+					add_trait = content
+					add_trait = honest
+					
+					# And some possible random extras
+					random_list = {
+						1 = {
+							add_trait = drunkard
+						}
+						1 = {
+							add_trait = slow
+						}
+						1 = {
+							add_trait = imbecile
+						}
+						1 = {
+							add_trait = uncouth
+						}
+						1 = {
+							add_trait = temperate
+						}
+						1 = {
+							add_trait = kind
+						}
+						1 = {
+							add_trait = humble
+						}
+						1 = {
+							add_trait = gluttonous
+						}
+						1 = {
+							add_trait = craven
+						}
+						1 = {
+							add_trait = just
+						}
+						1 = {
+							add_trait = shy
+						}
+						1 = {
+							add_trait = trusting
+						}
+					}
+				}
+				
+				5 = {
+					set_character_flag = foreigner_is_crazy
+					# Stats
+					change_diplomacy = -1
+					change_martial = -1
+					change_stewardship = -1
+					change_intrigue = -1
+					change_learning = -1
+					
+					# Education
+					random_list = {
+						20 = {
+							add_trait = grey_eminence
+						}
+						20 = {
+							add_trait = brilliant_strategist
+						}
+						20 = {
+							add_trait = midas_touched
+						}
+						20 = {
+							add_trait = elusive_shadow
+						}
+						20 = {
+							add_trait = mastermind_theologian
+						}
+					}
+					
+					# Some guaranteed traits
+					random_list = {
+						1 = {
+							add_trait = lunatic
+						}
+						1 = {
+							add_trait = possessed
+						}
+						1 = {
+							add_trait = lunatic
+							add_trait = possessed
+						}
+					}
+					add_trait = arbitrary
+					random_list = {
+						1 = {
+							add_trait = impaler
+						}
+						1 = {
+							add_trait = mystic
+						}
+					}
+					
+					# And some possible random extras
+					random_list = {
+						1 = {
+							add_trait = malnourished
+						}
+						1 = {
+							add_trait = genius
+						}
+						1 = {
+							add_trait = quick
+						}
+						1 = {
+							add_trait = stutter
+						}
+						1 = {
+							add_trait = lisp
+						}
+						1 = {
+							add_trait = weak
+						}
+						1 = {
+							add_trait = lefthanded
+						}
+						1 = {
+							add_trait = poet
+						}
+						1 = {
+							add_trait = diligent
+						}
+						1 = {
+							add_trait = patient
+						}
+						1 = {
+							add_trait = groomed
+						}
+						1 = {
+							add_trait = humble
+						}
+						1 = {
+							add_trait = lustful
+						}
+						1 = {
+							add_trait = greedy
+						}
+						1 = {
+							add_trait = wroth
+						}
+						1 = {
+							add_trait = envious
+						}
+						1 = {
+							add_trait = proud
+						}
+						1 = {
+							add_trait = ambitious
+						}
+						1 = {
+							add_trait = brave
+						}
+						1 = {
+							add_trait = craven
+						}
+						1 = {
+							add_trait = cruel
+						}
+						1 = {
+							add_trait = cynical
+						}
+						1 = {
+							add_trait = deceitful
+						}
+						1 = {
+							add_trait = paranoid
+						}
+						1 = {
+							add_trait = shy
+						}
+						1 = {
+							add_trait = stubborn
+						}
+						1 = {
+							add_trait = zealous
+						}
+					}
+				}
+			}
+			
+			# Small chance of homosexual foreigner
+			random = {
+				chance = 10
+				add_trait = homosexual
+			}
+			
+			# Randomize age a bit
+			random_list = {
+				1 = {
+					add_age = 10
+				}
+				1 = {
+					add_age = 9
+				}
+				1 = {
+					add_age = 8
+				}
+				1 = {
+					add_age = 7
+				}
+				1 = {
+					add_age = 6
+				}
+				1 = {
+					add_age = 5
+				}
+				1 = {
+					add_age = 4
+				}
+				1 = {
+					add_age = 3
+				}
+				1 = {
+					add_age = 2
+				}
+				1 = {
+					add_age = 1
+				}
+				1 = {
+					# No change
+				}
+				1 = {
+					add_age = -1
+				}
+				1 = {
+					add_age = -2
+				}
+				1 = {
+					add_age = -3
+				}
+				1 = {
+					add_age = -4
+				}
+				1 = {
+					add_age = -5
+				}
+				1 = {
+					add_age = -6
+				}
+				1 = {
+					add_age = -7
+				}
+				1 = {
+					add_age = -8
+				}
+				1 = {
+					add_age = -9
+				}
+			}
+			
+			# Small chance of PCS boost
+			random_list = {
+				10 = {
+					mult_modifier = {
+						factor = 0.01
+						has_character_flag = foreigner_is_warrior
+					}
+					# Nothing
+				}
+				100 = {
+					add_one_duel_experience_modifier = yes
+				}
+				50 = {
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+				}
+				25 = {
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+				}
+				10 = {
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+				}
+				5 = {
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+				}
+				2 = {
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+				}
+				1 = {
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+					add_one_duel_experience_modifier = yes
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4401 # Kill the foreigner!
+		
+		event_target:foreigner_in_japan = {
+			death = {
+				death_reason = death_execution
+				killer = ROOT
+			}
+		}
+		
+		add_trait_partially_cruel_effect = yes
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = kind
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4401 # Accept their request
+		
+		prestige = -25
+		
+		save_event_target_as = foreigners_host
+		
+		event_target:foreigner_in_japan = {
+			character_event = { id = soh.4402 days = 180 random = 180 } # Follow-up
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = cruel
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+		}
+	}
+}
+
+# Event selection
+character_event = {
+	id = soh.4402
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		ai = yes
+		is_ruler = no
+		event_target:foreigners_host = {
+			is_alive = yes
+		}
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				is_inaccessible_or_incapable_trigger = no
+				event_target:foreigners_host = {
+					is_inaccessible_or_incapable_trigger = no
+					is_landed = yes
+				}
+			}
+			
+			random_list = {
+				10 = {
+					trigger = {
+						num_of_friends < 5
+					}
+					
+					mult_modifier = {
+						factor = 10
+						has_education_diplomacy_trigger = yes
+					}
+					
+					# Foreigner makes a friend
+					character_event = { id = soh.4403 }
+				}
+				
+				10 = {
+					trigger = {
+						num_of_rivals < 5
+					}
+					
+					mult_modifier = {
+						factor = 10
+						OR = {
+							has_character_flag = foreigner_is_warrior
+							has_character_flag = foreigner_is_zealot
+							has_character_flag = foreigner_is_troublemaker
+							has_character_flag = foreigner_is_fool
+						}
+					}
+					
+					# Foreigner makes a rival
+					character_event = { id = soh.4406 }
+				}
+				
+				10 = {
+					trigger = {
+						has_dlc = "Holy Fury"
+						
+						event_target:foreigners_host = {
+							OR = {
+								has_japanese_religion_trigger = yes
+								AND = {
+									culture_group = japonic
+									OR = {
+										religion = buddhist
+										religion_group = christian
+									}
+								}
+								religion_openly_ryukyuan_or_reformed_trigger = yes
+							}
+						}
+						
+						NOR = {
+							society_member_of = warriors_of_the_rising_sun
+							trait = craven
+						}
+						
+						combat_rating >= 20
+						martial >= 10
+					}
+						
+					mult_modifier = {
+						factor = 0.5
+						martial < 15
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						combat_rating < 40
+					}
+					
+					mult_modifier = {
+						factor = 10
+						has_character_flag = foreigner_is_warrior
+					}
+					
+					mult_modifier = {
+						factor = 5
+						trait = brave
+					}
+					
+					mult_modifier = {
+						factor = 5
+						has_education_martial_trigger = yes
+					}
+					
+					mult_modifier = {
+						factor = 0.5
+						is_female = yes
+					}
+					
+					# Foreigner wants to join the WotRS
+					
+					event_target:foreigners_host = {
+						character_event = { id = soh.4409 }
+					}
+				}
+				
+				10 = {
+					trigger = {
+						combat_rating >= 20
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						trait = craven
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOT = {
+							has_character_flag = foreigner_is_warrior
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						has_education_martial_trigger = no
+					}
+					
+					# Foreigner fights bandits
+					character_event = { id = soh.4413 }
+				}
+				
+				10 = {
+					trigger = {
+						NOT = {
+							trait = kind
+						}
+					}
+					
+					mult_modifier = {
+						factor = 10
+						OR = {
+							has_character_flag = foreigner_is_warrior
+							has_character_flag = foreigner_is_troublemaker
+							has_character_flag = foreigner_is_fool
+							has_character_flag = foreigner_is_crazy
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						trait = craven
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						combat_rating < 20
+					}
+					
+					mult_modifier = {
+						factor = 0.5
+						has_education_martial_trigger = no
+					}
+					
+					# Foreigner in bar brawl
+					character_event = { id = soh.4423 }
+				}
+				
+				10 = {
+					trigger = {
+						combat_rating >= 20
+					}
+					
+					mult_modifier = {
+						factor = 10
+						has_character_flag = foreigner_is_warrior
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						combat_rating < 40
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						has_education_martial_trigger = no
+					}
+					
+					# Foreigner teaches someone fighting tricks
+					character_event = { id = soh.4428 }
+				}
+				
+				25 = {
+					mult_modifier = {
+						factor = 10
+						OR = {
+							has_character_flag = foreigner_is_warrior
+							has_character_flag = foreigner_is_zealot
+							has_character_flag = foreigner_is_troublemaker
+							has_character_flag = foreigner_is_crazy
+						}
+					}
+					
+					mult_modifier = {
+						factor = 10
+						trait = proud
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						trait = humble
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						trait = gregarious
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						trait = kind
+					}
+					
+					# Foreigner insults peasants
+					character_event = { id = soh.4431 }
+				}
+				
+				25 = {
+					trigger = {
+						learning >= 15
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						has_education_learning_trigger = no
+					}
+					
+					mult_modifier = {
+						factor = 10
+						trait = scholar
+					}
+					
+					# Foreigner shares insights
+					character_event = { id = soh.4433 }
+				}
+				
+				10 = {
+					trigger = {
+						event_target:foreigners_host = {
+							any_courtier_or_vassal = {
+								is_inaccessible_or_incapable_trigger = no
+								NOT = {
+									any_rival = {
+										character = ROOT
+									}
+								}
+								NAND = {
+									diplomacy = 20
+									martial = 20
+									stewardship = 20
+									intrigue = 20
+									learning = 20
+								}
+								OR = {
+									attribute_diff = {
+										who = ROOT
+										attribute = diplomacy
+										value <= -1
+									}
+									attribute_diff = {
+										who = ROOT
+										attribute = martial
+										value <= -1
+									}
+									attribute_diff = {
+										who = ROOT
+										attribute = stewardship
+										value <= -1
+									}
+									attribute_diff = {
+										who = ROOT
+										attribute = intrigue
+										value <= -1
+									}
+									attribute_diff = {
+										who = ROOT
+										attribute = learning
+										value <= -1
+									}
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						has_education_learning_trigger = no
+					}
+					
+					mult_modifier = {
+						factor = 10
+						trait = scholar
+					}
+					
+					mult_modifier = {
+						factor = 10
+						has_character_flag = foreigner_is_scholar
+					}
+					
+					# Foreigner teaches someone something
+					character_event = { id = soh.4434 }
+				}
+				
+				10 = {
+					mult_modifier = {
+						factor = 0.001
+						has_character_flag = foreigner_wrote_book
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						has_education_learning_trigger = no
+					}
+					
+					mult_modifier = {
+						factor = 10
+						trait = scholar
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						learning < 15
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOT = {
+							has_character_flag = foreigner_is_scholar
+						}
+					}
+					
+					# Foreigner writes book
+					character_event = { id = soh.4437 }
+				}
+				
+				10 = {
+					trigger = {
+						NOR = {
+							has_japanese_religion_trigger = yes
+							religion = buddhist
+							religion_openly_ryukyuan_or_reformed_trigger = yes
+						}
+						
+						has_education_learning_trigger = yes
+						trait = zealous
+						learning >= 10
+						
+						event_target:foreigners_host = {
+							any_courtier = {
+								is_landed = no
+								is_inaccessible_or_incapable_trigger = no
+								NOR = {
+									religion = ROOT
+									has_character_flag = ai_flag_refuse_conversion
+									trait = zealous
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.25
+						diplomacy < 20
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOR = {
+							has_character_flag = foreigner_is_zealot
+							has_character_flag = foreigner_is_troublemaker
+							has_character_flag = foreigner_is_crazy
+						}
+					}
+					
+					# Foreigner converts courtier
+					character_event = { id = soh.4441 }
+				}
+				
+				5 = {
+					trigger = {
+						NOR = {
+							has_japanese_religion_trigger = yes
+							religion = buddhist
+							religion_openly_ryukyuan_or_reformed_trigger = yes
+						}
+						
+						has_education_learning_trigger = yes
+						trait = zealous
+						learning >= 15
+						
+						event_target:foreigners_host = {
+							any_realm_province = {
+								NOT = {
+									religion = ROOT
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOR = {
+							has_character_flag = foreigner_is_zealot
+							has_character_flag = foreigner_is_troublemaker
+							has_character_flag = foreigner_is_crazy
+						}
+					}
+					
+					# Foreigner converts province
+					event_target:foreigners_host = {
+						character_event = { id = soh.4443 }
+					}
+				}
+				
+				10 = {
+					trigger = {
+						intrigue >= 15
+						
+						event_target:foreigners_host = {
+							any_courtier_or_vassal = {
+								is_inaccessible_or_incapable_trigger = no
+								NOR = {
+									is_friend = ROOT
+									is_rival = ROOT
+								}
+								has_plot = yes
+								NOT = {
+									plot_is_known_by = event_target:foreigners_host
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						has_education_intrigue_trigger = no
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOT = {
+							has_character_flag = foreigner_is_spy
+						}
+					}
+					
+					# Foreigner detects plot
+					character_event = { id = soh.4444 }
+				}
+				
+				10 = {
+					trigger = {
+						NOR = {
+							trait = honest
+							trait = just
+						}
+						
+						OR = {
+							has_character_flag = foreigner_is_thief
+							has_character_flag = foreigner_is_troublemaker
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						has_education_intrigue_trigger = no
+					}
+					
+					mult_modifier = {
+						factor = 10
+						trait = greedy
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						intrigue < 10
+					}
+					
+					# Foreigner steals from courtier
+					character_event = { id = soh.4447 }
+				}
+				
+				5 = {
+					trigger = {
+						NOR = {
+							trait = honest
+							trait = just
+						}
+						
+						OR = {
+							has_character_flag = foreigner_is_thief
+							has_character_flag = foreigner_is_troublemaker
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						has_education_intrigue_trigger = no
+					}
+					
+					mult_modifier = {
+						factor = 10
+						trait = greedy
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						intrigue < 10
+					}
+					
+					# Foreigner steals from vassal
+					character_event = { id = soh.4451 }
+				}
+				
+				10 = {
+					trigger = {
+						NOR = {
+							trait = celibate
+							trait = chaste
+						}
+						
+						OR = {
+							has_character_flag = foreigner_is_seducer
+							has_character_flag = foreigner_is_troublemaker
+						}
+						
+						
+						event_target:foreigners_host = {
+							any_courtier = {
+								is_landed = no
+								is_inaccessible_or_incapable_trigger = no
+								is_adult = yes
+								NOR = {
+									is_rival = ROOT
+									is_lover = ROOT	
+								}
+								is_valid_romance_target = ROOT
+								ROOT = {
+									is_valid_romance_target = PREV
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOR = {
+							has_education_intrigue_trigger = yes
+							has_education_diplomacy_trigger = yes
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOR = {
+							intrigue >= 10
+							diplomacy >= 10
+						}
+					}
+					
+					mult_modifier = {
+						factor = 5
+						trait = lustful
+					}
+					
+					mult_modifier = {
+						factor = 5
+						OR = {
+							trait = master_seducer
+							trait = master_seductress
+						}
+					}
+					
+					# Foreigner attempts seduction of courtier
+					character_event = { id = soh.4457 }
+				}
+				
+				10 = {
+					trigger = {
+						NOR = {
+							trait = celibate
+							trait = chaste
+						}
+						
+						OR = {
+							has_character_flag = foreigner_is_seducer
+							has_character_flag = foreigner_is_troublemaker
+						}
+						
+						event_target:foreigners_host = {
+							OR = {
+								any_realm_lord = {
+									is_landed = no
+									is_inaccessible_or_incapable_trigger = no
+									is_adult = yes
+									NOR = {
+										is_rival = ROOT
+										is_lover = ROOT	
+									}
+									is_valid_romance_target = ROOT
+									ROOT = {
+										is_valid_romance_target = PREV
+									}
+								}
+								
+								AND = {
+									is_inaccessible_or_incapable_trigger = no
+									is_adult = yes
+									NOR = {
+										is_rival = ROOT
+										is_lover = ROOT	
+									}
+									is_valid_romance_target = ROOT
+									ROOT = {
+										is_valid_romance_target = PREV
+									}
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOR = {
+							has_education_intrigue_trigger = yes
+							has_education_diplomacy_trigger = yes
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOR = {
+							intrigue >= 10
+							diplomacy >= 10
+						}
+					}
+					
+					mult_modifier = {
+						factor = 5
+						trait = lustful
+					}
+					
+					mult_modifier = {
+						factor = 5
+						OR = {
+							trait = master_seducer
+							trait = master_seductress
+						}
+					}
+					
+					# Foreigner attempts seduction of ruler
+					character_event = { id = soh.4461 }
+				}
+				
+				5 = {
+					trigger = {
+						has_dlc = "Reapers"
+						has_education_stewardship_trigger = yes
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						stewardship < 15
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOT = {
+							has_character_flag = foreigner_is_merchant
+						}
+					}
+					
+					# Foreigner improves local prosperity
+					event_target:foreigners_host = {
+						character_event = { id = soh.4467 }
+					}
+				}
+				
+				10 = {
+					trigger = {
+						NOT = {
+							trait = gregarious
+						}
+						event_target:foreigners_host = {
+							any_courtier = {
+								is_landed = no
+								is_inaccessible_or_incapable_trigger = no
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOR = {
+							has_character_flag = foreigner_is_zealot
+							has_character_flag = foreigner_is_troublemaker
+							has_character_flag = foreigner_is_fool
+							has_character_flag = foreigner_is_crazy
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						diplomacy >= 15
+					}
+					
+					# Foreigner upsets courtier
+					character_event = { id = soh.4468 }
+				}
+				
+				5 = {
+					trigger = {
+						NOT = {
+							trait = gregarious
+						}
+						event_target:foreigners_host = {
+							any_realm_lord = {
+								is_inaccessible_or_incapable_trigger = no
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOR = {
+							has_character_flag = foreigner_is_zealot
+							has_character_flag = foreigner_is_troublemaker
+							has_character_flag = foreigner_is_fool
+							has_character_flag = foreigner_is_crazy
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						diplomacy >= 15
+					}
+					
+					# Foreigner upsets vassal
+					character_event = { id = soh.4471 }
+				}
+				
+				5 = {
+					trigger = {
+						NOT = {
+							trait = gregarious
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						NOR = {
+							has_character_flag = foreigner_is_zealot
+							has_character_flag = foreigner_is_troublemaker
+							has_character_flag = foreigner_is_fool
+							has_character_flag = foreigner_is_crazy
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						diplomacy >= 15
+					}
+					
+					# Foreigner upsets host
+					event_target:foreigners_host = {
+						character_event = { id = soh.4474 }
+					}
+				}
+				
+				10 = {
+					mult_modifier = {
+						factor = 0.1
+						NOR = {
+							has_character_flag = foreigner_is_troublemaker
+							has_character_flag = foreigner_is_fool
+							has_character_flag = foreigner_is_crazy
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						OR = {
+							diplomacy >= 15
+							martial >= 15
+							stewardship >= 15
+							intrigue >= 15
+							learning >= 15
+						}
+					}
+					
+					# Foreigner is useless
+					event_target:foreigners_host = {
+						character_event = { id = soh.4475 }
+					}
+				}
+				
+				5 = {
+					trigger = {
+						OR = {
+							trait = lunatic
+							trait = possessed
+						}
+					}
+						
+					mult_modifier = {
+						factor = 0.1
+						NOR = {
+							has_character_flag = foreigner_is_troublemaker
+							has_character_flag = foreigner_is_crazy
+						}
+					}
+					
+					# Foreigner is crazy - attempts murder
+					character_event = { id = soh.4476 }
+				}
+				
+				1 = {
+					trigger = {
+						OR = {
+							trait = lunatic
+							trait = possessed
+						}
+					}
+						
+					mult_modifier = {
+						factor = 0.1
+						NOR = {
+							has_character_flag = foreigner_is_troublemaker
+							has_character_flag = foreigner_is_crazy
+						}
+					}
+					# Foreigner is crazy - picks up completely random religion or culture
+					character_event = { id = soh.4481 }
+				}
+				
+				5 = {
+					trigger = {
+						NOR = {
+							has_character_flag = foreigner_is_zealot
+							trait = zealous
+						}
+						
+						event_target:foreigners_host = {
+							NOT = {
+								religion = ROOT
+							}
+							
+							OR = {
+								has_japanese_religion_trigger = yes
+								religion = buddhist
+								religion_openly_ryukyuan_or_reformed_trigger = yes
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 10
+						OR = {
+							AND = {
+								trait = sympathy_indian
+								event_target:foreigners_host = {
+									OR = {
+										has_japanese_religion_trigger = yes
+										religion = buddhist
+									}
+								}
+							}
+							
+							AND = {
+								trait = sympathy_pagans
+								event_target:foreigners_host = {
+									religion_openly_ryukyuan_or_reformed_trigger = yes
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 10
+						trait = cynical
+					}
+					
+					# Foreigner converts religion
+					character_event = { id = soh.4483 }
+				}
+				
+				5 = {
+					trigger = {
+						NOR = {
+							has_character_flag = foreigner_is_zealot
+							trait = proud
+							event_target:foreigners_host = {
+								OR = {
+									culture = ROOT
+									NOT = {
+										culture_group = japonic
+									}
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 10
+						trait = humble
+					}
+					
+					# Foreigner converts culture
+					character_event = { id = soh.4484 }
+				}
+				
+				10 = {
+					trigger = {
+						is_married = no
+						NOR = {
+							trait = celibate
+							trait = homosexual
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						trait = lustful
+						NOT = {
+							num_of_lovers >= 1
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						num_of_lovers >= 2
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						has_character_flag = foreigner_is_seducer
+					}
+					
+					# Foreigner wishes to marry
+					character_event = { id = soh.4485 }
+				}
+				
+				50 = {} # Nothing
+			}
+		}
+		repeat_event = { id = soh.4402 days = 365 random = 730 }
+	}
+}
+
+### Foreigner makes a friend
+
+# Foreigner made a friend
+character_event = {
+	id = soh.4403
+	desc = EVTDESC_SOH_4403
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_list = {
+			25 = {
+				trigger = {
+					event_target:foreigners_host = {
+						NOR = {
+							is_friend = ROOT
+							is_lover = ROOT
+							is_rival = ROOT
+						}
+					}
+				}
+				event_target:foreigners_host = {
+					save_event_target_as = foreigners_target
+				}
+			}
+			
+			75 = {
+				trigger = {
+					event_target:foreigners_host = {
+						any_courtier_or_vassal = {
+							is_inaccessible_or_incapable_trigger = no
+							NOR = {
+								is_friend = ROOT
+								is_lover = ROOT
+								is_rival = ROOT
+							}
+						}
+					}
+				}
+				
+				event_target:foreigners_host = {
+					random_courtier_or_vassal = {
+						limit = {
+							is_inaccessible_or_incapable_trigger = no
+							NOR = {
+								is_friend = ROOT
+								is_lover = ROOT
+								is_rival = ROOT
+							}
+						}
+						
+						save_event_target_as = foreigners_target
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4403 # Best friends forever!
+		
+		event_target:foreigners_target = {
+			add_friend = ROOT
+			
+			character_event = { id = soh.4404 } # Inform friend
+			
+			if = {
+				limit = {
+					NOT = {
+						event_target:foreigners_host = {
+							character = PREV
+						}
+					}
+				}
+				
+				event_target:foreigners_host = {
+					character_event = { id = soh.4405 } # Inform host
+				}
+			}
+		}
+	}
+}
+
+# Inform new friend
+character_event = {
+	id = soh.4404
+	desc = EVTDESC_SOH_4404
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4404 # Best friends forever!
+		
+		add_friend = FROM
+	}
+}
+
+# Inform host (if not friend)
+character_event = {
+	id = soh.4405
+	desc = EVTDESC_SOH_4405
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4405 # Sounds good!
+	}
+}
+
+### Foreigner makes a rival
+
+# Foreigner made a rival
+character_event = {
+	id = soh.4406
+	desc = EVTDESC_SOH_4406
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:foreigners_host = {
+			random_courtier_or_vassal = {
+				limit = {
+					is_inaccessible_or_incapable_trigger = no
+					NOR = {
+						is_friend = ROOT
+						is_lover = ROOT
+						is_rival = ROOT
+					}
+				}
+				
+				save_event_target_as = foreigners_target
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4406 # I hate them!
+		
+		event_target:foreigners_target = {
+			add_rival = ROOT
+			
+			character_event = { id = soh.4407 } # Inform rival
+		}
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4408 } # Inform host
+		}
+	}
+}
+
+# Inform new rival
+character_event = {
+	id = soh.4407
+	desc = EVTDESC_SOH_4407
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4407 # I hate FROM!
+		
+		add_rival = FROM
+	}
+}
+
+# Inform host
+character_event = {
+	id = soh.4408
+	desc = EVTDESC_SOH_4408
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4408 # I see...
+	}
+}
+
+### Foreigner wants to join the WotRS
+
+# Foreigner makes request
+character_event = {
+	id = soh.4409
+	desc = EVTDESC_SOH_4409
+	picture = GFX_evt_china_expansionist
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4409 # Very well; I'll make introductions!
+		
+		if = {
+			limit = {
+				society_member_of = warriors_of_the_rising_sun
+			}
+			change_society_currency = -100
+		}
+		
+		else = {
+			if = {
+				limit = {
+					OR = {
+						has_japanese_religion_trigger = yes
+						AND = {
+							culture_group = japonic
+							religion = buddhist
+						}
+					}
+				}
+				prestige = -100
+			}
+			else = {
+				prestige = -250
+			}
+		}
+		
+		FROM = {
+			character_event = { id = soh.4410 }
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					is_rival = FROM
+				}
+				
+				opinion = {
+					who = FROM
+					value >= -25
+				}
+				
+				NAND = {
+					society_member_of = warriors_of_the_rising_sun
+					society_rank >= 2
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				FROM = {
+					is_female = yes
+				}
+				is_female = no
+				NOR = {
+					is_friend = ROOT
+					is_lover = ROOT
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				opinion = {
+					who = FROM
+					value < 25
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			society_member_of = warriors_of_the_rising_sun
+			society_rank >= 2
+		}
+		
+		name = EVTOPTB_SOH_4409 # Very well; I'll train you myself!
+		
+		FROM = {
+			character_event = { id = soh.4411 }
+			character_event = { id = soh.2732 } # Inform other students
+		}
+		
+		if = {
+			limit = {
+				has_quest = quest_rising_sun_get_student
+			}
+			character_event = { id = soh.2606 }
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					is_rival = FROM
+				}
+				
+				opinion = {
+					who = FROM
+					value >= -25
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				FROM = {
+					is_female = yes
+				}
+				is_female = no
+				NOR = {
+					is_friend = ROOT
+					is_lover = ROOT
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				opinion = {
+					who = FROM
+					value < 25
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				has_quest = quest_rising_sun_get_student
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_4409 # You, a WotRS? Ha!
+		
+		add_rival = FROM
+		
+		FROM = {
+			character_event = { id = soh.4412 }
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				opinion = {
+					who = FROM
+					value < 25
+				}
+				
+				NOR = {
+					is_friend = FROM
+					is_lover = FROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				opinion = {
+					who = FROM
+					value >= -25
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				FROM = {
+					is_female = no
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				FROM = {
+					has_education_martial_trigger = yes
+				}
+			}
+			
+			mult_modifier = {
+				factor = 100
+				is_rival = FROM
+			}
+		}
+	}
+}
+
+# Request accepted
+character_event = {
+	id = soh.4410
+	desc = EVTDESC_SOH_4410
+	picture = GFX_evt_china_expansionist
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4410 # Just as planned!
+		
+		if = {
+			limit = {
+				is_in_society = yes
+			}
+			
+			leave_society = yes
+		}
+		
+		set_character_flag = special_rising_sun_character # Ignores religion
+		
+		join_society = warriors_of_the_rising_sun
+	}
+}
+		
+# Request accepted - FROM is mentor
+character_event = {
+	id = soh.4411
+	desc = EVTDESC_SOH_4411
+	picture = GFX_evt_china_expansionist
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4411 # That's more than I expected!
+		
+		if = {
+			limit = {
+				is_in_society = yes
+			}
+			
+			leave_society = yes
+		}
+		
+		set_character_flag = special_rising_sun_character # Ignores religion
+		
+		join_society = warriors_of_the_rising_sun
+		
+		# Mentor stuff
+		opinion = {
+			who = FROM
+			modifier = opinion_rising_sun_student
+		}
+		
+		reverse_opinion = {
+			who = FROM
+			modifier = opinion_rising_sun_mentor
+		}
+		
+		hidden_tooltip = {
+			set_variable = {
+				which = rising_sun_student
+				value = 0
+			}
+		}
+		
+		character_event = { id = soh.2738 days = 60 random = 60} # Select an event to send
+	}
+}
+
+# Request refused
+character_event = {
+	id = soh.4412
+	desc = EVTDESC_SOH_4412
+	picture = GFX_evt_china_expansionist
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4412 # "Not good enough"?
+		
+		add_rival = FROM
+	}
+}
+
+### Foreigner fights bandits
+
+# Bandits are upon you - fight or flee?
+character_event = {
+	id = soh.4413
+	desc = EVTDESC_SOH_4413
+	picture = GFX_evt_bandits
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4413 # I will fight!
+		
+		pacifists_lose_piety_effect = yes
+		
+		prestige = 10
+		
+		hidden_tooltip = {
+			random_list = {
+				25 = {
+					trigger = {
+						combat_rating > 20
+					}
+					
+					mult_modifier = {
+						factor = 10
+						combat_rating = 40
+					}
+					
+					character_event = { id = soh.4414 days = 1 } # You win
+				}
+				
+				25 = {
+					mult_modifier = {
+						factor = 0.1
+						combat_rating >= 20
+					}
+					character_event = { id = soh.4416 days = 1 } # You got wounded
+				}
+				
+				25 = {
+					trigger = {
+						combat_rating < 40
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						combat_rating >= 20
+					}
+					character_event = { id = soh.4418 days = 1 } # You got maimed
+				}
+				
+				25 = {
+					trigger = {
+						combat_rating < 40
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						combat_rating >= 20
+					}
+					
+					character_event = { id = soh.4420 days = 1 } # You died
+				}
+			}
+		}
+		
+		add_trait_partially_brave_effect = yes
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = craven
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4413 # I will flee!
+		
+		prestige = -25
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4422 days = 1 } # Foreigner is cowardly
+		}
+		
+		add_trait_partially_craven_effect = yes
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = brave
+				}
+			}
+		}
+	}
+}
+
+# Foreigner won
+character_event = {
+	id = soh.4414
+	desc = EVTDESC_SOH_4414
+	picture = GFX_evt_bandits
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4414 # Good riddance!
+		
+		prestige = 25
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4415 } # Inform host
+		}
+	}
+}
+
+# Inform host - clean victory
+character_event = {
+	id = soh.4415
+	desc = EVTDESC_SOH_4415
+	picture = GFX_evt_bandits
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4415 # I see...
+	}
+}
+
+# Foreigner won but got injured
+character_event = {
+	id = soh.4416
+	desc = EVTDESC_SOH_4416
+	picture = GFX_evt_bandits
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4416 # Good riddance!
+		
+		prestige = 10
+		
+		add_trait_wounded_effect = yes
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4417 } # Inform host
+		}
+	}
+}
+
+# Inform host - injured
+character_event = {
+	id = soh.4417
+	desc = EVTDESC_SOH_4417
+	picture = GFX_evt_bandits
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4417 # I see...
+	}
+}
+
+# Foreigner won but got maimed
+character_event = {
+	id = soh.4418
+	desc = EVTDESC_SOH_4418
+	picture = GFX_evt_bandits
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4418 # Good riddance!
+		
+		prestige = -10
+		
+		add_maimed_trait_effect = yes
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4419 } # Inform host
+		}
+	}
+}
+
+# Inform host - maimed
+character_event = {
+	id = soh.4419
+	desc = EVTDESC_SOH_4419
+	picture = GFX_evt_bandits
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4419 # I see...
+	}
+}
+
+# Foreigner killed
+character_event = {
+	id = soh.4420
+	desc = EVTDESC_SOH_4420
+	picture = GFX_evt_bloody_man
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4420 # This cannot be!
+		
+		prestige = -25
+		
+		death = {
+			death_reason = death_battle
+		}
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4421 } # Inform host
+		}
+	}
+}
+
+# Inform host - killed
+character_event = {
+	id = soh.4421
+	desc = EVTDESC_SOH_4421
+	picture = GFX_evt_bloody_man
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4421 # I see...
+	}
+}
+
+# Inform host - foreigner fled
+character_event = {
+	id = soh.4422
+	desc = EVTDESC_SOH_4422
+	picture = GFX_evt_emissary
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4422 # I see...
+	}
+}
+
+### Foreigner in bar brawl
+
+# Brawl time
+character_event = {
+	id = soh.4423
+	desc = EVTDESC_SOH_4423
+	picture = GFX_evt_brothel
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4423 # Bar brawl! Yay!
+		
+		pacifists_lose_piety_effect = yes
+		
+		hidden_tooltip = {
+			random_list = {
+				33 = {
+					trigger = {
+						combat_rating > 20
+					}
+					
+					character_event = { id = soh.4424 } # It goes well
+				}
+				
+				34 = {
+					trigger = {
+						combat_rating < 40
+					}
+					
+					character_event = { id = soh.4425 } # Injured
+				}
+				
+				33 = {
+					trigger = {
+						combat_rating < 20
+					}
+					
+					character_event = { id = soh.4426 } # Maimed
+				}
+			}
+		}
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4427 } # Inform host
+		}
+	}
+}
+
+# It goes well
+character_event = {
+	id = soh.4424
+	desc = EVTDESC_SOH_4424
+	picture = GFX_evt_brothel
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4424 # Haha!
+		
+		prestige = 10
+	}
+}
+
+# Injured
+character_event = {
+	id = soh.4425
+	desc = EVTDESC_SOH_4425
+	picture = GFX_evt_brothel
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4425 # Ha!
+		
+		add_trait_wounded_effect = yes
+	}
+}
+
+# Maimed
+character_event = {
+	id = soh.4426
+	desc = EVTDESC_SOH_4426
+	picture = GFX_evt_brothel
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4426 # Ow!
+		
+		prestige = -10
+		
+		add_maimed_trait_effect = yes
+	}
+}
+
+# Inform host - foreigner is brawling
+character_event = {
+	id = soh.4427
+	desc = EVTDESC_SOH_4427
+	picture = GFX_evt_brothel
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4427 # I don't know...
+		
+		prestige = -5
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = arbitrary
+					trait = cruel
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4427 # Throw FROM in a cell!
+		
+		FROM = {
+			imprison = ROOT
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = just
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_4427 # Off with FROM's head!
+		
+		add_trait_partially_cruel_effect = yes
+		
+		pacifists_lose_piety_effect = yes
+		
+		FROM = {
+			death = {
+				death_reason = death_execution
+				killer = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = kind
+				}
+			}
+		}
+	}
+}
+
+### Foreigner teaches someone fighting tricks
+
+# Teach someone
+character_event = {
+	id = soh.4428
+	desc = EVTDESC_SOH_4428
+	picture = GFX_evt_dueling_knights_hf
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:foreigners_host = {
+			random_courtier_or_vassal = {
+				limit = {
+					is_inaccessible_or_incapable_trigger = no
+					NOT = {
+						is_rival = ROOT
+					}
+					combat_rating_diff = {
+						character = ROOT
+						value <= -5
+					}
+				}
+				
+				preferred_limit = {
+					OR = {
+						is_friend = ROOT
+						is_lover = ROOT
+					}
+				}
+				
+				save_event_target_as = foreigners_target
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4428 # I have some tricks to teach!
+		
+		event_target:foreigners_target = {
+			character_event = { id = soh.4429 } # Target approached
+		}
+	}
+}
+
+# Target approached
+character_event = {
+	id = soh.4429
+	desc = EVTDESC_SOH_4429
+	picture = GFX_evt_dueling_knights_hf
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4429 # Sure!
+		
+		add_one_duel_experience_modifier = yes
+		
+		prestige = -10
+		
+		FROM = {
+			prestige = 10
+		}
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4430 }
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = slothful
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4429 # No!
+		
+		prestige = 25
+		
+		FROM = {
+			prestige = -10
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = diligent
+			}
+		}
+	}
+}
+
+# Inform host
+character_event = {
+	id = soh.4430
+	desc = EVTDESC_SOH_4430
+	picture = GFX_evt_dueling_knights_hf
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4430 # I see...
+	}
+}
+
+### Foreigner insults peasants
+
+# Foreigner insults peasants
+character_event = {
+	id = soh.4431
+	desc = EVTDESC_SOH_4431
+	picture = GFX_evt_noble_haughty_talking_to_peasants
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:foreigners_host = {
+			random_realm_province = {
+				save_event_target_as = foreigners_target_province
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4431 # Good-for-nothing peasants!
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4432 }
+		}
+	}
+}
+
+# Inform host
+character_event = {
+	id = soh.4432
+	desc = EVTDESC_SOH_4432
+	picture = GFX_evt_noble_haughty_talking_to_peasants
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4432 # Curses!
+		
+		prestige = -25
+		
+		event_target:foreigners_target_province = {
+			add_province_modifier = {
+				name = peasant_unrest
+				years = 10
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = arbitrary
+					trait = cruel
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4432 # Throw FROM in a cell!
+		
+		FROM = {
+			imprison = ROOT
+		}
+		
+		event_target:foreigners_target_province = {
+			add_province_modifier = {
+				name = peasant_unrest
+				years = 5
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = just
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_4432 # Off with FROM's head!
+		
+		pacifists_lose_piety_effect = yes
+		
+		add_trait_partially_cruel_effect = yes
+		
+		FROM = {
+			death = {
+				death_reason = death_execution
+				killer = ROOT
+			}
+		}
+		
+		event_target:foreigners_target_province = {
+			add_province_modifier = {
+				name = peasant_unrest
+				years = 1
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = kind
+				}
+			}
+		}
+	}
+}
+
+### Foreigner shares insights
+
+# Foreigner gives host insights
+character_event = {
+	id = soh.4433
+	desc = EVTDESC_SOH_4433
+	picture = GFX_evt_china_invades
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4433 # Great!
+		
+		culture_techpoints = 15
+		economy_techpoints = 15
+		military_techpoints = 15
+	}
+}
+
+### Foreigner teaches someone something
+
+# Foreigner teaches someone something
+character_event = {
+	id = soh.4434
+	desc = EVTDESC_SOH_4434
+	picture = GFX_evt_china_invades
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:foreigners_host = {
+			random_courtier_or_vassal = {
+				limit = {
+					is_inaccessible_or_incapable_trigger = no
+					NOT = {
+						is_rival = ROOT
+					}
+					
+					NAND = {
+						diplomacy >= 20
+						martial >= 20
+						stewardship >= 20
+						intrigue >= 20
+						learning >= 20
+					}
+					
+					OR = {
+						attribute_diff = {
+							who = ROOT
+							attribute = diplomacy
+							value <= -1
+						}
+						attribute_diff = {
+							who = ROOT
+							attribute = martial
+							value <= -1
+						}
+						attribute_diff = {
+							who = ROOT
+							attribute = stewardship
+							value <= -1
+						}
+						attribute_diff = {
+							who = ROOT
+							attribute = intrigue
+							value <= -1
+						}
+						attribute_diff = {
+							who = ROOT
+							attribute = learning
+							value <= -1
+						}
+					}
+				}
+				
+				preferred_limit = {
+					OR = {
+						is_friend = ROOT
+						is_lover = ROOT
+					}
+				}
+				
+				save_event_target_as = foreigners_target
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4434 # I have some knowledge to share!
+		
+		event_target:foreigners_target = {
+			character_event = { id = soh.4435 } # Target approached
+		}
+	}
+}
+
+# Inform target
+character_event = {
+	id = soh.4435
+	desc = EVTDESC_SOH_4435
+	picture = GFX_evt_china_invades
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4435 # Sure!
+		
+		prestige = -50
+		
+		hidden_tooltip = {
+			random_list = {
+				20 = {
+					trigger = {
+						FROM = {
+							attribute_diff = {
+								who = ROOT
+								attribute = diplomacy
+								value >= 1
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 2
+						FROM = {
+							diplomacy >= 20
+						}
+					}
+					
+					mult_modifier = {
+						factor = 2
+						FROM = {
+							diplomacy >= 10
+						}
+					}
+					
+					change_diplomacy = 1
+				}
+				
+				20 = {
+					trigger = {
+						FROM = {
+							attribute_diff = {
+								who = ROOT
+								attribute = martial
+								value >= 1
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 2
+						FROM = {
+							martial >= 20
+						}
+					}
+					
+					mult_modifier = {
+						factor = 2
+						FROM = {
+							martial >= 10
+						}
+					}
+					
+					change_martial = 1
+				}
+				
+				20 = {
+					trigger = {
+						FROM = {
+							attribute_diff = {
+								who = ROOT
+								attribute = stewardship
+								value >= 1
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 2
+						FROM = {
+							stewardship >= 20
+						}
+					}
+					
+					mult_modifier = {
+						factor = 2
+						FROM = {
+							stewardship >= 10
+						}
+					}
+					
+					change_stewardship = 1
+				}
+				
+				20 = {
+					trigger = {
+						FROM = {
+							attribute_diff = {
+								who = ROOT
+								attribute = intrigue
+								value >= 1
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 2
+						FROM = {
+							intrigue >= 20
+						}
+					}
+					
+					mult_modifier = {
+						factor = 2
+						FROM = {
+							intrigue >= 10
+						}
+					}
+					
+					change_intrigue = 1
+				}
+				
+				20 = {
+					trigger = {
+						FROM = {
+							attribute_diff = {
+								who = ROOT
+								attribute = learning
+								value >= 1
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 2
+						FROM = {
+							learning >= 20
+						}
+					}
+					
+					mult_modifier = {
+						factor = 2
+						FROM = {
+							learning >= 10
+						}
+					}
+					
+					change_learning = 1
+				}
+			}
+		}
+		
+		FROM = {
+			prestige = 50
+		}
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4436 }
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = slothful
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4435 # No!
+		
+		prestige = 50
+		
+		FROM = {
+			prestige = -10
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = diligent
+			}
+		}
+	}
+}
+
+# Inform host (if not target)
+character_event = {
+	id = soh.4436
+	desc = EVTDESC_SOH_4436
+	picture = GFX_evt_china_invades
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4436 # I see...
+	}
+}
+
+### Foreigner writes book
+
+# Foreigner writes book
+character_event = {
+	id = soh.4437
+	desc = EVTDESC_SOH_4437
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4437 # I dedicate this to my host!
+		
+		set_character_flag = foreigner_wrote_book
+		
+		random_list = {
+			20 = {
+				mult_modifier = {
+					factor = 0.1
+					has_education_diplomacy_trigger = no
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					OR = {
+						has_character_flag = wrote_a_beginners_guide_to_isolationism
+						has_character_flag = wrote_keeping_your_head
+						has_character_flag = wrote_the_tale_of_dynasty
+					}
+				}
+				
+				random_list = {
+					50 = {
+						trigger = {
+							diplomacy < 20
+						}
+						
+						add_artifact = a_beginners_guide_to_isolationism
+						
+						set_character_flag = wrote_a_beginners_guide_to_isolationism
+						set_character_flag = foreigner_wrote_bad_book
+						
+						new_artifact = {
+							save_event_target_as = foreigners_book
+						}
+					}
+					
+					25 = {
+						add_artifact = keeping_your_head
+						
+						set_character_flag = wrote_keeping_your_head
+						set_character_flag = foreigner_wrote_average_book
+						
+						new_artifact = {
+							save_event_target_as = foreigners_book
+						}
+					}
+					
+					15 = {
+						trigger = {
+							diplomacy >= 15
+						}
+						
+						add_artifact = the_tale_of_dynasty
+						
+						set_character_flag = wrote_the_tale_of_dynasty
+						set_character_flag = foreigner_wrote_good_book
+						
+						new_artifact = {
+							set_name = "the_tale_of_dynasty_foreigners_host"
+							set_description = "the_tale_of_dynasty_foreigners_host_desc"
+							save_event_target_as = foreigners_book
+						}
+					}
+				}
+			}
+			
+			20 = {
+				mult_modifier = {
+					factor = 0.1
+					has_education_martial_trigger = no
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					OR = {
+						has_character_flag = wrote_they_have_curved_swords
+						has_character_flag = wrote_katanas_are_just_better
+						has_character_flag = wrote_warriors_of_the_rising_sun
+					}
+				}
+				
+				random_list = {
+					50 = {
+						trigger = {
+							martial < 20
+						}
+						
+						add_artifact = they_have_curved_swords
+						
+						set_character_flag = wrote_they_have_curved_swords
+						set_character_flag = foreigner_wrote_bad_book
+						
+						new_artifact = {
+							save_event_target_as = foreigners_book
+						}
+					}
+					
+					25 = {
+						add_artifact = katanas_are_just_better
+						
+						set_character_flag = wrote_katanas_are_just_better
+						set_character_flag = foreigner_wrote_average_book
+						
+						new_artifact = {
+							save_event_target_as = foreigners_book
+						}
+					}
+					
+					15 = {
+						trigger = {
+							martial >= 15
+						}
+						
+						add_artifact = the_warriors_of_the_rising_sun
+						
+						set_character_flag = wrote_warriors_of_the_rising_sun
+						set_character_flag = foreigner_wrote_good_book
+						
+						new_artifact = {
+							save_event_target_as = foreigners_book
+						}
+					}
+				}
+			}
+			
+			20 = {
+				mult_modifier = {
+					factor = 0.1
+					has_education_stewardship_trigger = no
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					OR = {
+						has_character_flag = wrote_cherry_blossoms_are_pretty
+						has_character_flag = wrote_bureaucracy_for_dummies
+						has_character_flag = wrote_the_provinces_of_realm
+					}
+				}
+				
+				random_list = {
+					50 = {
+						trigger = {
+							stewardship < 20
+						}
+						
+						add_artifact = cherry_blossoms_are_pretty
+						
+						set_character_flag = wrote_cherry_blossoms_are_pretty
+						set_character_flag = foreigner_wrote_bad_book
+						
+						new_artifact = {
+							save_event_target_as = foreigners_book
+						}
+					}
+					
+					25 = {
+						add_artifact = bureaucracy_for_dummies
+						
+						set_character_flag = wrote_bureaucracy_for_dummies
+						set_character_flag = foreigner_wrote_average_book
+						
+						new_artifact = {
+							save_event_target_as = foreigners_book
+						}
+					}
+					
+					15 = {
+						trigger = {
+							stewardship >= 15
+						}
+						
+						add_artifact = the_provinces_of_realm
+						
+						set_character_flag = wrote_the_provinces_of_realm
+						set_character_flag = foreigner_wrote_good_book
+						
+						new_artifact = {
+							set_name = "the_provinces_of_realm_foreigners_host"
+							set_description = "the_provinces_of_realm_foreigners_host_desc"
+							save_event_target_as = foreigners_book
+						}
+					}
+				}
+			}
+			
+			20 = {
+				mult_modifier = {
+					factor = 0.1
+					has_education_intrigue_trigger = no
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					OR = {
+						has_character_flag = wrote_highly_visible_ninja
+						has_character_flag = wrote_how_to_wall_climb
+						has_character_flag = wrote_conservation_of_ninjutsu
+					}
+				}
+				
+				random_list = {
+					50 = {
+						trigger = {
+							intrigue < 20
+						}
+						
+						add_artifact = highly_visible_ninja
+						
+						set_character_flag = wrote_highly_visible_ninja
+						set_character_flag = foreigner_wrote_bad_book
+						
+						new_artifact = {
+							save_event_target_as = foreigners_book
+						}
+					}
+					
+					25 = {
+						add_artifact = how_to_wall_climb
+						
+						set_character_flag = wrote_how_to_wall_climb
+						set_character_flag = foreigner_wrote_average_book
+						
+						new_artifact = {
+							save_event_target_as = foreigners_book
+						}
+					}
+					
+					15 = {
+						trigger = {
+							intrigue >= 15
+						}
+						
+						add_artifact = conservation_of_ninjutsu
+						
+						set_character_flag = wrote_conservation_of_ninjutsu
+						set_character_flag = foreigner_wrote_good_book
+						
+						new_artifact = {
+							save_event_target_as = foreigners_book
+						}
+					}
+				}
+			}
+			
+			20 = {
+				mult_modifier = {
+					factor = 0.1
+					has_education_learning_trigger = no
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					OR = {
+						has_character_flag = wrote_how_to_haiku
+						has_character_flag = wrote_hiragana_katakana_and_kanji
+						has_character_flag = wrote_the_location_history_of_realm
+					}
+				}
+				
+				random_list = {
+					50 = {
+						trigger = {
+							intrigue < 20
+						}
+						
+						add_artifact = how_to_haiku
+						
+						set_character_flag = wrote_how_to_haiku
+						set_character_flag = foreigner_wrote_bad_book
+						
+						new_artifact = {
+							save_event_target_as = foreigners_book
+						}
+					}
+					
+					25 = {
+						add_artifact = hiragana_katakana_and_kanji
+						
+						set_character_flag = wrote_hiragana_katakana_and_kanji
+						set_character_flag = foreigner_wrote_average_book
+						
+						new_artifact = {
+							save_event_target_as = foreigners_book
+						}
+					}
+					
+					15 = {
+						trigger = {
+							intrigue >= 15
+						}
+						
+						add_artifact = the_location_history_of_realm
+						
+						set_character_flag = wrote_the_location_history_of_realm
+						set_character_flag = foreigner_wrote_good_book
+						
+						new_artifact = {
+							set_name = "the_location_history_of_realm_foreigners_host"
+							set_description = "the_location_history_of_realm_foreigners_host_desc"
+						}
+					}
+				}
+			}
+		}
+		
+		trigger_switch = {
+			on_trigger = has_character_flag
+			
+			foreigner_wrote_bad_book = {
+				clr_character_flag = foreigner_wrote_bad_book
+				
+				event_target:foreigners_host = {
+					character_event = { id = soh.4438 } # Inform host
+				}
+			}
+			
+			foreigner_wrote_average_book = {
+				clr_character_flag = foreigner_wrote_average_book
+				
+				event_target:foreigners_host = {
+					character_event = { id = soh.4439 } # Inform host
+				}
+			}
+			
+			foreigner_wrote_good_book = {
+				clr_character_flag = foreigner_wrote_good_book
+				
+				event_target:foreigners_host = {
+					character_event = { id = soh.4440 } # Inform host
+				}
+			}
+		}
+	}
+}
+
+# Host gets book - poor book
+character_event = {
+	id = soh.4438
+	desc = EVTDESC_SOH_4438
+	picture = GFX_evt_emissary
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4438 # I accept this gift!
+		
+		FROM = {
+			prestige = 25
+		}
+		
+		event_target:foreigners_book = {
+			transfer_artifact = {
+				from = FROM
+				to = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					trait = humble
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = charitable
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4438 # Keep it!
+		
+		event_target:foreigners_book = {
+			transfer_artifact = {
+				from = FROM
+				to = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					trait = charitable
+				}
+			}
+		}
+	}
+}
+
+# Host gets book - decent book
+character_event = {
+	id = soh.4439
+	desc = EVTDESC_SOH_4439
+	picture = GFX_evt_emissary
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4439 # I accept this gift!
+		
+		FROM = {
+			prestige = 50
+		}
+		
+		event_target:foreigners_book = {
+			transfer_artifact = {
+				from = FROM
+				to = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = charitable
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4439 # Keep it!
+		
+		event_target:foreigners_book = {
+			transfer_artifact = {
+				from = FROM
+				to = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					trait = charitable
+				}
+			}
+		}
+	}
+}
+
+# Host gets book - great book
+character_event = {
+	id = soh.4440
+	desc = EVTDESC_SOH_4440
+	picture = GFX_evt_emissary
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4440 # I accept this gift!
+		
+		FROM = {
+			prestige = 100
+		}
+		
+		event_target:foreigners_book = {
+			transfer_artifact = {
+				from = FROM
+				to = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = charitable
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4440 # Keep it!
+		
+		event_target:foreigners_book = {
+			transfer_artifact = {
+				from = FROM
+				to = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					trait = charitable
+				}
+			}
+		}
+	}
+}
+
+### Foreigner converts courtier
+
+# Foreigner picks a target
+character_event = {
+	id = soh.4441
+	desc = EVTDESC_SOH_4441
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:foreigners_host = {
+			random_courtier = {
+				limit = {
+					is_landed = no
+					is_inaccessible_or_incapable_trigger = no
+					NOR = {
+						religion = ROOT
+						has_character_flag = ai_flag_refuse_conversion
+						trait = zealous
+					}
+				}
+				save_event_target_as = foreigners_target
+			}
+		}
+		FROM = {
+			piety = 25
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4441 # Convert now!
+		
+		event_target:foreigners_target = {
+			religion = ROOT
+		}
+		event_target:foreigners_host = {
+			character_event = { id = soh.4442 } # Inform the host
+		}
+	}
+}
+
+# Inform host
+character_event = {
+	id = soh.4442
+	desc = EVTDESC_SOH_4442
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			religion = FROM
+		}
+		
+		name = EVTOPTA_SOH_4442 # Great!
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				religion = FROM
+			}
+		}
+		
+		name = EVTOPTB_SOH_4442 # I see...
+		
+		prestige = -10
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = zealous
+					trait = cruel
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				religion = FROM
+			}
+		}
+		name = EVTOPTC_SOH_4442 # Throw FROM in a cell!
+		
+		FROM = {
+			imprison = ROOT
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = cynical
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				religion = FROM
+			}
+			
+		}
+		
+		name = EVTOPTD_SOH_4442 # Off with FROM's head!
+		
+		pacifists_lose_piety_effect = yes
+		
+		add_trait_partially_cruel_effect = yes
+		
+		FROM = {
+			death = {
+				death_reason = death_execution
+				killer = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = kind
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = zealous
+			}
+		}
+	}
+}
+
+### Foreigner converts province
+
+# Inform host
+character_event = {
+	id = soh.4443
+	desc = EVTDESC_SOH_4443
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_realm_province = {
+			limit = {
+				NOT = {
+					religion = FROM
+				}
+			}
+			save_event_target_as = foreigners_target_province
+		}
+		FROM = {
+			piety = 25
+		}
+	}
+	
+	option = {
+		trigger = {
+			religion = FROM
+		}
+		
+		name = EVTOPTA_SOH_4443 # Great!
+		
+		event_target:foreigners_target_province = {
+			religion = FROM
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				religion = FROM
+			}
+		}
+		
+		name = EVTOPTB_SOH_4443 # I see...
+		
+		piety = -25
+		
+		event_target:foreigners_target_province = {
+			religion = FROM
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = zealous
+					trait = cruel
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				religion = FROM
+			}
+		}
+		name = EVTOPTC_SOH_4443 # Throw FROM in a cell!
+		
+		FROM = {
+			imprison = ROOT
+		}
+		
+		event_target:foreigners_target_province = {
+			religion = FROM
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = cynical
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				religion = FROM
+			}
+		}
+		
+		name = EVTOPTD_SOH_4443 # Off with FROM's head!
+		
+		pacifists_lose_piety_effect = yes
+		
+		event_target:foreigners_target_province = {
+			religion = FROM
+		}
+		
+		add_trait_partially_cruel_effect = yes
+		
+		FROM = {
+			death = {
+				death_reason = death_execution
+				killer = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = kind
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = zealous
+			}
+		}
+	}
+}
+
+### Foreigner detects plot
+
+# Plot discovered
+character_event = {
+	id = soh.4444
+	desc = EVTDESC_SOH_4444
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:foreigners_host = {
+			random_courtier_or_vassal = {
+				limit = {
+					is_inaccessible_or_incapable_trigger = no
+					NOR = {
+						any_friend = {
+							character = ROOT
+						}
+						any_lover = {
+							character = ROOT
+						}
+					}
+					has_plot = yes
+					NOT = {
+						plot_is_known_by = event_target:foreigners_host
+					}
+				}
+				
+				preferred_limit = {
+					is_rival = ROOT
+					is_rival =  event_target:foreigners_host
+				}
+				
+				preferred_limit = {
+					is_rival = ROOT
+				}
+				
+				preferred_limit = {
+					is_rival =  event_target:foreigners_host
+				}
+				
+				save_event_target_as = foreigners_target
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4444 # I know what you plan!
+		
+		event_target:foreigners_target = {
+			reveal_plot = ROOT
+			character_event = { id = soh.4445 } # Inform the plotter
+		}
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4446 } # Inform the host
+		}
+	}
+}
+
+# Inform discovered plotter
+character_event = {
+	id = soh.4445
+	desc = EVTDESC_SOH_4445
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4445 # Curses!
+		
+		prestige = -25
+	}
+}
+
+# Inform host
+character_event = {
+	id = soh.4446
+	desc = EVTDESC_SOH_4446
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4446 # I see...
+		
+		event_target:foreigners_target = {
+			reveal_plot = ROOT
+		}
+	}
+}
+
+### Foreigner steals from courtier
+
+# Foreigner picks target
+character_event = {
+	id = soh.4447
+	desc = EVTDESC_SOH_4447
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:foreigners_host = {
+			random_courtier = {
+				limit = {
+					is_landed = no
+					is_inaccessible_or_incapable_trigger = no
+					NOR = {
+						is_friend = ROOT
+						is_lover = ROOT
+					}
+				}
+				
+				preferred_limit = {
+					is_rival = ROOT
+				}
+				
+				save_event_target_as = foreigners_target
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4447 # Such pretty baubles!
+		
+		hidden_tooltip = {
+			random_list = {
+				50 = {
+					trigger = {
+						attribute_diff = {
+							character = event_target:foreigners_target
+							attribute = intrigue
+							value > -10
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						attribute_diff = {
+							character = event_target:foreigners_target
+							attribute = intrigue
+							value <= -1
+						}
+					}
+					
+					# It goes well
+					character_event = { id = soh.4448 days = 1 }
+				}
+				
+				50 = {
+					trigger = {
+						attribute_diff = {
+							character = event_target:foreigners_target
+							attribute = intrigue
+							value < 10
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						attribute_diff = {
+							character = event_target:foreigners_target
+							attribute = intrigue
+							value >= 1
+						}
+					}
+					
+					# It goes poorly
+					character_event = { id = soh.4449 days = 1 }
+				}
+			}
+		}
+	}
+}
+
+# It goes well
+character_event = {
+	id = soh.4448
+	desc = EVTDESC_SOH_4448
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4448 # Great!
+		
+		wealth = 25
+		
+		event_target:foreigners_target = {
+			wealth = -25
+		}
+	}
+}
+
+# It goes poorly
+character_event = {
+	id = soh.4449
+	desc = EVTDESC_SOH_4449
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4449 # Curses
+		
+		prestige = -10
+		
+		event_target:foreigners_target = {
+			add_rival = ROOT
+		}
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4450 } # Inform host
+		}
+	}
+}
+
+# Infrom host if it went poorly
+character_event = {
+	id = soh.4450
+	desc = EVTDESC_SOH_4450
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	option = {
+		name = EVTOPTA_SOH_4450 # I don't know...
+		
+		prestige = -5
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = just
+					trait = cruel
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4450 # Throw FROM in a cell!
+		
+		FROM = {
+			imprison = ROOT
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = arbitrary
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_4450 # Off with FROM's head!
+		
+		pacifists_lose_piety_effect = yes
+		
+		add_trait_partially_cruel_effect = yes
+		
+		FROM = {
+			death = {
+				death_reason = death_execution
+				killer = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = kind
+				}
+			}
+		}
+	}
+}
+
+### Foreigner steals from vassal
+
+# Foreigner picks target
+character_event = {
+	id = soh.4451
+	desc = EVTDESC_SOH_4451
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:foreigners_host = {
+			random_realm_lord = {
+				limit = {
+					is_inaccessible_or_incapable_trigger = no
+					NOR = {
+						is_friend = ROOT
+						is_lover = ROOT
+					}
+				}
+				
+				preferred_limit = {
+					is_rival = ROOT
+				}
+				
+				save_event_target_as = foreigners_target
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4451 # Such pretty baubles!
+		
+		hidden_tooltip = {
+			random_list = {
+				50 = {
+					trigger = {
+						attribute_diff = {
+							character = event_target:foreigners_target
+							attribute = intrigue
+							value > -10
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						attribute_diff = {
+							character = event_target:foreigners_target
+							attribute = intrigue
+							value <= -1
+						}
+					}
+					
+					# It goes well
+					character_event = { id = soh.4452 days = 1 }
+				}
+				
+				50 = {
+					trigger = {
+						attribute_diff = {
+							character = event_target:foreigners_target
+							attribute = intrigue
+							value < 10
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						attribute_diff = {
+							character = event_target:foreigners_target
+							attribute = intrigue
+							value >= 1
+						}
+					}
+					
+					# It goes poorly
+					character_event = { id = soh.4454 days = 1 }
+				}
+			}
+		}
+	}
+}
+
+# It goes well
+character_event = {
+	id = soh.4452
+	desc = EVTDESC_SOH_4452
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4452 # Great!
+		
+		wealth = 50
+		
+		event_target:foreigners_target = {
+			character_event = { id = soh.4453 } # Inform target
+		}
+	}
+}
+
+# Inform vassal - money is missing
+character_event = {
+	id = soh.4453
+	desc = EVTDESC_SOH_4453
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4453 # Who did this?
+		
+		wealth = -50
+	}
+}
+
+# It goes poorly - imprisoned
+character_event = {
+	id = soh.4454
+	desc = EVTDESC_SOH_4454
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4452 # Great!
+		
+		prestige = -25
+		
+		imprison = event_target:foreigners_target
+		
+		event_target:foreigners_target = {
+			add_rival = ROOT
+			character_event = { id = soh.4455 } # Inform target
+		}
+	}
+}
+
+# Inform vassal - foreigner was imprisoned
+character_event = {
+	id = soh.4455
+	desc = EVTDESC_SOH_4455
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4455 # Thievery will not go unpunished!
+		
+		add_rival = FROM
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4456 } # Inform host
+		}
+	}
+}
+
+# Infrom host if it went poorly
+character_event = {
+	id = soh.4456
+	desc = EVTDESC_SOH_4456
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4456 # I see...
+	}
+}
+
+### Foreigner attempts seduction of courtier
+
+# Foreigner picks target
+character_event = {
+	id = soh.4457
+	desc = EVTDESC_SOH_4457
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:foreigners_host = {
+			random_courtier = {
+				limit = {
+					is_landed = no
+					is_inaccessible_or_incapable_trigger = no
+					is_adult = yes
+					NOR = {
+						is_rival = ROOT
+						is_lover = ROOT
+					}
+					is_valid_romance_target = ROOT
+					ROOT = {
+						is_valid_romance_target = PREV
+					}
+				}
+				
+				preferred_limit = {
+					is_attractive_trigger = yes
+				}
+				
+				save_event_target_as = foreigners_target
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4457 # Yes!
+		
+		event_target:foreigners_target = {
+			character_event = { id = soh.4458 days = 1 } # Other party approached
+		}
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = chaste
+					trait = celibate
+					AND = {
+						is_ascetic_trigger = yes
+						NOT = {
+							trait = lustful
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				event_target:foreigners_target = {
+					is_unattractive_trigger = yes
+				}
+			}
+			
+			mult_modifier = {
+				factor = 5
+				event_target:foreigners_target = {
+					is_attractive_trigger = yes
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4457 # I don't think so!
+		
+		piety = 10
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = lustful
+					trait = master_seducer
+					trait = master_seductress
+				}
+			}
+		}
+	}
+}
+
+# Target approached
+character_event = {
+	id = soh.4458
+	desc = EVTDESC_SOH_4458
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4458 # Yes!
+		
+		unprotected_sex_effect = yes
+		
+		FROM = {
+			character_event = { id = soh.4460 } # Tumbling
+		}
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = chaste
+					trait = celibate
+					AND = {
+						is_ascetic_trigger = yes
+						NOT = {
+							trait = lustful
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				FROM = {
+					is_unattractive_trigger = yes
+				}
+			}
+			
+			mult_modifier = {
+				factor = 5
+				FROM = {
+					is_attractive_trigger = yes
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4458 # I don't think so!
+		
+		FROM = {
+			character_event = { id = soh.4459 } # Shot down
+		}
+		
+		piety = 10
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = lustful
+					trait = master_seducer
+					trait = master_seductress
+				}
+			}
+		}
+	}
+}
+
+# Target turned down foreigner
+character_event = {
+	id = soh.4459
+	desc = EVTDESC_SOH_4459
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4459 # I see...
+	}
+}
+
+# Target accepted - lovers?
+character_event = {
+	id = soh.4460
+	desc = EVTDESC_SOH_4460
+	picture = GFX_evt_lovers
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4460 # Yes!
+		
+		add_lover = FROM
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4460 # No!
+	}
+}
+
+### Foreigner attempts seduction of ruler
+
+# Foreigner picks target
+character_event = {
+	id = soh.4461
+	desc = EVTDESC_SOH_4461
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_list = {
+			50 = {
+				trigger = {
+					event_target:foreigners_host = {
+						any_realm_lord = {
+							is_inaccessible_or_incapable_trigger = no
+							is_adult = yes
+							NOR = {
+								is_rival = ROOT
+								is_lover = ROOT
+							}
+							is_valid_romance_target = ROOT
+							ROOT = {
+								is_valid_romance_target = PREV
+							}
+						}
+					}
+				}
+				event_target:foreigners_host = {
+					random_realm_lord = {
+						limit = {
+							is_landed = no
+							is_inaccessible_or_incapable_trigger = no
+							is_adult = yes
+							NOR = {
+								is_rival = ROOT
+								is_lover = ROOT
+							}
+							is_valid_romance_target = ROOT
+							ROOT = {
+								is_valid_romance_target = PREV
+							}
+						}
+						
+						preferred_limit = {
+							is_attractive_trigger = yes
+						}
+						
+						save_event_target_as = foreigners_target
+					}
+				}
+			}
+			
+			50 = {
+				trigger = {
+					event_target:foreigners_host = {
+						is_inaccessible_or_incapable_trigger = no
+						is_adult = yes
+						NOR = {
+							is_rival = ROOT
+							is_lover = ROOT
+						}
+						is_valid_romance_target = ROOT
+						ROOT = {
+							is_valid_romance_target = PREV
+						}
+					}
+				}
+				
+				event_target:foreigners_host = {
+					save_event_target_as = foreigners_target
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4461 # Yes!
+		
+		event_target:foreigners_target = {
+			character_event = { id = soh.4462 days = 1 } # Other party approached
+		}
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = chaste
+					trait = celibate
+					AND = {
+						is_ascetic_trigger = yes
+						NOT = {
+							trait = lustful
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				event_target:foreigners_target = {
+					is_unattractive_trigger = yes
+				}
+			}
+			
+			mult_modifier = {
+				factor = 5
+				event_target:foreigners_target = {
+					is_attractive_trigger = yes
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4461 # I don't think so!
+		
+		piety = 10
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = lustful
+					trait = master_seducer
+					trait = master_seductress
+				}
+			}
+		}
+	}
+}
+
+# Target approached
+character_event = {
+	id = soh.4462
+	desc = EVTDESC_SOH_4462
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4462 # Yes!
+		
+		FROM = {
+			save_event_target_as = sex_partner
+		}
+		
+		unprotected_sex_effect_event_target = yes
+		
+		FROM = {
+			character_event = { id = soh.4464 } # Tumbling
+		}
+		
+		piety = -10
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = chaste
+					trait = celibate
+					AND = {
+						is_ascetic_trigger = yes
+						NOT = {
+							trait = lustful
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				FROM = {
+					is_unattractive_trigger = yes
+				}
+			}
+			
+			mult_modifier = {
+				factor = 5
+				FROM = {
+					is_attractive_trigger = yes
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4462 # I don't think so!
+		
+		FROM = {
+			character_event = { id = soh.4463 } # Shot down
+		}
+		
+		piety = 10
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = lustful
+					trait = master_seducer
+					trait = master_seductress
+				}
+			}
+		}
+	}
+}
+
+# Target turned down foreigner
+character_event = {
+	id = soh.4463
+	desc = EVTDESC_SOH_4463
+	picture = GFX_evt_garden
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4463 # I see...
+	}
+}
+
+# Target accepted - lovers?
+character_event = {
+	id = soh.4464
+	desc = EVTDESC_SOH_4464
+	picture = GFX_evt_lovers
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4464 # Yes!
+		
+		add_lover = FROM
+		
+		FROM = {
+			character_event = { id = soh.4465 days = 1 } # Inform FROM
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4464 # No!
+		
+		FROM = {
+			character_event = { id = soh.4466 days = 1 } # Inform FROM
+		}
+	}
+}
+
+# Lovers
+character_event = {
+	id = soh.4465
+	desc = EVTDESC_SOH_4465
+	picture = GFX_evt_lovers
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4465 # That's great!
+		
+		add_lover = FROM
+	}
+}
+
+# Not lovers
+character_event = {
+	id = soh.4466
+	desc = EVTDESC_SOH_4466
+	picture = GFX_evt_lovers
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4466 # I see...
+	}
+}
+
+### Foreigner improves local prosperity
+
+# Prosperity improves
+character_event = {
+	id = soh.4467
+	desc = EVTDESC_SOH_4467
+	picture = GFX_evt_prospering_province
+	border = GFX_event_normal_frame_economy
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_realm_province = {
+			save_event_target_as = foreigners_target_province
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4467 # That's nice!
+		
+		event_target:foreigners_target_province = {
+			hidden_tooltip = {
+				change_variable = { which = prosperity_value value = 6 }
+			}
+		}
+	}
+}
+
+### Foreigner upsets courtier
+
+# Pick someone to upset
+character_event = {
+	id = soh.4468
+	desc = EVTDESC_SOH_4468
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:foreigners_host = {
+			random_courtier = {
+				limit = {
+					is_landed = no
+					is_inaccessible_or_incapable_trigger = no
+				}
+				
+				preferred_limit = {
+					NOR = {
+						is_friend = ROOT
+						is_lover = ROOT
+					}
+				}
+				save_event_target_as = foreigners_target
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4468 # Oops!
+		
+		prestige = -10
+		
+		event_target:foreigners_target = {
+			character_event = { id = soh.4469 } # Inform target
+		}
+	}
+}
+
+# Courtier gets upset
+character_event = {
+	id = soh.4469
+	desc = EVTDESC_SOH_4469
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4469 # How rude!
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_dislike
+		}
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4470 } # Inform host
+		}
+	}
+}
+
+# Inform host
+character_event = {
+	id = soh.4470
+	desc = EVTDESC_SOH_4470
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4470 # I don't know...
+		
+		prestige = -5
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = arbitrary
+					trait = cruel
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4470 # Throw FROM in a cell!
+		
+		FROM = {
+			imprison = ROOT
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = just
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_4470 # Off with FROM's head!
+		
+		pacifists_lose_piety_effect = yes
+		
+		add_trait_partially_cruel_effect = yes
+		
+		FROM = {
+			death = {
+				death_reason = death_execution
+				killer = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = kind
+				}
+			}
+		}
+	}
+}
+
+### Foreigner upsets vassal
+
+# Pick someone to upset
+character_event = {
+	id = soh.4471
+	desc = EVTDESC_SOH_4471
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:foreigners_host = {
+			random_realm_lord = {
+				limit = {
+					is_inaccessible_or_incapable_trigger = no
+				}
+				
+				preferred_limit = {
+					NOR = {
+						is_friend = ROOT
+						is_lover = ROOT
+					}
+				}
+				
+				save_event_target_as = foreigners_target
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4471 # Oops!
+		
+		prestige = -10
+		
+		event_target:foreigners_target = {
+			character_event = { id = soh.4472 } # Inform target
+		}
+	}
+}
+
+# Vassal gets upset
+character_event = {
+	id = soh.4472
+	desc = EVTDESC_SOH_4472
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4472 # How rude!
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_dislike
+		}
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4473 } # Inform host
+		}
+	}
+}
+
+# Inform host
+character_event = {
+	id = soh.4473
+	desc = EVTDESC_SOH_4473
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4473 # I don't know...
+		
+		prestige = -5
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = arbitrary
+					trait = cruel
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4473 # Throw FROM in a cell!
+		
+		FROM = {
+			imprison = ROOT
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = just
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_4473 # Off with FROM's head!
+		
+		pacifists_lose_piety_effect = yes
+		
+		add_trait_partially_cruel_effect = yes
+		
+		FROM = {
+			death = {
+				death_reason = death_execution
+				killer = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = kind
+				}
+			}
+		}
+	}
+}
+
+### Foreigner upsets host
+
+# Host is insulted
+character_event = {
+	id = soh.4474
+	desc = EVTDESC_SOH_4474
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4474 # How rude!
+		
+		prestige = -10
+		
+		opinion = {
+			who = FROM
+			modifier = opinion_dislike
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = arbitrary
+					trait = proud
+					trait = cruel
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4474 # Throw FROM in a cell!
+		
+		FROM = {
+			imprison = ROOT
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = just
+					NOT = {
+						trait = proud
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				trait = just
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_4474 # Off with FROM's head!
+		
+		pacifists_lose_piety_effect = yes
+		
+		add_trait_partially_cruel_effect = yes
+		
+		FROM = {
+			death = {
+				death_reason = death_execution
+				killer = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = kind
+					NOT = {
+						trait = proud
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				trait = kind
+			}
+		}
+	}
+}
+
+### Foreigner is useless
+
+# Foreigner is useless - inform host
+character_event = {
+	id = soh.4475
+	desc = EVTDESC_SOH_4475
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4475 # I see...
+		
+		prestige = -25
+	}
+}
+
+### Foreigner is crazy - attempts murder
+
+# Foreigner picks target
+character_event = {
+	id = soh.4476
+	desc = EVTDESC_SOH_4476
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:foreigners_host = {
+			random_courtier = {
+				limit = {
+					is_inaccessible_or_incapable_trigger = no
+					is_landed = no
+				}
+				# The foreigner is crazy, so no preferences!
+				save_event_target_as = foreigners_target
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4476 # The voices' command is clear!
+		
+		hidden_tooltip = {
+			random_list = {
+				50 = {
+					trigger = {
+						attribute_diff = {
+							character = event_target:foreigners_target
+							attribute = intrigue
+							value < -10
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						attribute_diff = {
+							character = event_target:foreigners_target
+							attribute = intrigue
+							value <= -1
+						}
+					}
+					
+					# It goes well
+					character_event = { id = soh.4477 days = 1 }
+				}
+				
+				50 = {
+					trigger = {
+						attribute_diff = {
+							character = event_target:foreigners_target
+							attribute = intrigue
+							value < 10
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						attribute_diff = {
+							character = event_target:foreigners_target
+							attribute = intrigue
+							value >= 1
+						}
+					}
+					
+					# It goes poorly
+					character_event = { id = soh.4479 days = 1 }
+				}
+			}
+		}
+	}
+}
+
+# Murder attempt succeeds
+character_event = {
+	id = soh.4477
+	desc = EVTDESC_SOH_4477
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4477 # Do not want!
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4478 } # Inform host
+		}
+		
+		hidden_tooltip = {
+			save_event_target_as = target_victim
+			FROM = { character_event = { id = 10 } } # Consequences of discovery
+			clear_event_target = target_victim
+		}
+		
+		FROM = {
+			ROOT = { save_event_target_as = kinslayer_target }
+			add_kinslayer_trait_effect = yes
+		}
+		
+		death = {
+			death_reason = death_murder
+			killer = FROM
+		}
+	}
+}
+
+# Infrom host
+character_event = {
+	id = soh.4478
+	desc = EVTDESC_SOH_4478
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4478 # I don't know...
+		
+		prestige = -25
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = just
+					trait = cruel
+					is_close_relative = FROM
+					any_spouse_even_if_dead = {
+						character = FROM
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4478 # Throw FROMFROM in a cell!
+		
+		FROMFROM = {
+			imprison = ROOT
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = arbitrary
+					NOR = {
+						is_close_relative = FROM
+						any_spouse_even_if_dead = {
+							character = FROM
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				trait = arbitrary
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_4478 # Off with FROMFROM's head!
+		
+		pacifists_lose_piety_effect = yes
+		
+		FROMFROM = {
+			death = {
+				death_reason = death_execution
+				killer = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = kind
+					NOR = {
+						is_close_relative = FROM
+						any_spouse_even_if_dead = {
+							character = FROM
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				trait = kind
+			}
+		}
+	}
+}
+
+# Murder attempt fails
+character_event = {
+	id = soh.4479
+	desc = EVTDESC_SOH_4479
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4479 # I got away!
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4480 } # Inform host
+		}
+		
+		add_rival = FROM
+	}
+}
+
+# Inform host
+character_event = {
+	id = soh.4480
+	desc = EVTDESC_SOH_4480
+	picture = GFX_evt_shadow
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4480 # I don't know...
+		
+		prestige = -25
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = just
+					trait = cruel
+					is_close_relative = FROM
+					any_spouse_even_if_dead = {
+						character = FROM
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_4480 # Throw FROMFROM in a cell!
+		
+		FROMFROM = {
+			imprison = ROOT
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = arbitrary
+					NOR = {
+						is_close_relative = FROM
+						any_spouse_even_if_dead = {
+							character = FROM
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				trait = arbitrary
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_4480 # Off with FROMFROM's head!
+		
+		pacifists_lose_piety_effect = yes
+		
+		FROMFROM = {
+			death = {
+				death_reason = death_execution
+				killer = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = kind
+					NOR = {
+						is_close_relative = FROM
+						any_spouse_even_if_dead = {
+							character = FROM
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				trait = kind
+			}
+		}
+	}
+}
+
+### Foreigner is crazy - picks up completely random religion or culture
+
+# Foreigner picks up random religion or culture
+character_event = {
+	id = soh.4481
+	desc = EVTDESC_SOH_4481
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_independent_ruler = {
+			limit = {
+				any_realm_province = {
+					NOR = {
+						religion = ROOT
+						culture = ROOT
+					}
+				}
+			}
+			
+			random_realm_province = {
+				limit = {
+					NOR = {
+						religion = ROOT
+						culture = ROOT
+					}
+				}
+				
+				save_event_target_as = foreigners_target_province
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4481 # New day, new me!
+		
+		religion = event_target:foreigners_target_province
+		culture = event_target:foreigners_target_province
+		
+		event_target:foreigners_host = {
+			character_event = { id = soh.4482 } # Inform host
+		}
+	}
+}
+
+# Inform host
+character_event = {
+	id = soh.4482
+	desc = EVTDESC_SOH_4482
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4482 # I see...
+	}
+}
+
+### Foreigner converts religion
+
+# Inform host
+character_event = {
+	id = soh.4483
+	desc = EVTDESC_SOH_4483
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4483 # That's great!
+		
+		FROM = {
+			religion = ROOT
+		}
+		
+		piety = 10
+	}
+}
+
+### Foreigner converts culture
+
+# Inform host
+character_event = {
+	id = soh.4484
+	desc = EVTDESC_SOH_4484
+	picture = GFX_evt_religious_exultation
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_4484 # That's great!
+		
+		FROM = {
+			culture = ROOT
+		}
+		
+		prestige = 10
+	}
+}
+
+### Foreigner wishes to marry
+
+# Check to see if there's a preferred spouse
+character_event = {
+	id = soh.4485
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				event_target:foreigners_host = {
+					any_courtier = {
+						is_landed = no
+						is_inaccessible_or_incapable_trigger = no
+						is_married = no
+						is_consort = no
+						num_of_consorts = 0
+						is_lover = ROOT
+						is_betrothed = no
+						is_ascetic_trigger = no
+						# In case something odd has happened
+						NOT = {
+							trait = homosexual
+						}
+						is_opposite_sex = ROOT
+					}
+				}
+			}
+			
+			event_target:foreigners_host = {
+				random_courtier = {
+					limit = {
+						is_landed = no
+						is_inaccessible_or_incapable_trigger = no
+						is_married = no
+						is_consort = no
+						num_of_consorts = 0
+						is_lover = ROOT
+						is_betrothed = no
+						is_ascetic_trigger = no
+						# In case something odd has happened
+						NOT = {
+							trait = homosexual
+						}
+						is_opposite_sex = ROOT
+					}
+					
+					preferred_limit = {
+						num_of_lovers < 2
+					}
+					
+					save_event_target_as = foreigners_choice
+				}
+				
+				character_event = { id = soh.4486 } # Host approached about marriage
+			}
+		}
+		
+		else_if = {
+			limit = {
+				event_target:foreigners_host = {
+					any_courtier = {
+						is_adult = yes
+						is_landed = no
+						is_inaccessible_or_incapable_trigger = no
+						is_married = no
+						is_consort = no
+						num_of_consorts = 0
+						is_friend = ROOT
+						is_betrothed = no
+						is_ascetic_trigger = no
+						# In case something odd has happened
+						NOT = {
+							trait = homosexual
+						}
+						is_opposite_sex = ROOT
+					}
+				}
+			}
+			
+			event_target:foreigners_host = {
+				random_courtier = {
+					limit = {
+						is_adult = yes
+						is_landed = no
+						is_inaccessible_or_incapable_trigger = no
+						is_married = no
+						is_consort = no
+						num_of_consorts = 0
+						is_friend = ROOT
+						is_betrothed = no
+						is_ascetic_trigger = no
+						# In case something odd has happened
+						NOT = {
+							trait = homosexual
+						}
+						is_opposite_sex = ROOT
+					}
+					
+					preferred_limit = {
+						has_lover = no
+					}
+					
+					save_event_target_as = foreigners_choice
+				}
+				
+				character_event = { id = soh.4486 } # Host approached about marriage
+			}
+		}
+		
+		else = {
+			character_event = { id = soh.4487 } # Host approached about marriage
+		}
+	}
+}
+
+# Request is made - has a preference
+character_event = {
+	id = soh.4486
+	desc = EVTDESC_SOH_4486
+	picture = GFX_evt_emissary
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		# Figure out a dynastic option
+		if = {
+			limit = {
+				event_target:foreigners_choice = {
+					NOT = {
+						dynasty = ROOT
+					}
+				}
+			}
+			
+			random_courtier = {
+				limit = {
+					dynasty = ROOT
+					is_adult = yes
+					is_landed = no
+					is_inaccessible_or_incapable_trigger = no
+					is_married = no
+					is_consort = no
+					num_of_consorts = 0
+					NOT = {
+						is_rival = FROM
+					}
+					is_betrothed = no
+					is_ascetic_trigger = no
+					# In case something odd has happened
+					NOT = {
+						trait = homosexual
+					}
+					is_opposite_sex = ROOT
+				}
+				
+				preferred_limit = {
+					is_lover = FROM
+				}
+				
+				preferred_limit = {
+					is_friend = FROM
+				}
+				
+				preferred_limit = {
+					has_lover = yes
+				}
+				
+				save_event_target_as = dynastic_choice
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_4486 # Sure!
+		
+		if = {
+			limit = {
+				FROM = {
+					is_female = no
+				}
+			}
+			
+			FROM = {
+				add_spouse = event_target:foreigners_choice
+			}
+		}
+		
+		else = {
+			FROM = {
+				add_spouse_matrilineal = event_target:foreigners_choice
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = proud
+					is_rival = FROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			event_target:dynastic_choice = {
+				always = yes
+			}
+		}
+		
+		name = EVTOPTB_SOH_4486 # I have a better choice; my kins(wo)man!
+		
+		if = {
+			limit = {
+				FROM = {
+					is_female = no
+				}
+			}
+			
+			FROM = {
+				add_spouse = event_target:dynastic_choice
+			}
+		}
+		
+		else = {
+			FROM = {
+				add_spouse_matrilineal = event_target:dynastic_choice
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					is_rival = FROM
+				}
+				
+				trait = humble
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_4486 # I can find a commoner for you...
+		
+		if = {
+			limit = {
+				FROM = {
+					is_female = no
+				}
+			}
+			
+			create_character = {
+				age = 25
+				female = yes
+				dynasty = none
+				culture = ROOT
+				religion = ROOT
+				random_traits = yes
+			}
+			
+			new_character = {
+				add_spouse = FROM
+			}
+		}
+		
+		else = {
+			create_character = {
+				age = 25
+				female = no
+				dynasty = none
+				culture = ROOT
+				religion = ROOT
+				random_traits = yes
+			}
+			
+			new_character = {
+				add_spouse_matrilineal = FROM
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					is_rival = FROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				NOT = {
+					trait = proud
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTD_SOH_4486 # You don't deserve a spouse!
+		
+		add_rival = FROM
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				OR = {
+					trait = cruel
+					is_rival = FROM
+				}
+			}
+		}
+	}
+}
+
+# Request is made - general
+character_event = {
+	id = soh.4487
+	desc = EVTDESC_SOH_4487
+	picture = GFX_evt_emissary
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		# Figure out a non-dynastic option
+		random_courtier = {
+			limit = {
+				NOT = {
+					dynasty = ROOT
+				}
+				is_adult = yes
+				is_landed = no
+				is_inaccessible_or_incapable_trigger = no
+				is_married = no
+				is_consort = no
+				num_of_consorts = 0
+				is_rival = FROM
+				is_betrothed = no
+				is_ascetic_trigger = no
+				# In case something odd has happened
+				NOT = {
+					trait = homosexual
+				}
+				is_opposite_sex = ROOT
+			}
+			
+			preferred_limit = {
+				is_lover = FROM
+			}
+			
+			preferred_limit = {
+				is_friend = FROM
+			}
+			
+			preferred_limit = {
+				has_lover = no
+			}
+			
+			save_event_target_as = non_dynastic_choice
+		}
+		
+		# Figure out a dynastic option
+		random_courtier = {
+			limit = {
+				dynasty = ROOT
+				is_adult = yes
+				is_landed = no
+				is_inaccessible_or_incapable_trigger = no
+				is_married = no
+				is_consort = no
+				num_of_consorts = 0
+				is_rival = FROM
+				is_betrothed = no
+				is_ascetic_trigger = no
+				# In case something odd has happened
+				NOT = {
+					trait = homosexual
+				}
+				is_opposite_sex = ROOT
+			}
+			
+			preferred_limit = {
+				is_lover = FROM
+			}
+			
+			preferred_limit = {
+				is_friend = FROM
+			}
+			
+			preferred_limit = {
+				has_lover = no
+			}
+			
+			save_event_target_as = dynastic_choice
+		}
+	}
+	
+	option = {
+		trigger = {
+			event_target:non_dynastic_choice = {
+				always = yes
+			}
+		}
+		
+		name = EVTOPTA_SOH_4487 # I have a non-dynastic choice in mind!
+		
+		if = {
+			limit = {
+				FROM = {
+					is_female = no
+				}
+			}
+			
+			FROM = {
+				add_spouse = event_target:non_dynastic_choice
+			}
+		}
+		
+		else = {
+			FROM = {
+				add_spouse_matrilineal = event_target:non_dynastic_choice
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					trait = proud
+					is_rival = FROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			event_target:dynastic_choice = {
+				always = yes
+			}
+		}
+		
+		name = EVTOPTB_SOH_4487 # I have a kins(wo)man in mind!
+		
+		if = {
+			limit = {
+				FROM = {
+					is_female = no
+				}
+			}
+			
+			FROM = {
+				add_spouse = event_target:dynastic_choice
+			}
+		}
+		
+		else = {
+			FROM = {
+				add_spouse_matrilineal = event_target:dynastic_choice
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					is_rival = FROM
+				}
+				
+				trait = humble
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_4487 # I can find a commoner for you...
+		
+		if = {
+			limit = {
+				FROM = {
+					is_female = no
+				}
+			}
+			
+			create_character = {
+				age = 25
+				female = yes
+				dynasty = none
+				culture = ROOT
+				religion = ROOT
+				random_traits = yes
+			}
+			
+			new_character = {
+				add_spouse = FROM
+			}
+		}
+		
+		else = {
+			create_character = {
+				age = 25
+				female = no
+				dynasty = none
+				culture = ROOT
+				religion = ROOT
+				random_traits = yes
+			}
+			
+			new_character = {
+				add_spouse_matrilineal = FROM
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					is_rival = FROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				NOT = {
+					trait = proud
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTD_SOH_4487 # You don't deserve a spouse!
+		
+		add_rival = FROM
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				OR = {
+					trait = cruel
+					is_rival = FROM
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,649 @@
+# Targetted decisions are possible vs _all_ other characters and shown are in the Diplomacy View, not the Intrigue View. The taker is in the FROM scope.
+#
+# filter = [self/court/home_court/vassals/sub_realm/realm/dynasty/all] ('self' MUST be set for decisions targetting only the taker, the other filter types can be set to lessen CPU load)
+# ai_target_filter = [self/court/home_court/vassals/sub_realm/realm/dynasty/all] (which characters for which the AI evaluates the decision.)
+#	court: all characters in the AI's host court, including prisoners, and characters currently away (wards, prisoners, etc)
+#	home_court: all characters in the AI's home court, including prisoners, and characters currently away (wards, prisoners, etc)
+#	vassals: direct vassal rulers of the AI's employer
+#	sub_realm: all characters below the AI's employer
+#	realm: all characters in the same top realm as the AI
+#	dynasty: all members of the same dynasty
+#	rivals: your rivals plus any character you have an opinion modifier with 'crime = yes' set (the same set of characters the 'is_foe' trigger evaluates)
+#	all: all living characters (Avoid if possible. VERY CPU-HEAVY!)
+#
+
+# Written by Henrik "Groogy" Hansson
+
+targeted_decisions = {
+	create_mercenary_company = {
+		filter = home_court
+		ai_target_filter = home_court
+		ai_check_interval = 36
+
+		only_playable = yes
+
+		from_potential = {
+			trigger_if = {
+				limit = {
+					NOT = {
+						any_owned_bloodline = {
+							has_bloodline_flag = bloodline_mercenary_traditions
+							bloodline_is_active_for = PREV
+						}
+					}
+				}
+
+				has_dlc = "Horse Lords"
+
+				OR = {
+					is_nomadic = yes
+					has_character_modifier = mercenary_traditions
+				}
+			}
+
+			is_adult = yes
+			prisoner = no
+			is_incapable = no
+			OR = {
+				is_nomadic = yes
+				AND = {
+					could_have_chinese_government_trigger = no
+					could_have_japanese_government_trigger = no
+					NOT = {
+						any_liege = {
+							could_have_chinese_government_trigger = no
+							could_have_japanese_government_trigger = no
+						}
+					}
+				}
+			}
+		}
+
+		potential = {
+			OR = {
+				is_child_of = FROM
+				sibling = FROM
+			}
+
+			dynasty = FROM
+			mercenary = no
+
+			trigger_if = {
+				limit = { is_female = yes }
+
+				FROM = {
+					OR = {
+						has_law = status_of_women_4
+						has_religion_feature = religion_equal
+						has_religion_feature = religion_feature_bon
+						has_religion_feature = religion_feature_bai
+						has_religion_feature = religion_feature_minahasan
+						has_religion_feature = religion_feature_ryukyuan
+						has_religion_feature = religion_matriarchal
+						has_religion_feature = religion_feature_minangkabau
+					}
+				}
+			}
+			trigger_else = {
+				FROM = {
+					NOR = {
+						has_religion_feature = religion_matriarchal
+						has_religion_feature = religion_feature_minangkabau
+					}
+				}
+			}
+		}
+
+		allow = {
+			ROOT = {
+				dynasty = FROM
+				vassal_of = FROM
+				is_adult = yes
+				is_ruler = no
+				prisoner = no
+				is_incapable = no
+				is_inaccessible_trigger = no
+
+				trigger_if = {
+					limit = {
+						FROM = { is_nomadic = no }
+					}
+
+					OR = {
+						has_character_modifier = mercenary_traditions
+
+						any_owned_bloodline = {
+							has_bloodline_flag = bloodline_mercenary_traditions
+							bloodline_is_active_for = PREV
+						}
+					}
+				}
+			}
+
+			FROM = {
+				trigger_if = {
+					limit = { is_nomadic = yes }
+
+					unused_manpower >= 500
+					max_manpower >= 500
+				}
+				trigger_else = {
+					demesne_garrison_size >= 500
+				}
+			}
+		}
+
+		effect = {
+			FROM = {
+				if = {
+					limit = { is_nomadic = yes }
+
+					clan_title = {
+						create_title = {
+							tier = DUKE
+							name = DYNAMIC_MERCENARY_COMPANY
+							landless = yes
+							temporary = yes
+							adventurer = yes
+							mercenary = yes
+							custom_created = yes
+							culture = ROOT
+							holder = ROOT
+							base_title = THIS
+							ruler = CAPTAIN
+							ruler_female = CAPTAIN
+							foa = CAPTAIN_FOA
+						}
+					}
+				}
+				else = {
+					primary_title = {
+						create_title = {
+							tier = DUKE
+							name = DYNAMIC_MERCENARY_COMPANY
+							landless = yes
+							temporary = yes
+							adventurer = yes
+							mercenary = yes
+							custom_created = yes
+							culture = ROOT
+							holder = ROOT
+							base_title = THIS
+							ruler = CAPTAIN
+							ruler_female = CAPTAIN
+							foa = CAPTAIN_FOA
+						}
+					}
+				}
+				hidden_tooltip = {
+					FROM = {
+						capital_scope = {
+							county = {
+								save_event_target_as = merc_capital
+							}
+						}
+					}
+					ROOT = {
+						set_character_flag = nomadic_mercenary
+						primary_title = {
+							set_preferred_capital = event_target:merc_capital
+						}
+					}
+				}
+			}
+
+			set_character_flag = is_mercenary_leader
+			add_trait = adventurer
+
+			add_character_modifier = {
+				name = started_mercenary_company
+				months = 30
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.5
+
+			trigger = {
+				FROM = {
+					is_primary_war_attacker = no
+					is_primary_war_defender = no
+				}
+
+				any_mercenary_band = {
+					count < 3
+
+					band_creator = {
+						character = FROM
+					}
+				}
+			}
+
+			mult_modifier = {
+				factor = 0.5
+
+				any_mercenary_band = {
+					count >= 1
+
+					band_creator = {
+						character = FROM
+					}
+				}
+			}
+
+			mult_modifier = {
+				factor = 0.5
+
+				any_mercenary_band = {
+					count >= 2
+
+					band_creator = {
+						character = FROM
+					}
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+				martial >= 10
+			}
+
+			mult_modifier = {
+				factor = 3
+				martial >= 14
+			}
+
+			mult_modifier = {
+				factor = 4
+				martial >= 18
+			}
+
+			mult_modifier = {
+				factor = 2
+				prestige >= 100
+			}
+
+			mult_modifier = {
+				factor = 3
+				prestige >= 400
+			}
+
+			mult_modifier = {
+				factor = 4
+				prestige >= 1000
+			}
+
+			mult_modifier = {
+				factor = 2
+				has_education_martial_trigger = yes
+			}
+		}
+	}
+
+	dissolve_mercenary_company = {
+		filter = dynasty
+		ai_target_filter = dynasty
+		ai_check_interval = 36
+
+		only_playable = yes
+
+		from_potential = {
+			is_landed = yes
+
+			OR = {
+				is_nomadic = yes
+				has_character_modifier = mercenary_traditions
+
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_mercenary_traditions
+					bloodline_is_active_for = PREV
+				}
+			}
+		}
+
+		potential = {
+			mercenary = yes
+
+			primary_title = {
+				band_creator = {
+					character = FROM
+				}
+
+				NOT = { has_title_flag = ze_dyn_merc }
+			}
+		}
+
+		allow = {
+		#	OR = {
+		#		custom_tooltip = {
+		#			text = is_mercenary_leader_YEAR
+		#			had_character_flag = {
+		#				flag = is_mercenary_leader
+		#				years = 5
+		#			}
+		#		}
+		#		prisoner = yes
+		#	}
+
+			primary_title = {
+				has_raised_standing_troops = no
+
+				band_creator = {
+					character = FROM
+				}
+			}
+		}
+
+		effect = {
+			primary_title = {
+				show_scope_change = no
+
+				activate_title = {
+					title = THIS
+					status = no
+				}
+
+				hidden_effect = {
+					destroy_landed_title = THIS
+				}
+			}
+
+			move_character = FROM
+			clr_character_flag = is_mercenary_leader
+		}
+
+		ai_will_do = {
+			factor = 0.1
+
+			mult_modifier = {
+				factor = 0.5
+				health >= 7
+			}
+
+			mult_modifier = {
+				factor = 2
+				health < 5
+			}
+
+			mult_modifier = {
+				factor = 4
+				health < 4
+			}
+
+			mult_modifier = {
+				factor = 10
+				health < 3
+			}
+
+			mult_modifier = {
+				factor = 2
+				age >= 30
+			}
+
+			mult_modifier = {
+				factor = 3
+				age >= 35
+			}
+
+			mult_modifier = {
+				factor = 4
+				age >= 40
+			}
+
+			mult_modifier = {
+				factor = 5
+				age >= 45
+			}
+
+			mult_modifier = {
+				factor = 2
+				FROM = { practical_age >= 45 }
+			}
+
+			mult_modifier = {
+				factor = 3
+				FROM = { practical_age >= 55 }
+			}
+
+			mult_modifier = {
+				factor = 4
+				FROM = { practical_age >= 65 }
+			}
+		}
+	}
+}
+
+decisions = {
+	increase_mercenary_size = {
+		ai_check_interval = 18
+
+		only_playable = yes
+
+		potential = {
+			prisoner = no
+			wealth >= 25
+
+			OR = {
+				has_dlc = "Horse Lords"
+
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_mercenary_traditions
+					bloodline_is_active_for = PREV
+				}
+			}
+
+			primary_title = {
+				mercenary = yes
+				adventurer = yes
+				NOT = { has_title_flag = ze_dyn_merc }
+
+				band_creator = {
+					OR = {
+						is_nomadic = yes
+						has_character_modifier = mercenary_traditions
+
+						any_owned_bloodline = {
+							has_bloodline_flag = bloodline_mercenary_traditions
+							bloodline_is_active_for = PREV
+						}
+					}
+				}
+			}
+		}
+
+		allow = {
+		}
+
+		effect = {
+			wealth = -25
+
+			primary_title = {
+				change_title_army_size = 0.05 # Increase of percentage
+
+				band_creator = {
+					if = {
+						limit = { is_alive = yes }
+						character_event = { id = 10700 } # Notify
+					}
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 1
+
+			trigger = {
+				trigger_if = {
+					limit = { trait = greedy }
+					trait = ambitious
+				}
+			}
+
+			mult_modifier = {
+				factor = 0.25
+
+				primary_title = {
+					band_creator = {
+						is_alive = yes
+					}
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = proud
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = ambitious
+			}
+
+			mult_modifier = {
+				factor = 2
+				wealth >= 200
+			}
+
+			mult_modifier = {
+				factor = 2
+				wealth >= 400
+			}
+		}
+	}
+
+	carousing_with_the_men = {
+		ai_check_interval = 10
+
+		only_playable = yes
+
+		potential = {
+			is_ruler = yes
+			has_character_flag = is_mercenary_leader
+
+			primary_title = {
+				mercenary = yes
+				NOT = { has_title_flag = ze_dyn_merc }
+
+				band_creator = {
+					is_alive = yes
+
+					OR = {
+						is_nomadic = yes
+						has_character_modifier = mercenary_traditions
+
+						any_owned_bloodline = {
+							has_bloodline_flag = bloodline_mercenary_traditions
+							bloodline_is_active_for = PREV
+						}
+					}
+				}
+			}
+		}
+
+		allow = {
+			prisoner = no
+			NOT = { trait = chaste }
+			wealth >= 25
+		}
+
+		effect = {
+			random_list = {
+				53 = { }
+
+				40 = {
+					primary_title = {
+						change_title_army_size = 0.02 # Increase of percentage
+					}
+				}
+
+				5 = { add_trait = drunkard }
+
+				2 = {
+					tooltip = { add_trait = lovers_pox }
+
+					character_event = {
+						id = 6359 # Gives lover's pox
+						days = 15
+						random = 5
+					}
+				}
+			}
+
+			# Tooltip is in event below
+			hidden_effect = {
+				wealth = -25
+				prestige = 10
+
+				primary_title = {
+					band_creator = {
+						character_event = { id = 10701 } # Notify
+					}
+				}
+			}
+
+		}
+
+		ai_will_do = {
+			factor = 0.15
+
+			trigger = {
+				NOT = { trait = greedy }
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = lustful
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = gluttonous
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = hedonist
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = charitable
+			}
+
+			mult_modifier = {
+				factor = 2
+				wealth >= 200
+			}
+
+			mult_modifier = {
+				factor = 2
+				wealth >= 400
+			}
+
+			mult_modifier = {
+				factor = 3
+				wealth >= 800
+			}
+
+			mult_modifier = {
+				factor = 4
+				wealth >= 1200
+			}
+
+			mult_modifier = {
+				factor = 5
+				wealth >= 1600
+			}
+
+			mult_modifier = {
+				factor = 0.1
+
+				primary_title = {
+					band_creator = {
+						is_alive = no
+					}
+				}
+			}
+		}
+	}
+}

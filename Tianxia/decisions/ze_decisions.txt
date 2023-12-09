@@ -1,0 +1,761 @@
+targeted_decisions = {
+
+	create_mercenary_company_feudal = {
+		filter = home_court
+		ai_target_filter = home_court
+		ai_check_interval = 60
+
+		only_playable = yes
+
+		from_potential = {
+			has_dlc = "Conclave"
+			is_landed = yes
+
+			trigger_if = {
+				limit = { ai = yes }
+
+				OR = {
+					trait = brilliant_strategist
+					trait = fortune_builder
+				}
+
+				trigger_if = {
+					limit = { is_republic = yes }
+					higher_real_tier_than = BARON
+				}
+				trigger_else = {
+					higher_real_tier_than = COUNT
+				}
+
+				is_primary_war_attacker = no
+				is_primary_war_defender = no
+			}
+
+			is_nomadic = no
+			mercenary = no
+			holy_order = no
+			NOT = { has_character_modifier = mercenary_traditions }
+			is_any_bureaucrat_trigger = no
+			NOT = {
+				any_liege = {
+					is_any_bureaucrat_trigger = yes
+				}
+			}
+		}
+
+		potential = {
+			can_be_mercenary_leader_potential_trigger = yes
+
+			NAND = {
+				is_child_of = FROM
+
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_mercenary_traditions
+					bloodline_is_active_for = PREV
+				}
+
+				FROM = {
+					any_owned_bloodline = {
+						has_bloodline_flag = bloodline_mercenary_traditions
+						bloodline_is_active_for = PREV
+					}
+				}
+			}
+		}
+
+		allow = {
+			can_be_mercenary_leader_allow_trigger = yes
+
+			FROM = {
+				NOT = { has_mercenary_band = yes }
+				wealth >= 50
+			}
+		}
+
+		effect = {
+			FROM = {
+				show_scope_change = no
+
+				wealth = -50
+
+				custom_tooltip = {
+					text = CREATE_DYNAMIC_MERC_TOOLTIP
+					FROM = {
+						capital_scope = {
+							county = {
+								save_event_target_as = merc_capital
+							}
+						}
+					}
+
+					primary_title = {
+						create_title = {
+							tier = DUKE
+							name = DYNAMIC_MERCENARY_COMPANY_FEUDAL
+							landless = yes
+							temporary = yes
+							adventurer = yes
+							custom_created = yes
+							culture = ROOT
+							holder = ROOT
+							base_title = THIS
+							mercenary = yes
+							replace_captain_on_death = yes
+							siphons_income_to_creator = 0.15
+							ruler = CAPTAIN
+							ruler_female = CAPTAIN
+							foa = CAPTAIN_FOA
+						}
+					}
+
+					ROOT = {
+						set_defacto_liege = THIS
+
+						any_spouse = { move_character = ROOT }
+						any_child  = { move_character = ROOT }
+
+						primary_title = {
+							set_preferred_capital = event_target:merc_capital
+						}
+					}
+				}
+			}
+
+			set_character_flag = is_mercenary_leader
+			set_character_flag = mercenary_ambition_1
+
+			primary_title = {
+				set_title_flag = ze_dyn_merc
+				set_title_flag = not_hired
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.05
+
+			trigger = {
+				controls_religion = no
+			}
+		}
+	}
+
+	dissolve_mercenary_company_feudal = {
+		ai = no
+
+		from_potential = {
+			has_dlc = "Conclave"
+		}
+
+		potential = {
+			replace_mercenary_captain_potential_trigger = yes
+		}
+
+		allow = {
+			replace_mercenary_captain_allow_trigger = yes
+		}
+
+		effect = {
+			character_event = { id = ZE.11020 }
+		}
+
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	change_council_job = {
+		filter = sub_realm
+
+		ai = no
+
+		from_potential = {
+			has_dlc = "Conclave"
+			NOT = { has_character_flag = swapping_councillors }
+		}
+
+		potential = {
+			change_council_job_potential_trigger = yes
+		}
+
+		allow = {
+			in_seclusion = no
+		}
+
+		effect = {
+			save_event_target_as = moving_councillor
+
+			FROM = {
+				character_event = { id = ZE.6021 }
+			}
+		}
+
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	ask_wards_liege_to_allow_culture_religion_swap = {
+		filter = sub_realm
+		ai_target_filter = court
+		ai_check_interval = 12
+
+		only_playable = yes
+
+		from_potential = {
+			has_dlc = "Conclave"
+		}
+
+		potential = {
+			is_adult = no
+
+			NAND = {
+				culture = educator
+				religion = educator
+			}
+
+			host = {
+				OR = {
+					character = FROM
+					is_vassal_or_below_of = FROM
+				}
+			}
+
+			prisoner = no
+			is_landed = no
+
+			NOR = {
+				vassal_of = FROM
+				has_character_flag = guardian_asked_to_change_focus
+				has_focus = focus_ch_heritage
+			}
+		}
+
+		allow = {
+			age < 10
+			OR = {
+				could_have_chinese_government_trigger = no
+				educator = {
+					could_have_chinese_government_trigger = yes
+				}
+				is_nomadic = yes
+			}
+			OR = {
+				could_have_japanese_government_trigger = no
+				educator = {
+					could_have_japanese_government_trigger = yes
+				}
+				is_nomadic = yes
+			}
+		}
+
+		effect = {
+			set_character_flag = guardian_asked_to_change_focus
+
+			liege = {
+				letter_event = {
+					id = ZE.2130
+					days = 5
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.5
+
+			trigger = {
+				host = {
+					character = FROM
+				}
+
+				educator = {
+					culture = FROM
+					religion = FROM
+				}
+			}
+		}
+	}
+
+	change_wards_focus_to_heritage = {
+		filter = court
+		ai_target_filter = court
+		ai_check_interval = 12
+
+		only_playable = yes
+
+		from_potential = {
+			has_dlc = "Conclave"
+		}
+
+		potential = {
+			is_adult = no
+			host = { character = FROM }
+
+			NAND = {
+				culture = educator
+				religion = educator
+			}
+
+			trigger_if = {
+				limit = { prisoner = no }
+
+				is_ruler = no
+				vassal_of = FROM
+			}
+
+			NOR = {
+				has_focus = focus_ch_heritage
+				has_character_flag = guardian_asked_to_change_focus
+			}
+		}
+
+		allow = {
+			age < 10
+			OR = {
+				could_have_chinese_government_trigger = no
+				educator = {
+					could_have_chinese_government_trigger = yes
+				}
+				is_nomadic = yes
+				AND = {
+					dynasty = FROM
+					is_close_relative = FROM
+				}
+			}
+			OR = {
+				could_have_japanese_government_trigger = no
+				educator = {
+					could_have_japanese_government_trigger = yes
+				}
+				is_nomadic = yes
+				AND = {
+					dynasty = FROM
+					is_close_relative = FROM
+				}
+			}
+		}
+
+		effect = {
+			set_character_flag = guardian_asked_to_change_focus
+			set_focus = focus_ch_heritage
+		}
+
+		ai_will_do = {
+			factor = 0.5
+
+			trigger = {
+				educator = {
+					culture = FROM
+					religion = FROM
+				}
+			}
+		}
+	}
+
+	ask_for_pardon = {
+		filter = liege
+		ai_target_filter = liege
+		ai_check_interval = 12
+
+		only_playable = yes
+
+		from_potential = {
+			has_dlc = "Conclave"
+			is_actually_incapable_trigger = no
+		}
+
+		potential = {
+			owes_favor_to = FROM
+			is_liege_or_above_of = FROM
+			is_actually_incapable_trigger = no
+		}
+
+		allow = {
+			ROOT = {
+				OR = {
+					has_opinion_modifier = { who = FROM name = declared_war }
+					has_opinion_modifier = { who = FROM name = opinion_dishonorable }
+					has_opinion_modifier = { who = FROM name = opinion_traitor }
+					has_opinion_modifier = { who = FROM name = opinion_rebel_traitor }
+					has_opinion_modifier = { who = FROM name = opinion_regicide_traitor }
+					has_opinion_modifier = { who = FROM name = opinion_killed_close_kin }
+					has_opinion_modifier = { who = FROM name = opinion_refused_abdicate_title }
+					has_opinion_modifier = { who = FROM name = opinion_fatwa_target }
+					has_opinion_modifier = { who = FROM name = opinion_refused_order }
+					has_opinion_modifier = { who = FROM name = opinion_witch }
+					has_opinion_modifier = { who = FROM name = opinion_takfir }
+					has_opinion_modifier = { who = FROM name = opinion_unfaithful_wife }
+					has_opinion_modifier = { who = FROM name = opinion_cuckolded }
+					has_opinion_modifier = { who = FROM name = opinion_charge_heresiarch }
+					has_opinion_modifier = { who = FROM name = opinion_charge_infidel }
+					has_opinion_modifier = { who = FROM name = opinion_charge_deviant }
+					has_opinion_modifier = { who = FROM name = opinion_charge_illegitimate }
+					has_opinion_modifier = { who = FROM name = opinion_charge_traitor }
+					has_opinion_modifier = { who = FROM name = opinion_charge_slanderer }
+					has_opinion_modifier = { who = FROM name = abuse_of_office }
+
+					# Missing, added by CleanSlate
+					has_opinion_modifier = { who = FROM name = attempted_murder_of_spouse }
+					has_opinion_modifier = { who = FROM name = attempted_murder_of_child }
+					has_opinion_modifier = { who = FROM name = attempted_murder_of_parent }
+					has_opinion_modifier = { who = FROM name = attempted_murder_of_sibling }
+					has_opinion_modifier = { who = FROM name = attempted_murder_of_vassal }
+					has_opinion_modifier = { who = FROM name = attempted_murder_of_spouse_vassal }
+					has_opinion_modifier = { who = FROM name = attempted_murder }
+					has_opinion_modifier = { who = FROM name = opinion_spouse_slayer }
+					has_opinion_modifier = { who = FROM name = opinion_murder_attempt }
+					has_opinion_modifier = { who = FROM name = opinion_killed_father }
+					has_opinion_modifier = { who = FROM name = opinion_hajj_attempt_murder }
+					has_opinion_modifier = { who = FROM name = opinion_castrated_me }
+					has_opinion_modifier = { who = FROM name = opinion_blinded_me }
+					has_opinion_modifier = { who = FROM name = opinion_castrated_family }
+					has_opinion_modifier = { who = FROM name = opinion_castrated_close_kin }
+					has_opinion_modifier = { who = FROM name = opinion_blinded_family }
+					has_opinion_modifier = { who = FROM name = opinion_blinded_close_kin }
+					has_opinion_modifier = { who = FROM name = opinion_attempted_abduction }
+					has_opinion_modifier = { who = FROM name = opinion_unfaithful_husband_crime }
+					has_opinion_modifier = { who = FROM name = opinion_killed_lover }
+					has_opinion_modifier = { who = FROM name = opinion_charge_cultist }
+					has_opinion_modifier = { who = FROM name = opinion_charge_dw }
+					has_opinion_modifier = { who = FROM name = opinion_tortured_me }
+					has_opinion_modifier = { who = FROM name = opinion_tortured_family }
+					has_opinion_modifier = { who = FROM name = opinion_tortured_close_kin }
+					has_opinion_modifier = { who = FROM name = opinion_mutilated_me }
+					has_opinion_modifier = { who = FROM name = opinion_mutilated_family }
+					has_opinion_modifier = { who = FROM name = opinion_mutilated_close_kin }
+					has_opinion_modifier = { who = FROM name = opinion_leave }
+					has_opinion_modifier = { who = FROM name = opinion_thief }
+					has_opinion_modifier = { who = FROM name = opinion_outlawed_society }
+					has_opinion_modifier = { who = FROM name = opinion_accused_apostate }
+					has_opinion_modifier = { who = FROM name = opinion_broke_contract }
+				}
+			}
+		}
+
+		effect = {
+			FROM = {
+				save_event_target_as = pardon_target
+			}
+
+			character_event = { id = ZE.8120 }
+		}
+
+		ai_will_do = {
+			factor = 1000
+		}
+	}
+
+	change_composition_mercenary_company_feudal = {
+		ai_target_filter = dynasty
+		ai_check_interval = 36
+
+		only_playable = yes
+
+		from_potential = {
+			has_mercenary_band = yes
+			has_dlc = "Conclave"
+			is_landed = yes
+			could_have_chinese_government_trigger = no
+			could_have_japanese_government_trigger = no
+			NOT = {
+				any_liege = {
+					could_have_chinese_government_trigger = yes
+					could_have_japanese_government_trigger = yes
+				}
+			}
+		}
+
+		potential = {
+			replace_mercenary_captain_potential_trigger = yes
+		}
+
+		allow = {
+			FROM = {
+				wealth >= 50
+			}
+
+			replace_mercenary_captain_allow_trigger = yes
+		}
+
+		effect = {
+			FROM = {
+				character_event = { id = ZE.23101 }
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.001
+		}
+	}
+
+	send_troops_mercenary_company_feudal = {
+		ai_target_filter = dynasty
+		ai_check_interval = 36
+
+		only_playable = yes
+
+		from_potential = {
+			has_mercenary_band = yes
+			has_dlc = "Conclave"
+			is_landed = yes
+		}
+
+		potential = {
+			replace_mercenary_captain_potential_trigger = yes
+			could_have_chinese_government_trigger = no
+			could_have_japanese_government_trigger = no
+			NOT = {
+				any_liege = {
+					could_have_chinese_government_trigger = yes
+					could_have_japanese_government_trigger = yes
+				}
+			}
+		}
+
+		allow = {
+			FROM = {
+				wealth >= 50
+			}
+
+			replace_mercenary_captain_allow_trigger = yes
+		}
+
+		effect = {
+			FROM = {
+				character_event = { id = ZE.23106 }
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.001
+		}
+	}
+
+	introduce_heir = {
+		filter = close_relative
+		ai_target_filter = close_relatives
+		ai_check_interval = 12
+
+		is_high_prio = yes
+
+		only_playable = yes
+
+		from_potential = {
+			has_ambition = obj_groom_an_heir
+			is_parent_of = player_heir
+		}
+
+		potential = {
+			FROM = {
+				player_heir = {
+					character = ROOT
+				}
+			}
+
+			NOR = {
+				has_character_flag = introduced_heir
+
+				any_sibling = {
+					has_character_flag = introduced_heir
+				}
+			}
+		}
+
+		allow = {
+			host = { character = FROM }
+			dynasty = ROOT
+			age >= 12
+			is_adult = no
+			is_landed = no
+			prisoner = no
+			has_inheritance_blocker = no
+
+			NOT = {
+				custom_tooltip = {
+					text = bastard_eunuch_celibate_or_incapable_tt # TODO: Replace with negative tooltip.
+
+					OR = {
+						trait = bastard
+						trait = eunuch
+						trait = celibate
+						is_actually_incapable_trigger = yes
+					}
+				}
+			}
+
+			is_inaccessible_trigger = no
+
+			FROM = {
+				num_of_vassals >= 7
+				war = no
+				prisoner = no
+				is_actually_incapable_trigger = no
+				is_inaccessible_trigger = no
+			}
+		}
+
+		effect = {
+			custom_tooltip = {
+				text = introduce_heir_custom_tooltip
+
+				set_character_flag = introduced_heir
+				save_event_target_as = introduced_heir
+
+				FROM = {
+					character_event = { id = ZE.22900 }
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.1
+		}
+	}
+
+	ask_wards_liege_to_allow_faith_focus = {
+		filter = sub_realm
+		ai_target_filter = court
+		ai_check_interval = 12
+
+		only_playable = yes
+
+		from_potential = {
+			has_dlc = "Conclave"
+		}
+
+		potential = {
+			is_adult = no
+
+			host = {
+				OR = {
+					character = FROM
+					is_vassal_or_below_of = FROM
+				}
+			}
+
+			NOR = {
+				religion = educator
+				has_focus = focus_ch_faith
+				vassal_of = FROM
+				has_character_flag = guardian_asked_to_change_focus
+			}
+
+			prisoner = no
+			is_landed = no
+		}
+
+		allow = {
+			age < 10
+			OR = {
+				could_have_chinese_government_trigger = no
+				educator = {
+					could_have_chinese_government_trigger = yes
+				}
+				is_nomadic = yes
+			}
+			OR = {
+				could_have_japanese_government_trigger = no
+				educator = {
+					could_have_japanese_government_trigger = yes
+				}
+				is_nomadic = yes
+			}
+		}
+
+		effect = {
+			set_character_flag = guardian_asked_to_change_focus
+
+			liege = {
+				letter_event = {
+					id = ZE.2140
+					days = 5
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.5
+
+			trigger = {
+				host = {
+					character = FROM
+				}
+
+				educator = {
+					religion = FROM
+				}
+			}
+		}
+	}
+
+	change_wards_focus_to_faith = {
+		filter = court
+		ai_target_filter = court
+		ai_check_interval = 12
+
+		only_playable = yes
+
+		from_potential = {
+			has_dlc = "Conclave"
+		}
+
+		potential = {
+			is_adult = no
+			host = { character = FROM }
+
+			NOR = {
+				religion = educator
+				has_focus = focus_ch_faith
+				has_character_flag = guardian_asked_to_change_focus
+			}
+
+			trigger_if = {
+				limit = { prisoner = no }
+
+				is_ruler = no
+				vassal_of = FROM
+			}
+		}
+
+		allow = {
+			age < 10
+			OR = {
+				could_have_chinese_government_trigger = no
+				educator = {
+					could_have_chinese_government_trigger = yes
+				}
+				is_nomadic = yes
+				AND = {
+					dynasty = FROM
+					is_close_relative = FROM
+				}
+			}
+			OR = {
+				could_have_japanese_government_trigger = no
+				educator = {
+					could_have_japanese_government_trigger = yes
+				}
+				is_nomadic = yes
+				AND = {
+					dynasty = FROM
+					is_close_relative = FROM
+				}
+			}
+		}
+
+		effect = {
+			set_character_flag = guardian_asked_to_change_focus
+			set_focus = focus_ch_faith
+		}
+
+		ai_will_do = {
+			factor = 0.5
+
+			trigger = {
+				educator = {
+					religion = FROM
+				}
+			}
+		}
+	}
+
+}

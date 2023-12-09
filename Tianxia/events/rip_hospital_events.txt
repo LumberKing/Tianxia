@@ -1,0 +1,973 @@
+#########################################
+#										#
+# RIP Hospital Events					#
+# ID RIP.4500-RIP.4699					#
+#										#
+#########################################
+#
+# Written by Emil Tisander
+
+namespace = RIP
+
+# Learned Pilgrim - Assists at hospital
+character_event = {
+	id = RIP.4501
+	desc = EVTDESC_RIP_4501
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	has_dlc = "Reapers"
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+	war = no
+
+	trigger = {
+		any_demesne_province = {
+			owned_by = ROOT
+			hospital_level >= 1
+			religion = ROOT
+		}
+
+		trigger_if = {
+			#limit = { has_assigned_minor_title = title_court_physician }
+			limit = {
+				any_courtier_or_vassal = {
+					has_minor_title = title_court_physician
+				}
+			}
+
+			any_courtier_or_vassal = {
+				has_minor_title = title_court_physician
+				learning < 13
+			}
+		}
+		OR = {
+			religion_group = christian
+			AND = {	
+				religion_group = muslim
+				NOT = {
+					religion = qarmatian
+				}
+			}
+			AND = {
+				has_dharmic_religion_trigger = yes
+				NOT = {
+					religion = kejawen # For now
+				}
+			}
+			religion = shinto
+			# TIANXIATODO: Others down the line
+		}
+	}
+
+	immediate = {
+		random_courtier_or_vassal = {
+			limit = { has_minor_title = title_court_physician }
+			save_event_target_as = previous_physician
+		}
+
+		random_demesne_province = {
+			limit = {
+				owned_by = ROOT
+				hospital_level >= 1
+				religion = ROOT
+			}
+
+			save_event_target_as = pilgrim_physician_hospital
+		}
+
+		create_character = {
+			religion = ROOT
+			culture = ROOT
+			dynasty = none
+			age = 38
+			random_traits = yes
+			female = 50
+			health = 6
+			add_trait = scholarly_theologian
+			add_trait = theologian
+			#add_trait = pilgrim
+			add_trait = humble
+
+			attributes = {
+				learning = 6
+			}
+		}
+
+		new_character = {
+			remove_trait = proud
+			remove_trait = scholar
+			remove_trait = socializer
+			remove_trait = game_master
+			remove_trait = hedonist
+			remove_trait = duelist
+			remove_trait = hunter
+			remove_trait = strategist
+			remove_trait = administrator
+			remove_trait = architect
+			remove_trait = gardener
+			remove_trait = master_schemer
+			remove_trait = impaler
+			remove_trait = master_seducer
+			remove_trait = master_seductress
+			remove_trait = mystic
+
+			random = { # Random chance to add Physician
+				chance = 40
+
+				remove_trait = theologian
+				add_trait = physician
+				change_learning = 2
+			}
+
+			if = {
+				limit = { religion_group = christian }
+				if = {
+					limit = {
+						is_female = no
+					}
+					add_trait = monk
+				}
+				else = {
+					add_trait = nun
+				}
+				add_trait = pilgrim
+			}
+			else_if = {
+				limit = { religion_group = muslim }
+				#remove_trait = pilgrim
+				add_trait = hajjaj
+			}
+			else_if = {
+				#limit = { has_caste_traits_trigger = yes }
+				limit = {
+					OR = { # TIANXIATODO: Other religions when they get pilgrimages
+						religion = hindu
+						religion = buddhist
+						religion = jain
+						religion = shinto
+					}
+				}
+				#remove_trait = pilgrim
+				add_trait = indian_pilgrim
+			}
+			if = {
+				limit = {
+					has_caste_traits_trigger = yes
+				}
+				add_trait = brahmin
+			}
+			if = {
+				limit = {
+					religion = ROOT
+				}
+				copy_branch_trait_employer_effect = yes
+			}
+
+			set_character_flag = is_court_physician
+			save_event_target_as = pilgrim_physician
+		}
+	}
+
+	option = { # Appoint the pilgrim to be your Physician
+		name = EVTOPTA_RIP_4501
+
+		event_target:previous_physician = {
+			show_scope_change = no
+
+			remove_title = title_court_physician
+		}
+
+		event_target:pilgrim_physician = {
+			show_scope_change = no
+
+			give_minor_title = title_court_physician
+		}
+	}
+
+	option = { # Ignore the pilgrim
+		name = {
+			text = EVTOPTB_RIP_4501_A
+			trigger = {
+				NOT = {
+					event_target:previous_physician = { always = yes }
+				}
+			}
+		}
+		name = {
+			text = EVTOPTB_RIP_4501_B
+			trigger = {
+				event_target:previous_physician = { always = yes }
+			}
+		}
+
+		hidden_effect = {
+			event_target:pilgrim_physician = {
+				death = { death_reason = death_missing }
+			}
+		}
+	}
+}
+
+# Perform charity - Make preperations
+character_event = {
+	id = RIP.4504
+	desc = EVTDESC_RIP_4504
+	picture = GFX_evt_plague_spreading
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	has_dlc = "Reapers"
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+	war = no
+
+	trigger = {
+		any_demesne_province = {
+			owned_by = ROOT
+			hospital_level >= 1
+		}
+	}
+
+	immediate = {
+		random_demesne_province = {
+			limit = {
+				hospital_level >= 1
+				owned_by = PREV
+			}
+
+			save_event_target_as = hospital_location
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RIP_4504
+
+		scaled_wealth = -0.5
+
+		character_event = {
+			id = RIP.4505
+			tooltip = EVTOPTA_RIP_4504_tooltip
+		}
+
+		event_target:hospital_location = {
+			show_scope_change = no
+
+			increase_prosperity_variable_effect = yes
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RIP_4504
+	}
+}
+
+# Perform charity - Make a speech
+character_event = {
+	id = RIP.4505
+	desc = EVTDESC_RIP_4505
+	picture = GFX_evt_culture_change
+
+	is_triggered_only = yes
+
+	only_playable = yes
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+
+	option = { # Speak of your greatness
+		name = EVTOPTA_RIP_4505
+
+		prestige = 100
+
+		random = {
+			chance = 50
+			add_trait_proud_effect = yes
+		}
+	}
+
+	option = { # Speak of God
+		name = EVTOPTB_RIP_4505
+
+		trigger = {
+			NOT = { trait = cynical }
+		}
+
+		piety = 50
+
+		add_character_modifier = {
+			name = religious_appreciate
+			years = 5
+		}
+
+		random = {
+			chance = 50
+			add_trait_fully_zealous_effect = yes
+		}
+	}
+
+	option = { # Speak of the realm
+		name = EVTOPTC_RIP_4505
+
+		add_character_modifier = {
+			name = wol_respected_ruler
+			years = 5
+		}
+
+		random = {
+			chance = 50
+			add_trait_gregarious_effect = yes
+		}
+	}
+
+	option = { # Speak of the people
+		name = EVTOPTD_RIP_4505
+
+		add_character_modifier = {
+			name = gave_funny_speech
+			years = 3
+		}
+
+		random = {
+			chance = 50
+			add_trait_humble_effect = yes
+		}
+	}
+}
+
+# Religious authorities wants extra taxes from hospital
+character_event = {
+	id = RIP.4512
+	desc = EVTDESC_RIP_4512
+	picture = GFX_evt_bloody_tools
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	religion_group = christian
+	has_dlc = "Reapers"
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+	war = no
+
+	trigger = {
+		any_demesne_province = {
+			owned_by = ROOT
+			hospital_level >= 1
+			religion = ROOT
+		}
+
+		rightful_religious_head_scope = {
+			NOT = { character = ROOT }
+		}
+	}
+
+	immediate = {
+		random_demesne_province = {
+			limit = {
+				owned_by = ROOT
+				hospital_level >= 1
+				religion = ROOT
+			}
+
+			save_event_target_as = hospital_location
+		}
+
+		rightful_religious_head_scope = {
+			save_event_target_as = religious_head_fee
+		}
+	}
+
+	option = { # Accept demand
+		name = EVTOPTA_RIP_4512
+
+		transfer_scaled_wealth = {
+			to = event_target:religious_head_fee
+			value = 0.40
+		}
+
+		piety = 20
+
+		reverse_opinion = {
+			name = opinion_fulfilled_demands
+			who = event_target:religious_head_fee
+			years = 5
+		}
+
+		ai_chance = {
+			factor = 50
+
+			trigger = { scaled_wealth = 1 }
+
+			mult_modifier = {
+				factor = 2
+				trait = zealous
+			}
+
+			mult_modifier = {
+				factor = 1.5
+				trait = humble
+			}
+
+			mult_modifier = {
+				factor = 1.5
+				trait = theologian
+			}
+		}
+	}
+
+	option = { # Refuse demand
+		name = EVTOPTB_RIP_4512
+
+		reverse_opinion = {
+			name = opinion_ignored_demands
+			who = event_target:religious_head_fee
+			years = 5
+		}
+
+		ai_chance = {
+			factor = 50
+
+			mult_modifier = {
+				factor = 2
+				trait = cynical
+			}
+
+			mult_modifier = {
+				factor = 1.5
+				trait = paranoid
+			}
+		}
+	}
+}
+
+# Leper arrives
+character_event = {
+	id = RIP.4514
+	desc = EVTDESC_RIP_4514
+	picture = GFX_evt_plague_spreading
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	has_dlc = "Reapers"
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+	war = no
+
+	trigger = {
+		any_demesne_province = {
+			owned_by = ROOT
+			hospital_has_building = leper_colony_1
+			hospital_level >= 1
+		}
+	}
+
+	immediate = {
+		random_demesne_province = {
+			limit = {
+				owned_by = ROOT
+				hospital_has_building = leper_colony_1
+				hospital_level >= 1
+			}
+
+			save_event_target_as = hospital_location
+		}
+
+		create_character = {
+			religion = ROOT
+			culture = ROOT
+			dynasty = none
+			age = 31
+			random_traits = yes
+			add_trait = leper
+			add_trait = disfigured
+		}
+
+		new_character = {
+			save_event_target_as = homeless_leper
+		}
+	}
+
+	option = { # Offer a place to stay
+		name = EVTOPTA_RIP_4514
+
+		piety = 300
+
+		reverse_opinion = {
+			name = opinion_very_grateful
+			who = event_target:homeless_leper
+			years = 5
+		}
+
+		ai_chance = {
+			factor = 20
+
+			mult_modifier = {
+				factor = 3
+				trait = kind
+			}
+		}
+	}
+
+	option = { # Send the leper away
+		name = EVTOPTB_RIP_4514
+
+		custom_tooltip = {
+			text = EVTOPTB_RIP_4514_tooltip
+
+			hidden_effect = {
+				event_target:homeless_leper = {
+					death = { death_reason = death_missing }
+				}
+			}
+		}
+
+		ai_chance = {
+			factor = 80
+
+			mult_modifier = {
+				factor = 2
+				trait = paranoid
+			}
+
+			mult_modifier = {
+				factor = 1.5
+				trait = proud
+			}
+
+			mult_modifier = {
+				factor = 1.5
+				trait = cruel
+			}
+		}
+	}
+}
+
+# Soup kitchen is damaged in a fire
+character_event = {
+	id = RIP.4520
+	desc = EVTDESC_RIP_4520
+	picture = GFX_evt_end_of_days
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	has_dlc = "Reapers"
+	war = no
+
+	trigger = {
+		any_demesne_province = {
+			owned_by = ROOT
+			hospital_level >= 1
+			hospital_has_building = soup_kitchen_1
+			NOT = { has_province_modifier = damaged_hospital }
+		}
+	}
+
+	immediate = {
+		random_demesne_province = {
+			limit = {
+				owned_by = ROOT
+				hospital_level >= 1
+				hospital_has_building = soup_kitchen_1
+				NOT = { has_province_modifier = damaged_hospital }
+			}
+
+			save_event_target_as = kitchen_hospital
+		}
+	}
+
+	option = { # Pay for the repairs
+		name = EVTOPTA_RIP_4520
+
+		scaled_wealth = -0.20
+
+		random = {
+			chance = 25
+			add_trait_kind_effect = yes
+		}
+
+		ai_chance = {
+			factor = 30
+
+			trigger = { scaled_wealth = 0.20 }
+
+			mult_modifier = {
+				factor = 2
+				trait = kind
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = humble
+			}
+		}
+	}
+
+	option = { # Pay for the repairs and send additional food
+		name = EVTOPTB_RIP_4520
+		tooltip_info = charitable
+
+		trigger = { trait = charitable }
+
+		scaled_wealth = -0.50
+		piety = 100
+
+		ai_chance = {
+			factor = 20
+
+			trigger = { scaled_wealth = 0.50 }
+
+			mult_modifier = {
+				factor = 5
+				trait = charitable
+			}
+		}
+	}
+
+	option = { # Pay minimum costs
+		name = EVTOPTC_RIP_4520
+		tooltip_info = greedy
+
+		trigger = { trait = greedy }
+
+		scaled_wealth = -0.10
+		piety = -20
+
+		ai_chance = {
+			factor = 20
+
+			mult_modifier = {
+				factor = 4
+				trait = greedy
+			}
+		}
+	}
+
+	option = { # Let it be destroyed
+		name = EVTOPTD_RIP_4520
+
+		event_target:kitchen_hospital = {
+			show_scope_change = no
+
+			add_province_modifier = {
+				name = damaged_hospital
+				years = 5
+			}
+		}
+
+		ai_chance = {
+			factor = 20
+
+			mult_modifier = {
+				factor = 2
+
+				OR = {
+					trait = cruel
+					trait = wroth
+				}
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = arbitrary
+			}
+		}
+	}
+}
+
+# Court physician seek learning - Ask for permisson to spend time at hospital
+character_event = {
+	id = RIP.4530
+	desc = EVTDESC_RIP_4530
+	picture = GFX_evt_court_physician
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+
+	only_playable = yes
+	has_dlc = "Reapers"
+	min_age = 16
+	only_capable = yes
+	prisoner = no
+	war = no
+
+	trigger = {
+		any_demesne_province = {
+			owned_by = ROOT
+			hospital_level >= 1
+
+			OR = {
+				hospital_has_building = library_1
+				hospital_has_building = pharmacology_laboratory_1
+				hospital_has_building = medical_academy_1
+			}
+		}
+
+		any_courtier_or_vassal = {
+			has_minor_title = title_court_physician
+			NOT = { has_character_flag = spent_time_at_hospital }
+			ai = yes
+		}
+	}
+
+	immediate = {
+		random_demesne_province = {
+			limit = {
+				owned_by = ROOT
+				hospital_level >= 1
+
+				OR = {
+					hospital_has_building = library_1
+					hospital_has_building = pharmacology_laboratory_1
+					hospital_has_building = medical_academy_1
+				}
+			}
+			save_event_target_as = hospital_location
+		}
+
+		random_courtier_or_vassal = {
+			limit = { has_minor_title = title_court_physician }
+			save_event_target_as = learning_physician
+		}
+	}
+
+	option = { # Accept
+		name = EVTOPTA_RIP_4530
+
+		scaled_wealth = -0.05
+
+		hidden_effect = {
+			event_target:learning_physician = {
+				set_character_flag = spent_time_at_hospital
+
+				character_event = {
+					id = RIP.4531
+					days = 30
+					random = 30
+				}
+			}
+		}
+	}
+
+	option = { # Refuse
+		name = EVTOPTB_RIP_4530
+	}
+}
+
+# Court physician seek learning - Ping event
+character_event = {
+	id = RIP.4531
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	option = {
+		random_list = {
+			40 = { # Good outcome
+				mult_modifier = {
+					factor = 2
+					trait = diligent
+				}
+
+				mult_modifier = {
+					factor = 2
+					trait = ambitious
+				}
+
+				mult_modifier = {
+					factor = 2
+					trait = erudite
+				}
+
+				mult_modifier = {
+					factor = 2
+					trait = physician
+				}
+
+				mult_modifier = {
+					factor = 2
+
+					OR = {
+						trait = genius
+						trait = quick
+						trait = shrewd
+					}
+				}
+
+				if = {
+					limit = { trait = physician }
+
+					change_learning = 2
+					set_character_flag = physician_got_learning
+				}
+				else = {
+					add_trait = physician
+					set_character_flag = physician_got_trait
+				}
+
+				FROM = {
+					character_event = { id = RIP.4532 }
+				}
+			}
+
+			40 = { # Ok outcome
+				mult_modifier = {
+					factor = 2
+					trait = diligent
+				}
+
+				mult_modifier = {
+					factor = 2
+					trait = erudite
+				}
+
+				mult_modifier = {
+					factor = 2
+					trait = content
+				}
+
+				change_learning = 1
+
+				FROM = {
+					character_event = { id = RIP.4533 }
+				}
+			}
+
+			20 = { # Bad outcome
+				mult_modifier = {
+					factor = 3
+					trait = slothful
+				}
+
+				mult_modifier = {
+					factor = 2
+					trait = shy
+				}
+
+				FROM = {
+					character_event = { id = RIP.4534 }
+				}
+			}
+		}
+	}
+}
+
+# Court physician seek learning - Good outcome
+character_event = {
+	id = RIP.4532
+	desc = EVTDESC_RIP_4532
+	picture = GFX_evt_court_physician
+
+	is_triggered_only = yes
+
+	ai = no
+	only_capable = yes
+	prisoner = no
+
+	fail_trigger_effect = {
+		if = {
+			limit = { ai = no }
+
+			repeat_event = {
+				id = RIP.4532
+				days = 30
+			}
+		}
+	}
+
+	option = {
+		name = EXCELLENT
+
+		FROM = {
+			show_scope_change = no
+
+			tooltip = {
+				trigger_switch = {
+					on_trigger = has_character_flag
+
+					physician_got_learning = { change_learning = 2 }
+					physician_got_trait = { add_trait = physician }
+				}
+			}
+
+			clr_character_flag = physician_got_learning
+			clr_character_flag = physician_got_trait
+		}
+	}
+}
+
+# Court physician seek learning - Ok outcome
+character_event = {
+	id = RIP.4533
+	desc = EVTDESC_RIP_4533
+	picture = GFX_evt_court_physician
+
+	is_triggered_only = yes
+
+	ai = no
+	only_capable = yes
+	prisoner = no
+
+	fail_trigger_effect = {
+		if = {
+			limit = { ai = no }
+
+			repeat_event = {
+				id = RIP.4533
+				months = 1
+			}
+		}
+	}
+
+	option = {
+		name = EXCELLENT
+
+		tooltip = {
+			FROM = {
+				show_scope_change = no
+
+				change_learning = 1
+			}
+		}
+	}
+}
+
+# Court physician seek learning - Bad outcome
+character_event = {
+	id = RIP.4534
+	desc = EVTDESC_RIP_4534
+	picture = GFX_evt_court_physician
+
+	is_triggered_only = yes
+
+	ai = no
+	only_capable = yes
+	prisoner = no
+
+	fail_trigger_effect = {
+		if = {
+			limit = { ai = no }
+
+			repeat_event = {
+				id = RIP.4534
+				months = 1
+			}
+		}
+	}
+
+	option = {
+		name = I_SEE
+	}
+}

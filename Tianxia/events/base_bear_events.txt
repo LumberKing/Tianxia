@@ -1,0 +1,686 @@
+#############################################
+#
+# EVENTS FOR SECRET BEARS
+#
+#############################################
+# Text by Dee Majek
+# Script by Magne Skjæran
+#############################################
+
+namespace = bear
+
+# Bear generation
+character_event = {
+	id = bear.7
+
+	hide_window = yes
+	is_triggered_only = yes # on_yearly_pulse
+
+	only_playable = yes
+
+	trigger = {
+		OR = {
+			is_feudal = yes
+			is_patrician = yes
+		}
+
+		trigger_if = {
+			limit = { ai = yes }
+
+			has_game_rule = {
+				name = silly_events
+				value = unrestricted
+			}
+		}
+		trigger_else = {
+			NOT = {
+				has_game_rule = {
+					name = silly_events
+					value = off
+				}
+			}
+		}
+	}
+
+	immediate = {
+		random_list = {
+			9999 = { }
+
+			1 = {
+				mult_modifier = {
+					factor = 10
+					trait = lunatic
+				}
+
+				mult_modifier = {
+					factor = 3
+					trait = paranoid
+				}
+
+				mult_modifier = {
+					factor = 0.2
+					trait = trusting
+				}
+
+				random_close_relative = {
+					limit = {
+						practical_age < 40
+						host = { character = ROOT }
+						ai = yes
+						block_general_event_trigger = no
+						NOT = { has_character_flag = secret_bear }
+					}
+
+					set_character_flag = secret_bear
+				}
+
+				character_event = { id = bear.1 }
+			}
+		}
+	}
+}
+
+# Troubled Sleep
+character_event = {
+	id = bear.1
+	title = bear.1.title
+	desc = bear.1.desc
+	picture = GFX_evt_drunk
+
+	is_triggered_only = yes # on_yearly_pulse; above
+
+	only_playable = yes
+	war = no # Don't want to annoy the player during a war
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		OR = {
+			is_feudal = yes
+			is_patrician = yes
+		}
+
+		trigger_if = {
+			limit = { ai = yes }
+
+			has_game_rule = {
+				name = silly_events
+				value = unrestricted
+			}
+		}
+		trigger_else = {
+			NOT = {
+				has_game_rule = {
+					name = silly_events
+					value = off
+				}
+			}
+		}
+
+		any_close_relative = {
+			has_character_flag = secret_bear
+			ai = yes
+			host = { character = ROOT }
+			block_general_event_trigger = no
+		}
+
+		NOT = { has_character_flag = secret_bear_chain }
+		is_inaccessible_trigger = no
+	}
+
+	immediate = {
+		random_close_relative = {
+			limit = {
+				has_character_flag = secret_bear
+				ai = yes
+				host = { character = ROOT }
+				block_general_event_trigger = no
+			}
+
+			save_event_target_as = bear_character
+		}
+
+		set_character_flag = secret_bear_chain
+	}
+
+	option = {
+		name = bear.1.a
+
+		reverse_opinion = {
+			name = opinion_annoyed
+			who = event_target:bear_character
+			years = 5
+		}
+	}
+
+	option = {
+		name = bear.1.b
+
+		add_character_modifier = {
+			name = bad_nights_sleep
+			months = 6
+		}
+	}
+
+	after = {
+		character_event = {
+			id = bear.2
+			days = 30
+			random = 30
+		}
+	}
+}
+
+# A Hairy Situation
+character_event = {
+	id = bear.2
+	title = bear.2.title
+	desc = bear.2.desc
+	picture = GFX_evt_courtiers_talking
+
+	is_triggered_only = yes
+
+	prisoner = no
+	#only_capable = yes
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		event_target:bear_character = {
+			ai = yes
+			prisoner = no
+			host = { character = ROOT }
+			is_alive = yes
+		}
+	}
+
+	fail_trigger_effect = {
+		if = {
+			limit = {
+				event_target:bear_character = {
+					prisoner = yes
+				}
+			}
+
+			repeat_event = {
+				id = bear.2
+				days = 30
+			}
+		}
+		else = {
+			event_target:bear_character = {
+				clr_character_flag = secret_bear
+			}
+
+			clr_character_flag = secret_bear_chain
+		}
+	}
+
+	option = {
+		name = bear.2.a
+	}
+
+	option = {
+		name = bear.2.b
+	}
+
+	after = {
+		character_event = {
+			id = bear.3
+			days = 30
+			random = 30
+		}
+	}
+}
+
+# Tongue-Tied
+character_event = {
+	id = bear.3
+	title = bear.3.title
+	desc = bear.3.desc
+	picture = GFX_evt_scandal
+
+	is_triggered_only = yes
+
+	prisoner = no
+	#only_capable = yes
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		event_target:bear_character = {
+			is_alive = yes
+			ai = yes
+			prisoner = no
+			host = { character = ROOT }
+		}
+	}
+
+	fail_trigger_effect = {
+		clr_character_flag = secret_bear_chain
+	}
+
+	immediate = {
+		random_close_relative = {
+			limit = {
+				prisoner = no
+				is_adult = yes
+				host = { character = ROOT }
+				NOT = { character = event_target:bear_character }
+			}
+
+			save_event_target_as = family_member
+		}
+		
+		random_spouse = {
+			limit = {
+				NOR = {
+					character = event_target:bear_character
+					character = event_target:family_member
+				}
+			}
+			save_event_target_as = target_spouse
+		}
+	}
+
+	option = {
+		name = bear.3.a
+
+		trigger = {
+			event_target:target_spouse = {
+				always = yes
+			}
+		}
+
+		reverse_opinion = {
+			name = opinion_flattered
+			who = event_target:target_spouse
+			years = 5
+		}
+	}
+
+	option = {
+		name = bear.3.b
+
+		trigger = {
+			event_target:family_member = {
+				character = yes
+			}
+		}
+
+		reverse_opinion = {
+			name = opinion_flattered
+			who = event_target:family_member
+			years = 5
+		}
+	}
+
+	option = {
+		name = bear.3.c
+
+		piety = 50
+	}
+
+	after = {
+		character_event = {
+			id = bear.4
+			days = 30
+			random = 30
+		}
+
+		clear_event_target = family_member
+	}
+}
+
+# Sweet Thief
+character_event = {
+	id = bear.4
+	title = bear.4.title
+	desc = bear.4.desc
+	picture = GFX_evt_library
+
+	hide_from = yes
+	is_triggered_only = yes
+
+	prisoner = no
+	#only_capable = yes
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		event_target:bear_character = {
+			is_alive = yes
+			ai = yes
+			prisoner = no
+			host = { character = ROOT }
+		}
+	}
+
+	fail_trigger_effect = {
+		clr_character_flag = secret_bear_chain
+	}
+
+	option = {
+		name = bear.4.a
+
+		trigger = {
+			job_marshal = { always = yes }
+		}
+
+		reverse_opinion = {
+			name = opinion_flattered
+			who = job_marshal
+			years = 5
+		}
+	}
+
+	option = {
+		name = bear.4.b
+
+		trigger = {
+			job_spymaster = { always = yes }
+		}
+
+		reverse_opinion = {
+			name = opinion_flattered
+			who = job_spymaster
+			years = 5
+		}
+	}
+
+	option = {
+		name = bear.4.c
+
+		piety = 50
+	}
+
+	after = {
+		character_event = {
+			id = bear.5
+			days = 30
+			random = 30
+		}
+	}
+}
+
+# Poignant Portraitry
+character_event = {
+	id = bear.5
+	title = bear.5.title
+	desc = bear.5.desc
+	picture = GFX_evt_monk
+
+	is_triggered_only = yes
+
+	prisoner = no
+	#only_capable = yes
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		event_target:bear_character = {
+			is_alive = yes
+			ai = yes
+			prisoner = no
+			host = { character = ROOT }
+		}
+	}
+
+	fail_trigger_effect = {
+		clr_character_flag = secret_bear_chain
+	}
+
+	option = {
+		name = bear.5.a
+	}
+
+	option = {
+		name = bear.5.b
+	}
+
+	after = {
+		long_character_event = {
+			id = bear.6
+			days = 30
+			random = 30
+		}
+	}
+}
+
+# Bearly Legal
+long_character_event = {
+	id = bear.6
+	title = bear.6.title
+	desc = bear.6.desc
+	picture = GFX_evt_feast
+
+	is_triggered_only = yes
+
+	prisoner = no
+	#only_capable = yes
+
+	trigger = {
+		is_actually_incapable_trigger = no
+		event_target:bear_character = {
+			is_alive = yes
+			ai = yes
+			prisoner = no
+			host = { character = ROOT }
+		}
+	}
+
+	fail_trigger_effect = {
+		clr_character_flag = secret_bear_chain
+	}
+
+	immediate = {
+		event_target:bear_character = {
+			culture_scope = {
+				save_event_target_as = original_culture
+			}
+
+			gfx_culture_scope = {
+				save_event_target_as = original_gfx_culture
+			}
+
+			set_graphical_culture = bear_culture
+			culture = bear_culture
+			clr_character_flag = secret_bear
+		}
+	}
+
+	option = {
+		name = bear.6.a
+	}
+
+	option = {
+		name = bear.6.undo
+
+		custom_tooltip = {
+			text = UNDO_BEAR_TRANSFORMATION
+
+			event_target:bear_character = {
+				set_graphical_culture = event_target:original_culture
+				culture = event_target:original_gfx_culture
+			}
+		}
+	}
+
+	option = {
+		name = bear.6.b
+
+		trigger = {
+			NOT = { trait = hunter }
+		}
+	}
+
+	option = {
+		name = bear.6.d
+
+		trigger = {
+			NOR = {
+				trait = cannibal
+				trait = lunatic
+			}
+		}
+	}
+
+	option = {
+		name = bear.6.e
+		tooltip_info = cannibal
+
+		trigger = { trait = cannibal }
+
+		event_target:bear_character = {
+			show_scope_change = no
+		
+			if = {
+				limit = {
+					has_dlc = "Jade Dragon"
+					e_china = {
+						holder_scope = {
+							is_chinese_emperor_trigger = yes
+							OR = {
+								character = event_target:bear_character
+								AND = {
+									is_close_relative = event_target:bear_character
+									dynasty = event_target:bear_character
+								}
+							}
+							NOT = {
+								character = ROOT
+							}
+						}
+					}
+				}
+				
+				if = {
+					limit = {
+						is_chinese_emperor_trigger = yes
+					}
+					ROOT = {
+						detract_grace_super_huge_effect = yes
+					}
+				}
+				else = {
+					ROOT = {
+						detract_grace_massive_effect = yes
+					}
+				}
+			}
+
+			death = {
+				death_reason = death_execution_eaten
+				killer = ROOT
+			}
+		}
+	}
+
+	option = {
+		name = bear.6.e
+		tooltip_info = lunatic
+
+		trigger = {
+			NOT = { trait = cannibal }
+			trait = lunatic
+		}
+
+		event_target:bear_character = {
+			show_scope_change = no
+		
+			if = {
+				limit = {
+					has_dlc = "Jade Dragon"
+					e_china = {
+						holder_scope = {
+							is_chinese_emperor_trigger = yes
+							OR = {
+								character = event_target:bear_character
+								AND = {
+									is_close_relative = event_target:bear_character
+									dynasty = event_target:bear_character
+								}
+							}
+							NOT = {
+								character = ROOT
+							}
+						}
+					}
+				}
+				
+				if = {
+					limit = {
+						is_chinese_emperor_trigger = yes
+					}
+					ROOT = {
+						detract_grace_super_huge_effect = yes
+					}
+				}
+				else = {
+					ROOT = {
+						detract_grace_massive_effect = yes
+					}
+				}
+			}
+
+			death = {
+				death_reason = death_execution_eaten
+				killer = ROOT
+			}
+		}
+	}
+
+	option = {
+		name = bear.6.f
+		tooltip_info = hunter
+
+		trigger = { trait = hunter }
+
+		event_target:bear_character = {
+			show_scope_change = no
+		
+			if = {
+				limit = {
+					has_dlc = "Jade Dragon"
+					e_china = {
+						holder_scope = {
+							is_chinese_emperor_trigger = yes
+							OR = {
+								character = event_target:bear_character
+								AND = {
+									is_close_relative = event_target:bear_character
+									dynasty = event_target:bear_character
+								}
+							}
+							NOT = {
+								character = ROOT
+							}
+						}
+					}
+				}
+				
+				if = {
+					limit = {
+						is_chinese_emperor_trigger = yes
+					}
+					ROOT = {
+						detract_grace_super_huge_effect = yes
+					}
+				}
+				else = {
+					ROOT = {
+						detract_grace_massive_effect = yes
+					}
+				}
+			}
+
+			death = {
+				death_reason = death_execution_hunt
+				killer = ROOT
+			}
+		}
+
+		prestige = 100
+	}
+
+	after = {
+		clr_character_flag = secret_bear_chain
+	}
+}

@@ -1,0 +1,1503 @@
+# Treasure Fleet leaving China events
+# by Silverswee(e)per
+
+namespace = soh
+
+# IDs 8001-8100 reserved
+
+##### Treasure Fleet leaves China events
+
+### Initial events
+
+# EoC gets event
+character_event = {
+	id = soh.8001
+	desc = EVTDESC_SOH_8001
+	picture = GFX_evt_treasure_fleet
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8001 # All aboard!
+		
+		remove_trait = treasure_fleet_preparation
+		
+		finalize_treasure_fleet_setup_effect = yes
+		
+		custom_tooltip = {
+			text = all_aboard
+			
+			any_realm_lord = {
+				if = {
+					limit = {
+						trait = treasure_fleet_preparation
+						has_epidemic = no
+						is_inaccessible_or_incapable_trigger = no
+						has_regent = no
+					}
+					
+					remove_trait = treasure_fleet_preparation
+					
+					clear_flags_with_prefix = treasure_fleet_
+					
+					add_trait = treasure_fleet_voyage
+					
+					clr_character_flag = left_treasure_fleet_voyage
+					
+					character_event = { id = soh.8002 } # Inform vassals
+					
+					random_list = {
+						50 = {
+							# Nobody asks to come
+						}
+						
+						50 = {
+							trigger = {
+								any_courtier = {
+									is_adult = yes
+									is_inaccessible_or_incapable_trigger = no
+									is_landed = no
+									OR = {
+										trait = ambitious
+										trait = envious
+										trait = brave
+									}
+									has_epidemic = no
+									NOT = {
+										trait = in_mourning
+									}
+								}
+							}
+							
+							mult_modifier = {
+								factor = 0.1
+								NOT = {
+									any_courtier = {
+										is_adult = yes
+										is_inaccessible_or_incapable_trigger = no
+										is_landed = no
+										OR = {
+											trait = ambitious
+											trait = envious
+											trait = brave
+										}
+										OR = {
+											is_friend = PREVPREV
+											is_lover = PREVPREV
+											is_rival = PREVPREV
+										}
+										has_epidemic = no
+									}
+								}
+							}
+							
+							random_courtier = {
+								limit = {
+									is_adult = yes
+									is_inaccessible_or_incapable_trigger = no
+									is_landed = no
+									OR = {
+										trait = ambitious
+										trait = envious
+										trait = brave
+									}
+									has_epidemic = no
+									NOT = {
+										trait = in_mourning
+									}
+								}
+								
+								preferred_limit = {
+									OR = {
+										is_friend = PREVPREV
+										is_lover = PREVPREV
+										is_rival = PREVPREV
+										dynasty = PREV
+									}
+								}
+								
+								character_event = { id = soh.8003 } # Ping courtier
+							}
+						}
+					}
+				}
+				
+				else_if = {
+					limit = {
+						trait = treasure_fleet_preparation
+					}
+					
+					remove_trait = treasure_fleet_preparation
+				}
+				
+				else = {
+					if = {
+						limit = {
+							is_adult = yes
+							any_courtier = {
+								is_inaccessible_or_incapable_trigger = no
+								is_adult = no
+								age >= 10
+								is_landed = no
+								OR = {
+									trait = ambitious
+									trait = envious
+									trait = brave
+									trait = playful
+									trait = rowdy
+									trait = curious
+								}
+								has_epidemic = no
+								NOT = {
+									trait = in_mourning
+								}
+							}
+						}
+						
+						random = {
+							chance = 1
+							random_courtier = {
+								limit = {
+									is_inaccessible_or_incapable_trigger = no
+									is_adult = no
+									age >= 10
+									is_landed = no
+									OR = {
+										trait = ambitious
+										trait = envious
+										trait = brave
+										trait = playful
+										trait = rowdy
+										trait = curious
+									}
+									has_epidemic = no
+									NOT = {
+										trait = in_mourning
+									}
+								}
+								
+								preferred_limit = {
+									dynasty = PREV
+								}
+								
+								character_event = { id = soh.8005 } # Child might attempt to sneak aboard
+							}
+						}
+					}
+					
+					else_if = {
+						limit = {
+							is_adult = no
+							age >= 10
+							is_inaccessible_or_incapable_trigger = no
+							has_epidemic = no
+							NOT = {
+								trait = in_mourning
+							}
+						}
+						
+						character_event = { id = soh.8005 } # Child might attempt to sneak aboard
+					}
+				}
+			}
+		}
+	
+		FROM = {
+			province_event = { id = soh.8014 days = 5 random = 2 } # Determine how the departure goes
+		}
+	}
+}
+
+# All aboard - people joining the fleet
+character_event = {
+	id = soh.8002
+	desc = EVTDESC_SOH_8002
+	picture = GFX_evt_treasure_fleet
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8002 # All aboard!
+	}
+}
+
+# Ping courtier
+character_event = {
+	id = soh.8003
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		employer = {
+			character_event = { id = soh.8004 days = 1 }
+		}
+	}
+}
+
+# All aboard - someone is asking me to come
+character_event = {
+	id = soh.8004
+	desc = EVTDESC_SOH_8004
+	picture = GFX_evt_treasure_fleet
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8004 # You can come!
+		
+		FROM = {
+			clear_flags_with_prefix = treasure_fleet_
+			
+			add_trait = treasure_fleet_voyage
+			
+			clr_character_flag = left_treasure_fleet_voyage
+			
+			opinion = {
+				who = ROOT
+				modifier = opinion_got_to_join_treasure_fleet
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				is_rival = FROM
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = paranoid
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_8004 # I don't want you with me!
+		
+		FROM = {
+			opinion = {
+				who = ROOT
+				modifier = opinion_did_not_get_to_join_treasure_fleet
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				OR = {
+					is_friend = FROM
+					is_lover = FROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = trusting
+			}
+		}
+	}
+}
+
+# All aboard - child might attempt to sneak aboard
+character_event = {
+	id = soh.8005
+	desc = EVTDESC_SOH_8005
+	picture = GFX_evt_treasure_fleet
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8005 # I want to go!
+		
+		hidden_tooltip = {
+			random_list = {
+				50 = {
+					mult_modifier = {
+						factor = 2
+						intrigue >= 10
+					}
+					
+					mult_modifier = {
+						factor = 2
+						intrigue >= 8
+					}
+					
+					mult_modifier = {
+						factor = 2
+						trait = humble
+					}
+					
+					character_event = { id = soh.8006 days = 1 } # Child successfully sneaks aboard
+				}
+				
+				50 = {
+					mult_modifier = {
+						factor = 2
+						intrigue < 6
+					}
+					
+					mult_modifier = {
+						factor = 2
+						intrigue < 4
+					}
+					
+					mult_modifier = {
+						factor = 2
+						trait = proud
+					}
+					
+					character_event = { id = soh.8008 days = 1 } # Child fails to sneak aboard
+				}
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = craven
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = content
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = timid
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = conscientious
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_8005 # I'll be good...
+		
+		prestige = -25
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = brave
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = willful
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = playful
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = curious
+			}
+		}
+	}
+}
+
+# All aboard - child managed to sneak aboard - child
+character_event = {
+	id = soh.8006
+	desc = EVTDESC_SOH_8006
+	picture = GFX_evt_treasure_fleet
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8006 # Adventure!
+		
+		clear_flags_with_prefix = treasure_fleet_
+			
+		add_trait = treasure_fleet_voyage
+		
+		clr_character_flag = left_treasure_fleet_voyage
+		
+		prestige = 50
+		
+		mother = {
+			character_event = { id = soh.8007 } # Child has gone missing
+		}
+		
+		father = {
+			character_event = { id = soh.8007 } # Child has gone missing
+		}
+		
+		if = {
+			limit = {
+				employer = {
+					NOR = {
+						character = ROOT
+						any_child = {
+							character = ROOT
+						}
+					}
+				}
+			}
+			
+			employer = {
+				character_event = { id = soh.8007 } # Child has gone missing
+			}
+		}
+	}
+}
+
+# All aboard - child managed to sneak aboard - parents
+character_event = {
+	id = soh.8007
+	desc = EVTDESC_SOH_8007
+	picture = GFX_evt_treasure_fleet
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8007 # Has anyone seen FROM?
+	}
+}
+
+# All aboard - child got caught sneaking aboard - child
+character_event = {
+	id = soh.8008
+	desc = EVTDESC_SOH_8008
+	picture = GFX_evt_treasure_fleet
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8008 # That didn't go so well...
+		
+		prestige = -50
+		
+		mother = {
+			if = {
+				limit = {
+					NOT = {
+						has_landed_title = e_china
+					}
+				}
+				
+				character_event = { id = soh.8009 } # Child was caught
+			}
+		}
+		
+		father = {
+			if = {
+				limit = {
+					NOT = {
+						has_landed_title = e_china
+					}
+				}
+				
+				character_event = { id = soh.8009 } # Child was caught
+			}
+		}
+		
+		if = {
+			limit = {
+				employer = {
+					NOR = {
+						character = ROOT
+						any_child = {
+							character = ROOT
+						}
+						has_landed_title = e_china
+					}
+				}
+			}
+			
+			employer = {
+				character_event = { id = soh.8009 } # Child was caught
+			}
+		}
+		
+		e_china = {
+			holder_scope = {
+				character_event = { id = soh.8010 } # EoC informed
+			}
+		}
+	}
+}
+
+# All aboard - child got caught sneaking aboard - parents
+character_event = {
+	id = soh.8009
+	desc = EVTDESC_SOH_8009
+	picture = GFX_evt_treasure_fleet
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8009 # Don't scare me like that!
+	}
+}
+
+# All aboard - child got caught sneaking aboard - EoC
+character_event = {
+	id = soh.8010
+	desc = EVTDESC_SOH_8010
+	picture = GFX_evt_treasure_fleet
+	border = GFX_event_normal_frame_intrigue
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8010 # This ends now!
+		
+		FROM = {
+			character_event = { id = soh.8011 days = 1 } # Child informed
+		}
+		
+		ai_chance = {
+			factor = 100
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_8010 # I suppose you can go...
+		
+		FROM = {
+			character_event = { id = soh.8012 days = 1 } # Inform the child
+		}
+		
+		ai_chance = {
+			trigger = {
+				NOT = {
+					dynasty = FROM
+				}
+			}
+			
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				opinion = {
+					who = FROM
+					value < 50
+				}
+			}
+		}
+	}
+}
+
+# Child scolded
+character_event = {
+	id = soh.8011
+	desc = EVTDESC_SOH_8011
+	picture = GFX_evt_treasure_fleet
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8011 # I need to be more convincing!
+		
+		random = {
+			chance = 25
+			change_diplomacy = 1
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_8011 # I need to be sneakier!
+		
+		random = {
+			chance = 25
+			change_intrigue = 1
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_8011 # I'll be good!
+		
+		piety = 25
+	}
+}
+
+# All aboard - EoC let child join after getting caught - child
+character_event = {
+	id = soh.8012
+	desc = EVTDESC_SOH_8012
+	picture = GFX_evt_treasure_fleet
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8012 # Adventure!
+		
+		clear_flags_with_prefix = treasure_fleet_
+		
+		add_trait = treasure_fleet_voyage
+		
+		clr_character_flag = left_treasure_fleet_voyage
+		
+		mother = {
+			if = {
+				limit = {
+					NOT = {
+						has_landed_title = e_china
+					}
+				}
+				
+				character_event = { id = soh.8013 } # Child got the EoC's permission
+			}
+		}
+		
+		father = {
+			if = {
+				limit = {
+					NOT = {
+						has_landed_title = e_china
+					}
+				}
+				
+				character_event = { id = soh.8013 } # Child got the EoC's permission
+			}
+		}
+		
+		if = {
+			limit = {
+				employer = {
+					NOR = {
+						character = ROOT
+						any_child = {
+							character = ROOT
+						}
+						has_landed_title = e_china
+					}
+				}
+			}
+			
+			employer = {
+				character_event = { id = soh.8013 } # Child got the EoC's permission
+			}
+		}
+	}
+}
+
+# All aboard - EoC let child join after getting caught - parents
+character_event = {
+	id = soh.8013
+	desc = EVTDESC_SOH_8013
+	picture = GFX_evt_treasure_fleet
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8013 # I suppose I can't oppose that...
+	}
+}
+
+### Actual departure
+
+# Determine how the departure goes
+province_event = {
+	id = soh.8014
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_list = {
+			95 = {
+				e_china = {
+					holder_scope = {
+						narrative_event = { id = soh.8015 } # Uneventful departure
+					}
+				}
+				
+				set_global_flag = treasure_fleet_voyage
+				
+				random_list = {
+					10 = {
+						set_province_flag = treasure_fleet_going_to_korea
+					}
+					
+					20 = {
+						set_province_flag = treasure_fleet_going_to_maynila
+					}
+					
+					70 = {
+						set_province_flag = treasure_fleet_going_to_champa
+					}
+				}
+			}
+			
+			1 = {
+				trigger = {
+					NOR = {
+						has_game_rule = {
+							name = supernatural_events
+							value = off
+						}
+						
+						AND = {
+							has_game_rule = {
+								name = supernatural_events
+								value = on
+							}
+							
+							NOT = {
+								any_player = {
+									OR = {
+										is_chinese_emperor_trigger = yes
+										trait = treasure_fleet_voyage
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				e_china = {
+					holder_scope = {
+						narrative_event = { id = soh.8019 } # Celestial dragon at departure
+					}
+				}
+				
+				set_global_flag = treasure_fleet_voyage
+				
+				random_list = {
+					10 = {
+						set_province_flag = treasure_fleet_going_to_korea
+					}
+					
+					20 = {
+						set_province_flag = treasure_fleet_going_to_maynila
+					}
+					
+					70 = {
+						set_province_flag = treasure_fleet_going_to_champa
+					}
+				}
+			}
+			
+			1 = {
+				trigger = {
+					NOR = {
+						has_game_rule = {
+							name = supernatural_events
+							value = off
+						}
+						
+						AND = {
+							has_game_rule = {
+								name = supernatural_events
+								value = on
+							}
+							
+							NOT = {
+								any_player = {
+									OR = {
+										is_chinese_emperor_trigger = yes
+										trait = treasure_fleet_voyage
+									}
+								}
+							}
+						}
+					}
+					
+					has_global_flag = first_dragon_attack
+					
+					NOR = {
+						has_global_flag = dragon_injured
+						has_global_flag = ongoing_dragon_attack
+						has_global_flag = dragon_slain
+						has_global_flag = ongoing_dragonslaying_attempt
+					}
+				}
+				
+				e_china = {
+					holder_scope = {
+						set_global_flag = treasure_fleet_destroyed
+						
+						narrative_event = { id = soh.8023 } # Red dragon attack on Treasure Fleet
+					}
+				}
+			}
+			
+			1 = {
+				mult_modifier = {
+					factor = 2
+					culture = swedish # Vasa
+				}
+				
+				e_china = {
+					holder_scope = {
+						set_global_flag = treasure_fleet_destroyed
+						
+						narrative_event = { id = soh.8027 } # Treasure Fleet sinks in the harbour
+					}
+				}
+			}
+		}
+	}
+}
+
+# Departure is uneventful
+narrative_event = {
+	id = soh.8015
+	title = EVTTITLE_SOH_8015
+	desc = EVTDESC_SOH_8015
+	picture = GFX_evt_treasure_fleet
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8015 # Auspicious!
+		
+		hidden_tooltip = {
+			mandate_boost_trivial_effect = yes
+		}
+		
+		d_treasure_fleet = {
+			holder_scope = {
+				narrative_event = { id = soh.8016 } # Inform people on the voyage
+			}
+		}
+		
+		any_realm_lord = {
+			limit = {
+				trait = treasure_fleet_voyage
+			}
+			
+			narrative_event = { id = soh.8016 } # Inform people on the voyage
+		}
+		
+		any_realm_lord = {
+			if = {
+				limit = {
+					NOT = {
+						trait = treasure_fleet_voyage
+					}
+					ai = no
+				}
+				
+				narrative_event = { id = soh.8017 } # Inform other vassals
+			}
+			
+			any_courtier = {
+				limit = {
+					is_landed = no
+					trait = treasure_fleet_voyage
+				}
+				
+				narrative_event = { id = soh.8016 } # Inform people on the voyage
+			}
+		}
+		
+		any_playable_ruler = {
+			limit = {
+				OR = {
+					ai = no
+					government = chinese_imperial_government
+				}
+				NOT = {
+					top_liege = {
+						character = ROOT
+					}
+				}
+			}
+			
+			narrative_event = { id = soh.8018 } # Inform the world
+		}
+	}
+}
+
+# Departure is uneventful - inform people that joined
+narrative_event = {
+	id = soh.8016
+	title = EVTTITLE_SOH_8016
+	desc = EVTDESC_SOH_8016
+	picture = GFX_evt_treasure_fleet
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8016 # Auspicious!
+		
+		prestige = 25
+	}
+}
+
+# Departure is uneventful - inform other vassals
+narrative_event = {
+	id = soh.8017
+	title = EVTTITLE_SOH_8017
+	desc = EVTDESC_SOH_8017
+	picture = GFX_evt_treasure_fleet
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8017 # Auspicious!
+	}
+}
+
+# Departure is uneventful - inform the world
+narrative_event = {
+	id = soh.8018
+	title = EVTTITLE_SOH_8018
+	desc = EVTDESC_SOH_8018
+	picture = GFX_evt_treasure_fleet
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			NOT = {
+				government = chinese_imperial_government
+			}
+			
+			any_realm_province = {
+				port = yes
+				can_naval_path_to = c_hangzhou
+			}
+		}
+		
+		name = EVTOPTA_SOH_8018 # Interesting...
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				government = chinese_imperial_government
+			}
+			NOT = {
+				any_realm_province = {
+					port = yes
+					can_naval_path_to = c_hangzhou
+				}
+			}
+		}
+		
+		name = EVTOPTB_SOH_8018 # I don't care!
+	}
+	
+	option = {
+		trigger = {
+			government = chinese_imperial_government
+		}
+		
+		name = EVTOPTC_SOH_8018 # How unfortunate!
+		
+		hidden_tooltip = {
+			mandate_penalty_trivial_effect = yes
+		}
+	}
+}
+
+# Celestial dragon at departure
+narrative_event = {
+	id = soh.8019
+	title = EVTTITLE_SOH_8019
+	desc = EVTDESC_SOH_8019
+	picture = GFX_evt_chinese_mythology
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8019 # Most auspicious!
+		
+		hidden_tooltip = {
+			mandate_boost_large_effect = yes
+		}
+		
+		d_treasure_fleet = {
+			holder_scope = {
+				narrative_event = { id = soh.8020 } # Inform people on the voyage
+			}
+		}
+		
+		any_realm_lord = {
+			limit = {
+				trait = treasure_fleet_voyage
+			}
+			
+			narrative_event = { id = soh.8020 } # Inform people on the voyage
+		}
+		
+		any_realm_lord = {
+			if = {
+				limit = {
+					NOT = {
+						trait = treasure_fleet_voyage
+					}
+					ai = no
+				}
+				
+				narrative_event = { id = soh.8021 } # Inform other vassals
+			}
+			
+			any_courtier = {
+				limit = {
+					is_landed = no
+					trait = treasure_fleet_voyage
+				}
+				
+				narrative_event = { id = soh.8020 } # Inform people on the voyage
+			}
+		}
+		
+		any_playable_ruler = {
+			limit = {
+				OR = {
+					ai = no
+					government = chinese_imperial_government
+				}
+				
+				NOT = {
+					top_liege = {
+						character = ROOT
+					}
+				}
+			}
+			
+			narrative_event = { id = soh.8022 } # Inform the world
+		}
+	}
+}
+
+# Celestial dragon at departure - inform people that joined
+narrative_event = {
+	id = soh.8020
+	title = EVTTITLE_SOH_8020
+	desc = EVTDESC_SOH_8020
+	picture = GFX_evt_chinese_mythology
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8020 # Most auspicious!
+		
+		prestige = 50
+	}
+}
+
+# Celestial dragon at departure - inform other vassals
+narrative_event = {
+	id = soh.8021
+	title = EVTTITLE_SOH_8021
+	desc = EVTDESC_SOH_8021
+	picture = GFX_evt_chinese_mythology
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8021 # Most auspicious!
+	}
+}
+
+# Celestial dragon at departure - inform the world
+narrative_event = {
+	id = soh.8022
+	title = EVTTITLE_SOH_8022
+	desc = EVTDESC_SOH_8022
+	picture = GFX_evt_chinese_mythology
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			NOT = {
+				government = chinese_imperial_government
+			}
+			
+			any_realm_province = {
+				port = yes
+				can_naval_path_to = c_hangzhou
+			}
+		}
+		
+		name = EVTOPTA_SOH_8022 # Interesting...
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				government = chinese_imperial_government
+			}
+			
+			NOT = {
+				any_realm_province = {
+					port = yes
+					can_naval_path_to = c_hangzhou
+				}
+			}
+		}
+		
+		name = EVTOPTB_SOH_8022 # I don't care!
+	}
+	
+	option = {
+		trigger = {
+			government = chinese_imperial_government
+		}
+		
+		name = EVTOPTC_SOH_8022 # Worrying...
+		
+		hidden_tooltip = {
+			mandate_penalty_small_effect = yes
+		}
+	}
+}
+
+# Red dragon burns the fleet at departure
+narrative_event = {
+	id = soh.8023
+	title = EVTTITLE_SOH_8023
+	desc = EVTDESC_SOH_8023
+	picture = GFX_evt_burning_man_hf
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8023 # Most inauspicious!
+		
+		prestige = -1000
+		
+		hidden_tooltip = {
+			mandate_penalty_massive_effect = yes
+		}
+		
+		d_treasure_fleet = {
+			holder_scope = {
+				narrative_event = { id = soh.8024 } # Inform people on the voyage
+			}
+		}
+		
+		any_realm_lord = {
+			limit = {
+				trait = treasure_fleet_voyage
+			}
+			
+			narrative_event = { id = soh.8024 } # Inform people on the voyage
+		}
+		
+		any_realm_lord = {
+			if = {
+				limit = {
+					NOT = {
+						trait = treasure_fleet_voyage
+					}
+					ai = no
+				}
+				
+				narrative_event = { id = soh.8025 } # Inform other vassals
+			}
+			
+			any_courtier = {
+				limit = {
+					is_landed = no
+					trait = treasure_fleet_voyage
+				}
+				
+				narrative_event = { id = soh.8024 } # Inform people on the voyage
+			}
+		}
+		
+		any_playable_ruler = {
+			limit = {
+				OR = {
+					ai = no
+					government = chinese_imperial_government
+				}
+				NOT = {
+					top_liege = {
+						character = ROOT
+					}
+				}
+			}
+			
+			narrative_event = { id = soh.8026 } # Inform the world
+		}
+	}
+}
+
+# Red dragon burns the fleet at departure - inform people that joined
+narrative_event = {
+	id = soh.8024
+	title = EVTTITLE_SOH_8024
+	desc = EVTDESC_SOH_8024
+	picture = GFX_evt_burning_man_hf
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8024 # Aargh!
+		
+		remove_trait = treasure_fleet_voyage
+		
+		death = {
+			death_reason = death_evil_dragon
+		}
+	}
+}
+
+# Red dragon burns the fleet at departure - inform other vassals
+narrative_event = {
+	id = soh.8025
+	title = EVTTITLE_SOH_8025
+	desc = EVTDESC_SOH_8025
+	picture = GFX_evt_burning_man_hf
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8025 # Most inauspicious!
+	}
+}
+
+# Red dragon burns the fleet at departure - inform the world
+narrative_event = {
+	id = soh.8026
+	title = EVTTITLE_SOH_8026
+	desc = EVTDESC_SOH_8026
+	picture = GFX_evt_burning_man_hf
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			NOT = {
+				government = chinese_imperial_government
+			}
+		}
+		
+		name = EVTOPTA_SOH_8026 # So much for that...
+	}
+	
+	option = {
+		trigger = {
+			government = chinese_imperial_government
+		}
+		
+		name = EVTOPTB_SOH_8026 # I almost feel bad for FROM...
+	}
+}
+
+# Fleet sinks in the harbour
+narrative_event = {
+	id = soh.8027
+	title = EVTTITLE_SOH_8027
+	desc = EVTDESC_SOH_8027
+	picture = GFX_evt_kraken
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8027 # Most inauspicious!
+		
+		prestige = -1000
+		
+		hidden_tooltip = {
+			mandate_penalty_massive_effect = yes
+		}
+		
+		d_treasure_fleet = {
+			holder_scope = {
+				narrative_event = { id = soh.8028 } # Inform people on the voyage
+			}
+		}
+		
+		any_realm_lord = {
+			limit = {
+				trait = treasure_fleet_voyage
+			}
+			
+			narrative_event = { id = soh.8028 } # Inform people on the voyage
+		}
+		
+		any_realm_lord = {
+			if = {
+				limit = {
+					NOT = {
+						trait = treasure_fleet_voyage
+					}
+					ai = no
+				}
+				
+				narrative_event = { id = soh.8029 } # Inform other vassals
+			}
+			
+			any_courtier = {
+				limit = {
+					is_landed = no
+					trait = treasure_fleet_voyage
+				}
+				
+				narrative_event = { id = soh.8028 } # Inform people on the voyage
+			}
+		}
+		
+		any_playable_ruler = {
+			limit = {
+				OR = {
+					ai = no
+					government = chinese_imperial_government
+				}
+				NOT = {
+					top_liege = {
+						character = ROOT
+					}
+				}
+			}
+			
+			narrative_event = { id = soh.8030 } # Inform the world
+		}
+	}
+}
+
+# Fleet sinks in the harbour - inform people that joined
+narrative_event = {
+	id = soh.8028
+	title = EVTTITLE_SOH_8028
+	desc = EVTDESC_SOH_8028
+	picture = GFX_evt_kraken
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8028 # I must swim to safety!
+		
+		remove_trait = treasure_fleet_voyage
+		
+		random_list = {
+			50 = {
+				mult_modifier = {
+					factor = 5
+					is_weak_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 5
+					is_maimed_trigger = yes
+				}
+				
+				mult_modifier = {
+					factor = 2
+					is_adult = no
+				}
+				
+				death = {
+					death_reason = death_accident_drowning
+				}
+			}
+			
+			50 = {
+				mult_modifier = {
+					factor = 5
+					is_strong_trigger = yes
+				}
+			}
+		}
+	}
+}
+
+# Fleet sinks in the harbour - inform other vassals
+narrative_event = {
+	id = soh.8029
+	title = EVTTITLE_SOH_8029
+	desc = EVTDESC_SOH_8029
+	picture = GFX_evt_kraken
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_SOH_8029 # Most inauspicious!
+	}
+}
+
+# Fleet sinks in the harbour - inform the world
+narrative_event = {
+	id = soh.8030
+	title = EVTTITLE_SOH_8030
+	desc = EVTDESC_SOH_8030
+	picture = GFX_evt_kraken
+	window = EventWindowOffmap
+	background = GFX_event_window_news_from_china
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			NOT = {
+				government = chinese_imperial_government
+			}
+		}
+		
+		name = EVTOPTA_SOH_8030 # So much for that...
+	}
+	
+	option = {
+		trigger = {
+			government = chinese_imperial_government
+		}
+		
+		name = EVTOPTB_SOH_8030 # How auspicious!
+		
+		hidden_tooltip = {
+			mandate_boost_small_effect = yes
+		}
+	}
+}

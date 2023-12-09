@@ -1,0 +1,978 @@
+# Events concerning Japanese government type transfer
+# by Silverswee(e)per
+
+namespace = soh
+
+# IDs 7101-7200 reserved
+
+
+
+##### Japanese government trait handling
+
+# Character with Japanese Feudal dies - all unlanded children eligible to inherit under the primary title's gender law inherit the trait
+character_event = {
+	id = soh.7101
+	hide_window = yes
+	
+	is_triggered_only = yes # on_death
+	
+	only_playable = yes
+	
+	trigger = {
+		trait = japanese_feudal_trait
+	}
+	
+	immediate = {
+		any_child = {
+			limit = {
+				can_have_japanese_bureaucracy_and_feudal_trigger = yes
+				is_landed = no
+				NOT = {
+					trait = japanese_monastic_trait
+				}
+			}
+			
+			if = { # Only men
+				limit = {
+					ROOT = {
+						primary_title = {
+							OR = {
+								has_law = agnatic_succession
+								has_law = cognatic_succession # Ag-Cog
+							}
+						}
+					}
+					is_female = no
+				}
+				
+				add_trait = japanese_feudal_trait
+			}
+			
+			else_if = { # Only women
+				limit = {
+					ROOT = {
+						primary_title = {
+							OR = {
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession # En-Cog
+							}
+						}
+					}
+					is_female = yes
+				}
+				
+				add_trait = japanese_feudal_trait
+			}
+			
+			else = {
+				add_trait = japanese_feudal_trait
+			}
+		}
+	}
+}
+
+# Character with Japanese Monastic Feudal dies - all unlanded children eligible to inherit under the primary title's gender law inherit the trait
+character_event = {
+	id = soh.7102
+	hide_window = yes
+	
+	is_triggered_only = yes # on_death
+	
+	only_playable = yes
+	
+	trigger = {
+		trait = japanese_monastic_trait
+	}
+	
+	immediate = {
+		any_child = {
+			limit = {
+				can_have_japanese_monastic_feudal_trigger = yes
+				is_landed = no
+				NOT = {
+					trait = japanese_feudal_trait
+				}
+			}
+			
+			if = { # Only men
+				limit = {
+					ROOT = {
+						primary_title = {
+							OR = {
+								has_law = agnatic_succession
+								has_law = cognatic_succession # Ag-Cog
+							}
+						}
+					}
+					is_female = no
+				}
+				
+				add_trait = japanese_monastic_trait
+			}
+			
+			else_if = { # Only women
+				limit = {
+					ROOT = {
+						primary_title = {
+							OR = {
+								has_law = enatic_succession
+								has_law = enatic_cognatic_succession # En-Cog
+							}
+						}
+					}
+					is_female = yes
+				}
+				
+				add_trait = japanese_monastic_trait
+			}
+			
+			else = {
+				add_trait = japanese_monastic_trait
+			}
+		}
+	}
+}
+
+# Character with Japanese Bureaucracy gets their first county from someone that's Japanese Feudal - on_new_holder/_inheritance/_usurpation
+character_event = {
+	id = soh.7103
+	desc = EVTDESC_SOH_7103
+	picture = GFX_evt_china_expansionist
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes # on_new_holder/_inheritance/_usurpation
+	
+	only_playable = yes
+	
+	trigger = {
+		FROMFROM = {
+			trait = japanese_feudal_trait
+		}
+		
+		FROM = {
+			tier = count
+		}
+		
+		government = japanese_bureaucracy_government
+		
+		NOT = {
+			any_demesne_title = {
+				count = 2
+				tier = count
+			}
+		}
+		
+		OR = {
+			NOT = {
+				has_character_flag = got_japanese_feudal_opportunity
+			}
+			had_character_flag = { flag = got_japanese_feudal_opportunity days = 1 }
+		}
+	}
+	
+	immediate = {
+		clr_character_flag = got_japanese_feudal_opportunity
+		
+		set_character_flag = got_japanese_feudal_opportunity
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_7103 # Of course I should become Japanese Feudal!
+		
+		add_trait = japanese_feudal_trait
+		
+		set_government_type = japanese_feudal_government
+		
+		ai_chance = {
+			factor = 100
+
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					trait = cynical
+				}
+				any_dynasty_member = {
+					religion = ROOT
+					OR = {
+						is_the_tenno_trigger = yes
+						is_ryukyuan_tenno_trigger = yes
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					dynasty = FROMFROM
+				}
+				can_have_japanese_monastic_feudal_trigger = yes
+				trait = zealous
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					dynasty = FROMFROM
+				}
+				can_have_japanese_monastic_feudal_trigger = yes
+				society_member_of = monastic_order_japanese
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_7103 # I don't think so....
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					dynasty = FROMFROM
+					any_close_relative = {
+						character = FROMFROM
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				dynasty = FROMFROM
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				any_close_relative = {
+					character = FROMFROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				society_member_of = warriors_of_the_rising_sun
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_education_martial_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_lifestyle_martial_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				top_liege = {
+					government = japanese_feudal_government
+				}
+			}
+		}
+	}
+}
+
+# Character with Japanese Bureaucracy gets their first county from someone that's Japanese Monastic Feudal - on_new_holder/_inheritance/_usurpation
+character_event = {
+	id = soh.7104
+	desc = EVTDESC_SOH_7104
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes # on_new_holder/_inheritance/_usurpation
+	
+	only_playable = yes
+	
+	trigger = {
+		FROMFROM = {
+			trait = japanese_monastic_trait
+			religion = ROOT
+		}
+		
+		FROM = {
+			tier = count
+		}
+		
+		government = japanese_bureaucracy_government
+		
+		can_have_japanese_monastic_feudal_trigger = yes
+		
+		NOT = {
+			any_demesne_title = {
+				count = 2
+				tier = count
+			}
+		}
+		
+		OR = {
+			NOT = {
+				has_character_flag = got_japanese_monastic_feudal_opportunity
+			}
+			had_character_flag = { flag = got_japanese_monastic_feudal_opportunity days = 1 }
+		}
+	}
+	
+	immediate = {
+		clr_character_flag = got_japanese_monastic_feudal_opportunity
+		
+		set_character_flag = got_japanese_monastic_feudal_opportunity
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_7104 # Of course I should become Japanese Monastic Feudal!
+		add_trait = japanese_monastic_trait
+		set_government_type = japanese_monastic_feudal_government
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				NAND = {
+					trait = zealous
+					dynasty = FROMFROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = cynical
+				NOT = {
+					dynasty = FROMFROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				society_member_of = warriors_of_the_rising_sun
+				NOT = {
+					dynasty = FROMFROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				independent = no
+				top_liege = {
+					NOR = {
+						government = japanese_monastic_feudal_government
+						government = japanese_imperial_government
+						government = divine_imperial_government
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_7104 # I don't think so....
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					dynasty = FROMFROM
+					any_close_relative = {
+						character = FROMFROM
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				dynasty = FROMFROM
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				any_close_relative = {
+					character = FROMFROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				society_member_of = monastic_order_japanese
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_education_learning_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_lifestyle_learning_trigger = yes
+			}
+		}
+	}
+}
+
+# Character with Japanese Bureaucracy usurps higher title from someone that's Japanese Feudal - on_new_holder_usurpation
+character_event = {
+	id = soh.7105
+	desc = EVTDESC_SOH_7105
+	picture = GFX_evt_china_expansionist
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes # on_new_holder_usurpation
+	
+	only_playable = yes
+	
+	trigger = {
+		FROMFROM = {
+			trait = japanese_feudal_trait
+		}
+		
+		FROM = {
+			tier = ROOT
+		}
+		
+		government = japanese_bureaucracy_government
+		
+		NOT = {
+			any_demesne_title = {
+				tier = ROOT
+				NOT = {
+					FROM = {
+						title = PREV
+					}
+				}
+			}
+		}
+		
+		OR = {
+			NOT = {
+				has_character_flag = got_japanese_feudal_opportunity
+			}
+			had_character_flag = { flag = got_japanese_feudal_opportunity days = 1 }
+		}
+	}
+	
+	immediate = {
+		clr_character_flag = got_japanese_feudal_opportunity
+		
+		set_character_flag = got_japanese_feudal_opportunity
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_7105 # Of course I should become Japanese Feudal!
+		
+		add_trait = japanese_feudal_trait
+		
+		set_government_type = japanese_feudal_government
+		
+		ai_chance = {
+			factor = 100
+
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					trait = cynical
+				}
+				any_dynasty_member = {
+					religion = ROOT
+					OR = {
+						is_the_tenno_trigger = yes
+						is_ryukyuan_tenno_trigger = yes
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					dynasty = FROMFROM
+				}
+				can_have_japanese_monastic_feudal_trigger = yes
+				trait = zealous
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					dynasty = FROMFROM
+				}
+				can_have_japanese_monastic_feudal_trigger = yes
+				society_member_of = monastic_order_japanese
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_7105 # I don't think so....
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					dynasty = FROMFROM
+					any_close_relative = {
+						character = FROMFROM
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				society_member_of = warriors_of_the_rising_sun
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_education_martial_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_lifestyle_martial_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				top_liege = {
+					government = japanese_feudal_government
+				}
+			}
+		}
+	}
+}
+
+# Character with Japanese Bureaucracy usurps higher title from someone that's Japanese Monastic Feudal - on_new_holder_usurpation
+character_event = {
+	id = soh.7106
+	desc = EVTDESC_SOH_7106
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes # on_new_holder_usurpation
+	
+	only_playable = yes
+	
+	trigger = {
+		FROMFROM = {
+			trait = japanese_monastic_trait
+			religion = ROOT
+		}
+		
+		FROM = {
+			tier = ROOT
+		}
+		
+		government = japanese_bureaucracy_government
+		
+		can_have_japanese_monastic_feudal_trigger = yes
+		
+		NOT = {
+			any_demesne_title = {
+				tier = ROOT
+				NOT = {
+					FROM = {
+						title = PREV
+					}
+				}
+			}
+		}
+		
+		OR = {
+			NOT = {
+				has_character_flag = got_japanese_monastic_feudal_opportunity
+			}
+			had_character_flag = { flag = got_japanese_monastic_feudal_opportunity days = 1 }
+		}
+	}
+	
+	immediate = {
+		clr_character_flag = got_japanese_monastic_feudal_opportunity
+		
+		set_character_flag = got_japanese_monastic_feudal_opportunity
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_7106 # Of course I should become Japanese Monastic Feudal!
+		
+		add_trait = japanese_monastic_trait
+		
+		set_government_type = japanese_monastic_feudal_government
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				NAND = {
+					trait = zealous
+					dynasty = FROMFROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = cynical
+				NOT = {
+					dynasty = FROMFROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				society_member_of = warriors_of_the_rising_sun
+				NOT = {
+					dynasty = FROMFROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				independent = no
+				top_liege = {
+					NOR = {
+						government = japanese_monastic_feudal_government
+						government = japanese_imperial_government
+						government = divine_imperial_government
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_7106 # I don't think so....
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					dynasty = FROMFROM
+					any_close_relative = {
+						character = FROMFROM
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				society_member_of = monastic_order_japanese
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_education_learning_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_lifestyle_learning_trigger = yes
+			}
+		}
+	}
+}
+
+# Character with Japanese Bureaucracy inherits higher title from someone that's Japanese Feudal - on_new_holder_inheritance
+character_event = {
+	id = soh.7107
+	desc = EVTDESC_SOH_7107
+	picture = GFX_evt_china_expansionist
+	border = GFX_event_normal_frame_war
+	
+	is_triggered_only = yes # on_new_holder_inheritance
+	
+	only_playable = yes
+	
+	trigger = {
+		FROMFROM = {
+			trait = japanese_feudal_trait
+		}
+		
+		FROM = {
+			tier = ROOT
+		}
+		
+		government = japanese_bureaucracy_government
+		
+		NOT = {
+			any_demesne_title = {
+				tier = ROOT
+				NOT = {
+					FROM = {
+						title = PREV
+					}
+				}
+			}
+		}
+		
+		OR = {
+			NOT = {
+				has_character_flag = got_japanese_feudal_opportunity
+			}
+			had_character_flag = { flag = got_japanese_feudal_opportunity days = 1 }
+		}
+	}
+	
+	immediate = {
+		clr_character_flag = got_japanese_feudal_opportunity
+		
+		set_character_flag = got_japanese_feudal_opportunity
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_7107 # Of course I should become Japanese Feudal!
+		
+		add_trait = japanese_feudal_trait
+		
+		set_government_type = japanese_feudal_government
+		
+		ai_chance = {
+			factor = 100
+
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					trait = cynical
+				}
+				any_dynasty_member = {
+					religion = ROOT
+					OR = {
+						is_the_tenno_trigger = yes
+						is_ryukyuan_tenno_trigger = yes
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					dynasty = FROMFROM
+				}
+				can_have_japanese_monastic_feudal_trigger = yes
+				trait = zealous
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					dynasty = FROMFROM
+				}
+				can_have_japanese_monastic_feudal_trigger = yes
+				society_member_of = monastic_order_japanese
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_7107 # I don't think so....
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					dynasty = FROMFROM
+					any_close_relative = {
+						character = FROMFROM
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				society_member_of = warriors_of_the_rising_sun
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_education_martial_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_lifestyle_martial_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				top_liege = {
+					government = japanese_feudal_government
+				}
+			}
+		}
+	}
+}
+
+# Character with Japanese Bureaucracy inherits higher title from someone that's Japanese Monastic Feudal - on_new_holder_inheritance
+character_event = {
+	id = soh.7108
+	desc = EVTDESC_SOH_7108
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes # on_new_holder_inheritance
+	
+	only_playable = yes
+	
+	trigger = {
+		FROMFROM = {
+			trait = japanese_monastic_trait
+			religion = ROOT
+		}
+		
+		FROM = {
+			tier = ROOT
+		}
+		
+		government = japanese_bureaucracy_government
+		
+		can_have_japanese_monastic_feudal_trigger = yes
+		
+		NOT = {
+			any_demesne_title = {
+				tier = ROOT
+				NOT = {
+					FROM = {
+						title = PREV
+					}
+				}
+			}
+		}
+		
+		OR = {
+			NOT = {
+				has_character_flag = got_japanese_monastic_feudal_opportunity
+			}
+			had_character_flag = { flag = got_japanese_monastic_feudal_opportunity days = 1 }
+		}
+	}
+	
+	immediate = {
+		clr_character_flag = got_japanese_monastic_feudal_opportunity
+		
+		set_character_flag = got_japanese_monastic_feudal_opportunity
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_7108 # Of course I should become Japanese Monastic Feudal!
+		
+		add_trait = japanese_monastic_trait
+		
+		set_government_type = japanese_monastic_feudal_government
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				NAND = {
+					trait = zealous
+					dynasty = FROMFROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = cynical
+				NOT = {
+					dynasty = FROMFROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				society_member_of = warriors_of_the_rising_sun
+				NOT = {
+					dynasty = FROMFROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				independent = no
+				top_liege = {
+					NOR = {
+						government = japanese_monastic_feudal_government
+						government = japanese_imperial_government
+						government = divine_imperial_government
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_7108 # I don't think so....
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					dynasty = FROMFROM
+					any_close_relative = {
+						character = FROMFROM
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				society_member_of = monastic_order_japanese
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_education_learning_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_lifestyle_learning_trigger = yes
+			}
+		}
+	}
+}
+
+
+
+##### Monk/etc. fix
+
+# on_new_holder/_inheritance/_usurpation fix for ascetics being landed by the AI
+character_event = {
+	id = soh.7109
+	hide_window = yes
+	
+	is_triggered_only = yes # on_new_holder/_inheritance/_usurpation
+	
+	trigger = {
+		is_ascetic_trigger = yes
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				independent = no
+			}
+			
+			abdicate = yes
+			
+			remove_claim = FROM # Get rid of claims
+		}
+		
+		else = {
+			# Stop being an ascetic
+			trigger_switch = {
+				on_trigger = trait
+				
+				aryika = { remove_trait = aryika }
+				bhikkhu = { remove_trait = bhikkhu }
+				bhikkhuni = { remove_trait = bhikkhuni }
+				monk = { remove_trait = monk }
+				muni = { remove_trait = muni }
+				nun = { remove_trait = nun }
+				sanyasi = { remove_trait = sanyasi }
+				sanyasini = { remove_trait = sanyasini }
+			}
+		}
+	}
+}

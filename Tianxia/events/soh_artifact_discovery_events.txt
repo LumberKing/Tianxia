@@ -1,0 +1,4985 @@
+# JD-exclusive Chinese artifact discovery events
+# by Silverswee(e)per
+
+namespace = soh
+
+# IDs 10601-10700 reserved
+
+##### Chinese artifact hunts
+
+# Which quality are you looking for?
+character_event = {
+	id = soh.10601
+	desc = EVTDESC_SOH_10601
+	picture = GFX_evt_market_hf
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		clr_character_flag = chinese_artifact_hunt_best
+		clr_character_flag = chinese_artifact_hunt_middle
+		clr_character_flag = chinese_artifact_hunt_worst
+		clr_character_flag = chinese_artifact_hunt_whatever
+		
+		set_variable = {
+			which = chinese_artifact_hunt
+			value = 0
+		}
+		
+		set_variable = {
+			which = chinese_artifact_hunt_duration
+			value = 0
+		}
+	}
+	
+	option = {
+		trigger = {
+			has_all_grace_artifacts_T5_trigger = no
+		}
+		
+		name = EVTOPTA_SOH_10601 # Only the best will do!
+		
+		set_character_flag = chinese_artifact_hunt_best
+		
+		ai_chance = {
+			trigger = {
+				NOR = {
+					trait = humble
+					trait = content
+				}
+			}
+			
+			factor = 100
+			
+			mult_modifier = {
+				factor = 5
+				higher_real_tier_than = duke
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = envious
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NAND = {
+				has_all_grace_artifacts_T4_trigger = yes
+				has_all_grace_artifacts_T3_trigger = yes
+			}
+		}
+		
+		name = EVTOPTB_SOH_10601 # Something decent!
+		
+		set_character_flag = chinese_artifact_hunt_middle
+		
+		ai_chance = {
+			factor = 100
+		}
+	}
+	
+	option = {
+		trigger = {
+			NAND = {
+				has_all_grace_artifacts_T2_trigger = yes
+				has_all_grace_artifacts_T1_trigger = yes
+			}
+		}
+		
+		name = EVTOPTC_SOH_10601 # Something cheap!
+		
+		set_character_flag = chinese_artifact_hunt_worst
+		
+		ai_chance = {
+			trigger = {
+				NOR = {
+					trait = proud
+					trait = envious
+				}
+			}
+			
+			factor = 100
+			
+			mult_modifier = {
+				factor = 5
+				real_tier = duke
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = humble
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = content
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			NOT = {
+				calc_true_if = {
+					amount = 2
+					has_all_grace_artifacts_T5_trigger = yes
+					AND = {
+						has_all_grace_artifacts_T4_trigger = yes
+						has_all_grace_artifacts_T3_trigger = yes
+					}
+					AND = {
+						has_all_grace_artifacts_T2_trigger = yes
+						has_all_grace_artifacts_T1_trigger = yes
+					}
+				}
+			}
+		}
+		
+		name = EVTOPTD_SOH_10601 # Just get me anything!
+		
+		set_character_flag = chinese_artifact_hunt_whatever
+		
+		ai_chance = {
+			factor = 100
+		}
+	}
+	
+	after = {
+		character_event = { id = soh.10602 days = 60 random = 60 } # Artifact hunt loop
+	}
+}
+
+# Artifact hunt loop
+character_event = {
+	id = soh.10602
+	hide_window = yes
+	
+	only_playable = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				is_inaccessible_or_incapable_trigger = no
+			}
+			
+			# Increase the counter
+			change_variable = {
+				which = chinese_artifact_hunt_duration
+				value = 1
+			}
+			
+			# Add some random progress
+			random_list = {
+				1 = {
+					change_variable = {
+						which = chinese_artifact_hunt
+						value = 3
+					}
+				}
+				
+				1 = {
+					change_variable = {
+						which = chinese_artifact_hunt
+						value = 2
+					}
+				}
+				
+				5 = {
+					change_variable = {
+						which = chinese_artifact_hunt
+						value = 1
+					}
+				}
+				
+				1 = {
+					# No progress
+				}
+				
+				1 = {
+					change_variable = {
+						which = chinese_artifact_hunt
+						value = -1
+					}
+				}
+				
+				1 = {
+					change_variable = {
+						which = chinese_artifact_hunt
+						value = -2
+					}
+				}
+			}
+			
+			trigger_switch = {
+				on_trigger = has_character_flag
+				
+				chinese_artifact_hunt_best = {
+					if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 50
+							}
+						}
+						
+						character_event = { id = soh.10603 } # Artifact discovered
+					}
+					
+					else_if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 40
+							}
+						}
+						
+						random_list = {
+							75 = {
+								character_event = { id = soh.10603 } # Artifact discovered
+							}
+							
+							25 = {
+								if = {
+									limit = {
+										is_variable_equal = {
+											which = chinese_artifact_hunt_duration
+											value = 10
+										}
+									}
+									
+									character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+								}
+								
+								else = {
+									repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+								}
+							}
+						}
+					}
+					
+					else_if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 30
+							}
+						}
+						
+						random_list = {
+							50 = {
+								character_event = { id = soh.10603 } # Artifact discovered
+							}
+							
+							50 = {
+								if = {
+									limit = {
+										is_variable_equal = {
+											which = chinese_artifact_hunt_duration
+											value = 10
+										}
+									}
+									
+									character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+								}
+								
+								else = {
+									repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+								}
+							}
+						}
+					}
+					
+					else_if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 20
+							}
+						}
+						
+						random_list = {
+							25 = {
+								character_event = { id = soh.10603 } # Artifact discovered
+							}
+							
+							75 = {
+								if = {
+									limit = {
+										is_variable_equal = {
+											which = chinese_artifact_hunt_duration
+											value = 10
+										}
+									}
+									
+									character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+								}
+								
+								else = {
+									repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+								}
+							}
+						}
+					}
+					
+					else = {
+						if = {
+							limit = {
+								is_variable_equal = {
+									which = chinese_artifact_hunt_duration
+									value = 10
+								}
+							}
+							
+							character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+						}
+						
+						else = {
+							repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+						}
+					}
+				}
+				
+				chinese_artifact_hunt_middle = {
+					if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 30
+							}
+						}
+						
+						character_event = { id = soh.10603 } # Artifact discovered
+					}
+					
+					else_if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 25
+							}
+						}
+						
+						random_list = {
+							75 = {
+								character_event = { id = soh.10603 } # Artifact discovered
+							}
+							
+							25 = {
+								if = {
+									limit = {
+										is_variable_equal = {
+											which = chinese_artifact_hunt_duration
+											value = 10
+										}
+									}
+									
+									character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+								}
+								
+								else = {
+									repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+								}
+							}
+						}
+					}
+					
+					else_if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 20
+							}
+						}
+						
+						random_list = {
+							50 = {
+								character_event = { id = soh.10603 } # Artifact discovered
+							}
+							
+							50 = {
+								if = {
+									limit = {
+										is_variable_equal = {
+											which = chinese_artifact_hunt_duration
+											value = 10
+										}
+									}
+									
+									character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+								}
+								
+								else = {
+									repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+								}
+							}
+						}
+					}
+					
+					else_if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 15
+							}
+						}
+						
+						random_list = {
+							25 = {
+								character_event = { id = soh.10603 } # Artifact discovered
+							}
+							
+							75 = {
+								if = {
+									limit = {
+										is_variable_equal = {
+											which = chinese_artifact_hunt_duration
+											value = 10
+										}
+									}
+									
+									character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+								}
+								
+								else = {
+									repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+								}
+							}
+						}
+					}
+					
+					else = {
+						if = {
+							limit = {
+								is_variable_equal = {
+									which = chinese_artifact_hunt_duration
+									value = 10
+								}
+							}
+							
+							character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+						}
+						
+						else = {
+							repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+						}
+					}
+				}
+				
+				chinese_artifact_hunt_worst = {
+					if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 20
+							}
+						}
+						
+						character_event = { id = soh.10603 } # Artifact discovered
+					}
+					
+					else_if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 15
+							}
+						}
+						
+						random_list = {
+							75 = {
+								character_event = { id = soh.10603 } # Artifact discovered
+							}
+							
+							25 = {
+								if = {
+									limit = {
+										is_variable_equal = {
+											which = chinese_artifact_hunt_duration
+											value = 10
+										}
+									}
+									
+									character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+								}
+								
+								else = {
+									repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+								}
+							}
+						}
+					}
+					
+					else_if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 10
+							}
+						}
+						
+						random_list = {
+							50 = {
+								character_event = { id = soh.10603 } # Artifact discovered
+							}
+							
+							50 = {
+								if = {
+									limit = {
+										is_variable_equal = {
+											which = chinese_artifact_hunt_duration
+											value = 10
+										}
+									}
+									
+									character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+								}
+								
+								else = {
+									repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+								}
+							}
+						}
+					}
+					
+					else_if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 5
+							}
+						}
+						
+						random_list = {
+							25 = {
+								character_event = { id = soh.10603 } # Artifact discovered
+							}
+							
+							75 = {
+								if = {
+									limit = {
+										is_variable_equal = {
+											which = chinese_artifact_hunt_duration
+											value = 10
+										}
+									}
+									
+									character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+								}
+								
+								else = {
+									repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+								}
+							}
+						}
+					}
+					
+					else = {
+						if = {
+							limit = {
+								is_variable_equal = {
+									which = chinese_artifact_hunt_duration
+									value = 10
+								}
+							}
+							
+							character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+						}
+						
+						else = {
+							repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+						}
+					}
+				}
+				
+				chinese_artifact_hunt_whatever = {
+					if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 50
+							}
+						}
+						
+						random_list = {
+							50 = {
+								set_character_flag = chinese_artifact_hunt_best
+							}
+							40 = {
+								set_character_flag = chinese_artifact_hunt_middle
+							}
+							10 = {
+								set_character_flag = chinese_artifact_hunt_worst
+							}
+						}
+						
+						character_event = { id = soh.10603 } # Artifact discovered
+					}
+					
+					else_if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 40
+							}
+						}
+						
+						random_list = {
+							75 = {
+								random_list = {
+									25 = {
+										set_character_flag = chinese_artifact_hunt_best
+									}
+									60 = {
+										set_character_flag = chinese_artifact_hunt_middle
+									}
+									15 = {
+										set_character_flag = chinese_artifact_hunt_worst
+									}
+								}
+								
+								character_event = { id = soh.10603 } # Artifact discovered
+							}
+							
+							25 = {
+								if = {
+									limit = {
+										is_variable_equal = {
+											which = chinese_artifact_hunt_duration
+											value = 10
+										}
+									}
+									
+									character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+								}
+								
+								else = {
+									repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+								}
+							}
+						}
+					}
+					
+					else_if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 30
+							}
+						}
+						
+						random_list = {
+							50 = {
+								random_list = {
+									15 = {
+										set_character_flag = chinese_artifact_hunt_best
+									}
+									60 = {
+										set_character_flag = chinese_artifact_hunt_middle
+									}
+									25 = {
+										set_character_flag = chinese_artifact_hunt_worst
+									}
+								}
+								
+								character_event = { id = soh.10603 } # Artifact discovered
+							}
+							
+							50 = {
+								if = {
+									limit = {
+										is_variable_equal = {
+											which = chinese_artifact_hunt_duration
+											value = 10
+										}
+									}
+									
+									character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+								}
+								
+								else = {
+									repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+								}
+							}
+						}
+					}
+					
+					else_if = {
+						limit = {
+							check_variable = {
+								which = chinese_artifact_hunt
+								value >= 20
+							}
+						}
+						
+						random_list = {
+							25 = {
+								random_list = {
+									10 = {
+										set_character_flag = chinese_artifact_hunt_best
+									}
+									40 = {
+										set_character_flag = chinese_artifact_hunt_middle
+									}
+									60 = {
+										set_character_flag = chinese_artifact_hunt_worst
+									}
+								}
+								
+								character_event = { id = soh.10603 } # Artifact discovered
+							}
+							
+							75 = {
+								if = {
+									limit = {
+										is_variable_equal = {
+											which = chinese_artifact_hunt_duration
+											value = 10
+										}
+									}
+									
+									character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+								}
+								
+								else = {
+									repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+								}
+							}
+						}
+					}
+					
+					else = {
+						if = {
+							limit = {
+								is_variable_equal = {
+									which = chinese_artifact_hunt_duration
+									value = 10
+								}
+							}
+							
+							character_event = { id = soh.10604 } # Artifact hunt is taking quite some time - want to keep at it?
+						}
+						
+						else = {
+							repeat_event = { id = soh.10602 days = 60 random = 60 } # Continue the hunt
+						}
+					}
+				}
+			}
+		}
+		
+		else = {
+			repeat_event = { id = soh.10602 days = 60 random = 60 } # Try again later
+		}
+	}
+}
+
+# Artifact discovered - do you want it?
+character_event = {
+	id = soh.10603
+	desc = EVTDESC_SOH_10603
+	picture = GFX_evt_market_hf
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		# Sanity check that you can get something from your tier
+		if = {
+			limit = {
+				has_all_grace_artifacts_trigger = yes
+			}
+			
+			clr_character_flag = chinese_artifact_hunt_best
+			clr_character_flag = chinese_artifact_hunt_middle
+			set_character_flag = chinese_artifact_hunt_worst # Cheapest
+		}
+		
+		else = {
+			if = {
+				limit = {
+					has_character_flag = chinese_artifact_hunt_best
+					has_all_grace_artifacts_T5_trigger = yes
+				}
+				
+				clr_character_flag = chinese_artifact_hunt_best
+				
+				if = {
+					limit = {
+						NAND = {
+							has_all_grace_artifacts_T4_trigger = yes
+							has_all_grace_artifacts_T3_trigger = yes
+						}
+					}
+					
+					set_character_flag = chinese_artifact_hunt_middle
+				}
+				
+				else = {
+					set_character_flag = chinese_artifact_hunt_worst
+				}
+			}
+			
+			else_if = {
+				limit = {
+					has_character_flag = chinese_artifact_hunt_middle
+					has_all_grace_artifacts_T4_trigger = yes
+					has_all_grace_artifacts_T3_trigger = yes
+				}
+				
+				clr_character_flag = chinese_artifact_hunt_middle
+				
+				random_list = {
+					25 = {
+						trigger = {
+							has_all_grace_artifacts_T5_trigger = no
+						}
+						
+						set_character_flag = chinese_artifact_hunt_best
+					}
+					
+					75 = {
+						trigger = {
+							NAND = {
+								has_all_grace_artifacts_T2_trigger = yes
+								has_all_grace_artifacts_T1_trigger = yes
+							}
+						}
+						
+						set_character_flag = chinese_artifact_hunt_worst
+					}
+				}
+			}
+			
+			else_if = {
+				limit = {
+					has_character_flag = chinese_artifact_hunt_worst
+					has_all_grace_artifacts_T2_trigger = yes
+					has_all_grace_artifacts_T1_trigger = yes
+				}
+				
+				clr_character_flag = chinese_artifact_hunt_worst
+				
+				random_list = {
+					10 = {
+						trigger = {
+							has_all_grace_artifacts_T5_trigger = no
+						}
+						
+						set_character_flag = chinese_artifact_hunt_best
+					}
+					
+					90 = {
+						trigger = {
+							NAND = {
+								has_all_grace_artifacts_T4_trigger = yes
+								has_all_grace_artifacts_T3_trigger = yes
+							}
+						}
+						
+						set_character_flag = chinese_artifact_hunt_middle
+					}
+				}
+			}
+		}
+		
+		# Randomize artifact
+		trigger_switch = {
+			on_trigger = has_character_flag
+			
+			chinese_artifact_hunt_best = {
+				random_list = {
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = jade_dragon
+							}
+						}
+						
+						set_character_flag = jade_dragon
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = art_of_war_exists
+							NOT = {
+								has_artifact = art_of_war
+							}
+						}
+						
+						set_character_flag = art_of_war
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = classic_of_poetry_exists
+							NOT = {
+								has_artifact = classic_of_poetry
+							}
+						}
+						
+						set_character_flag = classic_of_poetry
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = etiquette_and_ceremonial_exists
+							NOT = {
+								has_artifact = etiquette_and_ceremonial
+							}
+						}
+						
+						set_character_flag = etiquette_and_ceremonial
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = i_ching_exists
+							NOT = {
+								has_artifact = i_ching
+							}
+						}
+						
+						set_character_flag = i_ching
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = discourse_of_the_states_exists
+							NOT = {
+								has_artifact = discourse_of_the_states
+							}
+						}
+						
+						set_character_flag = discourse_of_the_states
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = spring_and_autumn_annals_exists
+							NOT = {
+								has_artifact = spring_and_autumn_annals
+							}
+						}
+						
+						set_character_flag = spring_and_autumn_annals
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = mozi_exists
+							NOT = {
+								has_artifact = mozi
+							}
+						}
+						
+						set_character_flag = mozi
+					}
+					10 = {
+						trigger = {
+							has_global_flag = classic_of_filial_piety_exists
+							NOT = {
+								has_artifact = classic_of_filial_piety
+							}
+						}
+						
+						set_character_flag = classic_of_filial_piety
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = tao_te_ching_exists
+							NOT = {
+								has_artifact = tao_te_ching
+							}
+						}
+						
+						set_character_flag = tao_te_ching
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = book_of_rites_exists
+							NOT = {
+								has_artifact = book_of_rites
+							}
+						}
+						
+						set_character_flag = book_of_rites
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = book_of_documents_old_exists
+							NOT = {
+								has_artifact = book_of_documents_old
+							}
+						}
+						
+						set_character_flag = book_of_documents_old
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = book_of_documents_new_exists
+							NOT = {
+								has_artifact = book_of_documents_new
+							}
+						}
+						
+						set_character_flag = book_of_documents_new
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = zhuangzi_exists
+							NOT = {
+								has_artifact = zhuangzi
+							}
+						}
+						
+						set_character_flag = zhuangzi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = records_of_the_grand_historian_exists
+							NOT = {
+								has_artifact = records_of_the_grand_historian
+							}
+						}
+						
+						set_character_flag = records_of_the_grand_historian
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = classic_of_mountains_and_seas_exists
+							NOT = {
+								has_artifact = classic_of_mountains_and_seas
+							}
+						}
+						
+						set_character_flag = classic_of_mountains_and_seas
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = records_of_the_three_kingdoms_exists
+							NOT = {
+								has_artifact = records_of_the_three_kingdoms
+							}
+						}
+						
+						set_character_flag = records_of_the_three_kingdoms
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = old_history_of_the_five_dynasties_exists
+							NOT = {
+								has_artifact = old_history_of_the_five_dynasties
+							}
+						}
+						
+						set_character_flag = old_history_of_the_five_dynasties
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = new_history_of_the_five_dynasties_exists
+							NOT = {
+								has_artifact = new_history_of_the_five_dynasties
+							}
+						}
+						
+						set_character_flag = new_history_of_the_five_dynasties
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = lessons_for_women_exists
+							NOT = {
+								has_artifact = lessons_for_women
+							}
+						}
+						
+						set_character_flag = lessons_for_women
+					}
+				}
+			}
+			
+			chinese_artifact_hunt_middle = {
+				random_list = {
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_dragon_amulet
+							}
+						}
+						
+						set_character_flag = chinese_dragon_amulet
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = water_clock
+							}
+						}
+						
+						set_character_flag = water_clock
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = jian_sword
+							}
+						}
+						
+						set_character_flag = jian_sword
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = wuzi_exists
+							NOT = {
+								has_artifact = wuzi
+							}
+						}
+						
+						set_character_flag = wuzi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = thirty_six_stratagems_exists
+							NOT = {
+								has_artifact = thirty_six_stratagems
+							}
+						}
+						
+						set_character_flag = thirty_six_stratagems
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = methods_of_the_sima_exists
+							NOT = {
+								has_artifact = methods_of_the_sima
+							}
+						}
+						
+						set_character_flag = methods_of_the_sima
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = book_of_lord_shang_exists
+							NOT = {
+								has_artifact = book_of_lord_shang
+							}
+						}
+						
+						set_character_flag = book_of_lord_shang
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = wei_liaozi_exists
+							NOT = {
+								has_artifact = wei_liaozi
+							}
+						}
+						
+						set_character_flag = wei_liaozi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = sun_bins_art_of_war_exists
+							NOT = {
+								has_artifact = sun_bins_art_of_war
+							}
+						}
+						
+						set_character_flag = sun_bins_art_of_war
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = mencius_exists
+							NOT = {
+								has_artifact = mencius
+							}
+						}
+						
+						set_character_flag = mencius
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = verses_of_chu_exists
+							NOT = {
+								has_artifact = verses_of_chu
+							}
+						}
+						
+						set_character_flag = verses_of_chu
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = master_lus_spring_and_autumn_annals_exists
+							NOT = {
+								has_artifact = master_lus_spring_and_autumn_annals
+							}
+						}
+						
+						set_character_flag = master_lus_spring_and_autumn_annals
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = xunzi_exists
+							NOT = {
+								has_artifact = xunzi
+							}
+						}
+						
+						set_character_flag = xunzi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = han_feizi_exists
+							NOT = {
+								has_artifact = han_feizi
+							}
+						}
+						
+						set_character_flag = han_feizi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = analects_exists
+							NOT = {
+								has_artifact = analects
+							}
+						}
+						
+						set_character_flag = analects
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = complete_essentials_for_military_classics_exists
+							NOT = {
+								has_artifact = complete_essentials_for_military_classics
+							}
+						}
+						
+						set_character_flag = complete_essentials_for_military_classics
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = womens_analects_exists
+							NOT = {
+								has_artifact = womens_analects
+							}
+						}
+						
+						set_character_flag = womens_analects
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = eighteen_songs_of_a_nomad_flute_exists
+							NOT = {
+								has_artifact = eighteen_songs_of_a_nomad_flute
+							}
+						}
+						
+						set_character_flag = eighteen_songs_of_a_nomad_flute
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_ceremonial_robes
+							}
+						}
+						
+						set_character_flag = chinese_ceremonial_robes
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = silk_shroud
+							}
+						}
+						
+						set_character_flag = silk_shroud
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_ji
+							}
+						}
+						
+						set_character_flag = chinese_ji
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_crossbow
+							}
+						}
+						
+						set_character_flag = chinese_crossbow
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_bronze_sculpture
+							}
+						}
+						
+						set_character_flag = chinese_bronze_sculpture
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_tapestry_grand
+							}
+						}
+						
+						set_character_flag = chinese_tapestry_grand
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_book_health
+							}
+						}
+						
+						set_character_flag = chinese_book_health
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_book_law
+							}
+						}
+						
+						set_character_flag = chinese_book_law
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_book_economy
+							}
+						}
+						
+						set_character_flag = chinese_book_economy
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = the_commentary_of_zuo_exists
+							NOT = {
+								has_artifact = the_commentary_of_zuo
+							}
+						}
+						
+						set_character_flag = the_commentary_of_zuo
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_origins_exists
+							NOT = {
+								has_artifact = book_of_origins
+							}
+						}
+						
+						set_character_flag = book_of_origins
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = rites_of_zhou_exists
+							NOT = {
+								has_artifact = rites_of_zhou
+							}
+						}
+						
+						set_character_flag = rites_of_zhou
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = erya_exists
+							NOT = {
+								has_artifact = erya
+							}
+						}
+						
+						set_character_flag = erya
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = spring_and_autumn_annals_of_the_sixteen_kingdoms_exists
+							NOT = {
+								has_artifact = spring_and_autumn_annals_of_the_sixteen_kingdoms
+							}
+						}
+						
+						set_character_flag = spring_and_autumn_annals_of_the_sixteen_kingdoms
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = classic_of_tea_exists
+							NOT = {
+								has_artifact = classic_of_tea
+							}
+						}
+						
+						set_character_flag = classic_of_tea
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = tongdian_exists
+							NOT = {
+								has_artifact = tongdian
+							}
+						}
+						
+						set_character_flag = tongdian
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = records_of_the_nine_kingdoms_exists
+							NOT = {
+								has_artifact = records_of_the_nine_kingdoms
+							}
+						}
+						
+						set_character_flag = records_of_the_nine_kingdoms
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = comprehensive_mirror_in_aid_of_governance_exists
+							NOT = {
+								has_artifact = comprehensive_mirror_in_aid_of_governance
+							}
+						}
+						
+						set_character_flag = comprehensive_mirror_in_aid_of_governance
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = dream_pool_essays_exists
+							NOT = {
+								has_artifact = dream_pool_essays
+							}
+						}
+						
+						set_character_flag = dream_pool_essays
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = treatise_on_tea_exists
+							NOT = {
+								has_artifact = treatise_on_tea
+							}
+						}
+						
+						set_character_flag = treatise_on_tea
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = daozang_exists
+							NOT = {
+								has_artifact = daozang
+							}
+						}
+						
+						set_character_flag = daozang
+					}
+				}
+			}
+			
+			chinese_artifact_hunt_worst = {
+				random_list = {
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_artwork
+							}
+						}
+						
+						set_character_flag = chinese_artwork
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_calligraphy
+							}
+						}
+						
+						set_character_flag = chinese_calligraphy
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_sculpture
+							}
+						}
+						
+						set_character_flag = chinese_sculpture
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_arm_protector
+							}
+						}
+						
+						set_character_flag = chinese_arm_protector
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_serpent_spear
+							}
+						}
+						
+						set_character_flag = chinese_serpent_spear
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_tapestry
+							}
+						}
+						
+						set_character_flag = chinese_tapestry
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = history_of_the_southern_dynasties_exists
+							NOT = {
+								has_artifact = history_of_the_southern_dynasties
+							}
+						}
+						
+						set_character_flag = history_of_the_southern_dynasties
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = history_of_the_northern_dynasties_exists
+							NOT = {
+								has_artifact = history_of_the_northern_dynasties
+							}
+						}
+						
+						set_character_flag = history_of_the_northern_dynasties
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_painting_of_glitterhoof
+							}
+						}
+						
+						set_character_flag = chinese_painting_of_glitterhoof
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_han_exists
+							NOT = {
+								has_artifact = book_of_han
+							}
+						}
+						
+						set_character_flag = book_of_han
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = weilue_exists
+							NOT = {
+								has_artifact = weilue
+							}
+						}
+						
+						set_character_flag = weilue
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_the_later_han_exists
+							NOT = {
+								has_artifact = book_of_the_later_han
+							}
+						}
+						
+						set_character_flag = book_of_the_later_han
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_song_exists
+							NOT = {
+								has_artifact = book_of_song
+							}
+						}
+						
+						set_character_flag = book_of_song
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_qi_exists
+							NOT = {
+								has_artifact = book_of_qi
+							}
+						}
+						
+						set_character_flag = book_of_qi
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_wei_exists
+							NOT = {
+								has_artifact = book_of_wei
+							}
+						}
+						
+						set_character_flag = book_of_wei
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_liang_exists
+							NOT = {
+								has_artifact = book_of_liang
+							}
+						}
+						
+						set_character_flag = book_of_liang
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_chen_exists
+							NOT = {
+								has_artifact = book_of_chen
+							}
+						}
+						
+						set_character_flag = book_of_chen
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_northern_qi_exists
+							NOT = {
+								has_artifact = book_of_northern_qi
+							}
+						}
+						
+						set_character_flag = book_of_northern_qi
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_zhou_exists
+							NOT = {
+								has_artifact = book_of_zhou
+							}
+						}
+						
+						set_character_flag = book_of_zhou
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_jin_exists
+							NOT = {
+								has_artifact = book_of_jin
+							}
+						}
+						
+						set_character_flag = book_of_jin
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_sui_exists
+							NOT = {
+								has_artifact = book_of_sui
+							}
+						}
+						
+						set_character_flag = book_of_sui
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = old_book_of_tang_exists
+							NOT = {
+								has_artifact = old_book_of_tang
+							}
+						}
+						
+						set_character_flag = old_book_of_tang
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = new_book_of_tang_exists
+							NOT = {
+								has_artifact = new_book_of_tang
+							}
+						}
+						
+						set_character_flag = new_book_of_tang
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = records_of_rumors_from_sushui_exists
+							NOT = {
+								has_artifact = records_of_rumors_from_sushui
+							}
+						}
+						
+						set_character_flag = records_of_rumors_from_sushui
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = huang_song_shichao_gangyao_exists
+							NOT = {
+								has_artifact = huang_song_shichao_gangyao
+							}
+						}
+						
+						set_character_flag = huang_song_shichao_gangyao
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			stewardship >= 16
+		}
+		
+		tooltip_info = stewardship
+		
+		name = EVTOPTA_SOH_10603 # I want it!
+		
+		trigger_switch = {
+			on_trigger = has_character_flag
+			
+			chinese_artifact_hunt_best = {
+				wealth = -500
+			}
+			
+			chinese_artifact_hunt_middle = {
+				wealth = -250
+			}
+			
+			chinese_artifact_hunt_worst = {
+				wealth = -50
+			}
+		}
+		
+		trigger_switch = {
+			on_trigger = has_character_flag
+			
+			jade_dragon                                               = { add_artifact = jade_dragon }
+			art_of_war                                                = { add_artifact = art_of_war }
+			classic_of_poetry                                         = { add_artifact = classic_of_poetry }
+			etiquette_and_ceremonial                                  = { add_artifact = etiquette_and_ceremonial }
+			i_ching                                                   = { add_artifact = i_ching }
+			discourse_of_the_states                                   = { add_artifact = discourse_of_the_states }
+			spring_and_autumn_annals                                  = { add_artifact = spring_and_autumn_annals }
+			mozi                                                      = { add_artifact = mozi }
+			classic_of_filial_piety                                   = { add_artifact = classic_of_filial_piety }
+			tao_te_ching                                              = { add_artifact = tao_te_ching }
+			book_of_rites                                             = { add_artifact = book_of_rites }
+			book_of_documents_old                                     = { add_artifact = book_of_documents_old }
+			book_of_documents_new                                     = { add_artifact = book_of_documents_new }
+			zhuangzi                                                  = { add_artifact = zhuangzi }
+			records_of_the_grand_historian                            = { add_artifact = records_of_the_grand_historian }
+			classic_of_mountains_and_seas                             = { add_artifact = classic_of_mountains_and_seas }
+			records_of_the_three_kingdoms                             = { add_artifact = records_of_the_three_kingdoms }
+			old_history_of_the_five_dynasties                         = { add_artifact = old_history_of_the_five_dynasties }
+			new_history_of_the_five_dynasties                         = { add_artifact = new_history_of_the_five_dynasties }
+			lessons_for_women                                         = { add_artifact = lessons_for_women }
+			chinese_dragon_amulet                                     = { add_artifact = chinese_dragon_amulet }
+			chinese_artwork                                           = { add_artifact = chinese_artwork }
+			chinese_calligraphy                                       = { add_artifact = chinese_calligraphy }
+			chinese_sculpture                                         = { add_artifact = chinese_sculpture }
+			chinese_ceremonial_robes                                  = { add_artifact = chinese_ceremonial_robes }
+			silk_shroud                                               = { add_artifact = silk_shroud }
+			water_clock                                               = { add_artifact = water_clock }
+			jian_sword                                                = { add_artifact = jian_sword }
+			chinese_arm_protector                                     = { add_artifact = chinese_arm_protector }
+			chinese_serpent_spear                                     = { add_artifact = chinese_serpent_spear }
+			chinese_ji                                                = { add_artifact = chinese_ji }
+			chinese_crossbow                                          = { add_artifact = chinese_crossbow }
+			chinese_bronze_sculpture                                  = { add_artifact = chinese_bronze_sculpture }
+			chinese_painting_of_glitterhoof                           = { add_artifact = chinese_painting_of_glitterhoof }
+			chinese_tapestry                                          = { add_artifact = chinese_tapestry }
+			chinese_tapestry_grand                                    = { add_artifact = chinese_tapestry_grand }
+			chinese_book_health                                       = { add_artifact = chinese_book_health }
+			chinese_book_law                                          = { add_artifact = chinese_book_law }
+			chinese_book_economy                                      = { add_artifact = chinese_book_economy }
+			wuzi                                                      = { add_artifact = wuzi }
+			thirty_six_stratagems                                     = { add_artifact = thirty_six_stratagems }
+			methods_of_the_sima                                       = { add_artifact = methods_of_the_sima }
+			book_of_lord_shang                                        = { add_artifact = book_of_lord_shang }
+			wei_liaozi                                                = { add_artifact = wei_liaozi }
+			sun_bins_art_of_war                                       = { add_artifact = sun_bins_art_of_war }
+			the_commentary_of_zuo                                     = { add_artifact = the_commentary_of_zuo }
+			mencius                                                   = { add_artifact = mencius }
+			verses_of_chu                                             = { add_artifact = verses_of_chu }
+			master_lus_spring_and_autumn_annals                       = { add_artifact = master_lus_spring_and_autumn_annals }
+			xunzi                                                     = { add_artifact = xunzi }
+			han_feizi                                                 = { add_artifact = han_feizi }
+			book_of_origins                                           = { add_artifact = book_of_origins }
+			rites_of_zhou                                             = { add_artifact = rites_of_zhou }
+			analects                                                  = { add_artifact = analects }
+			erya                                                      = { add_artifact = erya }
+			book_of_han                                               = { add_artifact = book_of_han }
+			weilue                                                    = { add_artifact = weilue }
+			book_of_the_later_han                                     = { add_artifact = book_of_the_later_han }
+			book_of_song                                              = { add_artifact = book_of_song }
+			book_of_qi                                                = { add_artifact = book_of_qi }
+			spring_and_autumn_annals_of_the_sixteen_kingdoms          = { add_artifact = spring_and_autumn_annals_of_the_sixteen_kingdoms }
+			book_of_wei                                               = { add_artifact = book_of_wei }
+			book_of_liang                                             = { add_artifact = book_of_liang }
+			book_of_chen                                              = { add_artifact = book_of_chen }
+			book_of_northern_qi                                       = { add_artifact = book_of_northern_qi }
+			book_of_zhou                                              = { add_artifact = book_of_zhou }
+			book_of_jin                                               = { add_artifact = book_of_jin }
+			book_of_sui                                               = { add_artifact = book_of_sui }
+			history_of_the_southern_dynasties                         = { add_artifact = history_of_the_southern_dynasties }
+			history_of_the_northern_dynasties                         = { add_artifact = history_of_the_northern_dynasties }
+			classic_of_tea                                            = { add_artifact = classic_of_tea }
+			tongdian                                                  = { add_artifact = tongdian }
+			old_book_of_tang                                          = { add_artifact = old_book_of_tang }
+			records_of_the_nine_kingdoms                              = { add_artifact = records_of_the_nine_kingdoms }
+			complete_essentials_for_military_classics                 = { add_artifact = complete_essentials_for_military_classics }
+			new_book_of_tang                                          = { add_artifact = new_book_of_tang }
+			comprehensive_mirror_in_aid_of_governance                 = { add_artifact = comprehensive_mirror_in_aid_of_governance }
+			dream_pool_essays                                         = { add_artifact = dream_pool_essays }
+			treatise_on_tea                                           = { add_artifact = treatise_on_tea }
+			records_of_rumors_from_sushui                             = { add_artifact = records_of_rumors_from_sushui }
+			huang_song_shichao_gangyao                                = { add_artifact = huang_song_shichao_gangyao }
+			womens_analects                                           = { add_artifact = womens_analects }
+			eighteen_songs_of_a_nomad_flute                           = { add_artifact = eighteen_songs_of_a_nomad_flute }
+			daozang                                                   = { add_artifact = daozang }
+		}
+		
+		new_artifact = { set_creation_date = 1.1.1 }
+		
+		ai_chance = {
+			trigger = {
+				OR = {
+					AND = {
+						has_character_flag = chinese_artifact_hunt_best
+						wealth >= 250
+					}
+					AND = {
+						has_character_flag = chinese_artifact_hunt_middle
+						wealth >= 125
+					}
+					AND = {
+						has_character_flag = chinese_artifact_hunt_worst
+						wealth >= 25
+					}
+				}
+			}
+				
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.5
+				OR = {
+					AND = {
+						has_character_flag = chinese_artifact_hunt_best
+						wealth < 500
+					}
+					AND = {
+						has_character_flag = chinese_artifact_hunt_middle
+						wealth < 250
+					}
+					AND = {
+						has_character_flag = chinese_artifact_hunt_worst
+						wealth < 50
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			stewardship < 16
+		}
+		
+		name = EVTOPTB_SOH_10603 # I want it!
+		
+		trigger_switch = {
+			on_trigger = has_character_flag
+			
+			chinese_artifact_hunt_best = {
+				wealth = -1000
+			}
+			
+			chinese_artifact_hunt_middle = {
+				wealth = -500
+			}
+			
+			chinese_artifact_hunt_worst = {
+				wealth = -100
+			}
+		}
+		
+		trigger_switch = {
+			on_trigger = has_character_flag
+			
+			jade_dragon                                               = { add_artifact = jade_dragon }
+			art_of_war                                                = { add_artifact = art_of_war }
+			classic_of_poetry                                         = { add_artifact = classic_of_poetry }
+			etiquette_and_ceremonial                                  = { add_artifact = etiquette_and_ceremonial }
+			i_ching                                                   = { add_artifact = i_ching }
+			discourse_of_the_states                                   = { add_artifact = discourse_of_the_states }
+			spring_and_autumn_annals                                  = { add_artifact = spring_and_autumn_annals }
+			mozi                                                      = { add_artifact = mozi }
+			classic_of_filial_piety                                   = { add_artifact = classic_of_filial_piety }
+			tao_te_ching                                              = { add_artifact = tao_te_ching }
+			book_of_rites                                             = { add_artifact = book_of_rites }
+			book_of_documents_old                                     = { add_artifact = book_of_documents_old }
+			book_of_documents_new                                     = { add_artifact = book_of_documents_new }
+			zhuangzi                                                  = { add_artifact = zhuangzi }
+			records_of_the_grand_historian                            = { add_artifact = records_of_the_grand_historian }
+			classic_of_mountains_and_seas                             = { add_artifact = classic_of_mountains_and_seas }
+			records_of_the_three_kingdoms                             = { add_artifact = records_of_the_three_kingdoms }
+			old_history_of_the_five_dynasties                         = { add_artifact = old_history_of_the_five_dynasties }
+			new_history_of_the_five_dynasties                         = { add_artifact = new_history_of_the_five_dynasties }
+			lessons_for_women                                         = { add_artifact = lessons_for_women }
+			chinese_dragon_amulet                                     = { add_artifact = chinese_dragon_amulet }
+			chinese_artwork                                           = { add_artifact = chinese_artwork }
+			chinese_calligraphy                                       = { add_artifact = chinese_calligraphy }
+			chinese_sculpture                                         = { add_artifact = chinese_sculpture }
+			chinese_ceremonial_robes                                  = { add_artifact = chinese_ceremonial_robes }
+			silk_shroud                                               = { add_artifact = silk_shroud }
+			water_clock                                               = { add_artifact = water_clock }
+			jian_sword                                                = { add_artifact = jian_sword }
+			chinese_arm_protector                                     = { add_artifact = chinese_arm_protector }
+			chinese_serpent_spear                                     = { add_artifact = chinese_serpent_spear }
+			chinese_ji                                                = { add_artifact = chinese_ji }
+			chinese_crossbow                                          = { add_artifact = chinese_crossbow }
+			chinese_bronze_sculpture                                  = { add_artifact = chinese_bronze_sculpture }
+			chinese_painting_of_glitterhoof                           = { add_artifact = chinese_painting_of_glitterhoof }
+			chinese_tapestry                                          = { add_artifact = chinese_tapestry }
+			chinese_tapestry_grand                                    = { add_artifact = chinese_tapestry_grand }
+			chinese_book_health                                       = { add_artifact = chinese_book_health }
+			chinese_book_law                                          = { add_artifact = chinese_book_law }
+			chinese_book_economy                                      = { add_artifact = chinese_book_economy }
+			wuzi                                                      = { add_artifact = wuzi }
+			thirty_six_stratagems                                     = { add_artifact = thirty_six_stratagems }
+			methods_of_the_sima                                       = { add_artifact = methods_of_the_sima }
+			book_of_lord_shang                                        = { add_artifact = book_of_lord_shang }
+			wei_liaozi                                                = { add_artifact = wei_liaozi }
+			sun_bins_art_of_war                                       = { add_artifact = sun_bins_art_of_war }
+			the_commentary_of_zuo                                     = { add_artifact = the_commentary_of_zuo }
+			mencius                                                   = { add_artifact = mencius }
+			verses_of_chu                                             = { add_artifact = verses_of_chu }
+			master_lus_spring_and_autumn_annals                       = { add_artifact = master_lus_spring_and_autumn_annals }
+			xunzi                                                     = { add_artifact = xunzi }
+			han_feizi                                                 = { add_artifact = han_feizi }
+			book_of_origins                                           = { add_artifact = book_of_origins }
+			rites_of_zhou                                             = { add_artifact = rites_of_zhou }
+			analects                                                  = { add_artifact = analects }
+			erya                                                      = { add_artifact = erya }
+			book_of_han                                               = { add_artifact = book_of_han }
+			weilue                                                    = { add_artifact = weilue }
+			book_of_the_later_han                                     = { add_artifact = book_of_the_later_han }
+			book_of_song                                              = { add_artifact = book_of_song }
+			book_of_qi                                                = { add_artifact = book_of_qi }
+			spring_and_autumn_annals_of_the_sixteen_kingdoms          = { add_artifact = spring_and_autumn_annals_of_the_sixteen_kingdoms }
+			book_of_wei                                               = { add_artifact = book_of_wei }
+			book_of_liang                                             = { add_artifact = book_of_liang }
+			book_of_chen                                              = { add_artifact = book_of_chen }
+			book_of_northern_qi                                       = { add_artifact = book_of_northern_qi }
+			book_of_zhou                                              = { add_artifact = book_of_zhou }
+			book_of_jin                                               = { add_artifact = book_of_jin }
+			book_of_sui                                               = { add_artifact = book_of_sui }
+			history_of_the_southern_dynasties                         = { add_artifact = history_of_the_southern_dynasties }
+			history_of_the_northern_dynasties                         = { add_artifact = history_of_the_northern_dynasties }
+			classic_of_tea                                            = { add_artifact = classic_of_tea }
+			tongdian                                                  = { add_artifact = tongdian }
+			old_book_of_tang                                          = { add_artifact = old_book_of_tang }
+			records_of_the_nine_kingdoms                              = { add_artifact = records_of_the_nine_kingdoms }
+			complete_essentials_for_military_classics                 = { add_artifact = complete_essentials_for_military_classics }
+			new_book_of_tang                                          = { add_artifact = new_book_of_tang }
+			comprehensive_mirror_in_aid_of_governance                 = { add_artifact = comprehensive_mirror_in_aid_of_governance }
+			dream_pool_essays                                         = { add_artifact = dream_pool_essays }
+			treatise_on_tea                                           = { add_artifact = treatise_on_tea }
+			records_of_rumors_from_sushui                             = { add_artifact = records_of_rumors_from_sushui }
+			huang_song_shichao_gangyao                                = { add_artifact = huang_song_shichao_gangyao }
+			womens_analects                                           = { add_artifact = womens_analects }
+			eighteen_songs_of_a_nomad_flute                           = { add_artifact = eighteen_songs_of_a_nomad_flute }
+			daozang                                                   = { add_artifact = daozang }
+		}
+		
+		new_artifact = { set_creation_date = 1.1.1 }
+		
+		ai_chance = {
+			trigger = {
+				OR = {
+					AND = {
+						has_character_flag = chinese_artifact_hunt_best
+						wealth >= 500
+					}
+					AND = {
+						has_character_flag = chinese_artifact_hunt_middle
+						wealth >= 250
+					}
+					AND = {
+						has_character_flag = chinese_artifact_hunt_worst
+						wealth >= 50
+					}
+				}
+			}
+				
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.5
+				OR = {
+					AND = {
+						has_character_flag = chinese_artifact_hunt_best
+						wealth < 1000
+					}
+					AND = {
+						has_character_flag = chinese_artifact_hunt_middle
+						wealth < 500
+					}
+					AND = {
+						has_character_flag = chinese_artifact_hunt_worst
+						wealth < 100
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_SOH_10603 # I can't afford this!
+		
+		prestige = -25
+		
+		clr_character_flag = chinese_artifact_hunt
+		
+		ai_chance = {
+			trigger = {
+				NOR = {
+					AND = {
+						stewardship >= 16
+						OR = {
+							AND = {
+								has_character_flag = chinese_artifact_hunt_best
+								wealth >= 1000
+							}
+							AND = {
+								has_character_flag = chinese_artifact_hunt_middle
+								wealth >= 500
+							}
+							AND = {
+								has_character_flag = chinese_artifact_hunt_worst
+								wealth >= 100
+							}
+						}
+					}
+					AND = {
+						stewardship < 16
+						OR = {
+							AND = {
+								has_character_flag = chinese_artifact_hunt_best
+								wealth >= 2000
+							}
+							AND = {
+								has_character_flag = chinese_artifact_hunt_middle
+								wealth >= 1000
+							}
+							AND = {
+								has_character_flag = chinese_artifact_hunt_worst
+								wealth >= 200
+							}
+						}
+					}
+				}
+			}
+			
+			factor = 100
+			
+			mult_modifier = {
+				factor = 2
+				trait = greedy
+			}
+		}
+	}
+	
+	after = {
+		clr_character_flag = jade_dragon
+		clr_character_flag = art_of_war
+		clr_character_flag = classic_of_poetry
+		clr_character_flag = etiquette_and_ceremonial
+		clr_character_flag = i_ching
+		clr_character_flag = discourse_of_the_states
+		clr_character_flag = spring_and_autumn_annals
+		clr_character_flag = mozi
+		clr_character_flag = classic_of_filial_piety
+		clr_character_flag = tao_te_ching
+		clr_character_flag = book_of_rites
+		clr_character_flag = book_of_documents_old
+		clr_character_flag = book_of_documents_new
+		clr_character_flag = zhuangzi
+		clr_character_flag = records_of_the_grand_historian
+		clr_character_flag = classic_of_mountains_and_seas
+		clr_character_flag = records_of_the_three_kingdoms
+		clr_character_flag = old_history_of_the_five_dynasties
+		clr_character_flag = new_history_of_the_five_dynasties
+		clr_character_flag = lessons_for_women
+		clr_character_flag = chinese_dragon_amulet
+		clr_character_flag = chinese_artwork
+		clr_character_flag = chinese_calligraphy
+		clr_character_flag = chinese_sculpture
+		clr_character_flag = chinese_ceremonial_robes
+		clr_character_flag = silk_shroud
+		clr_character_flag = water_clock
+		clr_character_flag = jian_sword
+		clr_character_flag = chinese_arm_protector
+		clr_character_flag = chinese_serpent_spear
+		clr_character_flag = chinese_ji
+		clr_character_flag = chinese_crossbow
+		clr_character_flag = chinese_bronze_sculpture
+		clr_character_flag = chinese_painting_of_glitterhoof
+		clr_character_flag = chinese_tapestry
+		clr_character_flag = chinese_tapestry_grand
+		clr_character_flag = chinese_book_health
+		clr_character_flag = chinese_book_law
+		clr_character_flag = chinese_book_economy
+		clr_character_flag = wuzi
+		clr_character_flag = thirty_six_stratagems
+		clr_character_flag = methods_of_the_sima
+		clr_character_flag = book_of_lord_shang
+		clr_character_flag = wei_liaozi
+		clr_character_flag = sun_bins_art_of_war
+		clr_character_flag = the_commentary_of_zuo
+		clr_character_flag = mencius
+		clr_character_flag = verses_of_chu
+		clr_character_flag = master_lus_spring_and_autumn_annals
+		clr_character_flag = xunzi
+		clr_character_flag = han_feizi
+		clr_character_flag = book_of_origins
+		clr_character_flag = rites_of_zhou
+		clr_character_flag = analects
+		clr_character_flag = erya
+		clr_character_flag = book_of_han
+		clr_character_flag = weilue
+		clr_character_flag = book_of_the_later_han
+		clr_character_flag = book_of_song
+		clr_character_flag = book_of_qi
+		clr_character_flag = spring_and_autumn_annals_of_the_sixteen_kingdoms
+		clr_character_flag = book_of_wei
+		clr_character_flag = book_of_liang
+		clr_character_flag = book_of_chen
+		clr_character_flag = book_of_northern_qi
+		clr_character_flag = book_of_zhou
+		clr_character_flag = book_of_jin
+		clr_character_flag = book_of_sui
+		clr_character_flag = history_of_the_southern_dynasties
+		clr_character_flag = history_of_the_northern_dynasties
+		clr_character_flag = classic_of_tea
+		clr_character_flag = tongdian
+		clr_character_flag = old_book_of_tang
+		clr_character_flag = records_of_the_nine_kingdoms
+		clr_character_flag = complete_essentials_for_military_classics
+		clr_character_flag = new_book_of_tang
+		clr_character_flag = comprehensive_mirror_in_aid_of_governance
+		clr_character_flag = dream_pool_essays
+		clr_character_flag = treatise_on_tea
+		clr_character_flag = records_of_rumors_from_sushui
+		clr_character_flag = huang_song_shichao_gangyao
+		clr_character_flag = womens_analects
+		clr_character_flag = eighteen_songs_of_a_nomad_flute
+		clr_character_flag = daozang
+	}
+}
+
+# Artifact hunt has taken very long - pay more or give up?
+character_event = {
+	id = soh.10604
+	desc = EVTDESC_SOH_10604
+	picture = GFX_evt_market_hf
+	border = GFX_event_normal_frame_diplomacy
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			wealth >= 100
+		}
+		
+		name = EVTOPTA_SOH_10604 # I still want it!
+		
+		wealth = -100
+		
+		hidden_tooltip = {
+			set_variable = {
+				which = chinese_artifact_hunt_duration
+				value = 0
+			}
+			
+			character_event = { id = soh.10602 days = 60 random = 60 } # Back to the loop
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.5
+				trait = greedy
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				wealth < 250
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_10604 # I can't affod it...
+		
+		prestige = -25
+		
+		clr_character_flag = chinese_artifact_hunt
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.5
+				trait = charitable
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+		}
+	}
+}
+
+##### Chinese artifact "inheritance"
+
+# Someone left you an artifact - do you want it?
+character_event = {
+	id = soh.10605
+	desc = EVTDESC_SOH_10605
+	picture = GFX_evt_china_diplomatic_success
+	border = GFX_event_normal_frame_diplomacy
+	
+	only_playable = yes
+	
+	has_dlc = "Jade Dragon"
+	
+	is_triggered_only = yes # on_decade_pulse -> random_events -> jd_artifacts
+	
+	trigger = {
+		is_inaccessible_or_incapable_trigger = no
+		
+		any_realm_province = {
+			could_have_chinese_government_province_trigger = yes
+		}
+		
+		has_all_grace_artifacts_trigger = no
+	}
+	
+	immediate = {
+		random_realm_province = {
+			limit = {
+				could_have_chinese_government_province_trigger = yes
+			}
+			
+			preferred_limit = {
+				any_province_holding = {
+					OR = {
+						holding_type = castle
+						holding_type = city
+					}
+				}
+			}
+			
+			save_event_target_as = artifact_province
+		}
+		
+		random_list = {
+			10 = {
+				trigger = {
+					has_all_grace_artifacts_T5_trigger = no
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					lower_real_tier_than = king
+				}
+				
+				# T5
+				random_list = {
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = jade_dragon
+							}
+						}
+						
+						set_character_flag = jade_dragon
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = art_of_war_exists
+							NOT = {
+								has_artifact = art_of_war
+							}
+						}
+						
+						set_character_flag = art_of_war
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = classic_of_poetry_exists
+							NOT = {
+								has_artifact = classic_of_poetry
+							}
+						}
+						
+						set_character_flag = classic_of_poetry
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = etiquette_and_ceremonial_exists
+							NOT = {
+								has_artifact = etiquette_and_ceremonial
+							}
+						}
+						
+						set_character_flag = etiquette_and_ceremonial
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = i_ching_exists
+							NOT = {
+								has_artifact = i_ching
+							}
+						}
+						
+						set_character_flag = i_ching
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = discourse_of_the_states_exists
+							NOT = {
+								has_artifact = discourse_of_the_states
+							}
+						}
+						
+						set_character_flag = discourse_of_the_states
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = spring_and_autumn_annals_exists
+							NOT = {
+								has_artifact = spring_and_autumn_annals
+							}
+						}
+						
+						set_character_flag = spring_and_autumn_annals
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = mozi_exists
+							NOT = {
+								has_artifact = mozi
+							}
+						}
+						
+						set_character_flag = mozi
+					}
+					10 = {
+						trigger = {
+							has_global_flag = classic_of_filial_piety_exists
+							NOT = {
+								has_artifact = classic_of_filial_piety
+							}
+						}
+						
+						set_character_flag = classic_of_filial_piety
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = tao_te_ching_exists
+							NOT = {
+								has_artifact = tao_te_ching
+							}
+						}
+						
+						set_character_flag = tao_te_ching
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = book_of_rites_exists
+							NOT = {
+								has_artifact = book_of_rites
+							}
+						}
+						
+						set_character_flag = book_of_rites
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = book_of_documents_old_exists
+							NOT = {
+								has_artifact = book_of_documents_old
+							}
+						}
+						
+						set_character_flag = book_of_documents_old
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = book_of_documents_new_exists
+							NOT = {
+								has_artifact = book_of_documents_new
+							}
+						}
+						
+						set_character_flag = book_of_documents_new
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = zhuangzi_exists
+							NOT = {
+								has_artifact = zhuangzi
+							}
+						}
+						
+						set_character_flag = zhuangzi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = records_of_the_grand_historian_exists
+							NOT = {
+								has_artifact = records_of_the_grand_historian
+							}
+						}
+						
+						set_character_flag = records_of_the_grand_historian
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = classic_of_mountains_and_seas_exists
+							NOT = {
+								has_artifact = classic_of_mountains_and_seas
+							}
+						}
+						
+						set_character_flag = classic_of_mountains_and_seas
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = records_of_the_three_kingdoms_exists
+							NOT = {
+								has_artifact = records_of_the_three_kingdoms
+							}
+						}
+						
+						set_character_flag = records_of_the_three_kingdoms
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = old_history_of_the_five_dynasties_exists
+							NOT = {
+								has_artifact = old_history_of_the_five_dynasties
+							}
+						}
+						
+						set_character_flag = old_history_of_the_five_dynasties
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = new_history_of_the_five_dynasties_exists
+							NOT = {
+								has_artifact = new_history_of_the_five_dynasties
+							}
+						}
+						
+						set_character_flag = new_history_of_the_five_dynasties
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = lessons_for_women_exists
+							NOT = {
+								has_artifact = lessons_for_women
+							}
+						}
+						
+						set_character_flag = lessons_for_women
+					}
+				}
+			}
+			
+			20 = {
+				trigger = {
+					NAND = {
+						has_all_grace_artifacts_T4_trigger = yes
+						has_all_grace_artifacts_T3_trigger = yes
+					}
+				}
+				
+				# T3/T4
+				random_list = {
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_dragon_amulet
+							}
+						}
+						
+						set_character_flag = chinese_dragon_amulet
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = water_clock
+							}
+						}
+						
+						set_character_flag = water_clock
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = jian_sword
+							}
+						}
+						
+						set_character_flag = jian_sword
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = wuzi_exists
+							NOT = {
+								has_artifact = wuzi
+							}
+						}
+						
+						set_character_flag = wuzi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = thirty_six_stratagems_exists
+							NOT = {
+								has_artifact = thirty_six_stratagems
+							}
+						}
+						
+						set_character_flag = thirty_six_stratagems
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = methods_of_the_sima_exists
+							NOT = {
+								has_artifact = methods_of_the_sima
+							}
+						}
+						
+						set_character_flag = methods_of_the_sima
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = book_of_lord_shang_exists
+							NOT = {
+								has_artifact = book_of_lord_shang
+							}
+						}
+						
+						set_character_flag = book_of_lord_shang
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = wei_liaozi_exists
+							NOT = {
+								has_artifact = wei_liaozi
+							}
+						}
+						
+						set_character_flag = wei_liaozi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = sun_bins_art_of_war_exists
+							NOT = {
+								has_artifact = sun_bins_art_of_war
+							}
+						}
+						
+						set_character_flag = sun_bins_art_of_war
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = mencius_exists
+							NOT = {
+								has_artifact = mencius
+							}
+						}
+						
+						set_character_flag = mencius
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = verses_of_chu_exists
+							NOT = {
+								has_artifact = verses_of_chu
+							}
+						}
+						
+						set_character_flag = verses_of_chu
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = master_lus_spring_and_autumn_annals_exists
+							NOT = {
+								has_artifact = master_lus_spring_and_autumn_annals
+							}
+						}
+						
+						set_character_flag = master_lus_spring_and_autumn_annals
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = xunzi_exists
+							NOT = {
+								has_artifact = xunzi
+							}
+						}
+						
+						set_character_flag = xunzi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = han_feizi_exists
+							NOT = {
+								has_artifact = han_feizi
+							}
+						}
+						
+						set_character_flag = han_feizi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = analects_exists
+							NOT = {
+								has_artifact = analects
+							}
+						}
+						
+						set_character_flag = analects
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = complete_essentials_for_military_classics_exists
+							NOT = {
+								has_artifact = complete_essentials_for_military_classics
+							}
+						}
+						
+						set_character_flag = complete_essentials_for_military_classics
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = womens_analects_exists
+							NOT = {
+								has_artifact = womens_analects
+							}
+						}
+						
+						set_character_flag = womens_analects
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = eighteen_songs_of_a_nomad_flute_exists
+							NOT = {
+								has_artifact = eighteen_songs_of_a_nomad_flute
+							}
+						}
+						
+						set_character_flag = eighteen_songs_of_a_nomad_flute
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_ceremonial_robes
+							}
+						}
+						
+						set_character_flag = chinese_ceremonial_robes
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = silk_shroud
+							}
+						}
+						
+						set_character_flag = silk_shroud
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_ji
+							}
+						}
+						
+						set_character_flag = chinese_ji
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_crossbow
+							}
+						}
+						
+						set_character_flag = chinese_crossbow
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_bronze_sculpture
+							}
+						}
+						
+						set_character_flag = chinese_bronze_sculpture
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_tapestry_grand
+							}
+						}
+						
+						set_character_flag = chinese_tapestry_grand
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_book_health
+							}
+						}
+						
+						set_character_flag = chinese_book_health
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_book_law
+							}
+						}
+						
+						set_character_flag = chinese_book_law
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_book_economy
+							}
+						}
+						
+						set_character_flag = chinese_book_economy
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = the_commentary_of_zuo_exists
+							NOT = {
+								has_artifact = the_commentary_of_zuo
+							}
+						}
+						
+						set_character_flag = the_commentary_of_zuo
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_origins_exists
+							NOT = {
+								has_artifact = book_of_origins
+							}
+						}
+						
+						set_character_flag = book_of_origins
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = rites_of_zhou_exists
+							NOT = {
+								has_artifact = rites_of_zhou
+							}
+						}
+						
+						set_character_flag = rites_of_zhou
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = erya_exists
+							NOT = {
+								has_artifact = erya
+							}
+						}
+						
+						set_character_flag = erya
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = spring_and_autumn_annals_of_the_sixteen_kingdoms_exists
+							NOT = {
+								has_artifact = spring_and_autumn_annals_of_the_sixteen_kingdoms
+							}
+						}
+						
+						set_character_flag = spring_and_autumn_annals_of_the_sixteen_kingdoms
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = classic_of_tea_exists
+							NOT = {
+								has_artifact = classic_of_tea
+							}
+						}
+						
+						set_character_flag = classic_of_tea
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = tongdian_exists
+							NOT = {
+								has_artifact = tongdian
+							}
+						}
+						
+						set_character_flag = tongdian
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = records_of_the_nine_kingdoms_exists
+							NOT = {
+								has_artifact = records_of_the_nine_kingdoms
+							}
+						}
+						
+						set_character_flag = records_of_the_nine_kingdoms
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = comprehensive_mirror_in_aid_of_governance_exists
+							NOT = {
+								has_artifact = comprehensive_mirror_in_aid_of_governance
+							}
+						}
+						
+						set_character_flag = comprehensive_mirror_in_aid_of_governance
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = dream_pool_essays_exists
+							NOT = {
+								has_artifact = dream_pool_essays
+							}
+						}
+						
+						set_character_flag = dream_pool_essays
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = treatise_on_tea_exists
+							NOT = {
+								has_artifact = treatise_on_tea
+							}
+						}
+						
+						set_character_flag = treatise_on_tea
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = daozang_exists
+							NOT = {
+								has_artifact = daozang
+							}
+						}
+						
+						set_character_flag = daozang
+					}
+				}
+			}
+			
+			50 = {
+				trigger = {
+					NAND = {
+						has_all_grace_artifacts_T2_trigger = yes
+						has_all_grace_artifacts_T1_trigger = yes
+					}
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					higher_real_tier_than = duke
+				}
+				
+				# T1/T2
+				random_list = {
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_artwork
+							}
+						}
+						
+						set_character_flag = chinese_artwork
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_calligraphy
+							}
+						}
+						
+						set_character_flag = chinese_calligraphy
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_sculpture
+							}
+						}
+						
+						set_character_flag = chinese_sculpture
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_arm_protector
+							}
+						}
+						
+						set_character_flag = chinese_arm_protector
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_serpent_spear
+							}
+						}
+						
+						set_character_flag = chinese_serpent_spear
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_tapestry
+							}
+						}
+						
+						set_character_flag = chinese_tapestry
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = history_of_the_southern_dynasties_exists
+							NOT = {
+								has_artifact = history_of_the_southern_dynasties
+							}
+						}
+						
+						set_character_flag = history_of_the_southern_dynasties
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = history_of_the_northern_dynasties_exists
+							NOT = {
+								has_artifact = history_of_the_northern_dynasties
+							}
+						}
+						
+						set_character_flag = history_of_the_northern_dynasties
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_painting_of_glitterhoof
+							}
+						}
+						
+						set_character_flag = chinese_painting_of_glitterhoof
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_han_exists
+							NOT = {
+								has_artifact = book_of_han
+							}
+						}
+						
+						set_character_flag = book_of_han
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = weilue_exists
+							NOT = {
+								has_artifact = weilue
+							}
+						}
+						
+						set_character_flag = weilue
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_the_later_han_exists
+							NOT = {
+								has_artifact = book_of_the_later_han
+							}
+						}
+						
+						set_character_flag = book_of_the_later_han
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_song_exists
+							NOT = {
+								has_artifact = book_of_song
+							}
+						}
+						
+						set_character_flag = book_of_song
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_qi_exists
+							NOT = {
+								has_artifact = book_of_qi
+							}
+						}
+						
+						set_character_flag = book_of_qi
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_wei_exists
+							NOT = {
+								has_artifact = book_of_wei
+							}
+						}
+						
+						set_character_flag = book_of_wei
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_liang_exists
+							NOT = {
+								has_artifact = book_of_liang
+							}
+						}
+						
+						set_character_flag = book_of_liang
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_chen_exists
+							NOT = {
+								has_artifact = book_of_chen
+							}
+						}
+						
+						set_character_flag = book_of_chen
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_northern_qi_exists
+							NOT = {
+								has_artifact = book_of_northern_qi
+							}
+						}
+						
+						set_character_flag = book_of_northern_qi
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_zhou_exists
+							NOT = {
+								has_artifact = book_of_zhou
+							}
+						}
+						
+						set_character_flag = book_of_zhou
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_jin_exists
+							NOT = {
+								has_artifact = book_of_jin
+							}
+						}
+						
+						set_character_flag = book_of_jin
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_sui_exists
+							NOT = {
+								has_artifact = book_of_sui
+							}
+						}
+						
+						set_character_flag = book_of_sui
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = old_book_of_tang_exists
+							NOT = {
+								has_artifact = old_book_of_tang
+							}
+						}
+						
+						set_character_flag = old_book_of_tang
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = new_book_of_tang_exists
+							NOT = {
+								has_artifact = new_book_of_tang
+							}
+						}
+						
+						set_character_flag = new_book_of_tang
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = records_of_rumors_from_sushui_exists
+							NOT = {
+								has_artifact = records_of_rumors_from_sushui
+							}
+						}
+						
+						set_character_flag = records_of_rumors_from_sushui
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = huang_song_shichao_gangyao_exists
+							NOT = {
+								has_artifact = huang_song_shichao_gangyao
+							}
+						}
+						
+						set_character_flag = huang_song_shichao_gangyao
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_10605 # I want it!
+		
+		trigger_switch = {
+			on_trigger = has_character_flag
+			
+			jade_dragon                                               = { add_artifact = jade_dragon }
+			art_of_war                                                = { add_artifact = art_of_war }
+			classic_of_poetry                                         = { add_artifact = classic_of_poetry }
+			etiquette_and_ceremonial                                  = { add_artifact = etiquette_and_ceremonial }
+			i_ching                                                   = { add_artifact = i_ching }
+			discourse_of_the_states                                   = { add_artifact = discourse_of_the_states }
+			spring_and_autumn_annals                                  = { add_artifact = spring_and_autumn_annals }
+			mozi                                                      = { add_artifact = mozi }
+			classic_of_filial_piety                                   = { add_artifact = classic_of_filial_piety }
+			tao_te_ching                                              = { add_artifact = tao_te_ching }
+			book_of_rites                                             = { add_artifact = book_of_rites }
+			book_of_documents_old                                     = { add_artifact = book_of_documents_old }
+			book_of_documents_new                                     = { add_artifact = book_of_documents_new }
+			zhuangzi                                                  = { add_artifact = zhuangzi }
+			records_of_the_grand_historian                            = { add_artifact = records_of_the_grand_historian }
+			classic_of_mountains_and_seas                             = { add_artifact = classic_of_mountains_and_seas }
+			records_of_the_three_kingdoms                             = { add_artifact = records_of_the_three_kingdoms }
+			old_history_of_the_five_dynasties                         = { add_artifact = old_history_of_the_five_dynasties }
+			new_history_of_the_five_dynasties                         = { add_artifact = new_history_of_the_five_dynasties }
+			lessons_for_women                                         = { add_artifact = lessons_for_women }
+			chinese_dragon_amulet                                     = { add_artifact = chinese_dragon_amulet }
+			chinese_artwork                                           = { add_artifact = chinese_artwork }
+			chinese_calligraphy                                       = { add_artifact = chinese_calligraphy }
+			chinese_sculpture                                         = { add_artifact = chinese_sculpture }
+			chinese_ceremonial_robes                                  = { add_artifact = chinese_ceremonial_robes }
+			silk_shroud                                               = { add_artifact = silk_shroud }
+			water_clock                                               = { add_artifact = water_clock }
+			jian_sword                                                = { add_artifact = jian_sword }
+			chinese_arm_protector                                     = { add_artifact = chinese_arm_protector }
+			chinese_serpent_spear                                     = { add_artifact = chinese_serpent_spear }
+			chinese_ji                                                = { add_artifact = chinese_ji }
+			chinese_crossbow                                          = { add_artifact = chinese_crossbow }
+			chinese_bronze_sculpture                                  = { add_artifact = chinese_bronze_sculpture }
+			chinese_painting_of_glitterhoof                           = { add_artifact = chinese_painting_of_glitterhoof }
+			chinese_tapestry                                          = { add_artifact = chinese_tapestry }
+			chinese_tapestry_grand                                    = { add_artifact = chinese_tapestry_grand }
+			chinese_book_health                                       = { add_artifact = chinese_book_health }
+			chinese_book_law                                          = { add_artifact = chinese_book_law }
+			chinese_book_economy                                      = { add_artifact = chinese_book_economy }
+			wuzi                                                      = { add_artifact = wuzi }
+			thirty_six_stratagems                                     = { add_artifact = thirty_six_stratagems }
+			methods_of_the_sima                                       = { add_artifact = methods_of_the_sima }
+			book_of_lord_shang                                        = { add_artifact = book_of_lord_shang }
+			wei_liaozi                                                = { add_artifact = wei_liaozi }
+			sun_bins_art_of_war                                       = { add_artifact = sun_bins_art_of_war }
+			the_commentary_of_zuo                                     = { add_artifact = the_commentary_of_zuo }
+			mencius                                                   = { add_artifact = mencius }
+			verses_of_chu                                             = { add_artifact = verses_of_chu }
+			master_lus_spring_and_autumn_annals                       = { add_artifact = master_lus_spring_and_autumn_annals }
+			xunzi                                                     = { add_artifact = xunzi }
+			han_feizi                                                 = { add_artifact = han_feizi }
+			book_of_origins                                           = { add_artifact = book_of_origins }
+			rites_of_zhou                                             = { add_artifact = rites_of_zhou }
+			analects                                                  = { add_artifact = analects }
+			erya                                                      = { add_artifact = erya }
+			book_of_han                                               = { add_artifact = book_of_han }
+			weilue                                                    = { add_artifact = weilue }
+			book_of_the_later_han                                     = { add_artifact = book_of_the_later_han }
+			book_of_song                                              = { add_artifact = book_of_song }
+			book_of_qi                                                = { add_artifact = book_of_qi }
+			spring_and_autumn_annals_of_the_sixteen_kingdoms          = { add_artifact = spring_and_autumn_annals_of_the_sixteen_kingdoms }
+			book_of_wei                                               = { add_artifact = book_of_wei }
+			book_of_liang                                             = { add_artifact = book_of_liang }
+			book_of_chen                                              = { add_artifact = book_of_chen }
+			book_of_northern_qi                                       = { add_artifact = book_of_northern_qi }
+			book_of_zhou                                              = { add_artifact = book_of_zhou }
+			book_of_jin                                               = { add_artifact = book_of_jin }
+			book_of_sui                                               = { add_artifact = book_of_sui }
+			history_of_the_southern_dynasties                         = { add_artifact = history_of_the_southern_dynasties }
+			history_of_the_northern_dynasties                         = { add_artifact = history_of_the_northern_dynasties }
+			classic_of_tea                                            = { add_artifact = classic_of_tea }
+			tongdian                                                  = { add_artifact = tongdian }
+			old_book_of_tang                                          = { add_artifact = old_book_of_tang }
+			records_of_the_nine_kingdoms                              = { add_artifact = records_of_the_nine_kingdoms }
+			complete_essentials_for_military_classics                 = { add_artifact = complete_essentials_for_military_classics }
+			new_book_of_tang                                          = { add_artifact = new_book_of_tang }
+			comprehensive_mirror_in_aid_of_governance                 = { add_artifact = comprehensive_mirror_in_aid_of_governance }
+			dream_pool_essays                                         = { add_artifact = dream_pool_essays }
+			treatise_on_tea                                           = { add_artifact = treatise_on_tea }
+			records_of_rumors_from_sushui                             = { add_artifact = records_of_rumors_from_sushui }
+			huang_song_shichao_gangyao                                = { add_artifact = huang_song_shichao_gangyao }
+			womens_analects                                           = { add_artifact = womens_analects }
+			eighteen_songs_of_a_nomad_flute                           = { add_artifact = eighteen_songs_of_a_nomad_flute }
+			daozang                                                   = { add_artifact = daozang }
+		}
+		
+		new_artifact = { set_creation_date = 1.1.1 }
+		
+		ai_chance = {
+			trigger = {
+				NAND = {
+					trait = kind
+					trait = content
+					trait = charitable
+					trait = humble
+				}
+			}
+				
+			factor = 100
+			
+			mult_modifier = {
+				factor = 10
+				trait = envious
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = greedy
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = proud
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_10605 # Let them keep it!
+		
+		random_list = {
+			25 = {
+				add_trait_partially_humble_effect = yes
+			}
+			25 = {
+				add_trait_partially_charitable_effect = yes
+			}
+			25 = {
+				add_trait_partially_content_effect = yes
+			}
+			25 = {
+				add_trait_partially_kind_effect = yes
+			}
+		}
+		
+		event_target:artifact_province = {
+			increase_prosperity_variable_effect = yes
+		}
+		
+		piety = 100
+		
+		ai_chance = {
+			trigger = {
+				NAND = {
+					trait = envious
+					trait = ambitious
+					trait = greedy
+					trait = proud
+				}
+			}
+			
+			factor = 100
+			
+			mult_modifier = {
+				factor = 10
+				trait = kind
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = content
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = charitable
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = humble
+			}
+		}
+	}
+	
+	after = {
+		clr_character_flag = jade_dragon
+		clr_character_flag = art_of_war
+		clr_character_flag = classic_of_poetry
+		clr_character_flag = etiquette_and_ceremonial
+		clr_character_flag = i_ching
+		clr_character_flag = discourse_of_the_states
+		clr_character_flag = spring_and_autumn_annals
+		clr_character_flag = mozi
+		clr_character_flag = classic_of_filial_piety
+		clr_character_flag = tao_te_ching
+		clr_character_flag = book_of_rites
+		clr_character_flag = book_of_documents_old
+		clr_character_flag = book_of_documents_new
+		clr_character_flag = zhuangzi
+		clr_character_flag = records_of_the_grand_historian
+		clr_character_flag = classic_of_mountains_and_seas
+		clr_character_flag = records_of_the_three_kingdoms
+		clr_character_flag = old_history_of_the_five_dynasties
+		clr_character_flag = new_history_of_the_five_dynasties
+		clr_character_flag = lessons_for_women
+		clr_character_flag = chinese_dragon_amulet
+		clr_character_flag = chinese_artwork
+		clr_character_flag = chinese_calligraphy
+		clr_character_flag = chinese_sculpture
+		clr_character_flag = chinese_ceremonial_robes
+		clr_character_flag = silk_shroud
+		clr_character_flag = water_clock
+		clr_character_flag = jian_sword
+		clr_character_flag = chinese_arm_protector
+		clr_character_flag = chinese_serpent_spear
+		clr_character_flag = chinese_ji
+		clr_character_flag = chinese_crossbow
+		clr_character_flag = chinese_bronze_sculpture
+		clr_character_flag = chinese_painting_of_glitterhoof
+		clr_character_flag = chinese_tapestry
+		clr_character_flag = chinese_tapestry_grand
+		clr_character_flag = chinese_book_health
+		clr_character_flag = chinese_book_law
+		clr_character_flag = chinese_book_economy
+		clr_character_flag = wuzi
+		clr_character_flag = thirty_six_stratagems
+		clr_character_flag = methods_of_the_sima
+		clr_character_flag = book_of_lord_shang
+		clr_character_flag = wei_liaozi
+		clr_character_flag = sun_bins_art_of_war
+		clr_character_flag = the_commentary_of_zuo
+		clr_character_flag = mencius
+		clr_character_flag = verses_of_chu
+		clr_character_flag = master_lus_spring_and_autumn_annals
+		clr_character_flag = xunzi
+		clr_character_flag = han_feizi
+		clr_character_flag = book_of_origins
+		clr_character_flag = rites_of_zhou
+		clr_character_flag = analects
+		clr_character_flag = erya
+		clr_character_flag = book_of_han
+		clr_character_flag = weilue
+		clr_character_flag = book_of_the_later_han
+		clr_character_flag = book_of_song
+		clr_character_flag = book_of_qi
+		clr_character_flag = spring_and_autumn_annals_of_the_sixteen_kingdoms
+		clr_character_flag = book_of_wei
+		clr_character_flag = book_of_liang
+		clr_character_flag = book_of_chen
+		clr_character_flag = book_of_northern_qi
+		clr_character_flag = book_of_zhou
+		clr_character_flag = book_of_jin
+		clr_character_flag = book_of_sui
+		clr_character_flag = history_of_the_southern_dynasties
+		clr_character_flag = history_of_the_northern_dynasties
+		clr_character_flag = classic_of_tea
+		clr_character_flag = tongdian
+		clr_character_flag = old_book_of_tang
+		clr_character_flag = records_of_the_nine_kingdoms
+		clr_character_flag = complete_essentials_for_military_classics
+		clr_character_flag = new_book_of_tang
+		clr_character_flag = comprehensive_mirror_in_aid_of_governance
+		clr_character_flag = dream_pool_essays
+		clr_character_flag = treatise_on_tea
+		clr_character_flag = records_of_rumors_from_sushui
+		clr_character_flag = huang_song_shichao_gangyao
+		clr_character_flag = womens_analects
+		clr_character_flag = eighteen_songs_of_a_nomad_flute
+		clr_character_flag = daozang
+	}
+}
+
+##### Chance to buy an artifact due to owning a Silk Road trade post province
+
+# Someone has an artifact to sell - do you want it?
+character_event = {
+	id = soh.10606
+	desc = EVTDESC_SOH_10606
+	picture = GFX_evt_market
+	border = GFX_event_normal_frame_economy
+	
+	only_playable = yes
+	
+	has_dlc = "Jade Dragon"
+	
+	is_triggered_only = yes # on_decade_pulse -> random_events -> jd_artifacts
+	
+	trigger = {
+		is_inaccessible_or_incapable_trigger = no
+		
+		any_demesne_province = {
+			trade_route = silk_road
+		}
+		
+		has_all_grace_artifacts_trigger = no
+	}
+	
+	immediate = {
+		random_realm_province = {
+			limit = {
+				trade_route = silk_road
+			}
+			
+			preferred_limit = {
+				any_province_holding = {
+					OR = {
+						holding_type = castle
+						holding_type = city
+					}
+				}
+			}
+			
+			save_event_target_as = artifact_province
+		}
+		
+		random_list = {
+			10 = {
+				trigger = {
+					has_all_grace_artifacts_T5_trigger = no
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					lower_real_tier_than = king
+				}
+				
+				# T5
+				set_character_flag = chinese_artifact_is_expensive
+				
+				random_list = {
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = jade_dragon
+							}
+						}
+						
+						set_character_flag = jade_dragon
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = art_of_war_exists
+							NOT = {
+								has_artifact = art_of_war
+							}
+						}
+						
+						set_character_flag = art_of_war
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = classic_of_poetry_exists
+							NOT = {
+								has_artifact = classic_of_poetry
+							}
+						}
+						
+						set_character_flag = classic_of_poetry
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = etiquette_and_ceremonial_exists
+							NOT = {
+								has_artifact = etiquette_and_ceremonial
+							}
+						}
+						
+						set_character_flag = etiquette_and_ceremonial
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = i_ching_exists
+							NOT = {
+								has_artifact = i_ching
+							}
+						}
+						
+						set_character_flag = i_ching
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = discourse_of_the_states_exists
+							NOT = {
+								has_artifact = discourse_of_the_states
+							}
+						}
+						
+						set_character_flag = discourse_of_the_states
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = spring_and_autumn_annals_exists
+							NOT = {
+								has_artifact = spring_and_autumn_annals
+							}
+						}
+						
+						set_character_flag = spring_and_autumn_annals
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = mozi_exists
+							NOT = {
+								has_artifact = mozi
+							}
+						}
+						
+						set_character_flag = mozi
+					}
+					10 = {
+						trigger = {
+							has_global_flag = classic_of_filial_piety_exists
+							NOT = {
+								has_artifact = classic_of_filial_piety
+							}
+						}
+						
+						set_character_flag = classic_of_filial_piety
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = tao_te_ching_exists
+							NOT = {
+								has_artifact = tao_te_ching
+							}
+						}
+						
+						set_character_flag = tao_te_ching
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = book_of_rites_exists
+							NOT = {
+								has_artifact = book_of_rites
+							}
+						}
+						
+						set_character_flag = book_of_rites
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = book_of_documents_old_exists
+							NOT = {
+								has_artifact = book_of_documents_old
+							}
+						}
+						
+						set_character_flag = book_of_documents_old
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = book_of_documents_new_exists
+							NOT = {
+								has_artifact = book_of_documents_new
+							}
+						}
+						
+						set_character_flag = book_of_documents_new
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = zhuangzi_exists
+							NOT = {
+								has_artifact = zhuangzi
+							}
+						}
+						
+						set_character_flag = zhuangzi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = records_of_the_grand_historian_exists
+							NOT = {
+								has_artifact = records_of_the_grand_historian
+							}
+						}
+						
+						set_character_flag = records_of_the_grand_historian
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = classic_of_mountains_and_seas_exists
+							NOT = {
+								has_artifact = classic_of_mountains_and_seas
+							}
+						}
+						
+						set_character_flag = classic_of_mountains_and_seas
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = records_of_the_three_kingdoms_exists
+							NOT = {
+								has_artifact = records_of_the_three_kingdoms
+							}
+						}
+						
+						set_character_flag = records_of_the_three_kingdoms
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = old_history_of_the_five_dynasties_exists
+							NOT = {
+								has_artifact = old_history_of_the_five_dynasties
+							}
+						}
+						
+						set_character_flag = old_history_of_the_five_dynasties
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = new_history_of_the_five_dynasties_exists
+							NOT = {
+								has_artifact = new_history_of_the_five_dynasties
+							}
+						}
+						
+						set_character_flag = new_history_of_the_five_dynasties
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = lessons_for_women_exists
+							NOT = {
+								has_artifact = lessons_for_women
+							}
+						}
+						
+						set_character_flag = lessons_for_women
+					}
+				}
+			}
+			
+			20 = {
+				trigger = {
+					NAND = {
+						has_all_grace_artifacts_T4_trigger = yes
+						has_all_grace_artifacts_T3_trigger = yes
+					}
+				}
+				
+				# T3/T4
+				random_list = {
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_dragon_amulet
+							}
+						}
+						
+						set_character_flag = chinese_dragon_amulet
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = water_clock
+							}
+						}
+						
+						set_character_flag = water_clock
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = jian_sword
+							}
+						}
+						
+						set_character_flag = jian_sword
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = wuzi_exists
+							NOT = {
+								has_artifact = wuzi
+							}
+						}
+						
+						set_character_flag = wuzi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = thirty_six_stratagems_exists
+							NOT = {
+								has_artifact = thirty_six_stratagems
+							}
+						}
+						
+						set_character_flag = thirty_six_stratagems
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = methods_of_the_sima_exists
+							NOT = {
+								has_artifact = methods_of_the_sima
+							}
+						}
+						
+						set_character_flag = methods_of_the_sima
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = book_of_lord_shang_exists
+							NOT = {
+								has_artifact = book_of_lord_shang
+							}
+						}
+						
+						set_character_flag = book_of_lord_shang
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = wei_liaozi_exists
+							NOT = {
+								has_artifact = wei_liaozi
+							}
+						}
+						
+						set_character_flag = wei_liaozi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = sun_bins_art_of_war_exists
+							NOT = {
+								has_artifact = sun_bins_art_of_war
+							}
+						}
+						
+						set_character_flag = sun_bins_art_of_war
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = mencius_exists
+							NOT = {
+								has_artifact = mencius
+							}
+						}
+						
+						set_character_flag = mencius
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = verses_of_chu_exists
+							NOT = {
+								has_artifact = verses_of_chu
+							}
+						}
+						
+						set_character_flag = verses_of_chu
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = master_lus_spring_and_autumn_annals_exists
+							NOT = {
+								has_artifact = master_lus_spring_and_autumn_annals
+							}
+						}
+						
+						set_character_flag = master_lus_spring_and_autumn_annals
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = xunzi_exists
+							NOT = {
+								has_artifact = xunzi
+							}
+						}
+						
+						set_character_flag = xunzi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = han_feizi_exists
+							NOT = {
+								has_artifact = han_feizi
+							}
+						}
+						
+						set_character_flag = han_feizi
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = analects_exists
+							NOT = {
+								has_artifact = analects
+							}
+						}
+						
+						set_character_flag = analects
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = complete_essentials_for_military_classics_exists
+							NOT = {
+								has_artifact = complete_essentials_for_military_classics
+							}
+						}
+						
+						set_character_flag = complete_essentials_for_military_classics
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = womens_analects_exists
+							NOT = {
+								has_artifact = womens_analects
+							}
+						}
+						
+						set_character_flag = womens_analects
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = eighteen_songs_of_a_nomad_flute_exists
+							NOT = {
+								has_artifact = eighteen_songs_of_a_nomad_flute
+							}
+						}
+						
+						set_character_flag = eighteen_songs_of_a_nomad_flute
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_ceremonial_robes
+							}
+						}
+						
+						set_character_flag = chinese_ceremonial_robes
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = silk_shroud
+							}
+						}
+						
+						set_character_flag = silk_shroud
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_ji
+							}
+						}
+						
+						set_character_flag = chinese_ji
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_crossbow
+							}
+						}
+						
+						set_character_flag = chinese_crossbow
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_bronze_sculpture
+							}
+						}
+						
+						set_character_flag = chinese_bronze_sculpture
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_tapestry_grand
+							}
+						}
+						
+						set_character_flag = chinese_tapestry_grand
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_book_health
+							}
+						}
+						
+						set_character_flag = chinese_book_health
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_book_law
+							}
+						}
+						
+						set_character_flag = chinese_book_law
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_book_economy
+							}
+						}
+						
+						set_character_flag = chinese_book_economy
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = the_commentary_of_zuo_exists
+							NOT = {
+								has_artifact = the_commentary_of_zuo
+							}
+						}
+						
+						set_character_flag = the_commentary_of_zuo
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_origins_exists
+							NOT = {
+								has_artifact = book_of_origins
+							}
+						}
+						
+						set_character_flag = book_of_origins
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = rites_of_zhou_exists
+							NOT = {
+								has_artifact = rites_of_zhou
+							}
+						}
+						
+						set_character_flag = rites_of_zhou
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = erya_exists
+							NOT = {
+								has_artifact = erya
+							}
+						}
+						
+						set_character_flag = erya
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = spring_and_autumn_annals_of_the_sixteen_kingdoms_exists
+							NOT = {
+								has_artifact = spring_and_autumn_annals_of_the_sixteen_kingdoms
+							}
+						}
+						
+						set_character_flag = spring_and_autumn_annals_of_the_sixteen_kingdoms
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = classic_of_tea_exists
+							NOT = {
+								has_artifact = classic_of_tea
+							}
+						}
+						
+						set_character_flag = classic_of_tea
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = tongdian_exists
+							NOT = {
+								has_artifact = tongdian
+							}
+						}
+						
+						set_character_flag = tongdian
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = records_of_the_nine_kingdoms_exists
+							NOT = {
+								has_artifact = records_of_the_nine_kingdoms
+							}
+						}
+						
+						set_character_flag = records_of_the_nine_kingdoms
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = comprehensive_mirror_in_aid_of_governance_exists
+							NOT = {
+								has_artifact = comprehensive_mirror_in_aid_of_governance
+							}
+						}
+						
+						set_character_flag = comprehensive_mirror_in_aid_of_governance
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = dream_pool_essays_exists
+							NOT = {
+								has_artifact = dream_pool_essays
+							}
+						}
+						
+						set_character_flag = dream_pool_essays
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = treatise_on_tea_exists
+							NOT = {
+								has_artifact = treatise_on_tea
+							}
+						}
+						
+						set_character_flag = treatise_on_tea
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = daozang_exists
+							NOT = {
+								has_artifact = daozang
+							}
+						}
+						
+						set_character_flag = daozang
+					}
+				}
+			}
+			
+			50 = {
+				trigger = {
+					NAND = {
+						has_all_grace_artifacts_T2_trigger = yes
+						has_all_grace_artifacts_T1_trigger = yes
+					}
+				}
+				
+				mult_modifier = {
+					factor = 0.1
+					higher_real_tier_than = duke
+				}
+				
+				# T1/T2
+				set_character_flag = chinese_artifact_is_cheap
+				
+				random_list = {
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_artwork
+							}
+						}
+						
+						set_character_flag = chinese_artwork
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_calligraphy
+							}
+						}
+						
+						set_character_flag = chinese_calligraphy
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_sculpture
+							}
+						}
+						
+						set_character_flag = chinese_sculpture
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_arm_protector
+							}
+						}
+						
+						set_character_flag = chinese_arm_protector
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_serpent_spear
+							}
+						}
+						
+						set_character_flag = chinese_serpent_spear
+					}
+					
+					10 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_tapestry
+							}
+						}
+						
+						set_character_flag = chinese_tapestry
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = history_of_the_southern_dynasties_exists
+							NOT = {
+								has_artifact = history_of_the_southern_dynasties
+							}
+						}
+						
+						set_character_flag = history_of_the_southern_dynasties
+					}
+					
+					10 = {
+						trigger = {
+							has_global_flag = history_of_the_northern_dynasties_exists
+							NOT = {
+								has_artifact = history_of_the_northern_dynasties
+							}
+						}
+						
+						set_character_flag = history_of_the_northern_dynasties
+					}
+					
+					20 = {
+						trigger = {
+							NOT = {
+								has_artifact = chinese_painting_of_glitterhoof
+							}
+						}
+						
+						set_character_flag = chinese_painting_of_glitterhoof
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_han_exists
+							NOT = {
+								has_artifact = book_of_han
+							}
+						}
+						
+						set_character_flag = book_of_han
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = weilue_exists
+							NOT = {
+								has_artifact = weilue
+							}
+						}
+						
+						set_character_flag = weilue
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_the_later_han_exists
+							NOT = {
+								has_artifact = book_of_the_later_han
+							}
+						}
+						
+						set_character_flag = book_of_the_later_han
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_song_exists
+							NOT = {
+								has_artifact = book_of_song
+							}
+						}
+						
+						set_character_flag = book_of_song
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_qi_exists
+							NOT = {
+								has_artifact = book_of_qi
+							}
+						}
+						
+						set_character_flag = book_of_qi
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_wei_exists
+							NOT = {
+								has_artifact = book_of_wei
+							}
+						}
+						
+						set_character_flag = book_of_wei
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_liang_exists
+							NOT = {
+								has_artifact = book_of_liang
+							}
+						}
+						
+						set_character_flag = book_of_liang
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_chen_exists
+							NOT = {
+								has_artifact = book_of_chen
+							}
+						}
+						
+						set_character_flag = book_of_chen
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_northern_qi_exists
+							NOT = {
+								has_artifact = book_of_northern_qi
+							}
+						}
+						
+						set_character_flag = book_of_northern_qi
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_zhou_exists
+							NOT = {
+								has_artifact = book_of_zhou
+							}
+						}
+						
+						set_character_flag = book_of_zhou
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_jin_exists
+							NOT = {
+								has_artifact = book_of_jin
+							}
+						}
+						
+						set_character_flag = book_of_jin
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = book_of_sui_exists
+							NOT = {
+								has_artifact = book_of_sui
+							}
+						}
+						
+						set_character_flag = book_of_sui
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = old_book_of_tang_exists
+							NOT = {
+								has_artifact = old_book_of_tang
+							}
+						}
+						
+						set_character_flag = old_book_of_tang
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = new_book_of_tang_exists
+							NOT = {
+								has_artifact = new_book_of_tang
+							}
+						}
+						
+						set_character_flag = new_book_of_tang
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = records_of_rumors_from_sushui_exists
+							NOT = {
+								has_artifact = records_of_rumors_from_sushui
+							}
+						}
+						
+						set_character_flag = records_of_rumors_from_sushui
+					}
+					
+					20 = {
+						trigger = {
+							has_global_flag = huang_song_shichao_gangyao_exists
+							NOT = {
+								has_artifact = huang_song_shichao_gangyao
+							}
+						}
+						
+						set_character_flag = huang_song_shichao_gangyao
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_SOH_10606 # I'll take it!
+		
+		if = {
+			limit = {
+				has_character_flag = chinese_artifact_is_expensive
+			}
+			
+			wealth = -1000
+		}
+		
+		else_if  = {
+			limit = {
+				has_character_flag = chinese_artifact_is_cheap
+			}
+			
+			wealth = -100
+		}
+		
+		else = {
+			wealth = -500
+		}
+		
+		trigger_switch = {
+			on_trigger = has_character_flag
+			
+			jade_dragon                                               = { add_artifact = jade_dragon }
+			art_of_war                                                = { add_artifact = art_of_war }
+			classic_of_poetry                                         = { add_artifact = classic_of_poetry }
+			etiquette_and_ceremonial                                  = { add_artifact = etiquette_and_ceremonial }
+			i_ching                                                   = { add_artifact = i_ching }
+			discourse_of_the_states                                   = { add_artifact = discourse_of_the_states }
+			spring_and_autumn_annals                                  = { add_artifact = spring_and_autumn_annals }
+			mozi                                                      = { add_artifact = mozi }
+			classic_of_filial_piety                                   = { add_artifact = classic_of_filial_piety }
+			tao_te_ching                                              = { add_artifact = tao_te_ching }
+			book_of_rites                                             = { add_artifact = book_of_rites }
+			book_of_documents_old                                     = { add_artifact = book_of_documents_old }
+			book_of_documents_new                                     = { add_artifact = book_of_documents_new }
+			zhuangzi                                                  = { add_artifact = zhuangzi }
+			records_of_the_grand_historian                            = { add_artifact = records_of_the_grand_historian }
+			classic_of_mountains_and_seas                             = { add_artifact = classic_of_mountains_and_seas }
+			records_of_the_three_kingdoms                             = { add_artifact = records_of_the_three_kingdoms }
+			old_history_of_the_five_dynasties                         = { add_artifact = old_history_of_the_five_dynasties }
+			new_history_of_the_five_dynasties                         = { add_artifact = new_history_of_the_five_dynasties }
+			lessons_for_women                                         = { add_artifact = lessons_for_women }
+			chinese_dragon_amulet                                     = { add_artifact = chinese_dragon_amulet }
+			chinese_artwork                                           = { add_artifact = chinese_artwork }
+			chinese_calligraphy                                       = { add_artifact = chinese_calligraphy }
+			chinese_sculpture                                         = { add_artifact = chinese_sculpture }
+			chinese_ceremonial_robes                                  = { add_artifact = chinese_ceremonial_robes }
+			silk_shroud                                               = { add_artifact = silk_shroud }
+			water_clock                                               = { add_artifact = water_clock }
+			jian_sword                                                = { add_artifact = jian_sword }
+			chinese_arm_protector                                     = { add_artifact = chinese_arm_protector }
+			chinese_serpent_spear                                     = { add_artifact = chinese_serpent_spear }
+			chinese_ji                                                = { add_artifact = chinese_ji }
+			chinese_crossbow                                          = { add_artifact = chinese_crossbow }
+			chinese_bronze_sculpture                                  = { add_artifact = chinese_bronze_sculpture }
+			chinese_painting_of_glitterhoof                           = { add_artifact = chinese_painting_of_glitterhoof }
+			chinese_tapestry                                          = { add_artifact = chinese_tapestry }
+			chinese_tapestry_grand                                    = { add_artifact = chinese_tapestry_grand }
+			chinese_book_health                                       = { add_artifact = chinese_book_health }
+			chinese_book_law                                          = { add_artifact = chinese_book_law }
+			chinese_book_economy                                      = { add_artifact = chinese_book_economy }
+			wuzi                                                      = { add_artifact = wuzi }
+			thirty_six_stratagems                                     = { add_artifact = thirty_six_stratagems }
+			methods_of_the_sima                                       = { add_artifact = methods_of_the_sima }
+			book_of_lord_shang                                        = { add_artifact = book_of_lord_shang }
+			wei_liaozi                                                = { add_artifact = wei_liaozi }
+			sun_bins_art_of_war                                       = { add_artifact = sun_bins_art_of_war }
+			the_commentary_of_zuo                                     = { add_artifact = the_commentary_of_zuo }
+			mencius                                                   = { add_artifact = mencius }
+			verses_of_chu                                             = { add_artifact = verses_of_chu }
+			master_lus_spring_and_autumn_annals                       = { add_artifact = master_lus_spring_and_autumn_annals }
+			xunzi                                                     = { add_artifact = xunzi }
+			han_feizi                                                 = { add_artifact = han_feizi }
+			book_of_origins                                           = { add_artifact = book_of_origins }
+			rites_of_zhou                                             = { add_artifact = rites_of_zhou }
+			analects                                                  = { add_artifact = analects }
+			erya                                                      = { add_artifact = erya }
+			book_of_han                                               = { add_artifact = book_of_han }
+			weilue                                                    = { add_artifact = weilue }
+			book_of_the_later_han                                     = { add_artifact = book_of_the_later_han }
+			book_of_song                                              = { add_artifact = book_of_song }
+			book_of_qi                                                = { add_artifact = book_of_qi }
+			spring_and_autumn_annals_of_the_sixteen_kingdoms          = { add_artifact = spring_and_autumn_annals_of_the_sixteen_kingdoms }
+			book_of_wei                                               = { add_artifact = book_of_wei }
+			book_of_liang                                             = { add_artifact = book_of_liang }
+			book_of_chen                                              = { add_artifact = book_of_chen }
+			book_of_northern_qi                                       = { add_artifact = book_of_northern_qi }
+			book_of_zhou                                              = { add_artifact = book_of_zhou }
+			book_of_jin                                               = { add_artifact = book_of_jin }
+			book_of_sui                                               = { add_artifact = book_of_sui }
+			history_of_the_southern_dynasties                         = { add_artifact = history_of_the_southern_dynasties }
+			history_of_the_northern_dynasties                         = { add_artifact = history_of_the_northern_dynasties }
+			classic_of_tea                                            = { add_artifact = classic_of_tea }
+			tongdian                                                  = { add_artifact = tongdian }
+			old_book_of_tang                                          = { add_artifact = old_book_of_tang }
+			records_of_the_nine_kingdoms                              = { add_artifact = records_of_the_nine_kingdoms }
+			complete_essentials_for_military_classics                 = { add_artifact = complete_essentials_for_military_classics }
+			new_book_of_tang                                          = { add_artifact = new_book_of_tang }
+			comprehensive_mirror_in_aid_of_governance                 = { add_artifact = comprehensive_mirror_in_aid_of_governance }
+			dream_pool_essays                                         = { add_artifact = dream_pool_essays }
+			treatise_on_tea                                           = { add_artifact = treatise_on_tea }
+			records_of_rumors_from_sushui                             = { add_artifact = records_of_rumors_from_sushui }
+			huang_song_shichao_gangyao                                = { add_artifact = huang_song_shichao_gangyao }
+			womens_analects                                           = { add_artifact = womens_analects }
+			eighteen_songs_of_a_nomad_flute                           = { add_artifact = eighteen_songs_of_a_nomad_flute }
+			daozang                                                   = { add_artifact = daozang }
+		}
+		
+		new_artifact = { set_creation_date = 1.1.1 }
+		
+		ai_chance = {
+			trigger = {
+				NOT = {
+					trait = cruel
+				}
+			}
+				
+			factor = 100
+			
+			mult_modifier = {
+				factor = 10
+				trait = envious
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = charitable
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = proud
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_SOH_10606 # I don't want it!
+		
+		ai_chance = {
+			trigger = {
+				NOT = {
+					trait = cruel
+				}
+			}
+			
+			factor = 100
+			
+			mult_modifier = {
+				factor = 10
+				trait = kind
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = content
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = greedy
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = humble
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			trait = cruel
+		}
+		
+		name = EVTOPTC_SOH_10606 # I'll take it... by force!
+		
+		pacifists_lose_piety_effect = yes
+		
+		add_trait_fully_greedy_effect = yes
+		
+		piety = -100
+		
+		prestige = -100
+		
+		event_target:artifact_province = {
+			add_province_modifier = {
+				name = peasants_upset
+				duration = 3650
+			}
+			
+			decrease_prosperity_variable_effect = yes
+		}
+		
+		trigger_switch = {
+			on_trigger = has_character_flag
+			
+			jade_dragon                                               = { add_artifact = jade_dragon }
+			art_of_war                                                = { add_artifact = art_of_war }
+			classic_of_poetry                                         = { add_artifact = classic_of_poetry }
+			etiquette_and_ceremonial                                  = { add_artifact = etiquette_and_ceremonial }
+			i_ching                                                   = { add_artifact = i_ching }
+			discourse_of_the_states                                   = { add_artifact = discourse_of_the_states }
+			spring_and_autumn_annals                                  = { add_artifact = spring_and_autumn_annals }
+			mozi                                                      = { add_artifact = mozi }
+			classic_of_filial_piety                                   = { add_artifact = classic_of_filial_piety }
+			tao_te_ching                                              = { add_artifact = tao_te_ching }
+			book_of_rites                                             = { add_artifact = book_of_rites }
+			book_of_documents_old                                     = { add_artifact = book_of_documents_old }
+			book_of_documents_new                                     = { add_artifact = book_of_documents_new }
+			zhuangzi                                                  = { add_artifact = zhuangzi }
+			records_of_the_grand_historian                            = { add_artifact = records_of_the_grand_historian }
+			classic_of_mountains_and_seas                             = { add_artifact = classic_of_mountains_and_seas }
+			records_of_the_three_kingdoms                             = { add_artifact = records_of_the_three_kingdoms }
+			old_history_of_the_five_dynasties                         = { add_artifact = old_history_of_the_five_dynasties }
+			new_history_of_the_five_dynasties                         = { add_artifact = new_history_of_the_five_dynasties }
+			lessons_for_women                                         = { add_artifact = lessons_for_women }
+			chinese_dragon_amulet                                     = { add_artifact = chinese_dragon_amulet }
+			chinese_artwork                                           = { add_artifact = chinese_artwork }
+			chinese_calligraphy                                       = { add_artifact = chinese_calligraphy }
+			chinese_sculpture                                         = { add_artifact = chinese_sculpture }
+			chinese_ceremonial_robes                                  = { add_artifact = chinese_ceremonial_robes }
+			silk_shroud                                               = { add_artifact = silk_shroud }
+			water_clock                                               = { add_artifact = water_clock }
+			jian_sword                                                = { add_artifact = jian_sword }
+			chinese_arm_protector                                     = { add_artifact = chinese_arm_protector }
+			chinese_serpent_spear                                     = { add_artifact = chinese_serpent_spear }
+			chinese_ji                                                = { add_artifact = chinese_ji }
+			chinese_crossbow                                          = { add_artifact = chinese_crossbow }
+			chinese_bronze_sculpture                                  = { add_artifact = chinese_bronze_sculpture }
+			chinese_painting_of_glitterhoof                           = { add_artifact = chinese_painting_of_glitterhoof }
+			chinese_tapestry                                          = { add_artifact = chinese_tapestry }
+			chinese_tapestry_grand                                    = { add_artifact = chinese_tapestry_grand }
+			chinese_book_health                                       = { add_artifact = chinese_book_health }
+			chinese_book_law                                          = { add_artifact = chinese_book_law }
+			chinese_book_economy                                      = { add_artifact = chinese_book_economy }
+			wuzi                                                      = { add_artifact = wuzi }
+			thirty_six_stratagems                                     = { add_artifact = thirty_six_stratagems }
+			methods_of_the_sima                                       = { add_artifact = methods_of_the_sima }
+			book_of_lord_shang                                        = { add_artifact = book_of_lord_shang }
+			wei_liaozi                                                = { add_artifact = wei_liaozi }
+			sun_bins_art_of_war                                       = { add_artifact = sun_bins_art_of_war }
+			the_commentary_of_zuo                                     = { add_artifact = the_commentary_of_zuo }
+			mencius                                                   = { add_artifact = mencius }
+			verses_of_chu                                             = { add_artifact = verses_of_chu }
+			master_lus_spring_and_autumn_annals                       = { add_artifact = master_lus_spring_and_autumn_annals }
+			xunzi                                                     = { add_artifact = xunzi }
+			han_feizi                                                 = { add_artifact = han_feizi }
+			book_of_origins                                           = { add_artifact = book_of_origins }
+			rites_of_zhou                                             = { add_artifact = rites_of_zhou }
+			analects                                                  = { add_artifact = analects }
+			erya                                                      = { add_artifact = erya }
+			book_of_han                                               = { add_artifact = book_of_han }
+			weilue                                                    = { add_artifact = weilue }
+			book_of_the_later_han                                     = { add_artifact = book_of_the_later_han }
+			book_of_song                                              = { add_artifact = book_of_song }
+			book_of_qi                                                = { add_artifact = book_of_qi }
+			spring_and_autumn_annals_of_the_sixteen_kingdoms          = { add_artifact = spring_and_autumn_annals_of_the_sixteen_kingdoms }
+			book_of_wei                                               = { add_artifact = book_of_wei }
+			book_of_liang                                             = { add_artifact = book_of_liang }
+			book_of_chen                                              = { add_artifact = book_of_chen }
+			book_of_northern_qi                                       = { add_artifact = book_of_northern_qi }
+			book_of_zhou                                              = { add_artifact = book_of_zhou }
+			book_of_jin                                               = { add_artifact = book_of_jin }
+			book_of_sui                                               = { add_artifact = book_of_sui }
+			history_of_the_southern_dynasties                         = { add_artifact = history_of_the_southern_dynasties }
+			history_of_the_northern_dynasties                         = { add_artifact = history_of_the_northern_dynasties }
+			classic_of_tea                                            = { add_artifact = classic_of_tea }
+			tongdian                                                  = { add_artifact = tongdian }
+			old_book_of_tang                                          = { add_artifact = old_book_of_tang }
+			records_of_the_nine_kingdoms                              = { add_artifact = records_of_the_nine_kingdoms }
+			complete_essentials_for_military_classics                 = { add_artifact = complete_essentials_for_military_classics }
+			new_book_of_tang                                          = { add_artifact = new_book_of_tang }
+			comprehensive_mirror_in_aid_of_governance                 = { add_artifact = comprehensive_mirror_in_aid_of_governance }
+			dream_pool_essays                                         = { add_artifact = dream_pool_essays }
+			treatise_on_tea                                           = { add_artifact = treatise_on_tea }
+			records_of_rumors_from_sushui                             = { add_artifact = records_of_rumors_from_sushui }
+			huang_song_shichao_gangyao                                = { add_artifact = huang_song_shichao_gangyao }
+			womens_analects                                           = { add_artifact = womens_analects }
+			eighteen_songs_of_a_nomad_flute                           = { add_artifact = eighteen_songs_of_a_nomad_flute }
+			daozang                                                   = { add_artifact = daozang }
+		}
+		
+		new_artifact = { set_creation_date = 1.1.1 }
+		
+		ai_chance = {
+			factor = 100
+		}
+	}
+	
+	after = {
+		clr_character_flag = jade_dragon
+		clr_character_flag = art_of_war
+		clr_character_flag = classic_of_poetry
+		clr_character_flag = etiquette_and_ceremonial
+		clr_character_flag = i_ching
+		clr_character_flag = discourse_of_the_states
+		clr_character_flag = spring_and_autumn_annals
+		clr_character_flag = mozi
+		clr_character_flag = classic_of_filial_piety
+		clr_character_flag = tao_te_ching
+		clr_character_flag = book_of_rites
+		clr_character_flag = book_of_documents_old
+		clr_character_flag = book_of_documents_new
+		clr_character_flag = zhuangzi
+		clr_character_flag = records_of_the_grand_historian
+		clr_character_flag = classic_of_mountains_and_seas
+		clr_character_flag = records_of_the_three_kingdoms
+		clr_character_flag = old_history_of_the_five_dynasties
+		clr_character_flag = new_history_of_the_five_dynasties
+		clr_character_flag = lessons_for_women
+		clr_character_flag = chinese_dragon_amulet
+		clr_character_flag = chinese_artwork
+		clr_character_flag = chinese_calligraphy
+		clr_character_flag = chinese_sculpture
+		clr_character_flag = chinese_ceremonial_robes
+		clr_character_flag = silk_shroud
+		clr_character_flag = water_clock
+		clr_character_flag = jian_sword
+		clr_character_flag = chinese_arm_protector
+		clr_character_flag = chinese_serpent_spear
+		clr_character_flag = chinese_ji
+		clr_character_flag = chinese_crossbow
+		clr_character_flag = chinese_bronze_sculpture
+		clr_character_flag = chinese_painting_of_glitterhoof
+		clr_character_flag = chinese_tapestry
+		clr_character_flag = chinese_tapestry_grand
+		clr_character_flag = chinese_book_health
+		clr_character_flag = chinese_book_law
+		clr_character_flag = chinese_book_economy
+		clr_character_flag = wuzi
+		clr_character_flag = thirty_six_stratagems
+		clr_character_flag = methods_of_the_sima
+		clr_character_flag = book_of_lord_shang
+		clr_character_flag = wei_liaozi
+		clr_character_flag = sun_bins_art_of_war
+		clr_character_flag = the_commentary_of_zuo
+		clr_character_flag = mencius
+		clr_character_flag = verses_of_chu
+		clr_character_flag = master_lus_spring_and_autumn_annals
+		clr_character_flag = xunzi
+		clr_character_flag = han_feizi
+		clr_character_flag = book_of_origins
+		clr_character_flag = rites_of_zhou
+		clr_character_flag = analects
+		clr_character_flag = erya
+		clr_character_flag = book_of_han
+		clr_character_flag = weilue
+		clr_character_flag = book_of_the_later_han
+		clr_character_flag = book_of_song
+		clr_character_flag = book_of_qi
+		clr_character_flag = spring_and_autumn_annals_of_the_sixteen_kingdoms
+		clr_character_flag = book_of_wei
+		clr_character_flag = book_of_liang
+		clr_character_flag = book_of_chen
+		clr_character_flag = book_of_northern_qi
+		clr_character_flag = book_of_zhou
+		clr_character_flag = book_of_jin
+		clr_character_flag = book_of_sui
+		clr_character_flag = history_of_the_southern_dynasties
+		clr_character_flag = history_of_the_northern_dynasties
+		clr_character_flag = classic_of_tea
+		clr_character_flag = tongdian
+		clr_character_flag = old_book_of_tang
+		clr_character_flag = records_of_the_nine_kingdoms
+		clr_character_flag = complete_essentials_for_military_classics
+		clr_character_flag = new_book_of_tang
+		clr_character_flag = comprehensive_mirror_in_aid_of_governance
+		clr_character_flag = dream_pool_essays
+		clr_character_flag = treatise_on_tea
+		clr_character_flag = records_of_rumors_from_sushui
+		clr_character_flag = huang_song_shichao_gangyao
+		clr_character_flag = womens_analects
+		clr_character_flag = eighteen_songs_of_a_nomad_flute
+		clr_character_flag = daozang
+		
+		clr_character_flag = chinese_artifact_is_cheap
+		clr_character_flag = chinese_artifact_is_expensive
+	}
+}

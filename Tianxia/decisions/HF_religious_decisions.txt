@@ -1,68 +1,49 @@
-
-targetted_decisions = {
-
+targeted_decisions = {
 	vassal_generic_sacrifice_decision = {
-		only_playable = yes
-		ai_check_interval = 8 #check only once every 8 months.
-	    diplomacy_icon = GFX_sacrifice_decision
-	
+		diplomacy_icon = GFX_sacrifice_decision
+
 		ai_target_filter = home_court
-	
+		ai_check_interval = 8
+
+		only_playable = yes
+
 		from_potential = {
-			show_only_failed_conditions = yes
-			is_playable = yes
 			has_religion_feature = religion_ritual_sacrifice
-			NOR = { #Already have their special decision.
-				religion = aztec
-				religion = aztec_reformed
-			}
+
+			# Already have their special decision
+			religion_openly_aztec_or_reformed_trigger = no
 		}
-	
+
 		potential = {
 			prisoner = yes
 			host = { character = FROM }
 		}
-		
+
 		allow = {
-			ROOT = { 
-				NOT = { religion = FROM } #Only on infidels.
-				NOT = { diplomatic_immunity = yes }
-				prisoner = yes 
-			}
+			show_only_failed_conditions = yes
+
+			NOT = { religion = FROM } # Only on infidels
+			diplomatic_immunity = no
 		}
-		
+
 		effect = {
-			any_liege = {
-				limit = { 
-					ai = no
-					NOT = { character = FROM }
-					NOT = { religion = FROM }
-				}
-				character_event = { id = HF.23001 }
-			}
-			hidden_tooltip = {
-				FROM = {
-					character_event = { id = HF.23002 }
-				}
-				if = {
-					limit = {
-						controls_religion = yes
-						NOR = {
-							religion = aztec
-							religion = aztec_reformed
-						}
-						FROM = { ai = no }
-					}
-					FROM = { set_character_flag = achievement_holy_smoke }
-				}
-			}
 			if = {
 				limit = {
 					has_dlc = "Jade Dragon"
-					FROM = {
-						is_chinese_emperor_trigger = no
+					e_china = {
+						holder_scope = {
+							is_chinese_emperor_trigger = yes
+							OR = {
+								character = ROOT
+								AND = {
+									is_close_relative = ROOT
+									dynasty = ROOT
+								}
+							}
+						}
 					}
 				}
+				
 				if = {
 					limit = {
 						is_chinese_emperor_trigger = yes
@@ -71,414 +52,375 @@ targetted_decisions = {
 						detract_grace_super_huge_effect = yes
 					}
 				}
-				else_if = {
-					limit = {
-						any_close_relative = {
-							dynasty = ROOT
-							is_chinese_emperor_trigger = yes
-						}
-					}
+				else = {
 					FROM = {
 						detract_grace_massive_effect = yes
 					}
 				}
-				else_if = {
-					limit = {
-						any_dynasty_member = {
-							is_chinese_emperor_trigger = yes
-						}
-					}
-					FROM = {
-						detract_grace_major_effect = yes
-					}
-				}
 			}
+			any_liege = {
+				limit = {
+					ai = no
+					NOT = { religion = FROM }
+				}
+
+				character_event = { id = HF.23001 } # Notify of ritual sacrifice
+			}
+			
+			save_event_target_as = sacrifice
+			FROM = {
+				save_event_target_as = sacrificer
+				divine_ancestry_sacrifice_effect = yes
+			}
+
+			FROM = {
+				character_event = { id = HF.23002 }
+			}
+
+			if = {
+				limit = {
+					FROM = { ai = no }
+					controls_religion = yes
+					is_ironman = yes
+					religion_openly_aztec_or_reformed_trigger = no
+				}
+
+				FROM = { set_character_flag = achievement_holy_smoke }
+			}
+
 			death = {
 				death_reason = death_execution_aztec_sacrifice
 				killer = FROM
 			}
 		}
-		revoke_allowed = {
-			always = no
-		}
+
 		ai_will_do = {
 			factor = 1
-			modifier = {
-				factor = 0
-				FROM = { trait = cynical }
+
+			trigger = {
+				FROM = {
+					NOT = { trait = cynical }
+				}
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 1.5
 				FROM = { trait = zealous }
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 1.5
 				FROM = { trait = bloodthirsty_gods_1 }
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 1.75
 				FROM = { trait = bloodthirsty_gods_2 }
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 2
 				FROM = { trait = bloodthirsty_gods_3 }
 			}
 		}
 	}
+
 	stable_attribute_improvement_decision = {
+		diplomacy_icon = GFX_stable_prestige_icon_decision
+
+		filter = court_including_me
+		ai_target_filter = court_including_me
+		ai_check_interval = 50
+
 		only_playable = yes
-		ai_check_interval = 50 #check only once every 50 months.
-	    diplomacy_icon = GFX_stable_prestige_icon_decision
-	
-		filter = court
-		ai_target_filter = court
-	
+
 		from_potential = {
-			is_playable = yes
-			is_incapable = no
-			prisoner = no
+			has_dlc = "Holy Fury"
 			is_adult = yes
+			is_actually_incapable_trigger = no
+			prisoner = no
+
 			OR = {
 				has_religion_feature = religion_stable
 				has_religion_feature = religion_feature_slavic
 				has_religion_feature = religion_feature_finnish
+				has_religion_feature = religion_feature_chinese
+				has_religion_feature = religion_feature_inca
+				religion = confucian
 			}
-			has_dlc = "Holy Fury"
 		}
-	
+
 		potential = {
 			prisoner = no
-			is_incapable = no
+			is_actually_incapable_trigger = no
 			is_adult = yes
-			OR = {
-				character = FROM
-				liege = { character = FROM } 
-			}
 		}
-		
+
 		allow = {
 			FROM = {
-				custom_tooltip = {
-					text = tooltip_stable_attribute_improvement_cooldown
-					NOT = { has_character_modifier = stable_attribute_improvement_cooldown }
-				}
-				piety = 150
-			}
-			ROOT = { 
-				custom_tooltip = { 
-					text = tooltip_attribute_improvement_target_cooldown 
-					NOT = { has_character_modifier = stable_attribute_improvement_target_cooldown }
-				} 
-			}
-			ROOT = { 
-				religion = FROM
-				NOT = { diplomatic_immunity = yes }
-				OR = { 
-					AND = { 
-						is_female = yes 
-						NOT = { has_religion_feature = religion_patriarchal } 
-					}
-					AND = { 
-						is_female = no
-						NOT = { has_religion_feature = religion_matriarchal } 
-					}
-				}
-				custom_tooltip = { 
-					text = tooltip_attribute_requirements_to_improve #Either self-improving, or MUST have +1 point in one of the possible attributes compared to the target.
-					OR = { 
-						FROM = { combat_rating_diff = { who = ROOT value = 1 } }
-						FROM = { attribute_diff = { attribute = diplomacy character = ROOT value = 1 } }
-						FROM = { attribute_diff = { attribute = martial character = ROOT value = 1 } }
-						FROM = { attribute_diff = { attribute = stewardship character = ROOT value = 1 } }
-						FROM = { attribute_diff = { attribute = intrigue character = ROOT value = 1 } }
-						FROM = { attribute_diff = { attribute = learning character = ROOT value = 1 } }
-					} 
-				}
-			}
-		}
-		
-		effect = {
-			FROM = { 
-				piety = -150
-				if = { 
-					limit = { character = ROOT }
-					prestige = -500
-				}
-			}
-			custom_tooltip = { 
-				text = tooltip_stable_attribute_improvement_effect
-			}
-			hidden_tooltip = {
-				FROM = {
-					add_character_modifier = {
-						name = stable_attribute_improvement_cooldown
-						duration = 1825
-						hidden = yes
-					}
-					character_event = { id = HF.23760 }  
-					if = { #Chance for Family Bloodline when using action on councilmembers.
-						limit = { 
-							higher_tier_than = COUNT 
-							ROOT = {
-								is_close_relative = FROM
-								NOT = { character = FROM }
-							}
-							NOT = { check_variable = { which = stable_family_variable value = 8 } } #5 x 8 = 40 years to achieve.
-						}
-						change_variable = { which = stable_family_variable value = 1 }
-					}
-					else_if = { 
-						limit = { 
-							higher_tier_than = COUNT 
-							check_variable = { which = stable_family_variable value = 8 }
-							NOT = { 
-								any_owned_bloodline = { 
-									has_bloodline_flag = created_bloodline
-								}
-							}
-						}
-						narrative_event = { id = HF.23770 days = 15 random = 15 }
-					}
-					else_if = { #Chance for benevolent Bloodline when using action on councilmembers.
-						limit = { 
-							higher_tier_than = COUNT 
-							ROOT = {
-								NOT = { character = FROM }
-								OR = { 
-									has_job_title = job_chancellor
-									has_job_title = job_marshal
-									has_job_title = job_treasurer
-									has_job_title = job_spymaster
-									has_job_title = job_spiritual
-								}
-							}
-							NOT = { check_variable = { which = stable_benevolent_variable value = 8 } } #5 x 8 = 40 years to achieve.
-						}
-						change_variable = { which = stable_benevolent_variable value = 1 }
-					}
-					else_if = { 
-						limit = { 
-							higher_tier_than = COUNT 
-							check_variable = { which = stable_benevolent_variable value = 8 }
-							NOT = { 
-								any_owned_bloodline = { 
-									has_bloodline_flag = created_bloodline
-								}
-							}
-						}
-						narrative_event = { id = HF.23771 days = 15 random = 15 }
-					}
-				}
-				hidden_tooltip = {
-					ROOT = {
-						add_character_modifier = { 		#Other AI shouldn't target a recent target.
-							name = stable_attribute_improvement_target_cooldown
-							duration = 1825
-							hidden = yes
-						}
-						character_event = { id = HF.23772 days = 75 } #Delayed safety flag cleanup.
+				piety >= 150
+
+				trigger_if = {
+					limit = { has_character_modifier = stable_attribute_improvement_cooldown }
+
+					custom_tooltip = {
+						text = tooltip_stable_attribute_improvement_cooldown
+						always = no
 					}
 				}
 			}
 
+			ROOT = {
+				show_only_failed_conditions = yes
+
+				trigger_if = {
+					limit = { has_character_modifier = stable_attribute_improvement_target_cooldown }
+
+					custom_tooltip = {
+						text = tooltip_attribute_improvement_target_cooldown
+						always = no
+					}
+				}
+
+				religion = FROM
+				diplomatic_immunity = no
+
+				trigger_if = {
+					limit = { is_female = yes }
+					NOR = {
+						has_religion_feature = religion_patriarchal
+						has_religion_feature = religion_feature_batak
+						has_religion_feature = religion_feature_yi
+					}
+				}
+				trigger_else = {
+					NOR = {
+						has_religion_feature = religion_matriarchal
+						has_religion_feature = religion_feature_minangkabau
+					}
+				}
+
+				# Either self-improving, or MUST have +1 point in one of the possible attributes compared to the target
+				custom_tooltip = {
+					text = tooltip_attribute_requirements_to_improve
+
+					FROM = {
+						OR = {
+							character = ROOT
+							combat_rating > ROOT
+							diplomacy > ROOT
+							martial > ROOT
+							stewardship > ROOT
+							intrigue > ROOT
+							learning > ROOT
+						}
+					}
+				}
+			}
 		}
-		revoke_allowed = {
-			always = no
+
+		effect = {
+			FROM = {
+				show_scope_change = no
+
+				piety = -150
+
+				if = {
+					limit = { character = ROOT }
+					prestige = -500
+				}
+			}
+
+			custom_tooltip = {
+				text = tooltip_stable_attribute_improvement_effect
+
+				FROM = {
+					add_character_modifier = {
+						name = stable_attribute_improvement_cooldown
+						years = 5
+						hidden = yes
+					}
+
+					character_event = { id = HF.23760 } # Pick attribute to improve
+
+					if = { # Chance for Family Bloodline
+						limit = {
+							is_close_relative = ROOT
+							higher_real_tier_than = COUNT
+
+							NOT = {
+								any_owned_bloodline = {
+									has_bloodline_flag = created_bloodline
+									bloodline_is_active_for = PREV
+								}
+							}
+						}
+
+						if = {
+							limit = {
+								# 5 x 8 = 40 years to achieve
+								check_variable = {
+									which = stable_family_variable
+									value < 8
+								}
+							}
+
+							change_variable = {
+								which = stable_family_variable
+								value = 1
+							}
+						}
+						else = {
+							narrative_event = {
+								id = HF.23770 # Gain Family Bloodline
+								days = 15
+								random = 15
+							}
+						}
+					}
+					else_if = { # Chance for Benevolent Bloodline when using action on councilmembers
+						limit = {
+							higher_real_tier_than = COUNT
+
+							ROOT = {
+								is_councillor = yes
+								NOT = { character = PREV }
+							}
+
+							NOT = {
+								any_owned_bloodline = {
+									has_bloodline_flag = created_bloodline
+									bloodline_is_active_for = PREV
+								}
+							}
+						}
+
+						if = {
+							limit = {
+								# 5 x 8 = 40 years to achieve
+								check_variable = {
+									which = stable_benevolent_variable
+									value < 8
+								}
+							}
+
+							change_variable = {
+								which = stable_benevolent_variable
+								value = 1
+							}
+						}
+						else = {
+							narrative_event = {
+								id = HF.23771 # Gain Benevolent Bloodline
+								days = 15
+								random = 15
+							}
+						}
+					}
+				}
+
+				# Other AI shouldn't target a recent target
+				add_character_modifier = {
+					name = stable_attribute_improvement_target_cooldown
+					years = 5
+					hidden = yes
+				}
+
+				character_event = {
+					id = HF.23772 # Delayed safety flag clean-up
+					days = 75
+				}
+			}
 		}
+
 		ai_will_do = {
 			factor = 1
-			modifier = {
-				factor = 0
-				FROM = { trait = slothful }
+
+			trigger = {
+				FROM = {
+					NOR = {
+						trait = slothful
+						is_rival = ROOT
+					}
+				}
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 2
 				FROM = { trait = diligent }
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 2
+				character = FROM
 				FROM = { trait = ambitious }
-				ROOT = { character = ROOT }
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 2
-				FROM = { 
-					OR = { 
-						trait = kind 
+				is_councillor = yes
+				NOT = { character = FROM }
+
+				FROM = {
+					OR = {
+						trait = kind
 						trait = charitable
 						trait = content
 					}
 				}
-				ROOT = { 
-					OR = { 
-						has_job_title = job_chancellor
-						has_job_title = job_marshal
-						has_job_title = job_treasurer
-						has_job_title = job_spymaster
-						has_job_title = job_spiritual
-					}
-				}
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 2
-				FROM = { 
-					OR = { 
-						trait = kind 
+				is_close_relative = FROM
+				NOT = { character = FROM }
+
+				FROM = {
+					OR = {
+						trait = kind
 						trait = charitable
 						trait = content
 						has_focus = focus_family
 					}
 				}
-				ROOT = { 
-					is_close_relative = FROM
-				}
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 2
-				FROM = { 
-					OR = { 
+
+				FROM = {
+					is_married = ROOT
+
+					OR = {
 						trait = ambitious
 						trait = envious
 						trait = wroth
 						has_focus = focus_family
 					}
 				}
-				ROOT = { 
-					is_married = FROM
-				}
 			}
-			modifier = {
-				factor = 0
-				is_rival = FROM
-			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 2
 				is_friend = FROM
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 2
 				is_lover = FROM
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 2
 				is_primary_heir = FROM
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 0.5
 				trait = stressed
-			}
-			modifier = {
-				factor = 0.5
-				trait = depressed
-			}
-		}
-	}
-	stable_attribute_improvement_self_decision = {
-		only_playable = yes
-		ai_check_interval = 50 #check only once every 50 months.
-	    diplomacy_icon = GFX_stable_prestige_icon_decision
-	
-		filter = self
-		ai_target_filter = self
-	
-		potential = {
-			is_playable = yes
-			is_incapable = no
-			prisoner = no
-			is_adult = yes
-			OR = {
-				has_religion_feature = religion_stable
-				has_religion_feature = religion_feature_slavic
-				has_religion_feature = religion_feature_finnish
-			}
-			has_dlc = "Holy Fury"
-		}
-		
-		allow = {
-			FROM = {
-				custom_tooltip = {
-					text = tooltip_stable_attribute_improvement_cooldown
-					NOT = { has_character_modifier = stable_attribute_improvement_cooldown }
-				}
-				piety = 150
-			}
-			ROOT = { 
-				custom_tooltip = { 
-					text = tooltip_attribute_improvement_target_cooldown 
-					NOT = { has_character_modifier = stable_attribute_improvement_target_cooldown }
-				} 
-			}
-			ROOT = { 
-				religion = FROM
-				NOT = { diplomatic_immunity = yes }
-				OR = { 
-					AND = { 
-						is_female = yes 
-						NOT = { has_religion_feature = religion_patriarchal } 
-					}
-					AND = { 
-						is_female = no
-						NOT = { has_religion_feature = religion_matriarchal } 
-					}
-				}
-			}
-		}
-		
-		effect = {
-			ROOT = { 
-				piety = -150
-				if = { 
-					limit = { character = ROOT }
-					prestige = -500
-				}
-			}
-			custom_tooltip = { 
-				text = tooltip_stable_attribute_improvement_effect
-			}
-			hidden_tooltip = {
-				ROOT = {
-					add_character_modifier = {
-						name = stable_attribute_improvement_cooldown
-						duration = 1825
-						hidden = yes
-					}
-					character_event = { id = HF.23760 }
-				}
-				hidden_tooltip = {
-					ROOT = {
-						add_character_modifier = { 		#Other AI shouldn't target a recent target.
-							name = stable_attribute_improvement_target_cooldown
-							duration = 1825
-							hidden = yes
-						}
-					}
-				}
 			}
 
-		}
-		revoke_allowed = {
-			always = no
-		}
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0
-				FROM = { trait = slothful }
-			}
-			modifier = {
-				factor = 2
-				FROM = { trait = diligent }
-			}
-			modifier = {
-				factor = 2
-				FROM = { trait = ambitious }
-				ROOT = { character = ROOT }
-			}
-			modifier = {
-				factor = 0.5
-				trait = stressed
-			}
-			modifier = {
+			mult_modifier = {
 				factor = 0.5
 				trait = depressed
 			}
@@ -486,435 +428,604 @@ targetted_decisions = {
 	}
 }
 
-
 decisions = {
 	syncretic_sympathy_decision = {
-		only_playable = yes
+		ai_check_interval = 20
+
 		is_high_prio = yes
-		ai_check_interval = 20 #check only once every 20 months.
+
+		only_playable = yes
+
 		potential = {
-			is_adult = yes
-			NOR = {
-				trait = incapable
-				trait = sympathy_christendom
-				trait = sympathy_islam
-				trait = sympathy_pagans
-				trait = sympathy_zoroastrianism
-				trait = sympathy_judaism
-				trait = sympathy_indian
-				has_character_flag = flag_picking_sympathy
-			}
-			OR = { 
+			has_dlc = "Holy Fury"
+			OR = {
 				has_religion_feature = religion_syncretic
 				has_religion_feature = religion_feature_hellenic
-			}
-		}
-		
-		allow = {
-			prisoner = no
-			OR = { 
-				has_religion_feature = religion_syncretic
-				has_religion_feature = religion_feature_hellenic
-			}
-		}
-		
-		effect = {
-			hidden_tooltip = {
-				if = {
-					limit = {
-						ai = no
+				AND = {
+					religion_openly_tengri_or_reformed_trigger = yes
+					NOT = {
+						has_religion_feature = religion_dogmatic
 					}
+				}
+			}
+
+			is_adult = yes
+			is_actually_incapable_trigger = no
+			has_any_sympathy_trait_trigger = no
+			NOT = { has_character_flag = flag_picking_sympathy }
+		}
+
+		allow = {
+			OR = {
+				has_religion_feature = religion_syncretic
+				has_religion_feature = religion_feature_hellenic
+				AND = {
+					OR = {
+						religion_openly_tengri_or_reformed_trigger = yes
+						has_religion_feature = religion_cosmopolitan
+						has_religion_feature = religion_tolerant
+					}
+					
+					NOT = {
+						has_religion_feature = religion_dogmatic
+					}
+					
+					NOR = { # Random religion proofling
+						AND = {
+							religion_group = christian
+							trait = sympathy_islam
+							trait = sympathy_pagans
+							trait = sympathy_zoroastrianism
+							trait = sympathy_judaism
+							trait = sympathy_indian
+						}
+						AND = {
+							religion_group = muslim
+							trait = sympathy_christendom
+							trait = sympathy_pagans
+							trait = sympathy_zoroastrianism
+							trait = sympathy_judaism
+							trait = sympathy_indian
+						}
+						AND = {
+							religion_group = pagan_group
+							trait = sympathy_christendom
+							trait = sympathy_islam
+							trait = sympathy_zoroastrianism
+							trait = sympathy_judaism
+							trait = sympathy_indian
+						}
+						AND = {
+							religion_group = zoroastrian_group
+							trait = sympathy_christendom
+							trait = sympathy_islam
+							trait = sympathy_pagans
+							trait = sympathy_judaism
+							trait = sympathy_indian
+						}
+						AND = {
+							religion_group = jewish_group
+							trait = sympathy_christendom
+							trait = sympathy_islam
+							trait = sympathy_pagans
+							trait = sympathy_zoroastrianism
+							trait = sympathy_indian
+						}
+						AND = {
+							religion_group = indian_group
+							trait = sympathy_christendom
+							trait = sympathy_islam
+							trait = sympathy_pagans
+							trait = sympathy_zoroastrianism
+							trait = sympathy_judaism
+						}
+					}
+				}
+			}
+
+			prisoner = no
+		}
+
+		effect = {
+			hidden_effect = {
+				if = {
+					limit = { ai = no }
 					set_character_flag = flag_picking_sympathy
-					character_event = { id = HF.23003 }
+					character_event = { id = HF.23003 } # Pick sympathy trait
 				}
 				else = {
 					random_list = {
 						100 = {
 							add_trait = sympathy_christendom
-							
-							modifier = {
-								factor = 0
-								religion_group = christian
-							}
-							modifier = { # Prioritize getting a sympathy trait that is useful
-								factor = 100
+
+							trigger = {
+								NOT = { religion_group = christian }
+
 								OR = {
-									any_demesne_province = {
-										religion_group = christian
-									}
-									any_vassal = {
-										religion_group = christian
-									}
-								}
-							}
-							modifier = { # Otherwise try to emulate your liege
-								factor = 5
-								NOR = {
-									any_demesne_province = {
-										NOT = { religion_group = christian }
-									}
-									any_vassal = {
-										NOT = { religion_group = christian }
-									}
-								}
-								any_liege = {
-									OR = {
-										AND = {
-											trait = sympathy_christendom
-											religion = ROOT
-										}
-										religion_group = christian
-									}
-								}	
-							}
-							modifier = {
-								factor = 0
-								NOR = {
 									any_liege = {
 										OR = {
+											religion_group = christian
+
 											AND = {
 												trait = sympathy_christendom
 												religion = ROOT
 											}
-											religion_group = christian
 										}
 									}
-									spouse = {
+
+									any_spouse = {
 										religion_group = christian
 									}
+
 									any_courtier_or_vassal = {
 										religion_group = christian
 									}
+
 									any_neighbor_independent_ruler = {
 										religion_group = christian
 									}
+
 									any_demesne_province = {
+										owned_by = ROOT
 										religion_group = christian
+									}
+									
+									religion_openly_tengri_or_reformed_trigger = yes
+									has_religion_feature = religion_cosmopolitan
+									has_religion_feature = religion_tolerant
+								}
+
+							}
+
+							mult_modifier = { # Prioritize getting a sympathy trait that is useful
+								factor = 100
+
+								OR = {
+									any_demesne_province = {
+										owned_by = ROOT
+										religion_group = christian
+									}
+
+									any_vassal = {
+										religion_group = christian
+									}
+								}
+							}
+
+							mult_modifier = { # Otherwise try to emulate your liege
+								factor = 5
+
+								NOR = {
+									any_demesne_province = {
+										owned_by = ROOT
+										religion_group = christian
+									}
+
+									any_vassal = {
+										religion_group = christian
+									}
+								}
+
+								any_liege = {
+									OR = {
+										religion_group = christian
+
+										AND = {
+											trait = sympathy_christendom
+											religion = ROOT
+										}
 									}
 								}
 							}
 						}
+
 						100 = {
 							add_trait = sympathy_islam
-							
-							modifier = {
-								factor = 0
-								religion_group = muslim
-							}
-							modifier = { # Prioritize getting a sympathy trait that is useful
-								factor = 100
+
+							trigger = {
+								NOT = { religion_group = muslim }
+
 								OR = {
-									any_demesne_province = {
-										religion_group = muslim
-									}
-									any_vassal = {
-										religion_group = muslim
-									}
-								}
-							}
-							modifier = { # Otherwise try to emulate your liege
-								factor = 5
-								NOR = {
-									any_demesne_province = {
-										NOT = { religion_group = muslim }
-									}
-									any_vassal = {
-										NOT = { religion_group = muslim }
-									}
-								}
-								any_liege = {
-									OR = {
-										AND = {
-											trait = sympathy_islam
-											religion = ROOT
-										}
-										religion_group = muslim
-									}
-								}	
-							}
-							modifier = {
-								factor = 0
-								NOR = {
 									any_liege = {
 										OR = {
+											religion_group = muslim
+
 											AND = {
 												trait = sympathy_islam
 												religion = ROOT
 											}
-											religion_group = muslim
 										}
 									}
-									spouse = {
+
+									any_spouse = {
 										religion_group = muslim
 									}
+
 									any_courtier_or_vassal = {
 										religion_group = muslim
 									}
+
 									any_neighbor_independent_ruler = {
 										religion_group = muslim
 									}
+
+									any_demesne_province = {
+										owned_by = ROOT
+										religion_group = muslim
+									}
+									
+									religion_openly_tengri_or_reformed_trigger = yes
+									has_religion_feature = religion_cosmopolitan
+									has_religion_feature = religion_tolerant
+								}
+							}
+
+							mult_modifier = { # Prioritize getting a sympathy trait that is useful
+								factor = 100
+
+								OR = {
 									any_demesne_province = {
 										religion_group = muslim
+									}
+
+									any_vassal = {
+										religion_group = muslim
+									}
+								}
+							}
+
+							mult_modifier = { # Otherwise try to emulate your liege
+								factor = 5
+
+								NOR = {
+									any_demesne_province = {
+										religion_group = muslim
+									}
+
+									any_vassal = {
+										religion_group = muslim
+									}
+								}
+
+								any_liege = {
+									OR = {
+										religion_group = muslim
+
+										AND = {
+											trait = sympathy_islam
+											religion = ROOT
+										}
 									}
 								}
 							}
 						}
+
 						100 = {
 							add_trait = sympathy_pagans
-							
-							modifier = {
-								factor = 0
-								religion_group = pagan_group
-							}
-							modifier = { # Prioritize getting a sympathy trait that is useful
-								factor = 100
+
+							trigger = {
+								NOT = { religion_group = pagan_group }
+
 								OR = {
-									any_demesne_province = {
-										religion_group = pagan_group
-									}
-									any_vassal = {
-										religion_group = pagan_group
-									}
-								}
-							}
-							modifier = { # Otherwise try to emulate your liege
-								factor = 5
-								NOR = {
-									any_demesne_province = {
-										NOT = { religion_group = pagan_group }
-									}
-									any_vassal = {
-										NOT = { religion_group = pagan_group }
-									}
-								}
-								any_liege = {
-									OR = {
-										AND = {
-											trait = sympathy_pagans
-											religion = ROOT
-										}
-										religion_group = pagan_group
-									}
-								}	
-							}
-							modifier = {
-								factor = 0
-								NOR = {
 									any_liege = {
 										OR = {
+											religion_group = pagan_group
+
 											AND = {
 												trait = sympathy_pagans
 												religion = ROOT
 											}
-											religion_group = pagan_group
 										}
 									}
-									spouse = {
+
+									any_spouse = {
 										religion_group = pagan_group
 									}
+
 									any_courtier_or_vassal = {
 										religion_group = pagan_group
 									}
+
 									any_neighbor_independent_ruler = {
 										religion_group = pagan_group
 									}
+
 									any_demesne_province = {
+										owned_by = ROOT
 										religion_group = pagan_group
+									}
+									
+									has_religion_feature = religion_cosmopolitan
+									has_religion_feature = religion_tolerant
+								}
+							}
+
+							mult_modifier = { # Prioritize getting a sympathy trait that is useful
+								factor = 100
+
+								OR = {
+									any_demesne_province = {
+										owned_by = ROOT
+										religion_group = pagan_group
+									}
+
+									any_vassal = {
+										religion_group = pagan_group
+									}
+								}
+							}
+
+							mult_modifier = { # Otherwise try to emulate your liege
+								factor = 5
+
+								NOR = {
+									any_demesne_province = {
+										owned_by = ROOT
+										religion_group = pagan_group
+									}
+
+									any_vassal = {
+										religion_group = pagan_group
+									}
+								}
+
+								any_liege = {
+									OR = {
+										religion_group = pagan_group
+
+										AND = {
+											trait = sympathy_pagans
+											religion = ROOT
+										}
 									}
 								}
 							}
 						}
+
 						100 = {
 							add_trait = sympathy_zoroastrianism
-							
-							modifier = {
-								factor = 0
-								religion_group = zoroastrian_group
-							}
-							modifier = { # Prioritize getting a sympathy trait that is useful
-								factor = 100
+
+							trigger = {
+								NOT = { religion_group = zoroastrian_group }
+
 								OR = {
-									any_demesne_province = {
-										religion_group = zoroastrian_group
-									}
-									any_vassal = {
-										religion_group = zoroastrian_group
-									}
-								}
-							}
-							modifier = { # Otherwise try to emulate your liege
-								factor = 5
-								NOR = {
-									any_demesne_province = {
-										NOT = { religion_group = zoroastrian_group }
-									}
-									any_vassal = {
-										NOT = { religion_group = zoroastrian_group }
-									}
-								}
-								any_liege = {
-									OR = {
-										AND = {
-											trait = sympathy_zoroastrianism
-											religion = ROOT
-										}
-										religion_group = zoroastrian_group
-									}
-								}	
-							}
-							modifier = {
-								factor = 0
-								NOR = {
 									any_liege = {
 										OR = {
+											religion_group = zoroastrian_group
+
 											AND = {
 												trait = sympathy_zoroastrianism
 												religion = ROOT
 											}
-											religion_group = zoroastrian_group
 										}
 									}
-									spouse = {
+
+									any_spouse = {
 										religion_group = zoroastrian_group
 									}
+
 									any_courtier_or_vassal = {
 										religion_group = zoroastrian_group
 									}
+
 									any_neighbor_independent_ruler = {
 										religion_group = zoroastrian_group
 									}
+
 									any_demesne_province = {
+										owned_by = ROOT
 										religion_group = zoroastrian_group
+									}
+									
+									religion_openly_tengri_or_reformed_trigger = yes
+									has_religion_feature = religion_cosmopolitan
+									has_religion_feature = religion_tolerant
+								}
+							}
+
+							mult_modifier = { # Prioritize getting a sympathy trait that is useful
+								factor = 100
+
+								OR = {
+									any_demesne_province = {
+										owned_by = ROOT
+										religion_group = zoroastrian_group
+									}
+
+									any_vassal = {
+										religion_group = zoroastrian_group
+									}
+								}
+							}
+
+							mult_modifier = { # Otherwise try to emulate your liege
+								factor = 5
+
+								NOR = {
+									any_demesne_province = {
+										owned_by = ROOT
+										religion_group = zoroastrian_group
+									}
+
+									any_vassal = {
+										religion_group = zoroastrian_group
+									}
+								}
+
+								any_liege = {
+									OR = {
+										religion_group = zoroastrian_group
+
+										AND = {
+											trait = sympathy_zoroastrianism
+											religion = ROOT
+										}
 									}
 								}
 							}
 						}
+
 						100 = {
 							add_trait = sympathy_judaism
-							
-							modifier = {
-								factor = 0
-								religion_group = jewish_group
-							}
-							modifier = { # Prioritize getting a sympathy trait that is useful
-								factor = 100
+
+							trigger = {
+								NOT = { religion_group = jewish_group }
+
 								OR = {
-									any_demesne_province = {
-										religion_group = jewish_group
-									}
-									any_vassal = {
-										religion_group = jewish_group
-									}
-								}
-							}
-							modifier = { # Otherwise try to emulate your liege
-								factor = 5
-								NOR = {
-									any_demesne_province = {
-										NOT = { religion_group = jewish_group }
-									}
-									any_vassal = {
-										NOT = { religion_group = jewish_group }
-									}
-								}
-								any_liege = {
-									OR = {
-										AND = {
-											trait = sympathy_judaism
-											religion = ROOT
-										}
-										religion_group = jewish_group
-									}
-								}	
-							}
-							modifier = {
-								factor = 0
-								NOR = {
 									any_liege = {
 										OR = {
+											religion_group = jewish_group
+
 											AND = {
 												trait = sympathy_judaism
 												religion = ROOT
 											}
-											religion_group = jewish_group
 										}
 									}
-									spouse = {
+
+									any_spouse = {
 										religion_group = jewish_group
 									}
+
 									any_courtier_or_vassal = {
 										religion_group = jewish_group
 									}
+
 									any_neighbor_independent_ruler = {
 										religion_group = jewish_group
 									}
+
 									any_demesne_province = {
+										owned_by = ROOT
 										religion_group = jewish_group
+									}
+									
+									religion_openly_tengri_or_reformed_trigger = yes
+									has_religion_feature = religion_cosmopolitan
+									has_religion_feature = religion_tolerant
+								}
+							}
+
+							mult_modifier = { # Prioritize getting a sympathy trait that is useful
+								factor = 100
+
+								OR = {
+									any_demesne_province = {
+										owned_by = ROOT
+										religion_group = jewish_group
+									}
+
+									any_vassal = {
+										religion_group = jewish_group
+									}
+								}
+							}
+
+							mult_modifier = { # Otherwise try to emulate your liege
+								factor = 5
+
+								NOR = {
+									any_demesne_province = {
+										owned_by = ROOT
+										religion_group = jewish_group
+									}
+
+									any_vassal = {
+										religion_group = jewish_group
+									}
+								}
+
+								any_liege = {
+									OR = {
+										religion_group = jewish_group
+
+										AND = {
+											trait = sympathy_judaism
+											religion = ROOT
+										}
 									}
 								}
 							}
 						}
+
 						100 = {
 							add_trait = sympathy_indian
-							
-							modifier = {
-								factor = 0
-								religion_group = indian_group
-							}
-							modifier = { # Prioritize getting a sympathy trait that is useful
-								factor = 100
+
+							trigger = {
+								NOT = { religion_group = indian_group }
+
 								OR = {
-									any_demesne_province = {
-										religion_group = indian_group
-									}
-									any_vassal = {
-										religion_group = indian_group
-									}
-								}
-							}
-							modifier = { # Otherwise try to emulate your liege
-								factor = 5
-								NOR = {
-									any_demesne_province = {
-										NOT = { religion_group = indian_group }
-									}
-									any_vassal = {
-										NOT = { religion_group = indian_group }
-									}
-								}
-								any_liege = {
-									OR = {
-										AND = {
-											trait = sympathy_indian
-											religion = ROOT
-										}
-										religion_group = indian_group
-									}
-								}	
-							}
-							modifier = {
-								factor = 0
-								NOR = {
 									any_liege = {
 										OR = {
+											religion_group = indian_group
+
 											AND = {
 												trait = sympathy_indian
 												religion = ROOT
 											}
-											religion_group = indian_group
 										}
 									}
-									spouse = {
+
+									any_spouse = {
 										religion_group = indian_group
 									}
+
 									any_courtier_or_vassal = {
 										religion_group = indian_group
 									}
+
 									any_neighbor_independent_ruler = {
 										religion_group = indian_group
 									}
+
 									any_demesne_province = {
+										owned_by = ROOT
 										religion_group = indian_group
+									}
+									
+									religion_openly_tengri_or_reformed_trigger = yes
+									has_religion_feature = religion_cosmopolitan
+									has_religion_feature = religion_tolerant
+								}
+							}
+
+							mult_modifier = { # Prioritize getting a sympathy trait that is useful
+								factor = 100
+
+								OR = {
+									any_demesne_province = {
+										owned_by = ROOT
+										religion_group = indian_group
+									}
+
+									any_vassal = {
+										religion_group = indian_group
+									}
+								}
+							}
+
+							mult_modifier = { # Otherwise try to emulate your liege
+								factor = 5
+
+								NOR = {
+									any_demesne_province = {
+										owned_by = ROOT
+										religion_group = indian_group
+									}
+
+									any_vassal = {
+										religion_group = indian_group
+									}
+								}
+
+								any_liege = {
+									OR = {
+										religion_group = indian_group
+
+										AND = {
+											trait = sympathy_indian
+											religion = ROOT
+										}
 									}
 								}
 							}
@@ -923,200 +1034,201 @@ decisions = {
 				}
 			}
 		}
-		revoke_allowed = {
-			always = no
-		}
+
 		ai_will_do = {
 			factor = 1
-			
-			modifier = { # These are the most important reasons to gain a sympathy trait, if the AI has neither they are less likely to gain a trait
-				factor = 0.25
-				NOR = {
-					any_demesne_province = {
+
+			trigger = {
+				# Zealous characters do not want to understand
+				NOT = { trait = zealous }
+
+				# The AI needs a reason to do the decision at all
+				OR = {
+					any_liege = {
+						OR = {
+							NOT = { religion_group = ROOT }
+
+							AND = {
+								has_any_sympathy_trait_trigger = yes
+								religion = ROOT
+							}
+						}
+					}
+
+					any_spouse = {
 						NOT = { religion_group = ROOT }
 					}
+
+					any_courtier_or_vassal = {
+						NOT = { religion_group = ROOT }
+					}
+
+					any_neighbor_independent_ruler = {
+						NOT = { religion_group = ROOT }
+					}
+
+					any_demesne_province = {
+						owned_by = ROOT
+						NOT = { religion_group = ROOT }
+					}
+				}
+			}
+
+			# These are the most important reasons to gain a sympathy trait, if the AI has neither they are less likely to gain a trait
+			mult_modifier = {
+				factor = 0.25
+
+				NOR = {
+					any_demesne_province = {
+						owned_by = ROOT
+						NOT = { religion_group = ROOT }
+					}
+
 					any_vassal = {
 						NOT = { religion_group = ROOT }
 					}
+
 					any_liege = {
 						religion = ROOT
 						has_any_sympathy_trait_trigger = yes
 					}
 				}
 			}
-
-			modifier = { # Zealous characters do not want to understand
-				factor = 0
-				trait = zealous
-			}
-			
-			modifier = { # The AI needs a reason to do the decision at all
-				factor = 0
-				NOR = {
-					any_liege = {
-						OR = {
-							AND = {
-								has_any_sympathy_trait_trigger = yes
-								religion = ROOT
-							}
-							NOT = { religion_group = ROOT }
-						}
-					}
-					spouse = {
-						NOT = { religion_group = ROOT }
-					}
-					any_courtier_or_vassal = {
-						NOT = { religion_group = ROOT }
-					}
-					any_neighbor_independent_ruler = {
-						NOT = { religion_group = ROOT }
-					}
-					any_demesne_province = {
-						NOT = { religion_group = ROOT }
-					}
-				}
-			}
 		}
 	}
+
 	pagan_branch_decision = {
+		ai_check_interval = 70
+
 		is_high_prio = yes
-		ai_check_interval = 70 #check only once every 70 months.
+
 		potential = {
-			is_adult = yes
-			NOT = { trait = pagan_branch_1 }
-			NOT = { trait = pagan_branch_2 }
-			NOT = { trait = pagan_branch_3 }
-			NOT = { trait = pagan_branch_4 }
-			NOT = { has_character_flag = flag_picking_branch }
 			has_religion_feature = religion_no_leader
-			
+			is_adult = yes
+
+			NOR = {
+				trait = pagan_branch_1
+				trait = pagan_branch_2
+				trait = pagan_branch_3
+				trait = pagan_branch_4
+				has_character_flag = flag_picking_branch
+			}
 		}
-		
+
 		allow = {
 			prisoner = no
-			NOT = { trait = incapable }
+			is_actually_incapable_trigger = no
 		}
-		
+
 		effect = {
 			custom_tooltip = {
 				text = tooltip_pick_pagan_branch
-			}
-			hidden_tooltip = {
+
 				set_character_flag = flag_picking_branch
-				character_event = { id = HF.23016 }
-				add_character_modifier = { modifier = picked_pagan_branch_cooldown years = 5 hidden = yes }
+				character_event = { id = HF.23016 } # Pick branch trait
+
+				add_character_modifier = {
+					name = picked_pagan_branch_cooldown
+					years = 5
+					hidden = yes
+				}
 			}
 		}
-		revoke_allowed = {
-			always = no
-		}
+
 		ai_will_do = {
 			factor = 1
 
-			modifier = {
+			mult_modifier = {
 				factor = 1.5
 				trait = zealous
 			}
 		}
 	}
+
 	change_pagan_branch_decision = {
-		only_playable = yes
 		ai = no
 
 		potential = {
+			has_religion_feature = religion_no_leader
 			is_adult = yes
-			OR = { 
+
+			OR = {
 				trait = pagan_branch_1
 				trait = pagan_branch_2
-				trait = pagan_branch_3 
+				trait = pagan_branch_3
 				trait = pagan_branch_4
 			}
-			NOT = { has_character_flag = flag_picking_branch }
-			NOT = { has_character_flag = flag_changed_branch }
-			has_religion_feature = religion_no_leader
-			
-		}
-		
-		allow = {
-			prisoner = no
-			NOT = { trait = incapable }
-			custom_tooltip = { text = pagan_branch_timer 
-				hidden_tooltip = { NOT = { has_character_modifier = picked_pagan_branch_cooldown } } 
+
+			NOR = {
+				has_character_flag = flag_picking_branch
+				has_character_flag = flag_changed_branch
 			}
 		}
-		
+
+		allow = {
+			prisoner = no
+			is_actually_incapable_trigger = no
+
+			custom_tooltip = {
+				text = pagan_branch_timer
+				NOT = { has_character_modifier = picked_pagan_branch_cooldown }
+			}
+		}
+
 		effect = {
 			custom_tooltip = {
 				text = tooltip_change_pagan_branch
-			}
-			hidden_tooltip = {
+
 				set_character_flag = flag_picking_branch
 				set_character_flag = flag_changed_branch
-				character_event = { id = HF.23017 }
+				character_event = { id = HF.23017 } # Switch branch trait
 			}
 		}
-		revoke_allowed = {
-			always = no
-		}
-		ai_will_do = {
-			factor = 0
-		}
+
+		ai_will_do = { factor = 0 }
 	}
-	determine_zodiac_sign_decision = { # TODO: Eastern zodiac for Eastern characters
-		#only_playable = yes
+
+	determine_zodiac_sign_decision = {
 		is_high_prio = yes
-		#ai_check_interval = 200 #check only once every 200 months.
+
 		ai = no
+
 		potential = {
 			is_adult = yes
-			NOR = { 
-				trait = zodiac_aquarius
-				trait = zodiac_aries
-				trait = zodiac_cancer
-				trait = zodiac_capricorn
-				trait = zodiac_gemini
-				trait = zodiac_leo
-				trait = zodiac_libra
-				trait = zodiac_pisces
-				trait = zodiac_sagittarius
-				trait = zodiac_scorpio
-				trait = zodiac_taurus
-				trait = zodiac_virgo
-			}
+
 			OR = {
-				religion = hellenic_pagan
-				religion = hellenic_pagan_reformed
-				has_religion_feature = religion_astrology 
-				has_religion_feature = religion_feature_chinese
+				religion_openly_hellenic_or_reformed_trigger = yes
+				has_religion_feature = religion_astrology
 			}
+
+			has_any_astrology_trait_trigger = no
 			NOT = { has_character_flag = flag_child_forsaken_zodiac }
 		}
-		
+
 		allow = {
 			prisoner = no
-			NOT = { trait = incapable }
-			learning = 6
+			is_actually_incapable_trigger = no
+			learning >= 6
 		}
-		
+
 		effect = {
 			custom_tooltip = {
 				text = gain_zodiac_trait_effect_tt
-			}
-			hidden_tooltip = {
+
 				add_western_zodiac_trait_effect = yes
-				character_event = { id = HFP.23925 }
+				character_event = { id = HFP.23925 } # Notify, show trait gain
 			}
 		}
-		revoke_allowed = {
-			always = no
-		}
+
 		ai_will_do = {
 			factor = 1
-			modifier = {
+
+			mult_modifier = {
 				factor = 1.5
 				trait = zealous
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 0.1
 				trait = cynical
 			}
@@ -1124,104 +1236,126 @@ decisions = {
 	}
 
 	delve_into_classics_decision = {
-		only_playable = yes
+		ai_check_interval = 400
+
 		is_high_prio = yes
-		ai_check_interval = 400 #check only once every 400 months.
+
+		only_playable = yes
+
 		potential = {
+			has_dlc = "Holy Fury"
+
 			has_game_rule = {
 				name = hellenism_rule
 				value = on
 			}
-			has_dlc = "Holy Fury"
+
+			religion_group = christian
 			is_adult = yes
-			religion_group = christian #Must be Christian.
-			is_heretic = no #Must belong to a dominant denomination of the faith.
-			OR = { #Must be of the interested cultures.
+			is_heretic = no
+
+			# Must be of the interested cultures
+			OR = {
 				culture = greek
 				culture = italian
 				culture = roman
 				culture = sardinian
 			}
-			OR = { #Must be eccentric or crazy.
-				trait = lunatic 
+
+			# Must be eccentric or crazy
+			OR = {
+				trait = lunatic
 				trait = possessed
 				trait = scholar
 				trait = mystic
 				has_focus = focus_scholarship
-			} 
-			OR = { #Must control an hellenic Holy Site.
+			}
+
+			# Must control an Hellenic Holy Site
+			OR = {
 				completely_controls = c_thessalonike
 				completely_controls = c_atheniai
 				completely_controls = c_siracusa
 				completely_controls = c_roma
 				completely_controls = c_alexandria
-			} 
-			NOR = { #Must not have used this decision or be an hellen already.
-				is_theocracy = yes
-				religion = hellenic_pagan
-				religion = hellenic_pagan_reformed
-				secret_religion = hellenic_pagan
-				secret_religion = hellenic_pagan_reformed
+			}
+
+			# Must not have used this decision or be Hellenic already
+			is_theocracy = no
+			religion_openly_hellenic_or_reformed_trigger = no
+			religion_secretly_hellenic_or_reformed_trigger = no
+
+			NOR = {
 				has_character_modifier = caesars_insight
 				has_character_modifier = ciceros_insight
 				has_character_modifier = justinians_insight
 				has_character_flag = flag_delving_into_classics
-				has_global_flag = hellenic_reformation #No point in secrecy, there are other ways to convert.
+
+				hellenic_pagan = {
+					has_flag = has_been_reformed # No point in secrecy, there are other ways to convert
+				}
 			}
-			capital_scope = { #Court must also be localized in Italy or Greece.
-				OR = { 
+
+			# Court must also be localized in Italy or Greece
+			capital_scope = {
+				OR = {
 					region = world_europe_south_italy
-					region = world_europe_south_east 
-				} 
+					region = world_europe_south_east
+				}
 			}
 		}
-		
+
 		allow = {
 			prisoner = no
-			NOT = { trait = incapable }
-			learning = 6
+			is_actually_incapable_trigger = no
+			learning >= 6
 		}
-		
+
 		effect = {
 			custom_tooltip = {
 				text = tooltip_delve_into_classics
-			}
-			hidden_tooltip = {
+
 				set_character_flag = flag_delving_into_classics
-				character_event = { id = HF.23026 }
+				character_event = { id = HF.23026 } # Pick topic
 			}
 		}
-		revoke_allowed = {
-			always = no
-		}
+
 		ai_will_do = {
 			factor = 1
-			modifier = {
-				factor = 0
-				trait = zealous
+
+			trigger = {
+				NOT = { trait = zealous }
 			}
 		}
 	}
-	
+
 	# Create Myrmidons - Hellenic Holy Order
 	create_myrmidons = {
-		only_playable = yes
+		ai_check_interval = 120
+
 		is_high_prio = yes
-		ai_check_interval = 120 #check only once every 120 months.
-		
+
+		only_playable = yes
+
 		potential = {
-			NOT = { is_title_active = d_myrmidons }
-			#NOT = { has_landed_title = e_roman_empire } #To activate in the event of special case being defined for Roman Emperors. (!!!!)
-			OR = {
-				independent = yes
-				tier = king
-			}
 			religion = hellenic_pagan_reformed
+			NOT = { is_title_active = d_myrmidons }
+
+			# NOT = { has_landed_title = e_roman_empire } # To activate in the event of special case being defined for Roman Emperors. (!!!!)
+
+			trigger_if = {
+				limit = { independent = no }
+				real_tier = KING
+			}
+
 			NOT = {
-				has_alternate_start_parameter = { key = religion_names value = random }
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
 			}
 		}
-		
+
 		allow = {
 			OR = {
 				AND = {
@@ -1230,19 +1364,25 @@ decisions = {
 					completely_controls = c_siracusa
 					completely_controls = c_roma
 					completely_controls = c_alexandria
-					piety = 1000
+					piety >= 1000
 				}
+
 				AND = {
-					year = 1100
-					piety = 200
+					year >= 1100
+					piety >= 200
 				}
 			}
 		}
-		
+
 		effect = {
-			custom_tooltip = { text = create_myrmidons_tooltip }
-			hidden_tooltip = {
-				activate_title = { title = d_myrmidons status = yes }
+			custom_tooltip = {
+				text = create_myrmidons_tooltip
+
+				activate_title = {
+					title = d_myrmidons
+					status = yes
+				}
+
 				create_character = {
 					random_traits = no
 					dynasty = random
@@ -1250,93 +1390,74 @@ decisions = {
 					culture = greek
 					female = no
 					age = 33
-					trait = brilliant_strategist
-					trait = zealous
-					trait = humble
-					trait = ambitious
-					trait = strategist
-					trait = holy_warrior
+					add_trait = brilliant_strategist
+					add_trait = zealous
+					add_trait = humble
+					add_trait = ambitious
+					add_trait = strategist
+					add_trait = holy_warrior
 				}
+
 				new_character = {
 					wealth = 500
-					d_myrmidons = {
-						grant_title = PREV
-					}
-					set_government_type = feudal_government
+
+					grant_title = d_myrmidons
+					set_government_type = order_government
 					save_event_target_as = leader_of_myrmidons
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = greek
-						female = no
-						age = 16
+
+					while = {
+						count = 7
+
+						create_character = {
+							random_traits = yes
+							dynasty = random
+							religion = ROOT
+							culture = greek
+							female = no
+							age = 16
+						}
+
+						new_character = {
+							random_list = {
+								1 = { }
+								1 = { add_age = 1 }
+								1 = { add_age = 2 }
+								1 = { add_age = 3 }
+								1 = { add_age = 4 }
+								1 = { add_age = 5 }
+								1 = { add_age = 6 }
+								1 = { add_age = 7 }
+								1 = { add_age = 8 }
+								1 = { add_age = 9 }
+								1 = { add_age = 10 }
+								1 = { add_age = 11 }
+								1 = { add_age = 12 }
+							}
+						}
 					}
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = greek
-						female = no
-						age = 18
-					}
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = greek
-						female = no
-						age = 18
-					}
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = greek
-						female = no
-						age = 20
-					}
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = greek
-						female = no
-						age = 25
-					}
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = greek
-						female = no
-						age = 26
-					}
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = greek
-						female = no
-						age = 28
-					}
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = greek
-						female = yes
-						age = 16
-					}
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = greek
-						female = yes
-						age = 17
+
+					while = {
+						count = 2
+
+						create_character = {
+							random_traits = yes
+							dynasty = random
+							religion = ROOT
+							culture = greek
+							female = yes
+							age = 16
+						}
+
+						new_character = {
+							random_list = {
+								1 = { }
+								1 = { add_age = 1 }
+								1 = { add_age = 2 }
+							}
+						}
 					}
 				}
+
 				any_player = {
 					limit = {
 						OR = {
@@ -1344,68 +1465,78 @@ decisions = {
 							capital_scope = { region = world_europe_west }
 						}
 					}
-					narrative_event = { id = HF.23120 }
+
+					narrative_event = { id = HF.23120 } # Notify
 				}
 			}
 		}
-		
-		revoke_allowed = {
-			always = no
-		}
-		
+
 		ai_will_do = {
 			factor = 1
 		}
 	}
+
 	# Create Bacchants - Hellenic Satanists
 	create_bacchants = {
-		only_playable = yes
+		ai_check_interval = 120
+
 		is_high_prio = yes
-		ai_check_interval = 120 #check only once every 120 months.
-		
+
+		only_playable = yes
+
 		potential = {
-			NOT = {
-				has_alternate_start_parameter = { key = religion_names value = random }
-			}
-			OR = {
-				has_global_flag = hellenic_reformation
-				has_global_flag = flag_started_roman_renaissance #Required cultural basis in order for them to take root.
-			}
 			has_dlc = "Mystics"
-			has_bacchants_prerequisites = yes
-			NOT = { 
-				the_bacchants = {
-					society_has_members = yes								
+
+			OR = {
+				hellenic_pagan = {
+					has_flag = has_been_reformed
 				}
+
+				has_global_flag = flag_started_roman_renaissance # Required cultural basis in order for them to take root
 			}
-			NOT = { 
+
+			NOR = {
 				has_global_flag = flag_restored_bacchants
-			}
-			NOT = {
+
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+
 				has_game_rule = {
 					name = devil_worshipers
 					value = none
 				}
 			}
+
+			has_bacchants_prerequisites = yes
+
+			the_bacchants = {
+				society_has_members = no
+			}
 		}
-		
+
 		allow = {
 			is_in_society = no
-			NOR = { 
-				trait = incapable
-				trait = zealous 
-			}
+			is_actually_incapable_trigger = no
+			NOT = { trait = zealous }
 			is_inaccessible_trigger = no
 		}
-		
+
 		effect = {
 			piety = -800
-			custom_tooltip = { text = create_bacchants_tooltip }
-			hidden_tooltip = {
+
+			custom_tooltip = {
+				text = create_bacchants_tooltip
+
 				set_global_flag = flag_restored_bacchants
 				join_society = the_bacchants
-				set_society_grandmaster = yes # Set character as Grand Master
+				set_society_grandmaster = yes
 				add_society_currency_massive_effect = yes
+
+				while = {
+					count = 6
+
 					create_character = {
 						random_traits = yes
 						dynasty = random
@@ -1414,61 +1545,31 @@ decisions = {
 						female = no
 						age = 16
 					}
-					new_character = { join_society = the_bacchants }
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = ROOT
-						female = no
-						age = 18
+
+					new_character = {
+						join_society = the_bacchants
+
+						random_list = {
+							1 = { }
+							1 = { add_age = 1 }
+							1 = { add_age = 2 }
+							1 = { add_age = 3 }
+							1 = { add_age = 4 }
+							1 = { add_age = 5 }
+							1 = { add_age = 6 }
+							1 = { add_age = 7 }
+							1 = { add_age = 8 }
+							1 = { add_age = 9 }
+							1 = { add_age = 10 }
+							1 = { add_age = 11 }
+							1 = { add_age = 12 }
+						}
 					}
-					new_character = { join_society = the_bacchants }
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = ROOT
-						female = yes
-						age = 18
-					}
-					new_character = { join_society = the_bacchants }
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = ROOT
-						female = no
-						age = 20
-					}
-					new_character = { join_society = the_bacchants }
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = ROOT
-						female = no
-						age = 25
-					}
-					new_character = { join_society = the_bacchants }
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = ROOT
-						female = no
-						age = 26
-					}
-					new_character = { join_society = the_bacchants }
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = ROOT
-						female = no
-						age = 28
-					}
-					new_character = { join_society = the_bacchants }
+				}
+
+				while = {
+					count = 3
+
 					create_character = {
 						random_traits = yes
 						dynasty = random
@@ -1477,587 +1578,617 @@ decisions = {
 						female = yes
 						age = 16
 					}
-					new_character = { join_society = the_bacchants }
-					create_character = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = ROOT
-						female = yes
-						age = 17
+
+					new_character = {
+						join_society = the_bacchants
+
+						random_list = {
+							1 = { }
+							1 = { add_age = 1 }
+							1 = { add_age = 2 }
+						}
 					}
-					new_character = { join_society = the_bacchants }
+				}
+
 				any_vassal = {
 					limit = {
 						ai = yes
 						can_join_society = the_bacchants
 						is_within_diplo_range = ROOT
 					}
-					random = { chance = 35 join_society = the_bacchants }
+
+					random = {
+						chance = 35
+						join_society = the_bacchants
+					}
 				}
+
 				any_independent_ruler = {
 					limit = {
 						ai = yes
 						can_join_society = the_bacchants
 						is_within_diplo_range = ROOT
 					}
-					random = { chance = 35 join_society = the_bacchants }
+
+					random = {
+						chance = 35
+						join_society = the_bacchants
+					}
 				}
+
 				any_player = {
 					limit = {
 						OR = {
-							religion = hellenic_pagan_reformed
-							religion = hellenic_pagan
+							religion_openly_hellenic_or_reformed_trigger = yes
 							culture = roman
 							is_within_diplo_range = ROOT
 						}
 					}
+
 					narrative_event = { id = HF.23122 }
 				}
 			}
 		}
-		
-		revoke_allowed = {
-			always = no
-		}
-		
-		ai_will_do = {
-			factor = 1
-		}
+
+		ai_will_do = { factor = 1 }
 	}
+
 	# Create Stoics - Hellenic Monks
 	create_stoics = {
-		only_playable = yes
+		ai_check_interval = 120
+
 		is_high_prio = yes
-		ai_check_interval = 120 #check only once every 120 months.
-		
+
+		only_playable = yes
+
 		potential = {
-			NOT = {
-				has_global_flag = flag_restored_stoic_intelligentia
-			}
-			NOT = {
-				has_alternate_start_parameter = { key = religion_names value = random }
-			}
-			OR = {
-				has_global_flag = hellenic_reformation
-				has_global_flag = flag_started_roman_renaissance #Required cultural basis in order for them to take root.
-			}
 			has_dlc = "Mystics"
-			age = 16
-			NOT = { has_religion_feature = religion_dogmatic }
-			NOR = { #Not for savages.
-				is_tribal = yes
-				is_nomadic = yes
-			}
-			OR = { 
-				religion = hellenic_pagan 
-				religion = hellenic_pagan_reformed
-				AND = { 
+
+			OR = {
+				religion_openly_hellenic_or_reformed_trigger = yes
+
+				AND = {
 					culture = roman
-					OR = { #Somewhat compatible when mixed with Roman culture.
-						religion_group = christian 
-						religion_group = jewish_group 
-						religion = bon
-						religion = bon_reformed
-						religion = buddhist
+
+					# Somewhat compatible when mixed with Roman culture
+					OR = {
+						religion_group = christian
+						religion_group = jewish_group
+						#religion_openly_bon_or_reformed_trigger = yes
+						#religion = buddhist
 					}
 				}
 			}
-			NOT = { trait = excommunicated }
-			NOT = { 
-				monastic_order_stoics = {
-					society_has_members = yes								
+
+			OR = {
+				hellenic_pagan = {
+					has_flag = has_been_reformed # No point in secrecy, there are other ways to convert
+				}
+
+				has_global_flag = flag_started_roman_renaissance # Required cultural basis in order for them to take root
+			}
+
+			is_adult = yes
+
+			# Not for savages
+			is_tribal = no
+			is_nomadic = no
+
+			NOR = {
+				has_religion_feature = religion_dogmatic
+				trait = excommunicated
+				has_global_flag = flag_restored_stoic_intelligentia
+
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
 				}
 			}
-		}
-		
-		allow = {
-			is_in_society = no
-			NOR = { 
-				trait = incapable
+
+			monastic_order_stoics = {
+				society_has_members = no
 			}
-			OR = { #Must have one of the Stoic virtues to restart the movement.
+		}
+
+		allow = {
+			higher_real_tier_than = COUNT
+			is_in_society = no
+			is_actually_incapable_trigger = no
+			is_inaccessible_trigger = no
+
+			# Must have one of the Stoic virtues to restart the movement
+			OR = {
 				trait = temperate
 				trait = erudite
 				trait = brave
 				trait = just
 			}
-			higher_tier_than = COUNT
-			learning = 15
-			is_inaccessible_trigger = no
+
+			learning >= 15
 			scaled_wealth = 0.25
 		}
-		
+
 		effect = {
 			scaled_wealth = -0.25
-			custom_tooltip = { text = create_stoics_tooltip }
-			hidden_tooltip = {
-				set_global_flag = flag_restored_stoic_intelligentia 
+
+			custom_tooltip = {
+				text = create_stoics_tooltip
+
+				set_global_flag = flag_restored_stoic_intelligentia
 				join_society = monastic_order_stoics
-				set_society_grandmaster = yes # Set character as Grand Master
+				set_society_grandmaster = yes
 				add_society_currency_massive_effect = yes
+
+				while = {
+					count = 6
+
 					create_random_priest = {
 						random_traits = yes
 						dynasty = random
 						religion = ROOT
 						culture = ROOT
-						attributes = {
-							learning = 10
-						}
 						female = no
 						age = 16
-					}
-					new_character = { join_society = monastic_order_stoics }
-					create_random_priest = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = ROOT
+
 						attributes = {
 							learning = 10
 						}
-						female = no
-						age = 18
 					}
-					new_character = { join_society = monastic_order_stoics }
-					create_random_priest = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = ROOT
-						attributes = {
-							learning = 10
+
+					new_character = {
+						join_society = monastic_order_stoics
+
+						random_list = {
+							1 = { }
+							1 = { add_age = 1 }
+							1 = { add_age = 2 }
+							1 = { add_age = 3 }
+							1 = { add_age = 4 }
+							1 = { add_age = 5 }
+							1 = { add_age = 6 }
+							1 = { add_age = 7 }
+							1 = { add_age = 8 }
+							1 = { add_age = 9 }
+							1 = { add_age = 10 }
+							1 = { add_age = 11 }
+							1 = { add_age = 12 }
 						}
-						female = no
-						age = 20
 					}
-					new_character = { join_society = monastic_order_stoics }
-					create_random_priest = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = ROOT
-						attributes = {
-							learning = 10
-						}
-						female = no
-						age = 25
-					}
-					new_character = { join_society = monastic_order_stoics }
-					create_random_priest = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = ROOT
-						attributes = {
-							learning = 10
-						}
-						female = no
-						age = 26
-					}
-					new_character = { join_society = monastic_order_stoics }
-					create_random_priest = {
-						random_traits = yes
-						dynasty = random
-						religion = ROOT
-						culture = ROOT
-						attributes = {
-							learning = 10
-						}
-						female = no
-						age = 28
-					}
-					new_character = { join_society = monastic_order_stoics }
+				}
+
 				any_vassal = {
 					limit = {
 						ai = yes
 						can_join_society = monastic_order_stoics
 					}
+
 					join_society = monastic_order_stoics
 				}
+
 				any_independent_ruler = {
 					limit = {
 						ai = yes
 						can_join_society = monastic_order_stoics
 						is_within_diplo_range = ROOT
 					}
-					random = { chance = 35 join_society = monastic_order_stoics }
+
+					random = {
+						chance = 35
+						join_society = monastic_order_stoics
+					}
 				}
+
 				any_player = {
 					limit = {
 						OR = {
-							religion = hellenic_pagan_reformed
-							religion = hellenic_pagan
+							religion_openly_hellenic_or_reformed_trigger = yes
 							culture = roman
 							is_within_diplo_range = ROOT
 						}
 					}
+
 					narrative_event = { id = HF.23123 }
 				}
 			}
 		}
-		
-		revoke_allowed = {
-			always = no
-		}
-		
-		ai_will_do = {
-			factor = 1
-		}
+
+		ai_will_do = { factor = 1 }
 	}
+
 	bloodthirsty_games_decision = {
+		ai_check_interval = 240
+
 		is_high_prio = yes
-		ai_check_interval = 240 #check only once every 240 months.
+
+		only_independent = yes
+
 		potential = {
 			has_dlc = "Holy Fury"
-			is_adult = yes
-			is_inaccessible_trigger = no
-			NOT = { trait = incapable }
-			higher_real_tier_than = COUNT
-			is_ruler = yes
-			is_landed = yes
-			independent = yes
-			NOT = { has_any_opinion_modifier = opinion_blood_games_guest }
-			NOT = { has_religion_feature = religion_peaceful }
-			OR = { 
-				religion = aztec
-				religion = aztec_reformed
+
+			OR = {
+				religion_openly_aztec_or_reformed_trigger = yes
 				has_religion_feature = religion_ritual_sacrifice
 			}
+
+			independent = yes
+			higher_real_tier_than = COUNT
+			is_landed = yes
+			is_adult = yes
+			is_actually_incapable_trigger = no
+
+			NOR = {
+				has_any_opinion_modifier = opinion_blood_games_guest
+				has_religion_feature = religion_peaceful
+			}
 		}
-		
+
 		allow = {
-			prisoner = no
-			OR = { 
+			OR = {
 				trait = bloodthirsty_gods_1
 				trait = bloodthirsty_gods_2
 				trait = bloodthirsty_gods_3
 			}
-			piety = 100
-			custom_tooltip = { 
-				text = tooltip_bloodthirsty_games_cooldown
-				hidden_tooltip = {
-					NOT = { has_character_modifier = bloodthirsty_games_cooldown }
+
+			piety >= 100
+			prisoner = no
+			is_inaccessible_trigger = no
+
+			trigger_if = {
+				limit = { has_character_modifier = bloodthirsty_games_cooldown }
+
+				custom_tooltip = {
+					text = tooltip_bloodthirsty_games_cooldown
+					always = no
 				}
 			}
 		}
-		
+
 		effect = {
 			piety = -100
+
 			custom_tooltip = {
 				text = tooltip_start_bloodthirsty_games
-			}
-			hidden_tooltip = {
-				character_event = { id = HF.23440 }
-				add_character_modifier = { modifier = bloodthirsty_games_cooldown years = 5 hidden = yes }
+
+				character_event = { id = HF.23440 } # Send invitations
+
+				add_character_modifier = {
+					name = bloodthirsty_games_cooldown
+					years = 5
+					hidden = yes
+				}
 			}
 		}
-		revoke_allowed = {
-			always = no
-		}
+
 		ai_will_do = {
 			factor = 1
 
-			modifier = { #No valid free candidates.
-				factor = 0
-				NOR = { 
+			trigger = {
+				NOT = { trait = cynical }
+
+				# Enough contender to make it interesting
+				num_of_vassals >= 6
+
+				# Enough valid free candidates
+				OR = {
 					any_realm_character = {
-						host = { character = ROOT }
+						count >= 5
+
 						prisoner = yes
-						OR = { #Sex laws check
-							AND = { 
-								is_female = no
-								male_can_hold_minor_title_trigger = yes
-							}
-							AND = { 
-								is_female = yes
-								female_can_hold_minor_title_trigger = yes
-							}
+						host = { character = ROOT }
+
+						# Sex laws check
+						trigger_if = {
+							limit = { is_female = no }
+							male_can_hold_minor_title_trigger = yes
 						}
-						count = 5
+						trigger_else = {
+							female_can_hold_minor_title_trigger = yes
+						}
 					}
+
 					any_courtier = {
-						is_ruler = no
+						count >= 2
+
 						has_minor_title = title_commander
-						count = 2
+						is_ruler = no
 					}
 				}
 			}
-			modifier = { #Not enough contender to make it interesting.
-				factor = 0
-				NOT = { num_of_vassals = 6 }
-			}
-			modifier = {
-				factor = 0
-				trait = cynical
-			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 1.5
 				trait = zealous
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 1.25
 				trait = bloodthirsty_gods_2
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 1.5
 				trait = bloodthirsty_gods_3
 			}
 		}
 	}
+
 	bloodthirsty_mass_sacrifice_decision = {
+		ai_check_interval = 150
+
 		is_high_prio = yes
-		ai_check_interval = 150 #check only once every 150 months.
+
+		only_independent = yes
+
 		potential = {
 			has_dlc = "Holy Fury"
-			is_adult = yes
-			is_inaccessible_trigger = no
-			NOT = { trait = incapable }
-			higher_real_tier_than = COUNT
-			is_ruler = yes
-			is_landed = yes
-			independent = yes
-			NOT = { has_religion_feature = religion_peaceful } #Aztecs could reform as Peaceful.
-			OR = { 
-				religion = aztec
-				religion = aztec_reformed
+
+			OR = {
+				religion_openly_aztec_or_reformed_trigger = yes
 				has_religion_feature = religion_ritual_sacrifice
 			}
+
+			independent = yes
+			higher_real_tier_than = COUNT
+			is_landed = yes
+			is_adult = yes
+			is_actually_incapable_trigger = no
+
+			# Aztecs could reform as Peaceful
+			NOT = { has_religion_feature = religion_peaceful }
 		}
-		
+
 		allow = {
-			prisoner = no
-			war = yes
-			NOT = { trait = cynical }
-			OR = { 
+			OR = {
 				trait = bloodthirsty_gods_2
 				trait = bloodthirsty_gods_3
 			}
-			piety = 200
-			custom_tooltip = { 
-				text = tooltip_bloodthirsty_mass_sacrifice_cooldown
-				hidden_tooltip = {
-					NOT = { has_character_modifier = bloodthirsty_mass_sacrifice_cooldown }
+
+			piety >= 200
+			war = yes
+			prisoner = no
+			is_inaccessible_trigger = no
+			NOT = { trait = cynical }
+
+			trigger_if = {
+				limit = { has_character_modifier = bloodthirsty_mass_sacrifice_cooldown }
+
+				custom_tooltip = {
+					text = tooltip_bloodthirsty_mass_sacrifice_cooldown
+					always = no
 				}
 			}
 		}
-		
+
 		effect = {
 			piety = -200
+
 			custom_tooltip = {
 				text = tooltip_start_bloodthirsty_mass_sacrifice
-			}
-			hidden_tooltip = {
-				character_event = { id = HF.23462 }
-				add_character_modifier = { modifier = bloodthirsty_mass_sacrifice_cooldown years = 100 hidden = yes }
+
+				character_event = { id = HF.23462 } # Decide how many people are you going to sacrifice.
+
+				add_character_modifier = {
+					name = bloodthirsty_mass_sacrifice_cooldown
+					years = 100 # CleanSlate: tooltip mention 'last few decades', but religion modifier in event also lasts a century
+					hidden = yes
+				}
 			}
 		}
-		revoke_allowed = {
-			always = no
-		}
+
 		ai_will_do = {
 			factor = 1
 
-			modifier = {
+			trigger = {
+				# I could use some help winning this war
+				any_war = {
+					is_primary_war_defender = yes
+					attacker = { war_score < 50 }
+				}
+			}
+
+			mult_modifier = {
 				factor = 1.5
 				trait = zealous
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 1.5
 				trait = bloodthirsty_gods_3
 			}
-			modifier = { #I am losing the war, help!
+
+			mult_modifier = { # I am losing the war, help!
 				factor = 10
+
 				any_war = {
 					defender = { character = ROOT }
-					attacker = {
-						war_score = -50
-					}
-				}
-			}
-			modifier = { #I am winning the war, no need!
-				factor = 0
-				any_war = {
-					defender = { character = ROOT }
-					attacker = {
-						war_score = 50
-					}
+					attacker = { war_score >= -50 }
 				}
 			}
 		}
 	}
 }
 
-
 title_decisions = {
 	# Stoics Rank 4 Power - Convert County
 	stoic_order_culture_convert_county = {
-		only_playable = yes
 		ai_check_interval = 3
-		
+
+		only_playable = yes
+
 		from_potential = {
 			has_dlc = "Mystics"
-			is_ruler = yes
-			OR = {
-				society_member_of = monastic_order_stoics
-				society_member_of = monastic_order_japanese
-			}
+			society_member_of = monastic_order_stoics
 			society_rank == 4
 		}
-		
+
 		potential = {
 			tier = COUNT
-			location = { NOT = { culture = FROM } }
+
+			location = {
+				NOT = { culture = FROM }
+			}
+
 			holder_scope = {
 				OR = {
-					is_liege_or_above = FROM
+					is_vassal_or_below_of = FROM
 					character = FROM
 				}
 			}
 		}
-		
+
 		allow = {
 			FROM = {
 				society_currency >= 1000
 			}
+
 			location = {
-				NOT = { culture = FROM }
-				owner = { NOT = { culture = PREV } } # Cannot convert counties of owners who has that culture
-			}
-			# The Japanese Monastic Order can only convert certain counties
-			OR = {
-				society_member_of = monastic_order_stoics
-				location = {
-					NOT = {
-						culture_group = japonic
-					}
-				}
-				FROM = {
-					culture_group = japonic
-					OR = {
-						location = {
-							NOT = {
-								culture = japanese
-							}
-						}
-						culture = yamato
-					}
+				NOR = {
+					culture = FROM
+					culture = owner # Cannot convert counties of owners' culture
 				}
 			}
 		}
-		
+
 		effect = {
 			FROM = {
+				show_scope_change = no
+
 				change_society_currency = -1000
-				hidden_tooltip = { character_event = { id = HF.23124 } }
+				character_event = { id = HF.23124 } # Notify
 			}
+
 			location = {
+				show_scope_change = no
+
 				culture = FROM
+
 				add_province_modifier = {
 					name = peasant_unrest
 					years = 2
 				}
 			}
-			hidden_tooltip = {
+
+			holder_scope = {
 				if = { # Notify county owner
 					limit = {
-						holder_scope = { NOT = { character = FROM } }
+						NOT = { character = FROM }
 					}
-					holder_scope = { character_event = { id = HF.23125 } }
+
+					character_event = { id = HF.23125 }
 				}
 			}
 		}
-		
-		ai_will_do = {
-			factor = 1
-		}
+
+		ai_will_do = { factor = 1 }
 	}
+
 	hellenic_dedicate_temple = {
 		filter = sub_realm_owned
 		ai_target_filter = vassal_owned
+		ai_check_interval = 120
+
 		is_high_prio = yes
-		ai_check_interval = 120 #check only once every 120 months.
-		
+
+		only_playable = yes
+
 		from_potential = {
 			has_dlc = "Holy Fury"
-			is_playable = yes
-			higher_tier_than = BARON
-			OR = {
-				religion = hellenic_pagan
-				religion = hellenic_pagan_reformed
-			}
+			higher_real_tier_than = BARON
+			religion_openly_hellenic_or_reformed_trigger = yes
+			is_tribal = no
+			is_nomadic = no
+
 			NOR = {
-				is_tribal = yes
-				is_nomadic = yes
 				has_character_flag = flag_dedicating_temple
-			}
-			NOT = {
-				has_alternate_start_parameter = { key = religion_names value = random }
+
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
 			}
 		}
-		
+
 		potential = {
-			holding_type = temple 
-			NOR = { 
-				has_flag = flag_dedicated_to_zeus
-				has_flag = flag_dedicated_to_poseidon
-				has_flag = flag_dedicated_to_hades
-				has_flag = flag_dedicated_to_hermes
-				has_flag = flag_dedicated_to_demeter
-				has_flag = flag_dedicated_to_athena
-				has_flag = flag_dedicated_to_apollo
-				has_flag = flag_dedicated_to_arthemis
-				has_flag = flag_dedicated_to_ares
-				has_flag = flag_dedicated_to_aphrodite
-				has_flag = flag_dedicated_to_ephaestus
-				has_flag = flag_dedicated_to_hestia
+			holding_type = temple
+
+			NOR = {
+				has_title_flag = flag_dedicated_to_zeus
+				has_title_flag = flag_dedicated_to_poseidon
+				has_title_flag = flag_dedicated_to_hades
+				has_title_flag = flag_dedicated_to_hermes
+				has_title_flag = flag_dedicated_to_demeter
+				has_title_flag = flag_dedicated_to_athena
+				has_title_flag = flag_dedicated_to_apollo
+				has_title_flag = flag_dedicated_to_artemis
+				has_title_flag = flag_dedicated_to_ares
+				has_title_flag = flag_dedicated_to_aphrodite
+				has_title_flag = flag_dedicated_to_ephaestus
+				has_title_flag = flag_dedicated_to_hestia
 			}
 		}
-		
+
 		allow = {
-			FROM = { wealth = 250 }
-			FROM = { piety = 200 }
+			FROM = {
+				wealth >= 250
+				piety  >= 200
+
+				trigger_if = {
+					limit = { has_character_modifier = recently_dedicated_temple_cooldown }
+
+					custom_tooltip = {
+						text = tooltip_not_dedicated_temple_recently
+						always = no
+					}
+				}
+			}
+
 			has_siege = no
-			custom_tooltip = { 
+
+			custom_tooltip = {
 				text = tooltip_temple_must_have_priest
-				hidden_tooltip = { 
-					owner = { 
-						is_theocracy = yes 
-						religion = FROM 	#Temple must have an hellenic priest.
-					}
-				}
-			}
-			custom_tooltip = { 
-				text = tooltip_not_dedicated_temple_recently
-				hidden_tooltip = { 
-					FROM = { 
-						NOT = { 
-							has_character_modifier = recently_dedicated_temple_cooldown
-						}
-					}
+
+				# Temple must have an Hellenic priest
+				holder_scope = {
+					is_theocracy = yes
+					religion = FROM
 				}
 			}
 		}
-		
+
 		effect = {
-			custom_tooltip = { 
-				text = tooltip_hellenic_dedicate_temple 
+			custom_tooltip = {
+				text = tooltip_hellenic_dedicate_temple
+
+				save_event_target_as = scoped_temple_barony
+
+				FROM = {
+					set_character_flag = flag_dedicating_temple
+					character_event = { id = HF.23200 } # Pick a god category
+				}
 			}
-			FROM = { 
-				set_character_flag = flag_dedicating_temple 
-				character_event = { id = HF.23200 }
-			}
-			
+
 		}
-		revoke_allowed = {
-			always = no
-		}
+
 		ai_will_do = {
 			factor = 1
-			modifier = {
-				factor = 0
+
+			trigger = {
+				# Better to have the AI only dedicate one per lifetime, otherwise it might leave the player out of options
 				FROM = {
-					ruler_has_dedicated_temple_trigger = yes #Better to have the AI only dedicate one per lifetime, otherwise it might leave the player out of options.
+					NOR = {
+						has_character_modifier = dedicated_to_zeus
+						has_character_modifier = dedicated_to_poseidon
+						has_character_modifier = dedicated_to_hades
+						has_character_modifier = dedicated_to_hermes
+						has_character_modifier = dedicated_to_demeter
+						has_character_modifier = dedicated_to_athena
+						has_character_modifier = dedicated_to_apollo
+						has_character_modifier = dedicated_to_artemis
+						has_character_modifier = dedicated_to_ares
+						has_character_modifier = dedicated_to_aphrodite
+						has_character_modifier = dedicated_to_ephaestus
+						has_character_modifier = dedicated_to_hestia
+					}
 				}
 			}
 		}
@@ -2066,494 +2197,941 @@ title_decisions = {
 
 settlement_decisions = {
 	tribal_build_great_pillar = {
-		ai_check_interval = 200 #check only once every 200 months.
-		filter = owned
+		# filter = owned # CleanSlate: Nonfunctional
 		ai_target_filter = owned
+		ai_check_interval = 200
+
 		is_high_prio = yes
-		
+
+		only_independent = yes
+
 		from_potential = {
 			has_dlc = "Holy Fury"
-			is_playable = yes
-			is_tribal = yes
-			higher_tier_than = COUNT 
-			is_reformed_religion = no
 			independent = yes
-			OR = { 
-				religion = norse_pagan
-				religion = tengri_pagan
-				religion = slavic_pagan
-				religion = baltic_pagan
-				religion = finnish_pagan
-				religion = west_african_pagan
-				religion = aztec
-				religion = bon
-				religion = zun_pagan
-				religion = hellenic_pagan
-				religion = chinese_pagan
-				religion = korean_pagan
-				religion = ainu_pagan
-				religion = ryukyuan_pagan
-				religion = dayak_pagan
-				religion = melanesian_pagan
-				religion = sanamahi_pagan
-				religion = viet_pagan
-				religion = inca_religion
+			is_tribal = yes
+			higher_real_tier_than = COUNT
+			is_unreformed_pagan_trigger = yes
+
+			# Only one Pillar of your own religion per realm. So, the more neighbors you subjugate, the less pillars are going to be built
+			trigger_if = {
+				limit = { religion = norse_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_norse
+						held_under_PREV = yes
+					}
+				}
 			}
-			NOR = { #Only one Pillar of your own religion per realm. So, the more neighbors you subjugate, the less pillars are going to be built.
-				AND = { 
-					religion = norse_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_norse } 
+			trigger_else_if = {
+				limit = { religion = tengri_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_tengri
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = tengri_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_tengri } 
+			}
+			trigger_else_if = {
+				limit = { religion = slavic_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_slavic
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = slavic_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_slavic } 
+			}
+			trigger_else_if = {
+				limit = { religion = baltic_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_baltic
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = baltic_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_baltic } 
+			}
+			trigger_else_if = {
+				limit = { religion = finnish_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_finnish
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = finnish_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_finnish } 
+			}
+			trigger_else_if = {
+				limit = { religion = west_african_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_west_african
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = west_african_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_west_african } 
+			}
+			trigger_else_if = {
+				limit = { religion = aztec_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_aztec
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = aztec
-					any_realm_province = { has_province_flag = flag_great_pillar_aztec } 
+			}
+			trigger_else_if = {
+				limit = { religion = bon_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_bon
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = bon
-					any_realm_province = { has_province_flag = flag_great_pillar_bon } 
+			}
+			trigger_else_if = {
+				limit = { religion = zun_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_zun
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = zun_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_zun } 
+			}
+			trigger_else_if = {
+				limit = { religion = ainu_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_ainu
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = hellenic_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_hellenic } 
+			}
+			trigger_else_if = {
+				limit = { religion = andamanese_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_andamanese
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = chinese_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_chinese } 
+			}
+			trigger_else_if = {
+				limit = { religion = bai_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_bai
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = korean_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_korean } 
+			}
+			trigger_else_if = {
+				limit = { religion = bamar_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_bamar
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = ainu_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_ainu } 
+			}
+			trigger_else_if = {
+				limit = { religion = batak_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_batak
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = ryukyuan_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_ryukyuan } 
+			}
+			trigger_else_if = {
+				limit = { religion = chinese_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_chinese
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = dayak_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_dayak } 
+			}
+			trigger_else_if = {
+				limit = { religion = dayak_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_dayak
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = melanesian_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_melanesian } 
+			}
+			trigger_else_if = {
+				limit = { religion = dusun_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_dusun
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = sanamahi_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_sanamahi } 
+			}
+			trigger_else_if = {
+				limit = { religion = inca_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_inca
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = viet_pagan
-					any_realm_province = { has_province_flag = flag_great_pillar_viet } 
+			}
+			trigger_else_if = {
+				limit = { religion = jurchen_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_jurchen
+						held_under_PREV = yes
+					}
 				}
-				AND = { 
-					religion = inca_religion
-					any_realm_province = { has_province_flag = flag_great_pillar_inca } 
+			}
+			trigger_else_if = {
+				limit = { religion = korean_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_korean
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = maian_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_maian
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = melanesian_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_melanesian
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = miao_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_miao
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = minahasan_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_minahasan
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = minangkabau_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_minangkabau
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = nivkh_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_nivkh
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = ryukyuan_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_ryukyuan
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = sanamahi_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_sanamahi
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = sundanese_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_sundanese
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = tai_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_tai
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = taiwanese_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_taiwanese
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = viet_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_viet
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = yi_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_yi
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { religion = zhuang_pagan }
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_zhuang
+						held_under_PREV = yes
+					}
+				}
+			}
+			trigger_else = {
+				religion = hellenic_pagan
+
+				NOT = {
+					any_realm_province = {
+						has_province_flag = flag_great_pillar_hellenic
+						held_under_PREV = yes
+					}
 				}
 			}
 		}
-		
+
 		potential = {
-			holder_scope = {
-				character = FROM
+			FROM = {
+				is_capital = PREV
 			}
+
+			tier = BARON # Here because the next line causes the game to spew all over error.log for some reason
 			holding_type = tribal
 			is_capital = yes
-			capital_scope = { location = { province = ROOT } }
-			dejure_liege_title = {
-				holder_scope = {
-					character = FROM
-				}
-			}
-			location = {
-				FROM = {
-					capital_scope = {
-						province = PREVPREV
-					}
-				}
-			}
 		}
-		allow = { 
-			FROM = { 
-				wealth = 350
-				piety = 150 
+
+		allow = {
+			FROM = {
+				wealth >= 350
+				piety  >= 150
 			}
-			location = { religion = FROM } #Locals must already worship your gods.
-			custom_tooltip = { 
+
+			location = { religion = FROM } # Locals must already worship your gods
+
+			custom_tooltip = {
 				text = tooltip_province_already_has_great_pillar
-				hidden_tooltip = { 
-					location = { 
-						NOR = { 
-							has_province_flag = flag_great_pillar_norse
-							has_province_flag = flag_great_pillar_tengri
-							has_province_flag = flag_great_pillar_slavic
-							has_province_flag = flag_great_pillar_baltic
-							has_province_flag = flag_great_pillar_finnish
-							has_province_flag = flag_great_pillar_west_african
-							has_province_flag = flag_great_pillar_aztec
-							has_province_flag = flag_great_pillar_bon
-							has_province_flag = flag_great_pillar_zun
-							has_province_flag = flag_great_pillar_hellenic
-							has_province_flag = flag_great_pillar_chinese
-							has_province_flag = flag_great_pillar_korean
-							has_province_flag = flag_great_pillar_ainu
-							has_province_flag = flag_great_pillar_ryukyuan
-							has_province_flag = flag_great_pillar_dayak
-							has_province_flag = flag_great_pillar_melanesian
-							has_province_flag = flag_great_pillar_sanamahi
-							has_province_flag = flag_great_pillar_viet
-							has_province_flag = flag_great_pillar_inca
-						}
+
+				location = {
+					NOR = {
+						has_province_flag = flag_great_pillar_norse
+						has_province_flag = flag_great_pillar_tengri
+						has_province_flag = flag_great_pillar_slavic
+						has_province_flag = flag_great_pillar_baltic
+						has_province_flag = flag_great_pillar_finnish
+						has_province_flag = flag_great_pillar_west_african
+						has_province_flag = flag_great_pillar_aztec
+						has_province_flag = flag_great_pillar_bon
+						has_province_flag = flag_great_pillar_zun
+						has_province_flag = flag_great_pillar_hellenic
+						has_province_flag = flag_great_pillar_ainu
+						has_province_flag = flag_great_pillar_andamanese
+						has_province_flag = flag_great_pillar_bai
+						has_province_flag = flag_great_pillar_bamar
+						has_province_flag = flag_great_pillar_batak
+						has_province_flag = flag_great_pillar_chinese
+						has_province_flag = flag_great_pillar_dayak
+						has_province_flag = flag_great_pillar_dusun
+						has_province_flag = flag_great_pillar_inca
+						has_province_flag = flag_great_pillar_jurchen
+						has_province_flag = flag_great_pillar_korean
+						has_province_flag = flag_great_pillar_maian
+						has_province_flag = flag_great_pillar_melanesian
+						has_province_flag = flag_great_pillar_miao
+						has_province_flag = flag_great_pillar_minahasan
+						has_province_flag = flag_great_pillar_minangkabau
+						has_province_flag = flag_great_pillar_nivkh
+						has_province_flag = flag_great_pillar_ryukyuan
+						has_province_flag = flag_great_pillar_sanamahi
+						has_province_flag = flag_great_pillar_sundanese
+						has_province_flag = flag_great_pillar_tai
+						has_province_flag = flag_great_pillar_taiwanese
+						has_province_flag = flag_great_pillar_viet
+						has_province_flag = flag_great_pillar_yi
+						has_province_flag = flag_great_pillar_zhuang
 					}
 				}
 			}
-			custom_tooltip = { 
+
+			custom_tooltip = {
 				text = tooltip_ruler_recently_had_pillar_destroyed
-				hidden_tooltip = { 
-					NOT = { 
-						FROM = { 
-							has_character_modifier = recently_destroyed_great_pillar_cooldown
-						}
-					}
+
+				FROM = {
+					NOT = { has_character_modifier = recently_destroyed_great_pillar_cooldown }
 				}
 			}
 		}
+
 		effect = {
-			FROM = { 
+			FROM = {
 				show_scope_change = no
+
 				wealth = -350
-				piety = -150
-				custom_tooltip = { 
-					text = tooltip_celebrate_new_great_pillar
-				}
-				hidden_tooltip = {
-					character_event = { id = HF.23470 }
+				piety  = -150
+
+				character_event = {
+					id = HF.23470
+					tooltip = tooltip_celebrate_new_great_pillar
 				}
 			}
-			hidden_tooltip = {  
-				if = {  
+
+			hidden_effect = {
+				if = {
 					limit = { FROM = { religion = norse_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_norse
-						}
+
+					location = {
+						set_province_flag = flag_great_pillar_norse
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_norse } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_norse } }
 						add_building = tb_great_pillar_norse
 					}
 				}
-				if = {  
+				else_if = {
 					limit = { FROM = { religion = tengri_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_tengri
-						}
+
+					location = {
+						set_province_flag = flag_great_pillar_tengri
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_tengri } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_tengri } }
 						add_building = tb_great_pillar_tengri
 					}
 				}
-				if = {  
+				else_if = {
 					limit = { FROM = { religion = slavic_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_slavic
-						}
+
+					location = {
+						set_province_flag = flag_great_pillar_slavic
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_slavic } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_slavic } }
 						add_building = tb_great_pillar_slavic
 					}
 				}
-				if = {  
+				else_if = {
 					limit = { FROM = { religion = baltic_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_baltic
-						}
+
+					location = {
+						set_province_flag = flag_great_pillar_baltic
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_baltic } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_baltic } }
 						add_building = tb_great_pillar_baltic
 					}
 				}
-				if = {  
+				else_if = {
 					limit = { FROM = { religion = finnish_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_finnish
-						}
+
+					location = {
+						set_province_flag = flag_great_pillar_finnish
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_finnish } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_finnish } }
 						add_building = tb_great_pillar_finnish
 					}
 				}
-				if = {  
+				else_if = {
 					limit = { FROM = { religion = west_african_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_west_african
-						}
+
+					location = {
+						set_province_flag = flag_great_pillar_west_african
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_west_african } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_west_african } }
 						add_building = tb_great_pillar_west_african
 					}
 				}
-				if = {  
-					limit = { FROM = { religion = aztec } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_aztec
-						}
+				else_if = {
+					limit = { FROM = { religion = aztec_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_aztec
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_aztec } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_aztec } }
 						add_building = tb_great_pillar_aztec
 					}
 				}
-				if = {  
+				else_if = {
 					limit = { FROM = { religion = zun_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_zun
-						}
+
+					location = {
+						set_province_flag = flag_great_pillar_zun
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_zun } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_zun } }
 						add_building = tb_great_pillar_zun
 					}
 				}
-				if = {  
-					limit = { FROM = { religion = bon } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_bon
-						}
+				else_if = {
+					limit = { FROM = { religion = bon_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_bon
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_bon } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_bon } }
 						add_building = tb_great_pillar_bon
 					}
 				}
-				if = {  
+				else_if = {
 					limit = { FROM = { religion = hellenic_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_hellenic
-						}
+
+					location = {
+						set_province_flag = flag_great_pillar_hellenic
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_hellenic } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_hellenic } }
 						add_building = tb_great_pillar_hellenic
 					}
 				}
-				if = {  
-					limit = { FROM = { religion = chinese_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_chinese
-						}
-					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_chinese } } 
-						add_building = tb_great_pillar_chinese
-					}
-				}
-				if = {  
-					limit = { FROM = { religion = korean_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_korean
-						}
-					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_korean } } 
-						add_building = tb_great_pillar_korean
-					}
-				}
-				if = {  
+				else_if = {
 					limit = { FROM = { religion = ainu_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_ainu
-						}
+
+					location = {
+						set_province_flag = flag_great_pillar_ainu
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_ainu } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_ainu } }
 						add_building = tb_great_pillar_ainu
 					}
 				}
-				if = {  
-					limit = { FROM = { religion = ryukyuan_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_ryukyuan
-						}
+				else_if = {
+					limit = { FROM = { religion = andamanese_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_andamanese
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_ryukyuan } } 
-						add_building = tb_great_pillar_ryukyuan
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_andamanese } }
+						add_building = tb_great_pillar_andamanese
 					}
 				}
-				if = {  
-					limit = { FROM = { religion = dayak_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_dayak
-						}
+				else_if = {
+					limit = { FROM = { religion = bai_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_bai
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_dayak } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_bai } }
+						add_building = tb_great_pillar_bai
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = bamar_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_bamar
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_bamar } }
+						add_building = tb_great_pillar_bamar
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = batak_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_batak
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_batak } }
+						add_building = tb_great_pillar_batak
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = chinese_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_chinese
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_chinese } }
+						add_building = tb_great_pillar_chinese
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = dayak_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_dayak
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_dayak } }
 						add_building = tb_great_pillar_dayak
 					}
 				}
-				if = {  
-					limit = { FROM = { religion = melanesian_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_melanesian
-						}
+				else_if = {
+					limit = { FROM = { religion = dusun_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_dusun
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_melanesian } } 
-						add_building = tb_great_pillar_melanesian
-					}
-				}
-				if = {  
-					limit = { FROM = { religion = sanamahi_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_sanamahi
-						}
-					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_sanamahi } } 
-						add_building = tb_great_pillar_sanamahi
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_dusun } }
+						add_building = tb_great_pillar_dusun
 					}
 				}
-				if = {  
-					limit = { FROM = { religion = viet_pagan } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_viet
-						}
+				else_if = {
+					limit = { FROM = { religion = inca_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_inca
 					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_viet } } 
-						add_building = tb_great_pillar_viet
-					}
-				}
-				if = {  
-					limit = { FROM = { religion = inca_religion } }
-					hidden_tooltip = {
-						location = {
-							set_province_flag = flag_great_pillar_inca
-						}
-					}
-					if = { 
-						limit = { NOT = { has_building = tb_great_pillar_inca } } 
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_inca } }
 						add_building = tb_great_pillar_inca
 					}
 				}
+				else_if = {
+					limit = { FROM = { religion = jurchen_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_jurchen
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_jurchen } }
+						add_building = tb_great_pillar_jurchen
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = korean_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_korean
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_korean } }
+						add_building = tb_great_pillar_korean
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = maian_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_maian
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_maian } }
+						add_building = tb_great_pillar_maian
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = melanesian_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_melanesian
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_melanesian } }
+						add_building = tb_great_pillar_melanesian
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = miao_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_miao
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_miao } }
+						add_building = tb_great_pillar_miao
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = minahasan_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_minahasan
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_minahasan } }
+						add_building = tb_great_pillar_minahasan
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = minangkabau_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_minangkabau
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_minangkabau } }
+						add_building = tb_great_pillar_minangkabau
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = nivkh_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_nivkh
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_nivkh } }
+						add_building = tb_great_pillar_nivkh
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = ryukyuan_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_ryukyuan
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_ryukyuan } }
+						add_building = tb_great_pillar_ryukyuan
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = sanamahi_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_sanamahi
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_sanamahi } }
+						add_building = tb_great_pillar_sanamahi
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = sundanese_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_sundanese
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_sundanese } }
+						add_building = tb_great_pillar_sundanese
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = tai_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_tai
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_tai } }
+						add_building = tb_great_pillar_tai
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = taiwanese_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_taiwanese
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_taiwanese } }
+						add_building = tb_great_pillar_taiwanese
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = viet_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_viet
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_viet } }
+						add_building = tb_great_pillar_viet
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = yi_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_yi
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_yi } }
+						add_building = tb_great_pillar_yi
+					}
+				}
+				else_if = {
+					limit = { FROM = { religion = zhuang_pagan } }
+
+					location = {
+						set_province_flag = flag_great_pillar_zhuang
+					}
+
+					if = {
+						limit = { NOT = { has_building = tb_great_pillar_zhuang } }
+						add_building = tb_great_pillar_zhuang
+					}
+				}
 			}
 		}
-		
-		revoke_allowed = {
-			always = no
-		}
-		
+
 		ai_will_do = {
 			factor = 1
-			modifier = {
+
+			trigger = {
+				FROM = { NOT = { trait = cynical } }
+			}
+
+			mult_modifier = {
 				factor = 2
-				FROM = {
-					trait = zealous
-				}
+				FROM = { trait = zealous }
 			}
-			modifier = {
-				factor = 0
-				FROM = {
-					trait = cynical
-				}
-			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 0.25
-				FROM = {
-					trait = greedy
-				}
+				FROM = { trait = greedy }
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 0.5
-				FROM = {
-					lower_tier_than = KING
-				}
+				FROM = { lower_real_tier_than = KING }
 			}
 		}
 	}
+
 	destroy_great_pillar = {
-		ai_check_interval = 30 #check only once every 30 months.
-		filter = owned
+		# filter = owned # CleanSlate: Nonfunctional
 		ai_target_filter = owned
+		ai_check_interval = 30
+
 		is_high_prio = yes
-		
+
+		only_playable = yes
+
 		from_potential = {
 			has_dlc = "Holy Fury"
-			OR = {
-				NOT = { religion_group = pagan_group }
-				is_reformed_religion = yes
-			}
-			is_playable = yes
 			is_tribal = no
 			is_nomadic = no
+			is_not_unreformed_pagan_trigger = yes
+			NOR = {
+				has_religion_feature = religion_cosmopolitan
+				has_religion_feature = religion_tolerant
+			}
 		}
-		
+
 		potential = {
-			holder_scope = {
-				character = FROM
+			holder = FROM
+
+			trigger_if = {
+				limit = { holding_type = tribal }
+				is_capital = yes
+				capital_scope = { location = { province = ROOT } }
 			}
-			OR = {
-				AND = { 
-					holding_type = tribal 
-					is_capital = yes
-					capital_scope = { location = { province = ROOT } }
-				}
-				AND = { 
-					holding_type = temple #Irminsul 
-					location = { province = 257 }
-				}
+			trigger_else = {
+				holding_type = temple # Irminsul
+				location = { province = c_braunschweig }
 			}
-			location = { 
-				OR = { 
+
+			location = {
+				OR = {
 					has_province_flag = flag_great_pillar_norse_irminsul
 					has_province_flag = flag_great_pillar_norse
 					has_province_flag = flag_great_pillar_tengri
@@ -2565,441 +3143,1030 @@ settlement_decisions = {
 					has_province_flag = flag_great_pillar_bon
 					has_province_flag = flag_great_pillar_zun
 					has_province_flag = flag_great_pillar_hellenic
-					has_province_flag = flag_great_pillar_chinese
-					has_province_flag = flag_great_pillar_korean
 					has_province_flag = flag_great_pillar_ainu
-					has_province_flag = flag_great_pillar_ryukyuan
+					has_province_flag = flag_great_pillar_andamanese
+					has_province_flag = flag_great_pillar_bai
+					has_province_flag = flag_great_pillar_bamar
+					has_province_flag = flag_great_pillar_batak
+					has_province_flag = flag_great_pillar_chinese
 					has_province_flag = flag_great_pillar_dayak
-					has_province_flag = flag_great_pillar_melanesian
-					has_province_flag = flag_great_pillar_sanamahi
-					has_province_flag = flag_great_pillar_viet
+					has_province_flag = flag_great_pillar_dusun
 					has_province_flag = flag_great_pillar_inca
+					has_province_flag = flag_great_pillar_jurchen
+					has_province_flag = flag_great_pillar_korean
+					has_province_flag = flag_great_pillar_maian
+					has_province_flag = flag_great_pillar_melanesian
+					has_province_flag = flag_great_pillar_miao
+					has_province_flag = flag_great_pillar_minahasan
+					has_province_flag = flag_great_pillar_minangkabau
+					has_province_flag = flag_great_pillar_nivkh
+					has_province_flag = flag_great_pillar_ryukyuan
+					has_province_flag = flag_great_pillar_sanamahi
+					has_province_flag = flag_great_pillar_sundanese
+					has_province_flag = flag_great_pillar_tai
+					has_province_flag = flag_great_pillar_taiwanese
+					has_province_flag = flag_great_pillar_viet
+					has_province_flag = flag_great_pillar_yi
+					has_province_flag = flag_great_pillar_zhuang
 				}
 			}
 		}
-		allow = { 
-		}
+
 		effect = {
-			FROM = { 
+			FROM = {
 				show_scope_change = no
+
 				if = {
 					limit = { has_religion_feature = religion_dogmatic }
 					tiered_piety_reward_effect = yes
 				}
-				if = {
+				else_if = {
 					limit = { has_religion_feature = religion_cosmopolitan }
 					tiered_piety_negative_effect = yes
 				}
-				custom_tooltip = { 
-					text = tooltip_celebrate_destroyed_great_pillar
+				else_if = {
+					limit = { has_religion_feature = religion_tolerant }
+					tiered_piety_negative_effect = yes
 				}
-				hidden_tooltip = {
-					character_event = { id = HF.23476 }
+
+				character_event = {
+					id = HF.23476 # Notify
+					tooltip = tooltip_celebrate_destroyed_great_pillar
 				}
 			}
-			if = {  
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_norse_irminsul } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_norse_irminsul
-					}
-					any_realm_character = {
-						limit = { religion = norse_pagan }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_norse_irminsul
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = norse_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
+
 				norse_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
+			else_if = {
 				limit = { location = { has_province_flag = flag_great_pillar_norse } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_norse
-					}
-					any_realm_character = {
-						limit = { religion = norse_pagan }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_norse
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = norse_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
+
 				norse_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_tengri } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_tengri
-					}
-					any_realm_character = {
-						limit = { religion = tengri_pagan }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_tengri
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = tengri_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
+
 				tengri_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_slavic } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_slavic
-					}
-					any_realm_character = {
-						limit = { religion = slavic_pagan }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_slavic
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = slavic_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
+
 				slavic_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_baltic } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_baltic
-					}
-					any_realm_character = {
-						limit = { religion = baltic_pagan }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_baltic
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = baltic_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
+
 				baltic_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_finnish } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_finnish
-					}
-					any_realm_character = {
-						limit = { religion = finnish_pagan }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_finnish
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = finnish_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
+
 				finnish_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_west_african } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_west_african
-					}
-					any_realm_character = {
-						limit = { religion = west_african_pagan }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_west_african
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = west_african_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
+
 				west_african_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_aztec } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_aztec
-					}
-					any_realm_character = {
-						limit = { religion = aztec }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_aztec
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = aztec_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
-				aztec = {
+
+				aztec_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_zun } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_zun
-					}
-					any_realm_character = {
-						limit = { religion = zun_pagan }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_zun
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = zun_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
+
 				zun_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_bon } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_bon
-					}
-					any_realm_character = {
-						limit = { religion = bon }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_bon
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = bon_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
-				bon = {
+
+				bon_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_hellenic } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_hellenic
-					}
-					any_realm_character = {
-						limit = { religion = hellenic_pagan }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_hellenic
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = hellenic_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
+
 				hellenic_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
-				limit = { location = { has_province_flag = flag_great_pillar_chinese } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_chinese
-					}
-					any_realm_character = {
-						limit = { religion = chinese_pagan }
-						character_event = { id = HF.23477 }
-					}
-				}
-				chinese_pagan = {
-					religion_authority = {
-						modifier = destroyed_great_pillar
-						years = 10
-					}
-				}
-			}
-			if = {  
-				limit = { location = { has_province_flag = flag_great_pillar_korean } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_korean
-					}
-					any_realm_character = {
-						limit = { religion = korean_pagan }
-						character_event = { id = HF.23477 }
-					}
-				}
-				korean_pagan = {
-					religion_authority = {
-						modifier = destroyed_great_pillar
-						years = 10
-					}
-				}
-			}
-			if = {  
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_ainu } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_ainu
-					}
-					any_realm_character = {
-						limit = { religion = ainu_pagan }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_ainu
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = ainu_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
+
 				ainu_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
-				limit = { location = { has_province_flag = flag_great_pillar_ryukyuan } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_ryukyuan
-					}
-					any_realm_character = {
-						limit = { religion = ryukyuan_pagan }
-						character_event = { id = HF.23477 }
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_andamanese } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_andamanese
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = andamanese_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
-				ryukyuan_pagan = {
+
+				andamanese_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_bai } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_bai
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = bai_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				bai_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_bamar } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_bamar
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = bamar_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				bamar_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_batak } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_batak
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = batak_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				batak_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_chinese } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_chinese
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = chinese_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				chinese_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_dayak } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_dayak
-					}
-					any_realm_character = {
-						limit = { religion = dayak_pagan }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_dayak
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = dayak_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
+
 				dayak_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
-				limit = { location = { has_province_flag = flag_great_pillar_melanesian } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_melanesian
-					}
-					any_realm_character = {
-						limit = { religion = melanesian_pagan }
-						character_event = { id = HF.23477 }
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_dusun } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_dusun
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = dusun_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
-				melanesian_pagan = {
+
+				dusun_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
-			if = {  
-				limit = { location = { has_province_flag = flag_great_pillar_sanamahi } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_sanamahi
-					}
-					any_realm_character = {
-						limit = { religion = sanamahi_pagan }
-						character_event = { id = HF.23477 }
-					}
-				}
-				sanamahi_pagan = {
-					religion_authority = {
-						modifier = destroyed_great_pillar
-						years = 10
-					}
-				}
-			}
-			if = {  
-				limit = { location = { has_province_flag = flag_great_pillar_viet } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_viet
-					}
-					any_realm_character = {
-						limit = { religion = viet_pagan }
-						character_event = { id = HF.23477 }
-					}
-				}
-				viet_pagan = {
-					religion_authority = {
-						modifier = destroyed_great_pillar
-						years = 10
-					}
-				}
-			}
-			if = {  
+
+			if = {
 				limit = { location = { has_province_flag = flag_great_pillar_inca } }
-				hidden_tooltip = {
-					location = {
-						clr_province_flag = flag_great_pillar_inca
-					}
-					any_realm_character = {
-						limit = { religion = inca_religion }
-						character_event = { id = HF.23477 }
+
+				location = {
+					clr_province_flag = flag_great_pillar_inca
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = inca_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
 					}
 				}
-				inca_religion = {
+
+				inca_pagan = {
+					show_scope_change = no
+
 					religion_authority = {
-						modifier = destroyed_great_pillar
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_jurchen } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_jurchen
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = jurchen_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				jurchen_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_korean } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_korean
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = korean_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				korean_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_maian } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_maian
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = maian_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				maian_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_melanesian } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_melanesian
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = melanesian_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				melanesian_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_miao } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_miao
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = miao_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				miao_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_minahasan } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_minahasan
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = minahasan_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				minahasan_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_minangkabau } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_minangkabau
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = minangkabau_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				minangkabau_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_nivkh } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_nivkh
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = nivkh_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				nivkh_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_ryukyuan } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_ryukyuan
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = ryukyuan_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				ryukyuan_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_sanamahi } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_sanamahi
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = sanamahi_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				sanamahi_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_sundanese } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_sundanese
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = sundanese_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				sundanese_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_tai } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_tai
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = tai_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				tai_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_taiwanese } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_taiwanese
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = taiwanese_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				taiwanese_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_viet } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_viet
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = viet_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				viet_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_yi } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_yi
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = yi_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				yi_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
+						years = 10
+					}
+				}
+			}
+
+			if = {
+				limit = { location = { has_province_flag = flag_great_pillar_zhuang } }
+
+				location = {
+					clr_province_flag = flag_great_pillar_zhuang
+				}
+
+				FROM = {
+					top_liege = {
+						any_realm_character = {
+							limit = { religion = zhuang_pagan }
+							character_event = { id = HF.23477 } # Vassals react
+						}
+					}
+				}
+
+				zhuang_pagan = {
+					show_scope_change = no
+
+					religion_authority = {
+						name = destroyed_great_pillar
 						years = 10
 					}
 				}
 			}
 		}
-		
-		revoke_allowed = {
-			always = no
-		}
-		
+
 		ai_will_do = {
 			factor = 1
-			modifier = {
+
+			mult_modifier = {
 				factor = 5
-				FROM = {
-					has_religion_feature = religion_dogmatic
-				}
+				FROM = { has_religion_feature = religion_dogmatic }
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 0.25
-				FROM = {
-					has_religion_feature = religion_cosmopolitan
-				}
+				FROM = { has_religion_feature = religion_cosmopolitan }
 			}
-			modifier = {
+
+			mult_modifier = {
+				factor = 0.25
+				FROM = { has_religion_feature = religion_tolerant }
+			}
+
+			mult_modifier = {
 				factor = 2
-				FROM = {
-					trait = zealous
-				}
+				FROM = { trait = zealous }
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 0.5
-				FROM = {
-					trait = cynical
-				}
+				FROM = { trait = cynical }
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 0.3
-				FROM = {
-					trait = sympathy_pagans
-				}
+				FROM = { trait = sympathy_pagans }
 			}
-			modifier = {
+
+			mult_modifier = {
 				factor = 0.4
-				FROM = {
-					religion_group = pagan_group
-				}
+				FROM = { religion_group = pagan_group }
 			}
 		}
 	}

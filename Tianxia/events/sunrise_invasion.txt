@@ -7,272 +7,347 @@
 
 # Written by Silverswee(e)per
 
-namespace = SRI
+namespace = sri
+
+# sri.1-100 reserved
+
+
 
 ##### The Prelude
 
 ### Initial events
 
-# If the Treasure Fleet hasn't visited Nazca (and isn't currently on its way there), a merchant gets lost and heads east
+# If the Treasure Fleet hasn't visited Nazca (and isn't currently potentially on its way there), a merchant gets lost and heads east
 character_event = {
-	id = SRI.1
+	id = sri.1
 	hide_window = yes
 	
+	is_triggered_only = yes
+
+	only_playable = yes
 	has_dlc = "Sunset Invasion"
-	
-	religion = catholic
-	only_rulers = yes
-	
+
 	trigger = {
-		controls_religion = yes # The Pope is always around!
+		owns = event_target:pulse_province
+		
+		year < 1350
+		
 		NOR = {
 			2753 = { # Hangzhou
-				has_province_flag = treasure_fleet_sunrise_invasion_flag # Ongoing Nazca journey
+				OR = { # Ongoing Nazca journey
+					has_province_flag = treasure_fleet_at_pacific_crossing
+					has_province_flag = treasure_fleet_new_world_ongoing
+					has_province_flag = treasure_fleet_inca_encounter
+				}
 			}
-			has_global_flag = treasure_fleet_at_nazca
+			
+			has_global_flag = treasure_fleet_pacific_return
+			has_global_flag = china_knows_of_burning_empire
 			has_global_flag = lost_merchant_went_east
 			has_global_flag = sunrise_invasion_happened
 		}
+		
 		NOT = {
 			has_game_rule = {
 				name = inca_invasion
 				value = off
 			}
 		}
+		
 		OR = {
-			year = 1200 # Give the Treasure Fleet ample time to do its thing
+			year >= 1200 # Give the Treasure Fleet ample time to do its thing
+			
 			AND = {
 				has_game_rule = {
 					name = inca_invasion
 					value = delayed_random
 				}
-				year = 1000
+				
+				year >= 1000
 			}
 		 }
 	}
-	
-	mean_time_to_happen = {
-		months = 220
+
+	weight_multiplier = {
+		factor = 1
+
+		mult_modifier = {
+			factor = 2
+			year >= 1320
+		}
+
+		mult_modifier = {
+			factor = 0.25
+
+			has_game_rule = {
+				name = inca_invasion
+				value = random
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.33
+
+			has_game_rule = {
+				name = inca_invasion
+				value = delayed_random
+			}
+		}
+
+		# Prevent the randomized invasions from firing immediately after 50 years of game, see 'immediate' below
+		mult_modifier = {
+			factor = 0.6 # Equivalent to 40% chance of misfiring
+
+			year < 1300
+			
+			total_years_played >= 50
+			
+			total_years_played < 100
+
+			OR = {
+				has_game_rule = {
+					name = inca_invasion
+					value = random
+				}
+
+				has_game_rule = {
+					name = inca_invasion
+					value = delayed_random
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.7 # Equivalent to 30% chance of misfiring
+
+			year < 1300
+			
+			total_years_played >= 100
+			
+			total_years_played < 150
+
+			OR = {
+				has_game_rule = {
+					name = inca_invasion
+					value = random
+				}
+
+				has_game_rule = {
+					name = inca_invasion
+					value = delayed_random
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.85 # Equivalent to 15% chance of misfiring
+
+			year < 1300
+			
+			total_years_played >= 150
+			
+			total_years_played < 200
+
+			OR = {
+				has_game_rule = {
+					name = inca_invasion
+					value = random
+				}
+
+				has_game_rule = {
+					name = inca_invasion
+					value = delayed_random
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.9625 # Equivalent to 3.75% chance of misfiring
+
+			year < 1300
+			
+			total_years_played >= 200
+
+			OR = {
+				has_game_rule = {
+					name = inca_invasion
+					value = random
+				}
+
+				has_game_rule = {
+					name = inca_invasion
+					value = delayed_random
+				}
+			}
+		}
 	}
 	
 	immediate = {
 		set_global_flag = lost_merchant_went_east
 		any_player = {
-			limit = {
-				any_realm_province = {
-					region = world_east_asia
-				}
-			}
-			narrative_event = { id = SRI.2 } # Inform players
+			narrative_event = { id = sri.2 } # Inform players
+		}
+		event_target:pulse_province = {
+			province_event = { id = sri.3 days = 730 random = 365 } # Next stage
 		}
 	}
 }
 
 # Inform the world
 narrative_event = {
-	id = SRI.2
-	title = EVTTITLE_SRI_
+	id = sri.2
+	title = EVTTITLE_SRI_2
 	desc = EVTDESC_SRI_2
 	picture = GFX_evt_treasure_fleet
 	border = GFX_event_narrative_frame_diplomacy
+	hide_from = yes
 	
 	is_triggered_only = yes
 	
 	option = {
-		name = EVTOPTA_SUNRISE_2 # I wonder what happened to him...
+		name = EVTOPTA_SRI_2 # I wonder what happened to him...
 	}
 }
 
 # A survivor returns and speaks of the Burning Empire
-character_event = {
-	id = SRI.3
+province_event = {
+	id = sri.3
 	hide_window = yes
 	
 	has_dlc = "Sunset Invasion"
 	
-	religion = catholic
-	only_rulers = yes
-	
-	trigger = {
-		controls_religion = yes # The Pope is always around!
-		NOR = {
-			2753 = { # Hangzhou
-				has_province_flag = treasure_fleet_sunrise_invasion_flag # Ongoing Nazca journey
-			}
-			has_global_flag = treasure_fleet_at_nazca
-			has_global_flag = lost_merchant_returned
-			has_global_flag = sunrise_invasion_happened
-		}
-		NOT = {
-			has_game_rule = {
-				name = inca_invasion
-				value = off
-			}
-		}
-		had_global_flag = { flag = lost_merchant_went_east days = 365 }
-	}
-	
-	mean_time_to_happen = {
-		months = 220
-	}
+	is_triggered_only = yes
 	
 	immediate = {
 		set_global_flag = lost_merchant_returned
 		any_player = {
-			limit = {
-				any_realm_province = {
-					region = world_east_asia
-				}
-			}
-			narrative_event = { id = SRI.4 } # Inform players
+			narrative_event = { id = sri.4 } # Inform players
+		}
+		event_target:pulse_province = {
+			province_event = { id = sri.5 days = 3650 random = 3650 }
 		}
 	}
 }
 
 # Inform the world
 narrative_event = {
-	id = SRI.4
-	title = EVTTITLE_SUNRISE_4
+	id = sri.4
+	title = EVTTITLE_SRI_4
 	desc = EVTDESC_SRI_4
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_narrative_frame_diplomacy
+	hide_from = yes
 	
 	is_triggered_only = yes
 	
 	option = {
-		name = EVTOPTA_SUNRISE_4 # The tale of a madman!
+		name = EVTOPTA_SRI_4 # The tale of a madman!
 	}
 }
 
 # Years later, the islands off the map to the east come under attack
-character_event = {
-	id = SRI.5
+province_event = {
+	id = sri.5
 	hide_window = yes
 	
 	has_dlc = "Sunset Invasion"
 	
-	religion = catholic
-	only_rulers = yes
-	
-	trigger = {
-		controls_religion = yes # The Pope is always around!
-		OR = {
-			AND = {
-				has_game_rule = {
-					name = inca_invasion
-					value = historical
-				}
-				year = 1250
-				OR = {
-					had_global_flag = { flag = treasure_fleet_at_nazca days = 3650 }
-					had_global_flag = { flag = lost_merchant_returned days = 3650 }
-				}
-			}
-			AND = {
-				has_game_rule = {
-					name = inca_invasion
-					value = random
-				}
-				total_years_played = 50
-			}
-			AND = {
-				has_game_rule = {
-					name = inca_invasion
-					value = delayed_random
-				}
-				year = 1000
-				total_years_played = 50
-				OR = {
-					had_global_flag = { flag = treasure_fleet_at_nazca days = 3650 }
-					had_global_flag = { flag = lost_merchant_returned days = 3650 }
-				}
-			}
-		}
-		NOR = {
-			year = 1350
-			has_global_flag = sunrise_invasion_prelude 
-			has_game_rule = {
-				name = inca_invasion
-				value = off
-			}
-		}
-	}
-	
-	mean_time_to_happen = {
-		months = 220
-	}
+	is_triggered_only = yes
 	
 	immediate = {
 		set_global_flag = sunrise_invasion_prelude
 		
 		# Activate titles and do some stuff
-		activate_title = { title = e_tawantinsuyu status = yes }
-		k_papal_state = {
-			holder_scope = {
-				create_random_soldier = {
-					female = no
-					dynasty = 1000050000 # Yupanqui
-					random_traits = yes
-					culture = quechua
-					religion = inca_religion
+		
+		activate_title = { title = e_inca_empire status = yes }
+		
+		create_random_soldier = {
+			female = no
+			dynasty = 1000050000 # Yupanqui
+			random_traits = yes
+			culture = quechua
+			religion = inca_pagan
+		}
+		
+		new_character = {
+			if = {
+				limit = {
+					has_game_rule = {
+						name = invader_ma_boost
+						value = enabled
+					}
 				}
-				new_character = {
-					e_tawantinsuyu = {
-						grant_title = PREV
-					}
-					set_government_type = feudal_government
-					e_tawantinsuyu = {
-						add_law = succ_primogeniture
-						add_law = agnatic_succession
-						if = {
-							limit = {
-								has_dlc = "Zeus"
-							}
-							add_law = revoke_title_law_2
-						}
-						if = {
-							limit = {
-								NOT = { has_dlc = "Zeus" }
-							}
-							add_law = crown_authority_1
-						}
-					}
-					set_defacto_liege = THIS
-					wealth = 10000
+				
+				religion_authority = {
+					name = invader_ma_boost
 				}
 			}
+			
+			grant_title = e_inca_empire
+			
+			set_government_type = feudal_government
+			
+			e_inca_empire = {
+				add_law = succ_primogeniture
+				add_law = agnatic_succession
+				
+				if = {
+					limit = {
+						has_dlc = "Zeus"
+					}
+					add_law = revoke_title_law_2
+				}
+				
+				if = {
+					limit = {
+						NOT = { has_dlc = "Zeus" }
+					}
+					add_law = crown_authority_1
+				}
+			}
+			
+			set_defacto_liege = THIS
+			wealth = 10000
 		}
 		
 		any_player = {
-			limit = {
-				any_realm_province = {
-					region = world_east_asia
-				}
-			}
-			narrative_event = { id = SRI.6 } # Inform players
+			narrative_event = { id = sri.6 } # Inform players
 		}
-		2305 = { # Palembang
-			province_event = { id = SRI.7 days = 180 random = 180 }
-			set_variable = {
-				which = sunrise_counter
-				value = 0
-			}
+		province_event = { id = sri.7 days = 180 random = 180 }
+		set_variable = {
+			which = sunrise_counter
+			value = 0
 		}
 	}
 }
 
 # Inform the world
 narrative_event = {
-	id = SRI.6
-	title = EVTTITLE_SUNRISE_6
+	id = sri.6
+	title = EVTTITLE_SRI_6
 	desc = EVTDESC_SRI_6
 	picture = GFX_evt_aztec_arrival
 	border = GFX_event_narrative_frame_diplomacy
+	hide_from = yes
 	
 	is_triggered_only = yes
 	
 	option = {
-		name = EVTOPTA_SUNRISE_6 # What is going on...?
+		trigger = {
+			NOT = {
+				has_character_flag = returned_from_the_burning_empire
+			}
+		}
+		
+		name = EVTOPTA_SRI_6 # What is going on...?
+	}
+	
+	option = {
+		trigger = {
+			has_character_flag = returned_from_the_burning_empire
+		}
+		
+		name = EVTOPTB_SRI_6 # And so it begins...
 	}
 }
 
@@ -280,7 +355,7 @@ narrative_event = {
 
 # Check to see what happens
 province_event = {
-	id = SRI.7
+	id = sri.7
 	hide_window = yes
 	
 	is_triggered_only = yes
@@ -292,16 +367,19 @@ province_event = {
 		}
 		if = {
 			limit = {
-				has_dlc = "The Old Gods"
+				has_dlc = "The Old Gods" # Adventurers
 				NOT = {
 					has_global_flag = sunrise_silver_for_land
 				}
 			}
+			
 			set_global_flag = sunrise_silver_for_land
+			
 			set_variable = {
 				which = inca_land_buy
 				value = 0
 			}
+			
 			any_playable_ruler = {
 				limit = {
 					higher_tier_than = count
@@ -309,19 +387,20 @@ province_event = {
 					any_realm_province = {
 						port = yes
 						OR = {
-							region = world_taiwan
-							region = world_japan_islands
 							region = world_japan
+							region = world_ryukyu
 						}
 					}
 				}
-				narrative_event = { id = SRI.13 } # The Inca attempt to buy land
+				narrative_event = { id = sri.13 } # The Inca attempt to buy land
 			}
-			province_event = { id = SRI.14 days = 15 random = 15 } # See how it went
+			province_event = { id = sri.14 days = 15 random = 15 } # See how it went
 		}
+		
 		else = {
 			set_province_flag = inca_didnt_buy_land
 		}
+		
 		if = {
 			limit = {
 				check_variable = {
@@ -329,19 +408,23 @@ province_event = {
 					value = 20
 				}
 			}
-			province_event = { id = SRI.17 } # Time for the actual invasions
+			
+			province_event = { id = sri.17 } # Time for the actual invasions
 		}
+		
 		else_if = {
 			limit = {
 				check_variable = {
 					which = sunrise_counter
-					value = 15
+					value >= 15
 				}
 			}
+			
 			random_list = {
 				50 = {
-					province_event = { id = SRI.17 } # Time for the actual invasions
+					province_event = { id = sri.17 } # Time for the actual invasions
 				}
+				
 				50 = {
 					random_list = {
 						60 = {
@@ -354,22 +437,28 @@ province_event = {
 										owner = {
 											character = PREVPREV
 										}
-										region = world_oceania
+										OR = {
+											region = world_maritime_southeast_asia
+											region = world_taiwan
+										}
 									}
 								}
+								
 								preferred_limit = {
 									independent = yes
 									NOT = {
 										has_character_flag = papuan_refugees
 									}
 								}
+								
 								preferred_limit = {
 									NOT = {
 										has_character_flag = papuan_refugees
 									}
 								}
+								
 								set_character_flag = papuan_refugees
-								character_event = { id = SRI.8 }
+								character_event = { id = sri.8 }
 							}
 						}
 						30 = {
@@ -377,21 +466,26 @@ province_event = {
 								limit = {
 									any_realm_province = {
 										port = yes
-										region = world_oceania
+										OR = {
+											region = world_maritime_southeast_asia
+											region = world_taiwan
+										}
 									}
 								}
+								
 								preferred_limit = {
 									NOT = {
 										has_character_flag = papuan_nobles
 									}
 								}
+								
 								set_character_flag = papuan_nobles
-								character_event = { id = SRI.12 }
+								character_event = { id = sri.12 }
 							}
 						}
 						10 = {} # Nothing
 					}
-					repeat_event = { id = SRI.7 days = 180 random = 180 }
+					repeat_event = { id = sri.7 days = 180 random = 180 }
 				}
 			}
 		}
@@ -399,13 +493,15 @@ province_event = {
 			limit = {
 				check_variable = {
 					which = sunrise_counter
-					value = 10
+					value >= 10
 				}
 			}
+			
 			random_list = {
 				25 = {
-					province_event = { id = SRI.17 } # Time for the actual invasions
+					province_event = { id = sri.17 } # Time for the actual invasions
 				}
+				
 				75 = {
 					random_list = {
 						40 = {
@@ -418,22 +514,28 @@ province_event = {
 											character = PREVPREV
 										}
 										port = yes
-										region = world_oceania
+										OR = {
+											region = world_maritime_southeast_asia
+											region = world_taiwan
+										}
 									}
 								}
+								
 								preferred_limit = {
 									independent = yes
 									NOT = {
 										has_character_flag = papuan_refugees
 									}
 								}
+								
 								preferred_limit = {
 									NOT = {
 										has_character_flag = papuan_refugees
 									}
 								}
+								
 								set_character_flag = papuan_refugees
-								character_event = { id = SRI.8 }
+								character_event = { id = sri.8 }
 							}
 						}
 						25 = {
@@ -441,35 +543,43 @@ province_event = {
 								limit = {
 									any_realm_province = {
 										port = yes
-										region = world_oceania
+										OR = {
+											region = world_maritime_southeast_asia
+											region = world_taiwan
+										}
 									}
 								}
+								
 								preferred_limit = {
 									NOT = {
 										has_character_flag = papuan_nobles
 									}
 								}
+								
 								set_character_flag = papuan_nobles
-								character_event = { id = SRI.12 }
+								character_event = { id = sri.12 }
 							}
 						}
 						25 = {} # Nothing
 					}
-					repeat_event = { id = SRI.7 days = 180 random = 180 }
+					repeat_event = { id = sri.7 days = 180 random = 180 }
 				}
 			}
 		}
+		
 		else_if = {
 			limit = {
 				check_variable = {
 					which = sunrise_counter
-					value = 5
+					value >= 5
 				}
 			}
+			
 			random_list = {
 				10 = {
-					province_event = { id = SRI.17 } # Time for the actual invasions
+					province_event = { id = sri.17 } # Time for the actual invasions
 				}
+				
 				90 = {
 					random_list = {
 						10 = {
@@ -482,22 +592,28 @@ province_event = {
 											character = PREVPREV
 										}
 										port = yes
-										region = world_oceania
+										OR = {
+											region = world_maritime_southeast_asia
+											region = world_taiwan
+										}
 									}
 								}
+								
 								preferred_limit = {
 									independent = yes
 									NOT = {
 										has_character_flag = papuan_refugees
 									}
 								}
+								
 								preferred_limit = {
 									NOT = {
 										has_character_flag = papuan_refugees
 									}
 								}
+								
 								set_character_flag = papuan_refugees
-								character_event = { id = SRI.8 }
+								character_event = { id = sri.8 }
 							}
 						}
 						60 = {
@@ -505,36 +621,42 @@ province_event = {
 								limit = {
 									any_realm_province = {
 										port = yes
-										region = world_oceania
+										OR = {
+											region = world_maritime_southeast_asia
+											region = world_taiwan
+										}
 									}
 								}
+								
 								preferred_limit = {
 									NOT = {
 										has_character_flag = papuan_nobles
 									}
 								}
+								
 								set_character_flag = papuan_nobles
-								character_event = { id = SRI.12 }
+								character_event = { id = sri.12 }
 							}
 						}
 						10 = {} # Nothing
 					}
-					repeat_event = { id = SRI.7 days = 180 random = 180 }
+					repeat_event = { id = sri.7 days = 180 random = 180 }
 				}
 			}
 		}
 		else = {
-			repeat_event = { id = SRI.7 days = 180 random = 180 }
+			repeat_event = { id = sri.7 days = 180 random = 180 }
 		}
 	}
 }
 
 # Papuans want to settle - do you accept?
 character_event = {
-	id = SRI.8
+	id = sri.8
 	desc = EVTDESC_SRI_8
 	picture = GFX_evt_tropicana
 	border = GFX_event_normal_frame_diplomacy
+	hide_from = yes
 	
 	is_triggered_only = yes
 	
@@ -542,7 +664,10 @@ character_event = {
 		random_demesne_province = {
 			limit = {
 				port = yes
-				region = world_oceania
+				OR = {
+					region = world_maritime_southeast_asia
+					region = world_taiwan
+				}
 			}
 			preferred_limit = {
 				ROOT = {
@@ -555,11 +680,28 @@ character_event = {
 				capital_holding = {
 					holding_type = tribal
 				}
-				culture_group = malayo_polynesian_group
-				NOT = {
+				NOR = {
 					culture = papuan
+					religion = melanesian_pagan
 				}
-				religion = melanesian_pagan
+				OR = {
+					culture_group = sulawesi_group
+					culture_group = ma_i_an
+					culture_group = taiwanese_group
+					culture_group = bornean_group
+					culture_group = javanese_group
+					culture_group = malay_group
+					culture_group = andamanese_group
+					religion = taiwanese_pagan
+					religion = maian_pagan
+					religion = minahasan_pagan
+					religion = dayak_pagan
+					religion = dusun_pagan
+					religion = sundanese_pagan
+					religion = minangkabau_pagan
+					religion = batak_pagan
+					religion = andamanese_pagan
+				}
 			}
 			preferred_limit = {
 				ROOT = {
@@ -572,11 +714,32 @@ character_event = {
 				capital_holding = {
 					holding_type = tribal
 				}
-				culture_group = malayo_polynesian_group
-				NOT = {
+				OR = {
 					culture = papuan
+					religion = melanesian_pagan
 				}
-				religion = melanesian_pagan_reformed
+				NAND = {
+					culture = papuan
+					religion = melanesian_pagan
+				}
+				OR = {
+					culture_group = sulawesi_group
+					culture_group = ma_i_an
+					culture_group = taiwanese_group
+					culture_group = bornean_group
+					culture_group = javanese_group
+					culture_group = malay_group
+					culture_group = andamanese_group
+					religion = taiwanese_pagan
+					religion = maian_pagan
+					religion = minahasan_pagan
+					religion = dayak_pagan
+					religion = dusun_pagan
+					religion = sundanese_pagan
+					religion = minangkabau_pagan
+					religion = batak_pagan
+					religion = andamanese_pagan
+				}
 			}
 			preferred_limit = {
 				ROOT = {
@@ -592,113 +755,13 @@ character_event = {
 				culture = papuan
 				religion = melanesian_pagan
 			}
-			preferred_limit = {
-				ROOT = {
-					capital_scope = {
-						NOT = {
-							province = PREVPREV
-						}
-					}
-				}
-				capital_holding = {
-					holding_type = tribal
-				}
-				culture = papuan
-				religion = melanesian_pagan_reformed
-			}
-			preferred_limit = {
-				ROOT = {
-					capital_scope = {
-						NOT = {
-							province = PREVPREV
-						}
-					}
-				}
-				capital_holding = {
-					holding_type = tribal
-				}
-				religion = melanesian_pagan
-			}
-			preferred_limit = {
-				ROOT = {
-					capital_scope = {
-						NOT = {
-							province = PREVPREV
-						}
-					}
-				}
-				capital_holding = {
-					holding_type = tribal
-				}
-				religion = melanesian_pagan_reformed
-			}
-			preferred_limit = {
-				ROOT = {
-					capital_scope = {
-						NOT = {
-							province = PREVPREV
-						}
-					}
-				}
-				capital_holding = {
-					holding_type = tribal
-				}
-				culture_group = malayo_polynesian_group
-				NOT = {
-					culture = papuan
-				}
-			}
-			preferred_limit = {
-				ROOT = {
-					capital_scope = {
-						NOT = {
-							province = PREVPREV
-						}
-					}
-				}
-				capital_holding = {
-					holding_type = tribal
-				}
-				culture = papuan
-			}
-			preferred_limit = {
-				ROOT = {
-					capital_scope = {
-						NOT = {
-							province = PREVPREV
-						}
-					}
-				}
-				capital_holding = {
-					holding_type = tribal
-				}
-			}
-			preferred_limit = {
-				ROOT = {
-					capital_scope = {
-						NOT = {
-							province = PREVPREV
-						}
-					}
-				}
-				religion = melanesian_pagan
-			}
-			preferred_limit = {
-				ROOT = {
-					capital_scope = {
-						NOT = {
-							province = PREVPREV
-						}
-					}
-				}
-				religion = melanesian_pagan_reformed
-			}
+			
 			save_event_target_as = papuan_refugee_province
 		}
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_8 # Very well...
+		name = EVTOPTA_SRI_8 # Very well...
 		
 		create_random_soldier = {
 			age = 25
@@ -708,9 +771,11 @@ character_event = {
 			religion = melanesian_pagan
 			random_traits = yes
 		}
+		
 		new_character = {
 			save_event_target_as = new_papuan
 		}
+		
 		event_target:papuan_refugee_province = {
 			county = {
 				grant_title = event_target:new_papuan
@@ -718,10 +783,13 @@ character_event = {
 			culture = papuan
 			religion = melanesian_pagan
 		}
+		
 		event_target:new_papuan = {
 			set_defacto_liege = ROOT
+			
 			create_some_papuans_effect = yes
 			create_some_papuans_effect = yes
+			
 			spawn_unit = {
 				province = event_target:papuan_refugee_province
 				home = event_target:papuan_refugee_province
@@ -730,6 +798,7 @@ character_event = {
 					archers = { 1400 1300 }
 				}
 			}
+			
 			event_target:papuan_refugee_province = {
 				sea_zone = {
 					event_target:new_papuan = {
@@ -783,7 +852,7 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTB_SUNRISE_8 # Get lost!
+		name = EVTOPTB_SRI_8 # Get lost!
 		
 		prestige = 100
 		
@@ -792,7 +861,7 @@ character_event = {
 				has_dlc = "The Old Gods"
 				independent = yes
 			}
-			character_event = { id = SRI.9 days = 7 random = 7 } # Vengeance!
+			character_event = { id = sri.9 days = 7 random = 7 } # Vengeance!
 		}
 		
 		ai_chance = {
@@ -815,7 +884,7 @@ character_event = {
 
 # If refused, tOG is active, and you are independent, the would-be settlers swear vengeance
 character_event = {
-	id = SRI.9
+	id = sri.9
 	desc = EVTDESC_SRI_9
 	picture = GFX_evt_tropicana
 	border = GFX_event_normal_frame_diplomacy
@@ -823,18 +892,18 @@ character_event = {
 	is_triggered_only = yes
 	
 	option = {
-		name = EVTOPTA_SUNRISE_9 # Yeah, right...
+		name = EVTOPTA_SRI_9 # Yeah, right...
 		
 		event_target:papuan_refugee_province = {
 			set_province_flag = papuan_settler_province
-			province_event = { id = SRI.10 days = 15 random = 15 }
+			province_event = { id = sri.10 days = 15 random = 15 }
 		}
 	}
 }
 
 # Mini-host arrives
 province_event = {
-	id = SRI.10
+	id = sri.10
 	hide_window = yes
 	
 	is_triggered_only = yes
@@ -843,12 +912,15 @@ province_event = {
 		county = {
 			save_event_target_as = invasion_province
 		}
+		
 		owner = {
 			top_liege = {
 				save_event_target_as = invasion_target
 			}
 		}
+		
 		set_province_flag = papuan_invasion_target
+		
 		create_random_soldier = {
 			age = 25
 			female = no
@@ -857,6 +929,7 @@ province_event = {
 			religion = melanesian_pagan
 			random_traits = yes
 		}
+		
 		new_character = {
 			save_event_target_as = new_papuan
 			set_defacto_liege = THIS
@@ -872,9 +945,11 @@ province_event = {
 			
 			set_character_flag = duchy_adventurer
 		}
+		
 		event_target:new_papuan = {
 			create_some_papuans_effect = yes
 			create_some_papuans_effect = yes
+			
 			spawn_unit = {
 				province = ROOT
 				home = ROOT
@@ -883,6 +958,7 @@ province_event = {
 					archers = { 1400 1300 }
 				}
 			}
+			
 			ROOT = {
 				sea_zone = {
 					event_target:new_papuan = {
@@ -897,21 +973,23 @@ province_event = {
 					}
 				}
 			}
-			unsafe_war = {
+			
+			war = {
 				target = event_target:invasion_target
 				casus_belli = county_adventure
 				thirdparty_title = event_target:invasion_province
 			}
 		}
+		
 		event_target:invasion_target = {
-			character_event = { id = SRI.11 } # Inform the target
+			character_event = { id = sri.11 } # Inform the target
 		}
 	}
 }
 
 # Inform the top liege
 character_event = {
-	id = SRI.11
+	id = sri.11
 	desc = EVTDESC_SRI_11
 	picture = GFX_evt_tropicana
 	border = GFX_event_normal_frame_war
@@ -919,13 +997,13 @@ character_event = {
 	is_triggered_only = yes
 	
 	option = {
-		name = EVTOPTA_SUNRISE_11 # They dare?
+		name = EVTOPTA_SRI_11 # They dare?
 	}
 }
 
 # Papuan notables arrive - do they get to stay?
 character_event = {
-	id = SRI.12
+	id = sri.12
 	desc = EVTDESC_SRI_12
 	picture = GFX_evt_tropicana
 	border = GFX_event_normal_frame_diplomacy
@@ -933,7 +1011,7 @@ character_event = {
 	is_triggered_only = yes
 	
 	option = {
-		name = EVTOPTA_SUNRISE_12 # They can stay!
+		name = EVTOPTA_SRI_12 # They can stay!
 		
 		create_some_papuans_effect = yes
 		
@@ -974,7 +1052,7 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTB_SUNRISE_12 # They don't belong here!
+		name = EVTOPTB_SRI_12 # They don't belong here!
 		
 		prestige = 25
 		
@@ -1000,11 +1078,12 @@ character_event = {
 
 # Strangers arrive to buy land
 narrative_event = {
-	id = SRI.13
-	title = EVTTITLE_SUNRISE_13
+	id = sri.13
+	title = EVTTITLE_SRI_13
 	desc = EVTDESC_SRI_13
 	picture = GFX_evt_aztec_explorers
 	border = GFX_event_narrative_frame_diplomacy
+	hide_from = yes
 	
 	is_triggered_only = yes
 	
@@ -1013,9 +1092,8 @@ narrative_event = {
 			limit = {
 				port = yes
 				OR = {
-					region = world_taiwan
-					region = world_japan_islands
 					region = world_japan
+					region = world_ryukyu
 				}
 			}
 			save_event_target_as = province_being_bought
@@ -1023,9 +1101,9 @@ narrative_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_13 # Silver for the right to settle? Sure!
+		name = EVTOPTA_SRI_13 # Silver for the right to settle? Sure!
 		
-		wealth = 900
+		wealth = 900 # 30*30 pieces of silver
 		
 		hidden_tooltip = {
 			event_target:province_being_bought = {
@@ -1065,7 +1143,7 @@ narrative_event = {
 	}
 	
 	option = {
-		name = EVTOPTB_SUNRISE_13 # My land is not for sale!
+		name = EVTOPTB_SRI_13 # My land is not for sale!
 		
 		prestige = 100
 		
@@ -1089,7 +1167,7 @@ narrative_event = {
 
 # Hidden event to check how much land was bought
 province_event = {
-	id = SRI.14
+	id = sri.14
 	hide_window = yes
 	
 	is_triggered_only = yes
@@ -1104,35 +1182,36 @@ province_event = {
 					}
 				}
 			}
+			
 			set_province_flag = inca_didnt_buy_land
+			
 			any_player = {
 				limit = {
 					any_realm_province = {
 						port = yes
 						OR = {
-							region = world_taiwan
-							region = world_japan_islands
 							region = world_japan
+							region = world_ryukyu
 						}
 					}
 				}
-				character_event = { id = SRI.15 } # Land buy didn't work
+				character_event = { id = sri.15 } # Land buy didn't work
 			}
 		}
 		else = {
 			set_province_flag = inca_bought_land
+			
 			any_player = {
 				limit = {
 					any_realm_province = {
 						port = yes
 						OR = {
-							region = world_taiwan
-							region = world_japan_islands
 							region = world_japan
+							region = world_ryukyu
 						}
 					}
 				}
-				character_event = { id = SRI.16 } # Land buy worked
+				character_event = { id = sri.16 } # Land buy worked
 			}
 		}
 	}
@@ -1140,31 +1219,35 @@ province_event = {
 
 # Too little land was bought - strangers are displeased
 character_event = {
-	id = SRI.15
+	id = sri.15
 	desc = EVTDESC_SRI_15
 	picture = GFX_evt_aztec_explorers
 	border = GFX_event_normal_frame_diplomacy
+	hide_from = yes
 	
 	is_triggered_only = yes
 	
 	option = {
-		name = EVTOPTA_SUNRISE_15 # Well, what are they going to do about it?
+		name = EVTOPTA_SRI_15 # Well, what are they going to do about it?
 	}
 }
 
 # Enough land was bought - strangers are pleased
 character_event = {
-	id = SRI.16
+	id = sri.16
 	desc = EVTDESC_SRI_16
 	picture = GFX_evt_aztec_explorers
 	border = GFX_event_normal_frame_diplomacy
+	hide_from = yes
 	
 	is_triggered_only = yes
 	
 	option = {
-		name = EVTOPTA_SUNRISE_16 # They just left?
+		name = EVTOPTA_SRI_16 # They just left?
 	}
 }
+
+
 
 ##### The Sunrise Invasion
 
@@ -1172,7 +1255,7 @@ character_event = {
 
 # Hidden event handling the order in which to hit the targets
 province_event = {
-	id = SRI.17
+	id = sri.17
 	hide_window = yes
 	
 	is_triggered_only = yes
@@ -1184,52 +1267,64 @@ province_event = {
 					has_global_flag = sunrise_invasion_happened
 				}
 			}
+			
 			set_global_flag = sunrise_invasion_happened
+			
 			set_variable = {
 				which = inca_invasions
 				value = 0
 			}
+			
 			activate_title = { title = d_acllahuasi status = yes }
-			e_tawantinsuyu = {
+			
+			e_inca_empire = {
 				holder_scope = {
 					create_random_priest = {
 						age = 30
 						female = yes
 						dynasty = random
 						culture = quechua
-						religion = inca_religion
+						religion = inca_pagan
 						trait = mastermind_theologian
 						trait = aclla
-						trait = fair
+						trait = attractive
 						trait = zealous
 						random_traits = yes
 					}
+					
 					spawn_inca_courtiers_effect = yes
+					
 					new_character = {
 						d_acllahuasi = {
 							grant_title = PREV
 						}
-						set_defacto_liege = e_tawantinsuyu
+						
+						set_defacto_liege = e_inca_empire
+						
 						set_government_type = theocracy_government
+						
 						d_acllahuasi = {
 							grant_title = PREV
 							add_law = succ_open_elective
 							add_law = enatic_succession
-							de_jure_liege = e_tawantinsuyu
+							de_jure_liege = e_inca_empire
 						}
+						
 						d_acllahuasi = {
 							holder_scope = {
 								fill_acllahuasi = yes
 							}
 						}
+						
 						set_defacto_liege = PREV
 					}
+					
 					create_random_priest = {
 						age = 75
 						female = yes
 						dynasty = random
 						culture = quechua
-						religion = inca_religion
+						religion = inca_pagan
 						attributes = {
 							intrigue = 15
 						}
@@ -1241,17 +1336,19 @@ province_event = {
 						health = 10
 						random_traits = no
 					}
+					
 					new_character = {
 						set_character_flag = is_yzma
 						set_character_flag = special_spymaster
 						save_event_target_as = is_yzma
 					}
+					
 					create_random_soldier = {
 						age = 25
 						female = no
 						dynasty = random
 						culture = quechua
-						religion = inca_religion
+						religion = inca_pagan
 						trait = naive_appeaser
 						trait = honest
 						trait = content
@@ -1261,10 +1358,10 @@ province_event = {
 						health = 10
 						random_traits = no
 					}
+					
 					new_character = {
 						give_nickname = nick_the_lever_puller
 						set_character_flag = is_kronk
-						save_event_target_as = is_kronk
 						opinion = {
 							who = event_target:is_yzma
 							modifier = opinion_loyal_servant
@@ -1273,74 +1370,88 @@ province_event = {
 				}
 			}
 		}
+		
 		if = {
 			limit = {
 				NOT = {
 					has_global_flag = inca_defeated
 				}
 			}
+			
 			change_variable = {
 				which = inca_invasions
 				value = 1
 			}
+			
 			random_list = {
 				25 = {
 					modifier = {
 						factor = 0
 						has_province_flag = inca_attacked_java
 					}
+					
 					set_province_flag = inca_attacked_java
+					
 					random_list = {
 						50 = {
 							2339 = { # Sumbawa
-								province_event = { id = SRI.18 } # Landfall
+								province_event = { id = sri.18 } # Landfall
 							}
 						}
 						50 = {
 							2340 = { # Dompu
-								province_event = { id = SRI.18 } # Landfall
+								province_event = { id = sri.18 } # Landfall
 							}
 						}
 					}
 				}
+				
 				25 = {
 					modifier = {
 						factor = 0
 						has_province_flag = inca_attacked_sulawesi
 					}
+					
 					set_province_flag = inca_attacked_sulawesi
+					
 					random_list = {
 						50 = {
 							2341 = { # Mandar
-								province_event = { id = SRI.20 } # Landfall
+								province_event = { id = sri.20 } # Landfall
 							}
 						}
+						
 						50 = {
 							2346 = { # Luwuk
-								province_event = { id = SRI.20 } # Landfall
+								province_event = { id = sri.20 } # Landfall
 							}
 						}
 					}
 				}
+				
 				25 = {
 					modifier = {
 						factor = 0
 						has_province_flag = inca_attacked_mindanao
 					}
+					
 					set_province_flag = inca_attacked_mindanao
+					
 					random_list = {
 						50 = {
 							2388 = { # Kuta Wato
-								province_event = { id = SRI.22 } # Landfall
+								province_event = { id = sri.22 } # Landfall
 							}
 						}
+						
 						50 = {
 							2394 = { # Suba
-								province_event = { id = SRI.22 } # Landfall
+								province_event = { id = sri.22 } # Landfall
 							}
 						}
 					}
 				}
+				
 				25 = {
 					modifier = {
 						factor = 0
@@ -1348,52 +1459,62 @@ province_event = {
 							has_province_flag = inca_attacked_java
 						}
 					}
+					
 					modifier = {
 						factor = 0
 						has_province_flag = inca_attacked_japan
 					}
+					
 					set_province_flag = inca_attacked_japan
+					
 					if = {
 						limit = {
 							has_province_flag = inca_bought_land
 						}
-						e_tawantinsuyu = {
+						
+						e_inca_empire = {
 							holder_scope = {
-								narrative_event = { id = SRI.25 } # Inform the world (and give the Sapa Inca some extra troops)
+								narrative_event = { id = sri.25 } # Inform the world (and give the Sapa Inca some extra troops)
 							}
 						}
+						
 						any_province = {
 							limit = {
 								has_province_flag = inca_bought_land_here
 							}
-							province_event = { id = SRI.24 } # Mini-hosts
+							province_event = { id = sri.24 } # Mini-hosts
 						}
 					}
+					
 					else = {
 						random_list = {
 							50 = {
 								2435 = { # Nanzhan
-									province_event = { id = SRI.26 } # Landfall
+									province_event = { id = sri.26 } # Landfall
 								}
 							}
+							
 							50 = {
 								2440 = { # Osumi
-									province_event = { id = SRI.26 } # Landfall
+									province_event = { id = sri.26 } # Landfall
 								}
 							}
+							
 							50 = {
 								2453 = { # Tosa
-									province_event = { id = SRI.26 } # Landfall
+									province_event = { id = sri.26 } # Landfall
 								}
 							}
+							
 							50 = {
 								2487 = { # Ise
-									province_event = { id = SRI.26 } # Landfall
+									province_event = { id = sri.26 } # Landfall
 								}
 							}
+							
 							50 = {
 								2497 = { # Bonshu
-									province_event = { id = SRI.26 } # Landfall
+									province_event = { id = sri.26 } # Landfall
 								}
 							}
 						}
@@ -1409,7 +1530,13 @@ province_event = {
 						}
 					}
 				}
-				repeat_event = { id = SRI.17 days = 180 random = 180 } # MOAR INVASIONS!
+				repeat_event = { id = sri.17 days = 180 random = 180 } # MOAR INVASIONS!
+			}
+			else = {
+				province_event = {
+					id = sri.29 # Disband fleet
+					years = 50
+				}
 			}
 		}
 	}
@@ -1417,31 +1544,33 @@ province_event = {
 
 # Inca attack (islands east of) Java
 province_event = {
-	id = SRI.18
+	id = sri.18
 	desc = EVTDESC_SRI_18	
 	picture = GFX_evt_battle_mesoamerican
 	border = GFX_event_normal_frame_war
+	hide_from = yes
 	
 	is_triggered_only = yes
 	
 	immediate = {
 		set_province_flag = inca_landfall # Used for culture/religion conversion on victory
-		e_tawantinsuyu = {
+		
+		e_inca_empire = {
 			holder_scope = {
-				narrative_event = { id = SRI.19 }
+				narrative_event = { id = sri.19 }
 			}
 		}
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_18 # To arms!
+		name = EVTOPTA_SRI_18 # To arms!
 	}
 }
 
 # Inform the world
 narrative_event = {
-	id = SRI.19
-	title = EVTTITLE_SUNRISE_19
+	id = sri.19
+	title = EVTTITLE_SRI_19
 	desc = EVTDESC_SRI_19
 	picture = GFX_evt_battle_mesoamerican
 	border = GFX_event_narrative_frame_war
@@ -1459,7 +1588,7 @@ narrative_event = {
 		FROM = {
 			kingdom = {
 				ROOT = {
-					unsafe_war = {
+					war = {
 						casus_belli = tribal_invasion
 						target = PREVPREV # The top liege of the province owner
 						thirdparty_title = PREV # The de jure kingdom
@@ -1467,6 +1596,7 @@ narrative_event = {
 				}
 			}
 		}
+		
 		spawn_inca_troops_and_commanders_effect = yes
 
 		any_playable_ruler = {
@@ -1484,7 +1614,7 @@ narrative_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_19 # How dreadful!
+		name = EVTOPTA_SRI_19 # How dreadful!
 
 		trigger = {
 			has_power_omen_modifier_trigger = no
@@ -1493,7 +1623,7 @@ narrative_event = {
 	}
 
 	option = { # Monks & Mystics - Hermetics Scrying reaction
-		name = EVTOPTA_SUNRISE_19 # How dreadful!
+		name = EVTOPTA_SRI_19 # How dreadful!
 
 		if = { # for safety
 			limit = {
@@ -1520,30 +1650,32 @@ narrative_event = {
 
 # Inca attack Sulawesi
 province_event = {
-	id = SRI.20
+	id = sri.20
 	desc = EVTDESC_SRI_20	
 	picture = GFX_evt_battle_mesoamerican
 	border = GFX_event_normal_frame_war
+	hide_from = yes
 	
 	is_triggered_only = yes
 	
 	immediate = {
 		set_province_flag = inca_landfall # Used for culture/religion conversion on victory
-		e_tawantinsuyu = {
+		
+		e_inca_empire = {
 			holder_scope = {
-				narrative_event = { id = SRI.21 }
+				narrative_event = { id = sri.21 }
 			}
 		}
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_20 # To arms!
+		name = EVTOPTA_SRI_20 # To arms!
 	}
 }
 
 # Inform the world
 narrative_event = {
-	id = SRI.21
+	id = sri.21
 	title = EVTTITLE_SRI_1
 	desc = EVTDESC_SRI_21
 	picture = GFX_evt_battle_mesoamerican
@@ -1562,7 +1694,7 @@ narrative_event = {
 		FROM = {
 			kingdom = {
 				ROOT = {
-					unsafe_war = {
+					war = {
 						casus_belli = tribal_invasion
 						target = PREVPREV # The top liege of the province owner
 						thirdparty_title = PREV # The de jure kingdom
@@ -1570,6 +1702,7 @@ narrative_event = {
 				}
 			}
 		}
+		
 		spawn_inca_troops_and_commanders_effect = yes
 
 		any_playable_ruler = {
@@ -1587,7 +1720,7 @@ narrative_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_21 # How dreadful!
+		name = EVTOPTA_SRI_21 # How dreadful!
 
 		trigger = {
 			has_power_omen_modifier_trigger = no
@@ -1596,7 +1729,7 @@ narrative_event = {
 	}
 
 	option = { # Monks & Mystics - Hermetics Scrying reaction
-		name = EVTOPTA_SUNRISE_21 # How dreadful!
+		name = EVTOPTA_SRI_21 # How dreadful!
 
 		if = { # for safety
 			limit = {
@@ -1623,30 +1756,32 @@ narrative_event = {
 
 # Inca attack Mindanao
 province_event = {
-	id = SRI.22
+	id = sri.22
 	desc = EVTDESC_SRI_22	
 	picture = GFX_evt_battle_mesoamerican
 	border = GFX_event_normal_frame_war
+	hide_from = yes
 	
 	is_triggered_only = yes
 	
 	immediate = {
 		set_province_flag = inca_landfall # Used for culture/religion conversion on victory
-		e_tawantinsuyu = {
+		
+		e_inca_empire = {
 			holder_scope = {
-				narrative_event = { id = SRI.23 }
+				narrative_event = { id = sri.23 }
 			}
 		}
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_22 # To arms!
+		name = EVTOPTA_SRI_22 # To arms!
 	}
 }
 
 # Inform the world
 narrative_event = {
-	id = SRI.23
+	id = sri.23
 	title = EVTTITLE_SRI_3
 	desc = EVTDESC_SRI_23
 	picture = GFX_evt_battle_mesoamerican
@@ -1665,7 +1800,7 @@ narrative_event = {
 		FROM = {
 			kingdom = {
 				ROOT = {
-					unsafe_war = {
+					war = {
 						casus_belli = tribal_invasion
 						target = PREVPREV # The top liege of the province owner
 						thirdparty_title = PREV # The de jure kingdom
@@ -1673,6 +1808,7 @@ narrative_event = {
 				}
 			}
 		}
+		
 		spawn_inca_troops_and_commanders_effect = yes
 
 		any_playable_ruler = {
@@ -1690,7 +1826,7 @@ narrative_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_23 # How dreadful!
+		name = EVTOPTA_SRI_23 # How dreadful!
 
 		trigger = {
 			has_power_omen_modifier_trigger = no
@@ -1699,7 +1835,7 @@ narrative_event = {
 	}
 
 	option = { # Monks & Mystics - Hermetics Scrying reaction
-		name = EVTOPTA_SUNRISE_23 # How dreadful!
+		name = EVTOPTA_SRI_23 # How dreadful!
 
 		if = { # for safety
 			limit = {
@@ -1726,7 +1862,7 @@ narrative_event = {
 
 # Hosts arrive to attack bought provinces - always after Mindanao, only possible with tOG
 province_event = {
-	id = SRI.24
+	id = sri.24
 	hide_window = yes
 	
 	is_triggered_only = yes
@@ -1735,26 +1871,30 @@ province_event = {
 		county = {
 			save_event_target_as = invasion_province
 		}
+		
 		set_province_flag = inca_landfall # Used for culture/religion conversion on victory
+		
 		owner = {
 			top_liege = {
 				save_event_target_as = invasion_target
 			}
 		}
-		e_tawantinsuyu = {
+		
+		e_inca_empire = {
 			holder_scope = {
 				create_random_soldier = {
 					age = 25
 					female = no
 					dynasty = random
 					culture = quechua
-					religion = inca_religion
+					religion = inca_pagan
 					trait = brilliant_strategist
 					attributes = {
 						martial = 10
 					}
 					random_traits = yes
 				}
+				
 				new_character = {
 					save_event_target_as = new_inca_invader
 					set_defacto_liege = THIS
@@ -1770,19 +1910,21 @@ province_event = {
 					
 					set_character_flag = duchy_adventurer
 				}
+				
 				event_target:new_inca_invader = {
 					create_random_soldier = {
 						age = 25
 						female = no
 						dynasty = random
 						culture = quechua
-						religion = inca_religion
+						religion = inca_pagan
 						trait = skilled_tactician
 						attributes = {
 							martial = 10
 						}
 						random_traits = yes
 					}
+					
 					spawn_unit = {
 						province = ROOT
 						home = ROOT
@@ -1792,18 +1934,20 @@ province_event = {
 							archers = { 1400 1300 }
 						}
 					}
+					
 					create_random_soldier = {
 						age = 25
 						female = no
 						dynasty = random
 						culture = quechua
-						religion = inca_religion
+						religion = inca_pagan
 						trait = tough_soldier
 						attributes = {
 							martial = 10
 						}
 						random_traits = yes
 					}
+					
 					spawn_unit = {
 						province = ROOT
 						home = ROOT
@@ -1813,18 +1957,20 @@ province_event = {
 							archers = { 1400 1300 }
 						}
 					}
+					
 					create_random_soldier = {
 						age = 25
 						female = no
 						dynasty = random
 						culture = quechua
-						religion = inca_religion
+						religion = inca_pagan
 						trait = misguided_warrior
 						attributes = {
 							martial = 10
 						}
 						random_traits = yes
 					}
+					
 					spawn_unit = {
 						province = ROOT
 						home = ROOT
@@ -1834,6 +1980,7 @@ province_event = {
 							archers = { 1400 1300 }
 						}
 					}
+					
 					ROOT = {
 						sea_zone = {
 							event_target:new_inca_invader = {
@@ -1848,7 +1995,8 @@ province_event = {
 							}
 						}
 					}
-					unsafe_war = {
+					
+					war = {
 						target = event_target:invasion_target
 						casus_belli = county_adventure
 						thirdparty_title = event_target:invasion_province
@@ -1861,7 +2009,7 @@ province_event = {
 
 # Inform the world (and give the Sapa Inca some troops)
 narrative_event = {
-	id = SRI.25
+	id = sri.25
 	title = EVTTITLE_SRI_5
 	desc = EVTDESC_SRI_25
 	picture = GFX_evt_battle_mesoamerican
@@ -1876,6 +2024,7 @@ narrative_event = {
 		capital_scope = {
 			save_event_target_as = inca_capital
 		}
+		
 		spawn_inca_troops_and_commanders_capital_effect = yes
 
 		any_playable_ruler = {
@@ -1893,7 +2042,7 @@ narrative_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_25 # How dreadful!
+		name = EVTOPTA_SRI_25 # How dreadful!
 
 		trigger = {
 			has_power_omen_modifier_trigger = no
@@ -1902,7 +2051,7 @@ narrative_event = {
 	}
 
 	option = { # Monks & Mystics - Hermetics Scrying reaction
-		name = EVTOPTA_SUNRISE_25 # How dreadful!
+		name = EVTOPTA_SRI_25 # How dreadful!
 
 		if = { # for safety
 			limit = {
@@ -1927,32 +2076,34 @@ narrative_event = {
 	}
 }
 
-# Inca attack Taiwan/Ryukyu/Kyushu/Shikoku/Honshu - always after Mindanao, only if not enough land was bought
+# Inca attack Ryukyu/Kyushu/Shikoku/Honshu - always after Mindanao, only if not enough land was bought
 province_event = {
-	id = SRI.26
+	id = sri.26
 	desc = EVTDESC_SRI_26	
 	picture = GFX_evt_battle_mesoamerican
 	border = GFX_event_normal_frame_war
+	hide_from = yes
 	
 	is_triggered_only = yes
 	
 	immediate = {
 		set_province_flag = inca_landfall # Used for culture/religion conversion on victory
-		e_tawantinsuyu = {
+		
+		e_inca_empire = {
 			holder_scope = {
-				narrative_event = { id = SRI.27 }
+				narrative_event = { id = sri.27 }
 			}
 		}
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_26 # To arms!
+		name = EVTOPTA_SRI_26 # To arms!
 	}
 }
 
 # Inform the world
 narrative_event = {
-	id = SRI.27
+	id = sri.27
 	title = EVTTITLE_SRI_7
 	desc = EVTDESC_SRI_27
 	picture = GFX_evt_battle_mesoamerican
@@ -1971,7 +2122,7 @@ narrative_event = {
 		FROM = {
 			kingdom = {
 				ROOT = {
-					unsafe_war = {
+					war = {
 						casus_belli = tribal_invasion
 						target = PREVPREV # The top liege of the province owner
 						thirdparty_title = PREV # The de jure kingdom
@@ -1979,6 +2130,7 @@ narrative_event = {
 				}
 			}
 		}
+		
 		spawn_inca_troops_and_commanders_effect = yes
 
 		any_playable_ruler = {
@@ -1996,7 +2148,7 @@ narrative_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_27 # How dreadful!
+		name = EVTOPTA_SRI_27 # How dreadful!
 
 		trigger = {
 			has_power_omen_modifier_trigger = no
@@ -2005,7 +2157,7 @@ narrative_event = {
 	}
 
 	option = { # Monks & Mystics - Hermetics Scrying reaction
-		name = EVTOPTA_SUNRISE_27 # How dreadful!
+		name = EVTOPTA_SRI_27 # How dreadful!
 
 		if = { # for safety
 			limit = {
@@ -2034,19 +2186,22 @@ narrative_event = {
 
 # Inca thrown back into the sea
 narrative_event = {
-	id = SRI.28
+	id = sri.28
 	title = EVTTITLE_SRI_8
 	desc = EVTDESC_SRI_28
 	picture = GFX_evt_aztec_arrival
 	border = GFX_event_narrative_frame_war
 	
 	major = yes
+	
 	only_playable = yes
+
+	is_triggered_only = yes # on_unlanded; on_battle_lost_owner; on_yearly_pulse
 	
 	trigger = {
 		has_global_flag = sunrise_invasion_happened
 		NOT = { has_global_flag = inca_defeated }
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		has_regiments = no
 		is_landed = no
 	}
@@ -2055,12 +2210,9 @@ narrative_event = {
 		ai = no
 	}
 	
-	mean_time_to_happen = {
-		days = 1
-	}
-	
 	immediate = {
-		activate_title = { title = e_tawantinsuyu status = no }
+		activate_title = { title = e_inca_empire status = no }
+		
 		d_acllahuasi = {
 			holder_scope = {
 				any_courtier = {
@@ -2068,52 +2220,49 @@ narrative_event = {
 						trait = aclla
 					}
 					remove_trait = aclla
+					leave_court_effect = yes
 				}
 			}
 		}
+		
 		activate_title = { title = d_acllahuasi status = no }
-		set_global_flag = e_tawantinsuyu
+		
+		set_global_flag = inca_defeated
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_28 # A reckoning will not be postponed indefinitely...
+		name = EVTOPTA_SRI_28 # A reckoning will not be postponed indefinitely...
 	}
 }
 
 # Inca Invasion Fleets disband
-character_event = {
-	id = SRI.29
+province_event = {
+	id = sri.29
 	hide_window = yes
 	
-	only_playable = yes
 	has_global_flag = sunrise_invasion_happened
 	
-	trigger = {
-		has_landed_title = e_tawantinsuyu
-		NOT = { has_global_flag = inca_invasion_fleet_disbanded }
-		had_global_flag = { flag = sunrise_invasion_happened days = 18250 }
-	}
-	
-	mean_time_to_happen = {
-		months = 1
-	}
+	is_triggered_only = yes
 	
 	immediate = {
-		disband_event_forces = inca_invasion_fleet
 		set_global_flag = inca_invasion_fleet_disbanded
-	}
-	
-	option = {
-		name = OK
+		
+		e_inca_empire = {
+			holder_scope = {
+				disband_event_forces = inca_invasion_fleet
+			}
+		}
 	}
 }
+
+
 
 ##### News from the Andes
 
 # Inca like silk
 narrative_event = {
-	id = SRI.30
-	title = EVTTITLE_SUNRISE_30
+	id = sri.30
+	title = EVTTITLE_SRI_30
 	desc = EVTDESC_SRI_30
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_narrative_frame_war
@@ -2121,20 +2270,18 @@ narrative_event = {
 	major = yes
 	
 	only_playable = yes
+	is_triggered_only = yes # on_five_year_pulse, random_events, sunset_invasion_flavour_events 
+	
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_silk }
 		NOT = { has_global_flag = inca_defeated }
 	}
 	
 	major_trigger = {
 		ai = no
-	}	
-	
-	mean_time_to_happen = {
-		months = 220
 	}
 	
 	immediate = {
@@ -2142,23 +2289,23 @@ narrative_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_30
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_30
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_30
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_30
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca like tea
 narrative_event = {
-	id = SRI.31
-	title = EVTTITLE_SUNRISE_31
+	id = sri.31
+	title = EVTTITLE_SRI_31
 	desc = EVTDESC_SRI_31
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_narrative_frame_war
@@ -2166,20 +2313,18 @@ narrative_event = {
 	major = yes
 	
 	only_playable = yes
+	is_triggered_only = yes # on_five_year_pulse, random_events, sunset_invasion_flavour_events
+	
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_tea }
 		NOT = { has_global_flag = inca_defeated }
 	}
 	
 	major_trigger = {
 		ai = no
-	}	
-	
-	mean_time_to_happen = {
-		months = 220
 	}
 	
 	immediate = {
@@ -2187,23 +2332,23 @@ narrative_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_31
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_31
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_31
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_31
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca head into the Amazon
 narrative_event = {
-	id = SRI.32
-	title = EVTTITLE_SUNRISE_32
+	id = sri.32
+	title = EVTTITLE_SRI_32
 	desc = EVTDESC_SRI_32
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_narrative_frame_war
@@ -2211,20 +2356,18 @@ narrative_event = {
 	major = yes
 	
 	only_playable = yes
+	is_triggered_only = yes # on_five_year_pulse, random_events, sunset_invasion_flavour_events
+	
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_amazon }
 		NOT = { has_global_flag = inca_defeated }
 	}
 	
 	major_trigger = {
 		ai = no
-	}	
-	
-	mean_time_to_happen = {
-		months = 220
 	}
 	
 	immediate = {
@@ -2232,23 +2375,23 @@ narrative_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_32
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_32
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_32
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_32
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca carry off fireworks in bulk
 narrative_event = {
-	id = SRI.33
-	title = EVTTITLE_SUNRISE_33
+	id = sri.33
+	title = EVTTITLE_SRI_33
 	desc = EVTDESC_SRI_33
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_narrative_frame_war
@@ -2256,20 +2399,18 @@ narrative_event = {
 	major = yes
 	
 	only_playable = yes
+	is_triggered_only = yes # on_five_year_pulse, random_events, sunset_invasion_flavour_events
+	
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_have_fireworks }
 		NOT = { has_global_flag = inca_defeated }
 	}
 	
 	major_trigger = {
 		ai = no
-	}	
-	
-	mean_time_to_happen = {
-		months = 220
 	}
 	
 	immediate = {
@@ -2277,23 +2418,23 @@ narrative_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_33
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_33
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_33
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_33
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca fight Aztecs
 narrative_event = {
-	id = SRI.34
-	title = EVTTITLE_SUNRISE_34
+	id = sri.34
+	title = EVTTITLE_SRI_34
 	desc = EVTDESC_SRI_34
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_narrative_frame_war
@@ -2301,30 +2442,25 @@ narrative_event = {
 	major = yes
 	
 	only_playable = yes
+	is_triggered_only = yes # on_five_year_pulse, random_events, sunset_invasion_flavour_events
+	
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		has_global_flag = inca_have_fireworks
+		has_global_flag = aztec_incas
 		NOT = { has_global_flag = incas_aztecs }
 		NOT = { has_global_flag = inca_defeated }
 	}
 	
 	major_trigger = {
 		ai = no
-		# Better to give these the Inca version!
-		capital_scope = {
-			OR = {
-				region = world_steppe
-				region = world_tibet
-				region = world_india
-				region = world_east_asia
+		top_liege = {
+			NOT = {
+				has_landed_title = e_aztec_empire # Should get the Aztec perspective
 			}
 		}
-	}	
-	
-	mean_time_to_happen = {
-		months = 220
 	}
 	
 	immediate = {
@@ -2332,24 +2468,26 @@ narrative_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_34
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_34
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_34
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_34
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
+
+
 
 ##### Cities/areas fall to the Inca
 
 # Inca hold Borobudur
 character_event = {
-	id = SRI.35
+	id = sri.35
 	desc = EVTDESC_SRI_35
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2360,7 +2498,7 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_borobudur }
 		completely_controls = c_pajang
 	}
@@ -2378,22 +2516,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_35
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_35
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_35
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_35
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca hold Java
 character_event = {
-	id = SRI.36
+	id = sri.36
 	desc = EVTDESC_SRI_36
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2404,7 +2542,7 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_java }
 		completely_controls_region = world_java
 	}
@@ -2422,22 +2560,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_36
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_36
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_36
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_36
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca hold Borneo
 character_event = {
-	id = SRI.37
+	id = sri.37
 	desc = EVTDESC_SRI_37
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2448,7 +2586,7 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_borneo }
 		completely_controls_region = world_borneo
 	}
@@ -2466,22 +2604,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_37
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_37
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_37
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_37
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
-# Inca hold Tagalog archipelago (Philippines)
+# Inca hold Ma-i-an Archipelago (Philippines)
 character_event = {
-	id = SRI.38
+	id = sri.38
 	desc = EVTDESC_SRI_38
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2492,9 +2630,9 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_philippines }
-		completely_controls_region = world_philippines
+		completely_controls_region = world_maian_archipelago
 	}
 	
 	major_trigger = {
@@ -2510,22 +2648,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_38
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_38
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_38
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_38
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca hold Palembang
 character_event = {
-	id = SRI.39
+	id = sri.39
 	desc = EVTDESC_SRI_39
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2536,7 +2674,7 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_palembang }
 		completely_controls = c_palembang
 	}
@@ -2554,22 +2692,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_39
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_39
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_39
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_39
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca hold Sumatra
 character_event = {
-	id = SRI.40
+	id = sri.40
 	desc = EVTDESC_SRI_40
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2580,7 +2718,7 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_sumatra }
 		completely_controls_region = world_sumatra
 	}
@@ -2598,22 +2736,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_40
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_40
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_40
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_40
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca hold Ryukyu
 character_event = {
-	id = SRI.41
+	id = sri.41
 	desc = EVTDESC_SRI_41
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2624,9 +2762,9 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_ryukyu }
-		completely_controls_region = world_japan_islands
+		completely_controls_region = world_ryukyu
 	}
 	
 	major_trigger = {
@@ -2642,22 +2780,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_41
+		name = EVTOPTA_SRI_41
 		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+			NOT = { has_landed_title = e_inca_empire }
 		}
 	}
 	option = {
-		name = EVTOPTB_SUNRISE_41
+		name = EVTOPTB_SRI_41
 		trigger = {
-			has_landed_title = e_tawantinsuyu
+			has_landed_title = e_inca_empire
 		}
 	}
 }
 
 # Inca hold Ise
 character_event = {
-	id = SRI.42
+	id = sri.42
 	desc = EVTDESC_SRI_42
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2668,7 +2806,7 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_ise }
 		completely_controls = c_ise
 	}
@@ -2686,22 +2824,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_42
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_42
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_42
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_42
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca hold Japan
 character_event = {
-	id = SRI.43
+	id = sri.43
 	desc = EVTDESC_SRI_43
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2712,7 +2850,7 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_japan }
 		completely_controls_region = world_japan
 	}
@@ -2730,22 +2868,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_43
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_43
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_43
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_43
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca hold Korea
 character_event = {
-	id = SRI.44
+	id = sri.44
 	desc = EVTDESC_SRI_44
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2756,7 +2894,7 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_korea }
 		completely_controls_region = world_korea
 	}
@@ -2774,22 +2912,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_44
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_44
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_44
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_44
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
-# Inca hold Angkor (and Angkor Wat exists)
+# Inca hold Yasodharapura (and Angkor Wat exists)
 character_event = {
-	id = SRI.45
+	id = sri.45
 	desc = EVTDESC_SRI_45
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2800,10 +2938,10 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		has_global_flag = angkor_wat_constructed
 		NOT = { has_global_flag = inca_angkor_wat }
-		completely_controls = c_angkor
+		completely_controls = c_yasodharapura
 	}
 	
 	major_trigger = {
@@ -2819,22 +2957,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_45
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_45
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_45
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_45
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca hold mainland SEAsia
 character_event = {
-	id = SRI.46
+	id = sri.46
 	desc = EVTDESC_SRI_46
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2845,9 +2983,9 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_seasia }
-		completely_controls_region = world_indochina
+		completely_controls_region = world_mainland_southeast_asia
 	}
 	
 	major_trigger = {
@@ -2863,22 +3001,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_46
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_46
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_46
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_46
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca hold China
 character_event = {
-	id = SRI.47
+	id = sri.47
 	desc = EVTDESC_SRI_47
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2889,7 +3027,7 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_china }
 		completely_controls_region = world_china
 	}
@@ -2907,22 +3045,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_47
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_47
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_47
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_47
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca hold Tibet
 character_event = {
-	id = SRI.48
+	id = sri.48
 	desc = EVTDESC_SRI_48
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2933,9 +3071,9 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_tibet }
-		completely_controls_region = world_tibet
+		completely_controls_region = world_himalayas
 	}
 	
 	major_trigger = {
@@ -2951,22 +3089,22 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_48
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
+		name = {
+			text = EVTOPTA_SRI_48
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
+			}
 		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_48
-		trigger = {
-			has_landed_title = e_tawantinsuyu
+		name = {
+			text = EVTOPTB_SRI_48
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }
 
 # Inca hold India
 character_event = {
-	id = SRI.49
+	id = sri.49
 	desc = EVTDESC_SRI_49
 	picture = GFX_evt_throne_room_mesoamerican
 	border = GFX_event_normal_frame_war
@@ -2977,7 +3115,7 @@ character_event = {
 	has_global_flag = sunrise_invasion_happened
 	
 	trigger = {
-		has_landed_title = e_tawantinsuyu
+		has_landed_title = e_inca_empire
 		NOT = { has_global_flag = inca_india }
 		completely_controls_region = world_india
 	}
@@ -2995,738 +3133,15 @@ character_event = {
 	}
 	
 	option = {
-		name = EVTOPTA_SUNRISE_49
-		trigger = {
-			NOT = { has_landed_title = e_tawantinsuyu }
-		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_49
-		trigger = {
-			has_landed_title = e_tawantinsuyu
-		}
-	}
-}
-
-##### The Children of the Light
-
-# The birth of the Children of the Light
-narrative_event = {
-	id = SRI.50
-	title = EVTTITLE_SUNRISE_50
-	desc = {
-        text = EVTDESC_SRI_50
-        trigger = {
-			NOT = {
-				has_alternate_start_parameter = {
-					key = religion_names
-					value = random
-				}
-			}
-        }
-    }
-	desc = {
-        text = PAGAN_HOLY_ORDER_FORMED_ALT
-        trigger = {
-			has_alternate_start_parameter = {
-				key = religion_names
-				value = random
-			}
-        }
-    }
-	major = yes
-	
-	picture = GFX_evt_aztec_arrival
-	hide_from = yes
-	
-	only_playable = yes
-	religion = catholic
-	has_global_flag = inca_reformation
-	
-	trigger = {
-		has_dlc = "Sons of Abraham"
-		NOT = {
-			is_title_active = d_sunray_knights
-		}
-		controls_religion = yes # Let it happen for the Pope - he's always around
-	}
-	
-	mean_time_to_happen = {
-		months = 36
-	}
-	
-	immediate = {
-		activate_title = { title = d_sunray_knights status = yes }
-		create_character = {
-			random_traits = no
-			dynasty = random
-			unsafe_religion = inca_religion_reformed
-			culture = quechua
-			female = no
-			age = 28
-			trait = brilliant_strategist
-			trait = zealous
-			trait = humble
-			trait = ambitious
-			trait = strategist
-			trait = holy_warrior
-		}
-		new_character = {
-			wealth = 500
-			d_sunray_knights = {
-				grant_title = PREV
-			}
-			set_government_type = order_government
-			create_character = {
-				random_traits = yes
-				dynasty = random
-				religion = inca_religion_reformed
-				culture = quechua
-				female = no
-				age = 16
-			}
-			create_character = {
-				random_traits = yes
-				dynasty = random
-				religion = inca_religion_reformed
-				culture = quechua
-				female = no
-				age = 18
-			}
-			create_character = {
-				random_traits = yes
-				dynasty = random
-				religion = inca_religion_reformed
-				culture = quechua
-				female = no
-				age = 18
-			}
-			create_character = {
-				random_traits = yes
-				dynasty = random
-				religion = inca_religion_reformed
-				culture = quechua
-				female = no
-				age = 20
-			}
-			create_character = {
-				random_traits = yes
-				dynasty = random
-				religion = inca_religion_reformed
-				culture = quechua
-				female = no
-				age = 25
-			}
-			create_character = {
-				random_traits = yes
-				dynasty = random
-				religion = inca_religion_reformed
-				culture = quechua
-				female = no
-				age = 26
-			}
-			create_character = {
-				random_traits = yes
-				dynasty = random
-				religion = chinese_pagan_reformed
-				culture = han
-				female = no
-				age = 28
-			}
-			create_character = {
-				random_traits = yes
-				dynasty = random
-				religion = inca_religion_reformed
-				culture = quechua
-				female = yes
-				age = 16
-			}
-			create_character = {
-				random_traits = yes
-				dynasty = random
-				religion = inca_religion_reformed
-				culture = quechua
-				female = yes
-				age = 17
+		name = {
+			text = EVTOPTA_SRI_49
+			trigger = {
+				NOT = { has_landed_title = e_inca_empire }
 			}
 		}
-	}
-	
-	option = {
-		name = EVTOPTA_SUNRISE_50
-		trigger = {
-			religion = inca_religion_reformed
-		}
-	}
-	option = {
-		name = EVTOPTB_SUNRISE_50
-		trigger = {
-			NOT = { religion = inca_religion_reformed }
-		}
-	}
-}
-
-# The son of a ruler volunteers to join the Children of the Light
-character_event = {
-	id = SRI.51
-	hide_window = yes
-	
-	only_men = yes
-	min_age = 16
-	max_age = 45
-	only_capable = yes
-	prisoner = no
-	religion = inca_religion_reformed
-	
-	trigger = {
-		is_ruler = no
-		
-		martial = 5
-		
-		is_title_active = d_sunray_knights
-		
-		OR = {
-			father_even_if_dead = {
-				primary_title = { higher_tier_than = BARON }
-			}
-			mother_even_if_dead = {
-				primary_title = { higher_tier_than = BARON }
-			}
-		}
-		
-		liege = {
-			holy_order = no
-			religion = inca_religion_reformed
-			liege = {
-				holy_order = no
-			}
-		}
-		
-		has_dlc = "Sons of Abraham"
-		
-		NOT = { has_character_modifier = expelled_d_sunray_knights }
-		NOT = {
-			any_liege = {
-				has_character_modifier = expelled_d_sunray_knights
-			}
-		}
-
-		NOT = {
-			any_spouse = {
-				OR = {
-					is_landed = yes
-					AND = {
-						is_pregnant = yes
-						father_of_unborn = { character = ROOT } # Won't happen if spouse is pregnant with non-bastard child
-					}
-				}
-			}
-		}
-	}
-	
-	mean_time_to_happen = {
-		years = 100
-		modifier = {
-			factor = 0.25
-			trait = zealous
-		}
-		modifier = {
-			factor = 0.5
-			trait = celibate
-		}
-		modifier = {
-			factor = 0.5
-			trait = homosexual
-		}
-		modifier = {
-			factor = 0.7
-			trait = content
-		}
-		modifier = {
-			factor = 0.75
-			trait = chaste
-		}
-		modifier = {
-			factor = 0.75
-			NOT = { age = 25 }
-		}
-		modifier = {
-			factor = 1.5
-			trait = slothful
-		}
-		modifier = {
-			factor = 2.0
-			trait = lustful
-		}
-		modifier = {
-			factor = 2.0
-			trait = cynical
-		}
-		modifier = {
-			factor = 2.0
-			trait = hedonist
-		}
-		modifier = {
-			factor = 2.0
-			trait = ambitious
-		}
-		modifier = {
-			factor = 2.0
-			any_heir_title = {
-				always = yes
-			}
-		}
-		modifier = {
-			factor = 2.0
-			is_primary_heir = yes
-		}
-		modifier = {
-			factor = 2
-			any_spouse = {
-				reverse_opinion = { who = ROOT value = 100 }
-			}
-		}
-	}
-	
-	immediate = {
-		liege = {
-			character_event = {
-				id = SRI.52
-			}
-		}
-	}
-}
-
-# Son or brother asks to join the Children of the Light
-character_event = {
-	id = SRI.52
-	desc = EVTDESC_SRI_52
-	picture = GFX_evt_throne_room_mesoamerican
-	border = GFX_event_normal_frame_religion
-	
-	is_triggered_only = yes
-	
-	option = {
-		name = EVTOPTA_SOA_1031 # Agree
-		ai_chance = {
-			factor = 100
-		}
-		
-		if = {
-			limit = {
-				religion = FROM
-			}
-			piety = 100
-		}
-		
-		FROM = {
-			character_event = {
-				id = SRI.53
-				tooltip = EVTTOOLTIP_SUNRISE_52
-			}
-		}
-	}
-	
-	option = {
-		name = EVTOPTB_SOA_1031 # Refuse
-		
-		if = {
-			limit = {
-				religion = FROM
-			}
-			piety = -100
-		}
-		
-		FROM = {
-			character_event = {
-				id = SRI.54
-				tooltip = EVTTOOLTIP_SOA_1033
-			}
-		}
-	}
-}
-
-# Son or brother joins the Chosen of Heaven
-character_event = {
-	id = SRI.53
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		d_sunray_knights = {
-			holder_scope = {
-				save_event_target_as = order_target
-				ROOT = {
-					character_event = { id = SoA.2864 }
-				}
-			}
-		}
-	}
-}
-
-# Liege refuses request to join the Chosen of Heaven
-character_event = {
-	id = SRI.54
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		opinion = {
-			who = FROM
-			modifier = opinion_refused_request_holy_order
-		}
-	}
-}
-
-# Ping event when donating money to the Chosen of Heaven
-character_event = {
-	id = SRI.55
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		wealth = 300
-		FROM = {
-			letter_event = {
-				id = SRI.56
-			}
-		}
-		opinion = {
-			who = FROM
-			modifier = opinion_generous_donation
-		}
-	}
-}
-
-# Notification event when donating money to the Chosen of Heaven
-letter_event = {
-	id = SRI.56
-	desc = {
-        text = EVTDESC_SRI_56
-        trigger = {
-			NOT = {
-				has_alternate_start_parameter = {
-					key = religion_names
-					value = random
-				}
-			}
-        }
-    }
-	desc = {
-        text = HOLY_ORDER_DONATE_MONEY_ALT
-        trigger = {
-			has_alternate_start_parameter = {
-				key = religion_names
-				value = random
-			}
-        }
-    }
-	border = GFX_event_letter_frame_religion
-	
-	is_triggered_only = yes
-	
-	option = {
-		name = EXCELLENT
-	}
-}
-
-# The Grand Master humbly requests the right to build a castle in your demesne
-character_event = {
-	id = SRI.57
-	hide_window = yes
-	
-	min_age = 16
-	only_playable = yes
-	religion = chinese_pagan_reformed
-	
-	trigger = {
-		d_sunray_knights = {
-			holder_scope = {
-				wealth = 300
-				NOT = {
-					realm_size = 10
-				}
-			}
-		}
-		
-		any_demesne_province = {
-			has_empty_holding = yes
-		}
-		
-		has_dlc = "Sons of Abraham"
-		
-		NOT = { has_character_modifier = expelled_d_sunray_knights }
-		NOT = {
-			any_liege = {
-				has_character_modifier = expelled_d_sunray_knights
-			}
-		}
-		NOT = { # China and pretenders shouldn't willingly let someone else build stuff in their land, and neither should the Tenno or a Shogun!
-			top_liege = {
-				OR = {
-					government = chinese_imperial_government
-					government = japanese_imperial_government
-					any_vassal = {
-						government = japanese_imperial_government
-						PREV = {
-							OR = {
-								religion = shinto
-								AND = {
-									religion = buddhist
-									culture_group = japonic
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	mean_time_to_happen = {
-		months = 240
-		modifier = {
-			factor = 0.5
-			d_sunray_knights = {
-				holder_scope = {
-					NOT = { demesne_size = 1 }
-				}
-			}
-		}
-		modifier = {
-			factor = 0.5
-			d_sunray_knights = {
-				holder_scope = {
-					NOT = { demesne_size = 2 }
-				}
-			}
-		}
-		modifier = {
-			factor = 2.0
-			d_sunray_knights = {
-				holder_scope = {
-					num_of_count_titles = 1
-				}
-			}
-		}
-		modifier = {
-			factor = 2.0
-			d_sunray_knights = {
-				holder_scope = {
-					realm_size = 5
-				}
-			}
-		}
-	}
-	
-	immediate = {
-		random_demesne_province = {
-			limit = {
-				has_empty_holding = yes
-			}
-			province_event = {
-				id = SRI.58
-			}
-		}
-	}
-}
-
-province_event = {
-	id = SRI.58
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		d_sunray_knights = {
-			holder_scope = {
-				character_event = {
-					id = SRI.59
-				}
-			}
-		}
-	}
-}
-
-character_event = {
-	id = SRI.59
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		FROMFROM = {
-			letter_event = {
-				id = SRI.60
-			}
-		}
-	}
-}
-
-letter_event = {
-	id = SRI.60
-	desc = {
-        text = EVTDESC_SRI_60
-        trigger = {
-			NOT = {
-				has_alternate_start_parameter = {
-					key = religion_names
-					value = random
-				}
-			}
-        }
-    }
-	desc = {
-        text = HOLY_ORDER_BUILD_CASTLE_FOR_MONEY_ALT
-        trigger = {
-			has_alternate_start_parameter = {
-				key = religion_names
-				value = random
-			}
-        }
-    }
-	border = GFX_event_letter_frame_religion
-	
-	is_triggered_only = yes
-	
-	option = {
-		name = EVTOPTA_SOA_1023 # Agree
-		ai_chance = {
-			factor = 80
-			modifier = {
-				factor = 0
-				has_character_modifier = expelled_d_sunray_knights
-			}
-		}
-		
-		hidden_tooltip = {
-			FROMFROM = {
-				province_event = { id = SRI.61 }
-			}
-			remove_character_modifier = expelled_d_sunray_knights
-		}
-		
-		piety = 200
-		wealth = 100
-	}
-	
-	option = {
-		name = EVTOPTB_SOA_1153 # Refuse
-		ai_chance = {
-			factor = 20
-		}
-		
-		piety = -100
-	}
-}
-
-# Castle has been erected
-province_event = {
-	id = SRI.61
-	desc = EVTDESC_SRI_61
-	picture = GFX_evt_castle_construction
-	border = GFX_event_normal_frame_religion
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		FROMFROM = {
-			wealth = -300
-		}
-	}
-	
-	option = {
-		name = EVTOPTA_SOA_1024
-		build_holding = {
-		   type = castle
-		   holder = FROMFROM
-		}
-	}
-}
-
-# Ping event when expelling the Children of the Light
-character_event = {
-	id = SRI.62
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		any_title_under = {
-			limit = {
-				tier = BARON
-				location = {
-					owner = {
-						OR = {
-							character = FROM
-							is_liege_or_above = FROM
-						}
-					}
-				}
-			}
-			usurp_title = FROM
-		}
-	
-		FROM = {
-			letter_event = {
-				id = SRI.63
-			}
-		}
-		
-		opinion = {
-			who = FROM
-			modifier = opinion_expelled_from_realm
-		}
-	}
-}
-
-# Notification event when expelling the Children of the Light
-letter_event = {
-	id = SRI.63
-	desc = {
-        text = EVTDESC_SRI_63
-        trigger = {
-			NOT = {
-				has_alternate_start_parameter = {
-					key = religion_names
-					value = random
-				}
-			}
-        }
-    }
-	desc = {
-        text = HOLY_ORDER_EXPEL_ALT
-        trigger = {
-			has_alternate_start_parameter = {
-				key = religion_names
-				value = random
-			}
-        }
-    }
-	border = GFX_event_letter_frame_religion
-	
-	is_triggered_only = yes
-	
-	option = {
-		name = EVTOPTB_SOA_1061
-	}
-}
-
-### Test
-
-# Test event for the County Adventure CB
-character_event = {
-	id = SRI.64
-	hide_window = yes
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		random_realm_province = {
-			province_event = { id = SRI.10 }
+		name = {
+			text = EVTOPTB_SRI_49
+			trigger = { has_landed_title = e_inca_empire }
 		}
 	}
 }

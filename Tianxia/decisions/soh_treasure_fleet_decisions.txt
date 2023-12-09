@@ -1,0 +1,294 @@
+decisions = {
+	prepare_treasure_fleet = { # Not DLC-locked, so various parts of it need to be locked separately!
+		only_independent = yes
+		is_high_prio = yes
+		ai_check_interval = 60
+		
+		potential = {
+			is_chinese_emperor_trigger = yes # Only for the EoC!
+			NOR = {
+				has_global_flag = preparing_treasure_fleet
+				has_global_flag = treasure_fleet_is_active
+				has_global_flag = treasure_fleet_invasion_ongoing
+				trait = treasure_fleet_preparation
+				trait = in_mourning
+				2753 = { # Hangzhou
+					has_province_flag = abort_treasure_fleet_asap
+				}
+				AND = { # Sunrise Invasion takes precedence
+					has_global_flag = sunrise_invasion_happened
+					NOT = {
+						has_global_flag = inca_defeated
+					}
+				}
+				e_treasure_fleet = { # If someone used the Treasure Fleet to create an empire, deal with that!
+					has_holder = yes
+				}
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			war = no # Can't be done if at war!
+			has_regent = no # Can't have a regent!
+			is_inaccessible_or_incapable_trigger = no # If regencies are disabled, you still can't do it if you should have a regent!
+			
+			completely_controls_region = world_china
+			
+			any_realm_province = { # A coastal province needs to have high enough Shipbuilding tech
+				any_province_holding = {
+					OR = {
+						holding_type = castle
+						holding_type = city
+					}
+				}
+				
+				region = world_china
+				
+				port = yes
+				
+				owner = {
+					top_liege = {
+						character = ROOT
+					}
+				}
+				
+				TECH_NAVAL >= 5
+			}
+			
+			capital_scope = { # Your capital needs high enough Shipbuilding tech - yes, even if it is inland!
+				TECH_NAVAL >= 5
+			}
+			
+			OR = { # Can't have sub-Average MoH
+				has_character_modifier = mandate_of_heaven_5
+				has_character_modifier = mandate_of_heaven_4
+				has_character_modifier = mandate_of_heaven_3
+			}
+			
+			prestige >= 1000
+			
+			wealth >= 5000
+			
+			custom_tooltip = {
+				text = is_not_busy_trigger_tooltip
+				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
+			}
+		}
+		
+		effect = {
+			wealth = -5000
+			
+			prestige = -1000
+			
+			character_event = { id = soh.7701 } # Setup
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 0.01 # Slow it down
+				always = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.8
+				year < 1400
+			}
+			
+			mult_modifier = {
+				factor = 0.8
+				year < 1300
+			}
+			
+			mult_modifier = {
+				factor = 0.8
+				year < 1200
+			}
+			
+			mult_modifier = {
+				factor = 0.8
+				year < 1100
+			}
+			
+			mult_modifier = {
+				factor = 0.8
+				year < 1000
+			}
+			
+			mult_modifier = {
+				factor = 0.8
+				year < 900
+			}
+			
+			mult_modifier = {
+				factor = 0.8
+				year < 800
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				wealth < 10000
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				prestige < 5000
+			}
+		}
+	}
+	
+	ask_to_join_treasure_fleet = {
+		only_playable = yes
+		ai_check_interval = 12
+		is_high_prio = yes
+		
+		potential = {
+			has_global_flag = preparing_treasure_fleet
+			is_feudal = yes
+			top_liege = {
+				is_chinese_emperor_trigger = yes
+			}
+			is_chinese_emperor_trigger = no # Blocks the EoC
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			war = no
+			is_adult = yes
+			is_inaccessible_or_incapable_trigger = no
+			
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = in_mourning
+				has_character_modifier = tf_join_request
+				has_character_modifier = tf_joining_refused
+			}
+			
+			has_epidemic = no
+			
+			custom_tooltip = {
+				text = is_not_busy_trigger_tooltip
+				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
+			}
+		}
+		
+		effect = {
+			add_character_modifier = {
+				modifier = tf_join_request
+				months = 1
+			}
+			
+			if = {
+				limit = {
+					e_china = {
+						holder_scope = {
+							owes_favor_to = ROOT
+						}
+					}
+				}
+				
+				character_event = { id = soh.7940 } # Use favor or not?
+			}
+			
+			else = {
+				e_china = {
+					holder_scope = {
+						letter_event = { id = soh.7942 } # Ask the EoC
+					}
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			mult_modifier = {
+				factor = 0.05
+				always = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				in_faction = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				leads_faction = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = content
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = slothful
+			}
+		}
+	}
+	
+	end_treasure_fleet_preparation_participation = {
+		ai = no
+		only_playable = yes
+		
+		potential = {
+			trait = treasure_fleet_preparation
+		}
+		
+		allow = {
+			always = yes
+		}
+		
+		effect = {
+			prestige = -100
+			
+			remove_trait = treasure_fleet_preparation
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	end_treasure_fleet_voyage_participation = {
+		ai = no
+		only_playable = yes
+		
+		potential = {
+			trait = treasure_fleet_voyage
+			NOT = {
+				has_character_flag = left_treasure_fleet_voyage
+			}
+		}
+		
+		allow = {
+			custom_tooltip = {
+				text = tresure_fleet_is_in_port
+				OR = {
+					has_global_flag = treasure_fleet_port_locals
+					has_global_flag = treasure_fleet_port_visitors
+				}
+			}
+			
+			NOT = {
+				has_character_flag = treasure_fleet_abort
+			}
+		}
+		
+		effect = {
+			prestige = -100
+			
+			set_character_flag = treasure_fleet_abort
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+}

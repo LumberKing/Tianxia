@@ -1,33 +1,33 @@
 # Hwarang society decisions/powers
 decisions = {
 	refound_hwarang = {
-		ai_check_interval = 12
 		only_playable = yes
+		is_high_prio = yes
+		ai_check_interval = 12
+		
 		potential = {
+			has_hwarang_prerequisites = yes
 			has_global_flag = hwarang_disbanded
 			OR = {
-				AND = {
-					culture_group = koreanic
-					OR = {
-						religion = taoist
-						religion = buddhist
-					}
-				}
-				religion = korean_pagan
-				religion = korean_pagan_reformed
+				real_tier = king
+				real_tier = emperor
 			}
-			is_nomadic = no
 		}
+		
 		allow = {
+			show_only_failed_conditions = yes
 			independent = yes
-			is_inaccessible_or_incapable_trigger = no
+			is_feudal = yes
 			is_adult = yes
+			is_inaccessible_or_incapable_trigger = no
 			is_in_society = no
 			war = no
+			
 			OR = {
-				tier = emperor
+				real_tier = emperor
+				
 				AND = {
-					tier = king
+					real_tier = king
 					any_owned_bloodline = {
 						custom_tooltip = {
 							text = is_silla_royal_blood
@@ -36,20 +36,25 @@ decisions = {
 					}
 					prestige = 2000
 				}
+				
 				AND = {
-					tier = king
+					real_tier = king
 					controls_religion = yes
 					prestige = 2000
 				}
+				
 				AND = {
-					tier = king
+					real_tier = king
 					prestige = 10000
 				}
 			}
+			
 			piety = 1000
 		}
+		
 		effect = {
 			clr_global_flag = hwarang_disbanded
+			
 			if = {
 				limit = {
 					is_female = no
@@ -58,26 +63,30 @@ decisions = {
 					type = hwarang_bloodline
 				}
 			}
+			
 			else = {
 				create_bloodline = {
 					type = hwarang_bloodline
 					inheritance = matrilineal
 				}
 			}
+			
 			join_society = hwarang
 			set_society_grandmaster = yes # Set character as Grand Master
 			add_society_currency_massive_effect = yes
+			
 			any_realm_lord = {
 				limit = {
 					higher_tier_than = baron # Let's keep it reasonable...
 				}
-				character_event = { id = hwarang.1036 } # Seriously consider joining
+				character_event = { id = soh.804 } # Seriously consider joining
 			}
+			
 			any_player = {
 				limit = {
 					is_within_diplo_range = ROOT
 				}
-				narrative_event = { id = hwarang.1317 } # Inform the world
+				narrative_event = { id = soh.809 } # Inform the world
 			}
 		}
 		
@@ -89,26 +98,28 @@ decisions = {
 
 society_decisions = {
 	request_to_rank_up_hwarang = {
-		ai_check_interval = 12
 		only_playable = yes
 		is_in_society = yes
+		ai_check_interval = 12
 
 		hide_in_decisions_list = yes # This is shown in the Society View
 		
 		potential = {
-			has_dlc = "Holy Fury"
+			society_member_of = hwarang
+			
 			hidden_tooltip = {
 				society_rank < 3
-				days_in_society > 365
-				OR = {
-					AND = {
-						ai = no
+				days_in_society = 365
+				
+				trigger_if = {
+					limit = {
+						ai = yes
 						society_rank == 1
 					}
+					
 					society_can_rank_up = yes
 				}
 			}
-			society_member_of = hwarang
 		}
 		
 		allow = {
@@ -118,44 +129,49 @@ society_decisions = {
 					society_currency >= 750
 					is_adult = yes
 				}
+				
 				AND = {
 					society_rank == 2
 					society_currency >= 1000
+					is_adult = yes
 				}
 			}
 		}
 		
 		effect = {
 			society = { save_event_target_as = my_society }
-			#Rank up cost
+			
+			# Rank up cost
 			if = {
 				limit = { society_rank == 1 }
 				change_society_currency = -750
 			}
-			if = {
-				limit = { society_rank == 2 }
+			
+			else = {
 				change_society_currency = -1000
 			}
 
 			#Perform rank up
 			hidden_tooltip = {
-				save_event_target_as = rank_up_target
 				set_character_flag = has_sent_request_to_rank_up
-				character_event = { id = MNM.10002 days = 20 random = 10 } # sends hidden delayed event to self, which then sends request to Leader of the society
+				
+				letter_event = { id = MNM.10000 days = 20 random = 10 } # sends hidden delayed event to self, which then sends request to Leader of the society
 			}
 		}
 		
 		ai_will_do = {
 			factor = 1
 
-			modifier = {
+			mult_modifier = {
 				factor = 0.5 #Slow down
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.5
 				trait = content
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 2 
 				trait = ambitious
 			}
@@ -164,78 +180,84 @@ society_decisions = {
 	
 	# Cash out
 	hwarang_cash_out = {
-		ai_check_interval = 12
 		is_in_society = yes
+		ai_check_interval = 30
+		
 		potential = {
 			society_member_of = hwarang
 		}
+		
 		allow = {
-			age = 30
+			age >= 30
 			is_inaccessible_or_incapable_trigger = no
 		}
+		
 		effect = {
 			custom_tooltip = {
 				text = confirm_cash_out
-				character_event = { id = hwarang.712 } # Confirm what you're about to do
+				character_event = { id = soh.2101 } # Confirm what you're about to do
 			}
 		}
+		
 		ai_will_do = {
 			factor = 0.1
-			modifier = {
-				factor = 0 # Only consider leaving if you are 20 + rank * 10 years old
-				NOR = {
+			
+			trigger = {
+				# Only consider leaving if you are 20 + rank * 10 years old
+				OR = {
 					AND = {
 						society_rank == 1
-						NOT = {
-							age = 30
-						}
+						age >= 30
 					}
+					
 					AND = {
 						society_rank == 2
-						NOT = {
-							age = 40
-						}
+						age >= 40
 					}
+					
 					AND = {
 						society_rank == 3
-						NOT = {
-							age = 50
-						}
+						age >= 50
 					}
+					
 					AND = {
 						society_rank == 4
-						NOT = {
-							age = 60
-						}
+						age >= 60
 					}
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1 # Slow it down
 				always = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1 # The grandmaster is likely reluctant to leave
 				is_society_grandmaster = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10 # If you are 20 + rank * 20 years old, it's time to leave
 				OR = {
 					AND = {
 						society_rank == 1
-						age = 40
+						age >= 40
 					}
+					
 					AND = {
 						society_rank == 2
-						age = 60
+						age >= 60
 					}
+					
 					AND = {
 						society_rank == 3
-						age = 80
+						age >= 80
 					}
+					
 					AND = {
 						society_rank == 4
-						age = 100
+						age >= 100
 					}
 				}
 			}
@@ -243,8 +265,10 @@ society_decisions = {
 	}
 	
 	hwarang_reflect_on_traits = {
-		ai_check_interval = 12
+		only_playable = yes
 		is_in_society = yes
+		ai_check_interval = 30
+		
 		potential = {
 			society_member_of = hwarang
 			society_rank >= 2
@@ -275,8 +299,10 @@ society_decisions = {
 						has_character_modifier = ongoing_hwarang_self_reflection
 						has_character_flag = ongoing_hwarang_self_reflection
 					}
+					
 					has_character_modifier = ongoing_hwarang_self_reflection
 				}
+				
 				has_character_modifier = hwarang_self_reflection_cooldown
 			}
 		}
@@ -289,77 +315,97 @@ society_decisions = {
 						has_character_modifier = ongoing_hwarang_self_reflection
 					}
 				}
+				
 				remove_character_modifier = ongoing_hwarang_self_reflection
 			}
+			
 			detract_society_currency_medium_effect = yes
+			
 			set_character_flag = ongoing_hwarang_self_reflection
+			
 			add_character_modifier = {
 				modifier = ongoing_hwarang_self_reflection
 				duration = -1
 			}
+			
 			add_character_modifier = {
 				modifier = hwarang_self_reflection_cooldown
 				years = 2
 			}
+			
 			if = {
 				limit = {
 					ai = yes
 				}
-				character_event = { id = hwarang.734 } # AI picks something
+				character_event = { id = soh.1801 } # AI picks something
 			}
+			
 			else = {
-				character_event = { id = hwarang.735 } # Pick something
+				character_event = { id = soh.1802 } # Pick something
 			}
 		}
 		
 		ai_will_do = {
 			factor = 1
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.5
 				trait = content
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 5
 				trait = humble
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.2
 				trait = proud
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 5
 				trait = diligent
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = slothful
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.01
 				trait = depressed
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				NOT = {
 					has_quest = quest_hwarang_self_reflection
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				NOT = {
 					has_society_currency_major_trigger = yes
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = cynical
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
 				trait = zealous
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
+				
+				# Synergy
 				OR = {
 					has_ambition = obj_buddhist_stop_drinking
 					has_ambition = obj_buddhist_reject_empty_pleasures
@@ -378,64 +424,79 @@ society_decisions = {
 	}
 	
 	hwarang_lifestyle = {
-		ai_check_interval = 12
+		only_playable = yes
 		is_in_society = yes
+		ai_check_interval = 12
+		
 		potential = {
 			society_member_of = hwarang
 			society_rank >= 3
+			lifestyle_traits < 1
 		}
+		
 		allow = {
 			is_adult = yes
 			is_inaccessible_or_incapable_trigger = no
+			
 			has_society_currency_minor_trigger = yes
-			lifestyle_traits < 1
+			
 			NOT = {
 				has_character_flag = hwarang_lifestyle_selection
 			}
 		}
+		
 		effect = {
 			set_character_flag = hwarang_lifestyle_selection
+			
 			detract_society_currency_minor_effect = yes
+			
 			if = {
 				limit = {
 					ai = yes
 				}
-				character_event = { id = hwarang.1022 } # AI
+				
+				character_event = { id = soh.2123 } # AI
 			}
+			
 			else = {
-				character_event = { id = hwarang.1023 } # Player
+				character_event = { id = soh.2124 } # Player
 			}
 		}
+		
 		ai_will_do = {
 			factor = 1
-			modifier = {
-				factor = 0
-				lifestyle_traits = 1
-			}
 		}
 	}
 	
 	# Demand society leadership
 	hwarang_demand_leadership = {
-		ai_check_interval = 12
+		only_playable = yes
 		is_in_society = yes
+		ai_check_interval = 12
+		is_high_prio = yes
+		
 		potential = {
 			society_member_of = hwarang
 			society_rank == 3
 		}
+		
 		allow = {
 			is_adult = yes
 			is_inaccessible_or_incapable_trigger = no
+			
 			has_society_currency_major_trigger = yes
+			
 			any_society_member = {
 				society_member_of = hwarang
 				is_society_grandmaster = yes
 				is_older_than = ROOT
+				
 				OR = {
 					age_diff = {
 						who = ROOT
 						years >= 10
 					}
+					
 					NOT = {
 						any_society_member = {
 							society_member_of = hwarang
@@ -443,45 +504,57 @@ society_decisions = {
 							is_older_than = ROOT
 						}
 					}
-					any_rival = {
-						character = ROOT
-					}
+					
+					is_rival = ROOT
 				}
+				
 				NOT = {
 					has_opinion_modifier = {
 						who = ROOT
 						modifier = demanded_hwarang_leadership
 					}
 				}
+				
 				NOR = {
-					any_friend = {
-						character = ROOT
-					}
-					any_lover = {
-						character = ROOT
-					}
+					is_friend = ROOT
+					is_lover = ROOT
 				}
 			}
 		}
+		
 		effect = {
 			any_society_member = {	
 				limit = {
 					society_member_of = hwarang
 					is_society_grandmaster = yes
 				}
+				
 				opinion = {
 					who = ROOT
 					modifier = demanded_hwarang_leadership
 					months = 12
 				}
-		
+				
 				if = {
 					limit = {
 						has_dlc = "Jade Dragon"
-						ROOT = {
-							is_chinese_emperor_trigger = no
+						e_china = {
+							holder_scope = {
+								is_chinese_emperor_trigger = yes
+								OR = {
+									character = PREVPREV
+									AND = {
+										is_close_relative = PREVPREV
+										dynasty = PREVPREV
+									}
+								}
+								NOT = {
+									character = ROOT
+								}
+							}
 						}
 					}
+					
 					if = {
 						limit = {
 							is_chinese_emperor_trigger = yes
@@ -490,46 +563,36 @@ society_decisions = {
 							detract_grace_major_effect = yes
 						}
 					}
-					else_if = {
-						limit = {
-							any_close_relative = {
-								dynasty = PREV
-								is_chinese_emperor_trigger = yes
-							}
-						}
+					else = {
 						ROOT = {
 							detract_grace_medium_effect = yes
 						}
 					}
-					else_if = {
-						limit = {
-							any_dynasty_member = {
-								is_chinese_emperor_trigger = yes
-							}
-						}
-						ROOT = {
-							detract_grace_minor_effect = yes
-						}
-					}
 				}
-				character_event = { id = hwarang.1030 } # Give the grandmaster the ultimatum
+				
+				character_event = { id = soh.2131 } # Give the grandmaster the ultimatum
 			}
 		}
+		
 		ai_will_do = {
 			factor = 1
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = content
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = humble
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
 				trait = ambitious
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
 				trait = proud
 			}
@@ -539,37 +602,37 @@ society_decisions = {
 	hwarang_raise_righteous_army = {
 		only_playable = yes
 		is_mercenary = yes
+		is_in_society = yes
 		ai_check_interval = 20 #check only once every 20 months.
 		is_high_prio = yes
-		is_in_society = yes
+		
 		potential = {
 			is_playable = yes
 			is_adult = yes
 			society_member_of = hwarang
 			society_rank == 4
-			OR = {
-				ai = no
-				any_war = {
-					OR = {
-						any_defender = {
-							character = ROOT
-							is_primary_war_defender = yes
-						}
-						any_attacker = {
-							character = ROOT
-							is_primary_war_attacker = yes
-						}
-					}
+			
+			trigger_if = {
+				limit = { ai = yes }
+
+				OR = {
+					is_primary_war_defender = yes
+					is_primary_war_attacker = yes
 				}
 			}
 		}
+		
 		allow = {
+			show_only_failed_conditions = yes
+			is_adult = yes
 			war = yes
 			society_currency >= 750
-			is_inaccessible_trigger = no
+			is_inaccessible_or_incapable_trigger = no
 		}
+		
 		effect = {
 			change_society_currency = -750
+			
 			capital_scope = {
 				PREV = {
 					# Low quality but plentiful; they're irregular troops
@@ -586,6 +649,7 @@ society_decisions = {
 						}
 						cannot_inherit = yes
 					}
+					
 					spawn_unit = {
 						owner = ROOT
 						province = PREV
@@ -599,6 +663,7 @@ society_decisions = {
 						}
 						cannot_inherit = yes
 					}
+					
 					spawn_unit = {
 						owner = ROOT
 						province = PREV
@@ -622,405 +687,305 @@ society_decisions = {
 	}
 	
 	hwarang_discourage_factions = {
-		ai_check_interval = 6
-		is_in_society = yes
 		only_playable = yes
+		is_in_society = yes
+		ai_check_interval = 12
 		is_high_prio = yes
+		
 		potential = {
 			is_playable = yes
 			is_adult = yes
 			society_member_of = hwarang
 			society_rank == 4
 		}
+		
 		allow = {
 			has_society_currency_major_trigger = yes
 			is_inaccessible_or_incapable_trigger = no
 		}
+		
 		effect = {
 			detract_society_currency_major_effect = yes
+			
 			add_character_modifier = {
 				modifier = hwarang_faction_discouragement
 				duration = 730
 			}
 		}
+		
 		ai_will_do = {
 			factor = 1
-			modifier = {
-				factor = 0
-				NOT = {
-					has_character_modifier = hwarang_faction_discouragement
-				}
-				NOT = {
+			
+			trigger = {
+				OR = {
+					# All relevant factions; if any new relevant factions are added, update this
 					any_vassal = {
-						OR = {
-							# All relevant factions; if any new relevant factions are added, update this
-							faction_power = {
-								faction = faction_succ_seniority
-								power = 0.5
-							}
-							faction_power = {
-								faction = faction_succ_primogeniture
-								power = 0.5
-							}
-							faction_power = {
-								faction = faction_succ_gavelkind
-								power = 0.5
-							}
-							faction_power = {
-								faction = faction_succ_feudal_elective
-								power = 0.5
-							}
-							faction_power = {
-								faction = faction_lower_crown_authority
-								power = 0.5
-							}
-							faction_power = {
-								faction = faction_lower_tribal_organization
-								power = 0.5
-							}
-							faction_power = {
-								faction = faction_independence
-								power = 0.5
-							}
-							faction_power = {
-								faction = faction_claimant
-								power = 0.5
-							}
-							faction_power = {
-								faction = faction_increase_council_power
-								power = 0.5
-							}
-							faction_power = {
-								faction = faction_powerful_vassal_takeover
-								power = 0.5
-							}
-							faction_power = {
-								faction = faction_true_belivers
-								power = 0.5
-							}
-						}
-					}
-				}
-			}
-			modifier = {
-				factor = 0
-				has_character_modifier = hwarang_faction_discouragement
-				NOR = {
-					any_vassal = { 
 						faction_power = {
 							faction = faction_succ_seniority
-							power = 0.5
+							power >= 0.5
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_succ_primogeniture
-							power = 0.5
+							power >= 0.5
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_succ_gavelkind
-							power = 0.5
+							power >= 0.5
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_succ_feudal_elective
-							power = 0.5
+							power >= 0.5
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_lower_crown_authority
-							power = 0.5
+							power >= 0.5
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_lower_tribal_organization
-							power = 0.5
+							power >= 0.5
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_independence
-							power = 0.5
+							power >= 0.5
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_claimant
-							power = 0.5
+							power >= 0.5
 						}
 					}
-					any_vassal = { 
-						faction_power = {
-							faction = faction_antiking
-							power = 0.5
-						}
-					}
-					any_vassal = { 
-						faction_power = {
-							faction = faction_overthrow
-							power = 0.5
-						}
-					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_increase_council_power
-							power = 0.5
+							power >= 0.5
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_powerful_vassal_takeover
-							power = 0.5
+							power >= 0.5
 						}
 					}
-					any_vassal = { 
-						faction_power = {
-							faction = faction_true_belivers
-							power = 0.5
-						}
-					}
-					# Abrahamic revolters can't be disbanded!
-					any_vassal = { 
-						faction_power = {
-							faction = faction_regent
-							power = 0.5
-						}
-					}
-					any_vassal = { 
-						faction_power = {
-							faction = faction_shogun
-							power = 0.5
-						}
-					}
-					any_vassal = { 
-						faction_power = {
-							faction = faction_oust_shogun
-							power = 0.5
-						}
-					}
-					# Neither Regency Loyalist faction can be disbanded!
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				NOR = {
-					any_vassal = { 
+					any_vassal = {
 						faction_power = {
 							faction = faction_succ_seniority
-							power = 0.75
+							power >= 0.75
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_succ_primogeniture
-							power = 0.75
+							power >= 0.75
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_succ_gavelkind
-							power = 0.75
+							power >= 0.75
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_succ_feudal_elective
-							power = 0.75
+							power >= 0.75
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_lower_crown_authority
-							power = 0.75
+							power >= 0.75
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_lower_tribal_organization
-							power = 0.75
+							power >= 0.75
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_independence
-							power = 0.75
+							power >= 0.75
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_claimant
-							power = 0.75
+							power >= 0.75
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_antiking
-							power = 0.75
+							power >= 0.75
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_overthrow
-							power = 0.75
+							power >= 0.75
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_increase_council_power
-							power = 0.75
+							power >= 0.75
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_powerful_vassal_takeover
-							power = 0.75
+							power >= 0.75
 						}
 					}
-					any_vassal = { 
-						faction_power = {
-							faction = faction_true_belivers
-							power = 0.75
-						}
-					}
+					# True believers can't be disbanded!
 					# Abrahamic revolters can't be disbanded!
-					any_vassal = { 
-						faction_power = {
-							faction = faction_regent
-							power = 0.75
-						}
-					}
-					any_vassal = { 
-						faction_power = {
-							faction = faction_shogun
-							power = 0.75
-						}
-					}
-					any_vassal = { 
-						faction_power = {
-							faction = faction_oust_shogun
-							power = 0.75
-						}
-					}
-					# Neither Regency Loyalist faction can be disbanded!
+					# No Japanese faction is relevant
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
-				OR = {
-					any_vassal = { 
+				NOR = {
+					any_vassal = {
 						faction_power = {
 							faction = faction_succ_seniority
-							power = 1.0
+							power >= 1.0
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_succ_primogeniture
-							power = 1.0
+							power >= 1.0
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_succ_gavelkind
-							power = 1.0
+							power >= 1.0
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_succ_feudal_elective
-							power = 1.0
+							power >= 1.0
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_lower_crown_authority
-							power = 1.0
+							power >= 1.0
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_lower_tribal_organization
-							power = 1.0
+							power >= 1.0
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_independence
-							power = 1.0
+							power >= 1.0
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_claimant
-							power = 1.0
+							power >= 1.0
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_antiking
-							power = 1.0
+							power >= 1.0
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_overthrow
-							power = 1.0
+							power >= 1.0
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_increase_council_power
-							power = 1.0
+							power >= 1.0
 						}
 					}
-					any_vassal = { 
+					
+					any_vassal = {
 						faction_power = {
 							faction = faction_powerful_vassal_takeover
-							power = 1.0
+							power >= 1.0
 						}
 					}
-					any_vassal = { 
-						faction_power = {
-							faction = faction_true_belivers
-							power = 1.0
-						}
-					}
+					# True believers can't be disbanded!
 					# Abrahamic revolters can't be disbanded!
-					any_vassal = { 
-						faction_power = {
-							faction = faction_regent
-							power = 1.0
-						}
-					}
-					any_vassal = { 
-						faction_power = {
-							faction = faction_shogun
-							power = 1.0
-						}
-					}
-					any_vassal = { 
-						faction_power = {
-							faction = faction_oust_shogun
-							power = 1.0
-						}
-					}
-					# Neither Regency Loyalist faction can be disbanded!
+					# No Japanese faction is relevant
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				is_dumb_trigger = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = trusting
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
 				trait = paranoid
 			}
@@ -1030,15 +995,15 @@ society_decisions = {
 
 targeted_decisions = {
 	hwarang_personal_grooming = {
-		ai_check_interval = 12
+		only_playable = yes
 		is_in_society = yes
+		ai_check_interval = 12
 		filter = self
 		ai_target_filter = self
 		
 		potential = {
-			character = FROM
 			society_member_of = hwarang
-			is_playable = yes
+			character = FROM
 			NOT = {
 				trait = groomed
 			}
@@ -1046,15 +1011,18 @@ targeted_decisions = {
 		
 		allow = {
 			is_inaccessible_or_incapable_trigger = no
+			
 			OR = {
 				AND = {
 					trait = uncouth
 					has_society_currency_medium_trigger = yes
 				}
+				
 				AND = {
 					NOT = {
 						trait = uncouth
 					}
+					
 					has_society_currency_minor_trigger = yes
 				}
 			}
@@ -1065,50 +1033,63 @@ targeted_decisions = {
 				limit = {
 					trait = uncouth
 				}
+				
 				detract_society_currency_medium_effect = yes
 			}
+			
 			else = {
 				detract_society_currency_minor_effect = yes
 			}
-			add_trait = groomed
+			
+			add_trait_fully_groomed_effect = yes
+			
 			if = {
 				limit = {
 					has_quest = quest_hwarang_groomed
 				}
+				
 				clr_quest = {
 					id = quest_hwarang_groomed
 				}
+				
 				add_society_currency_medium_effect = yes
 			}
 		}
 		
 		ai_will_do = {
 			factor = 1
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.5
 				trait = content
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.5
 				trait = humble
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 2
 				trait = proud
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 2
 				trait = envious
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 5
 				trait = diligent
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				trait = slothful
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.01
 				trait = depressed
 			}
@@ -1116,13 +1097,17 @@ targeted_decisions = {
 	}
 	
 	hwarang_seek_spiritual_guidance = {
-		ai_check_interval = 12
-		is_in_society = yes
 		only_playable = yes
+		is_in_society = yes
+		ai_check_interval = 30
+		
 		ai_target_filter = realm
 		filter = realm
+		
 		from_potential = {
 			society_member_of = hwarang
+			is_adult = yes
+			
 			NOT = {
 				any_opinion_modifier_target = {
 					OR = {
@@ -1131,15 +1116,17 @@ targeted_decisions = {
 							OR = {
 								religion = taoist
 								religion = buddhist
+								religion = confucian
 							}
 						}
-						religion = korean_pagan
-						religion = korean_pagan_reformed
+						religion_openly_korean_or_reformed_trigger = yes
 					}
+					
 					has_opinion_modifier = {
 						who = FROM
 						modifier = opinion_hwarang_offering_spiritual_guidance
 					}
+					
 					reverse_has_opinion_modifier = {
 						who = FROM
 						modifier = opinion_hwarang_receiving_spiritual_guidance
@@ -1147,19 +1134,23 @@ targeted_decisions = {
 				}
 			}
 		}
+		
 		potential = {
 			is_inaccessible_or_incapable_trigger = no
+			is_adult = yes
+			
 			OR = {
 				AND = {
 					culture_group = koreanic
 					OR = {
 						religion = taoist
 						religion = buddhist
+						religion = confucian
 					}
 				}
-				religion = korean_pagan
-				religion = korean_pagan_reformed
+				religion_openly_korean_or_reformed_trigger = yes
 			}
+			
 			OR = {
 				FROM = {
 					NOT = {
@@ -1168,6 +1159,7 @@ targeted_decisions = {
 				}
 				religion = FROM
 			}
+			
 			OR = {
 				AND = {
 					is_landed = yes
@@ -1178,34 +1170,54 @@ targeted_decisions = {
 				has_education_learning_trigger = yes
 				has_lifestyle_learning_trigger = yes
 				trait = zealous
+				society_member_of = hwarang
 			}
 		}
+		
 		allow = {
 			NOR = {
 				reverse_has_opinion_modifier = {
 					who = FROM
 					modifier = opinion_refused_me_guidance
 				}
+				
 				has_opinion_modifier = {
 					who = FROM
 					modifier = opinion_refused_guidance_offer
 				}
 			}
+			
 			FROM = {
 				is_adult = yes
+				
 				is_inaccessible_or_incapable_trigger = no
+				
 				has_society_currency_medium_trigger = yes
 			}
 		}
+		
 		effect = {
 			FROM = {
-				detract_society_currency_medium_effect = yes
+				if = {
+					limit = {
+						has_quest = quest_hwarang_spiritual_guidance
+					}
+					
+					detract_society_currency_minor_effect = yes
+				}
+				
+				else = {
+					detract_society_currency_medium_effect = yes
+				}
 			}
-			character_event = { id = hwarang.1 } # Ask the would-be teacher
+			
+			character_event = { id = soh.1001 } # Ask the would-be teacher
 		}
+		
 		ai_will_do = {
 			factor = 0.1
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				FROM = {
 					NOT = {
@@ -1213,7 +1225,8 @@ targeted_decisions = {
 					}
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				FROM = {
 					NOT = {
@@ -1221,25 +1234,29 @@ targeted_decisions = {
 					}
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				FROM = {
 					trait = cynical
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
 				FROM = {
 					trait = zealous
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.5
 				NOT = {
 					religion = FROM
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.5
 				NOR = {
 					is_ascetic_trigger = yes
@@ -1250,34 +1267,41 @@ targeted_decisions = {
 					has_lifestyle_learning_trigger = yes
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
-				OR = {
-					has_ambition = obj_buddhist_stop_drinking
-					has_ambition = obj_buddhist_reject_empty_pleasures
-					has_ambition = obj_buddhist_abstain_sexual_excess
-					has_ambition = obj_buddhist_reject_cruelty
-					has_ambition = obj_buddhist_temperance_food
-					has_ambition = obj_buddhist_reject_greed
-					has_ambition = obj_buddhist_reject_envy
-					has_ambition = obj_buddhist_reject_hate
-					has_ambition = obj_buddhist_reject_pride
-					has_ambition = obj_buddhist_defeat_fear
-					has_ambition = obj_become_paragon_of_enlightenment
+				FROM = {
+					OR = {
+						has_ambition = obj_buddhist_stop_drinking
+						has_ambition = obj_buddhist_reject_empty_pleasures
+						has_ambition = obj_buddhist_abstain_sexual_excess
+						has_ambition = obj_buddhist_reject_cruelty
+						has_ambition = obj_buddhist_temperance_food
+						has_ambition = obj_buddhist_reject_greed
+						has_ambition = obj_buddhist_reject_envy
+						has_ambition = obj_buddhist_reject_hate
+						has_ambition = obj_buddhist_reject_pride
+						has_ambition = obj_buddhist_defeat_fear
+						has_ambition = obj_become_paragon_of_enlightenment
+					}
 				}
 			}
 		}
 	}
 	
 	hwarang_inspire_loyalty = {
-		ai_check_interval = 12
+		only_playable = yes
+		is_in_society = yes
+		ai_check_interval = 30
+		
 		ai_target_filter = realm
 		filter = realm
-		only_playable = yes
+		
 		from_potential = {
 			society_member_of = hwarang
 			society_rank >= 2
 		}
+		
 		potential = {
 			OR = {
 				liege = {
@@ -1292,113 +1316,148 @@ targeted_decisions = {
 					}
 				}
 			}
-			OR = {
-				FROM = {
-					ai = no
+			
+			trigger_if = {
+				limit = {
+					FROM = {
+						ai = yes
+					}
 				}
+				
 				higher_tier_than = baron
 				is_patrician = yes
 			}
 		}
+		
 		allow = {
+			show_only_failed_conditions = yes
+			
 			is_inaccessible_or_incapable_trigger = no
 			is_adult = yes
+			
 			FROM = {
 				is_inaccessible_or_incapable_trigger = no
 				is_adult = yes
 			}
+			
 			NOT = {
 				has_opinion_modifier = {
 					who = FROM
 					modifier = opinion_hwarang_inspire_loyalty
 				}
 			}
+			
 			OR = {
 				AND = {
-					tier = count
+					real_tier = count
 					FROM = {
 						has_society_currency_minor_trigger = yes
 					}
 				}
+				
 				AND = {
-					tier = duke
+					real_tier = duke
 					controls_religion = no
 					FROM = {
 						has_society_currency_medium_trigger = yes
 					}
 				}
+				
 				AND = {
 					OR = {
-						tier = king
+						real_tier = king
 						controls_religion = yes
 					}
 					FROM = {
 						has_society_currency_major_trigger = yes
 					}
 				}
+				
 			}
 		}
+		
 		effect = {
 			if = {
 				limit = {
-					tier = count
+					real_tier = count
 				}
 				FROM = {
 					detract_society_currency_minor_effect = yes
 				}
 			}
+			
 			else_if = {
 				limit = {
-					tier = duke
+					real_tier = duke
 					controls_religion = no
 				}
 				FROM = {
 					detract_society_currency_medium_effect = yes
 				}
 			}
+			
 			else = {
 				FROM = {
 					detract_society_currency_major_effect = yes
 				}
 			}
+			
 			opinion = {
 				who = FROM
 				modifier = opinion_hwarang_inspire_loyalty
 			}
-			character_event = { id = hwarang.714 } # Inform the vassal
+			
+			character_event = { id = soh.2103 } # Inform the vassal
 		}
+		
 		ai_will_do = {
 			factor = 1
-			modifier = {
-				factor = 0 # Wasteful
-				liege = {
-					character = FROM
+			
+			trigger = {
+				NAND = {
+					liege = {
+						character = FROM
+					}
+					opinion = {
+						who = FROM
+						value >= 25
+					}
+					in_faction = no
+					
+					OR = {
+						is_voter = no
+						has_position = loyalist
+					}
 				}
-				opinion = {
-					who = FROM
-					value = 25
-				}
-				in_faction = no
-				OR = {
-					is_voter = no
-					has_position = loyalist
+				
+				NOR = {
+					FROM = {
+						persistent_event_target:antagonize_target = {
+							character = ROOT
+						}
+					}
+					
+					is_rival = FROM
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				opinion = {
 					who = FROM
-					value = 50
+					value >= 50
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
 				liege = {
 					character = FROM
 				}
 				in_faction = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
 				liege = {
 					character = FROM
@@ -1406,107 +1465,116 @@ targeted_decisions = {
 				is_voter = yes
 				has_position = malcontent
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				FROM = {
 					trait = trusting
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				FROM = {
 					is_dumb_trigger = yes
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1 # Already obedient
 				FROM = {
 					is_society_grandmaster = yes
 				}
 				society_member_of = hwarang
 			}
-			modifier = {
-				factor = 0
-				FROM = {
-					persistent_event_target:antagonize_target = {
-						character = ROOT
-					}
-				}
-			}
-			modifier = {
-				factor = 0
-				FROM = {
-					any_rival = {
-						character = ROOT
-					}
-				}
-			}
 		}
 	}
 	
 	hwarang_nap = {
+		only_playable = yes
+		is_in_society = yes
 		ai_check_interval = 12
+		
 		ai_target_filter = realm
+		
 		from_potential = {
 			society_member_of = hwarang
 			society_rank >= 3
 		}
+		
 		potential = {
 			OR = {
 				AND = {
 					liege = {
 						character = FROM
 					}
-					OR = {
-						FROM = {
-							ai = no
+					
+					trigger_if = {
+						limit = {
+							FROM = {
+								ai = yes
+							}
 						}
-						higher_tier_than = baron
-						is_patrician = yes
+						
+						OR = {
+							higher_tier_than = baron
+							is_patrician = yes
+						}
 					}
 				}
+				
 				AND = {
 					society_member_of = hwarang
 					is_landed = yes
 				}
 			}
 		}
+		
 		allow = {
+			show_only_failed_conditions = yes
+			
 			is_inaccessible_or_incapable_trigger = no
 			is_adult = yes
+			
 			FROM = {
 				is_inaccessible_or_incapable_trigger = no
 				is_adult = yes
 			}
+			
 			NOR = {
 				has_opinion_modifier = {
 					who = FROM
 					modifier = opinion_hwarang_i_refused_nap
 				}
+				
 				has_opinion_modifier = {
 					who = FROM
 					modifier = opinion_hwarang_refused_nap
 				}
+				
 				has_non_aggression_pact_with = FROM
 			}
+			
 			OR = {
 				AND = {
-					tier = count
+					real_tier = count
 					FROM = {
 						has_society_currency_minor_trigger = yes
 					}
 				}
+				
 				AND = {
-					tier = duke
+					real_tier = duke
 					controls_religion = no
 					FROM = {
 						has_society_currency_medium_trigger = yes
 					}
 				}
+				
 				AND = {
 					OR = {
-						tier = emperor
-						tier = king
+						real_tier = emperor
+						real_tier = king
 						controls_religion = yes
 					}
 					FROM = {
@@ -1515,36 +1583,41 @@ targeted_decisions = {
 				}
 			}
 		}
+		
 		effect = {
 			if = {
 				limit = {
-					tier = count
+					real_tier = count
 				}
 				FROM = {
 					detract_society_currency_minor_effect = yes
 				}
 			}
+			
 			else_if = {
 				limit = {
-					tier = duke
+					real_tier = duke
 					controls_religion = no
 				}
 				FROM = {
 					detract_society_currency_medium_effect = yes
 				}
 			}
+			
 			else = {
 				FROM = {
 					detract_society_currency_major_effect = yes
 				}
 			}
-			character_event = { id = hwarang.1027 } # Target gets the request
+			
+			character_event = { id = soh.2128 } # Target gets the request
 		}
+		
 		ai_will_do = {
 			factor = 1
-			modifier = {
-				factor = 0 # Wasteful
-				NOR = {
+			
+			trigger = {
+				OR = {
 					AND = {
 						independent = yes
 						FROM = {
@@ -1556,30 +1629,48 @@ targeted_decisions = {
 					}
 					same_realm = FROM
 				}
+				
+				NAND = {
+					liege = {
+						character = FROM
+					}
+					opinion = {
+						who = FROM
+						value >= 50
+					}
+					in_faction = no
+					OR = {
+						is_voter = no
+						has_position = loyalist
+					}
+				}
+				
+				NOR = {
+					FROM = {
+						persistent_event_target:antagonize_target = {
+							character = ROOT
+						}
+					}
+					
+					is_rival = FROM
+				}
+				
+				NOR = {
+					has_character_modifier = truce_breaker
+					has_character_modifier = alliance_breaker
+					has_character_modifier = broken_non_aggression_pact_char_modifier
+				}
 			}
-			modifier = {
-				factor = 0 # Wasteful
-				liege = {
-					character = FROM
-				}
-				opinion = {
-					who = FROM
-					value = 50
-				}
-				in_faction = no
-				OR = {
-					is_voter = no
-					has_position = loyalist
-				}
-			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
 				liege = {
 					character = FROM
 				}
 				in_faction = yes
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
 				liege = {
 					character = FROM
@@ -1587,48 +1678,27 @@ targeted_decisions = {
 				is_voter = yes
 				has_position = malcontent
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				FROM = {
 					trait = trusting
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				FROM = {
 					is_dumb_trigger = yes
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1 # Already obedient
 				FROM = {
 					is_society_grandmaster = yes
 				}
 				society_member_of = hwarang
-			}
-			modifier = {
-				factor = 0
-				FROM = {
-					persistent_event_target:antagonize_target = {
-						character = ROOT
-					}
-				}
-			}
-			modifier = {
-				factor = 0
-				FROM = {
-					any_rival = {
-						character = ROOT
-					}
-				}
-			}
-			modifier = {
-				factor = 0 # Unreliable
-				OR = {
-					has_character_modifier = truce_breaker
-					has_character_modifier = alliance_breaker
-					has_character_modifier = broken_non_aggression_pact_char_modifier
-				}
 			}
 		}
 	}
@@ -1636,7 +1706,10 @@ targeted_decisions = {
 
 title_decisions = {
 	hwarang_organize_patrols = {
+		only_playable = yes
+		is_in_society = yes
 		ai_check_interval = 60
+		
 		potential = {
 			tier = count
 			holder_scope = {
@@ -1648,23 +1721,30 @@ title_decisions = {
 				}
 			}
 		}
+		
 		from_potential = {
 			society_member_of = hwarang
 			society_rank >= 2
 		}
+		
 		allow = {
+			show_only_failed_conditions = yes
+			
 			location = {
 				revolt_risk >= 0.01 # Wasteful if not
 			}
+			
 			FROM = {
 				is_inaccessible_or_incapable_trigger = no
 				has_society_currency_medium_trigger = yes
 			}
 		}
+		
 		effect = {
 			FROM = {
 				detract_society_currency_medium_effect = yes
 			}
+			
 			location = {
 				add_province_modifier = {
 					modifier = hwarang_patrols
@@ -1672,13 +1752,16 @@ title_decisions = {
 				}
 			}
 		}
+		
 		ai_will_do = {
 			factor = 1
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.01
 				always = yes # Slow it down!
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				NOT = {
 					holder_scope = {
@@ -1686,7 +1769,8 @@ title_decisions = {
 					}
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 0.1
 				location = {
 					NOT = {
@@ -1694,7 +1778,8 @@ title_decisions = {
 					}
 				}
 			}
-			modifier = {
+			
+			mult_modifier = {
 				factor = 10
 				location = {
 					revolt_risk >= 0.1

@@ -1,0 +1,596 @@
+# The entry should be named in the same way that the elective succession law is named to define its voter's logic
+# ROOT 			Voter, the character voting in the election
+# FROM			Candidate, character considered for the title
+# FROMFROM		The title the nomination is for
+# FROMFROMFROM	The title owner's candidate
+# The voter will vote for the top score candidate calculated from this script
+
+hre_feudal_elective = {
+	elector_vote_strength = {
+		days = 1
+
+		# Power to the Church. Double voting power for theocratic electors when under Papal Investiture.
+		additive_modifier = {
+			value = 1
+			localisation_key = tooltip_hre_vote_strength_theocracy
+
+			is_theocracy = yes
+
+			FROMFROM = {
+				holder_scope = {
+					religion = ROOT
+				}
+
+				OR = {
+					has_law = investiture_law_0
+
+					holder_scope = {
+						has_religion_feature = religion_dogmatic
+					}
+				}
+			}
+		}
+	}
+
+	elector_selection = {
+		days = -5
+		max_amount = 8 # Seven Prince-Electors + 1 Emperor
+
+		trigger = {
+			# The title must currently exist
+			FROMFROM = {
+				has_holder = yes
+			}
+		}
+
+		additive_modifier = { # Current ruler can pick a preferred candidate
+			value = 100
+
+			FROMFROM = { # Either title is higher than Duke-tier, or must be primary
+				holder = ROOT
+
+				OR = {
+					higher_real_tier_than = DUKE
+					is_primary_holder_title = yes
+				}
+			}
+		}
+
+	#	additive_modifier = { # Papal influence
+	#		value = 100
+	#
+	#		is_theocracy = yes
+	#		controls_religion = yes
+	#
+	#		FROMFROM = {
+	#			has_law = investiture_law_0 # Pope gets a vote if Papal Succession is in place
+	#
+	#			# Either title is higher than Duke-tier, or must be primary
+	#			OR = {
+	#				higher_tier_than = DUKE
+	#
+	#				holder_scope = {
+	#					primary_title = {
+	#						title = PREVPREV
+	#					}
+	#				}
+	#			}
+	#		}
+	#	}
+
+		additive_modifier = { # Prince-Electors
+			value = 75
+
+			is_alternate_start = no # Random worlds do whatever they want!
+
+			FROMFROM = {
+				holder_scope = { religion = ROOT }
+
+				# Either title is higher than Duke-tier, or must be primary
+				OR = {
+					higher_real_tier_than = DUKE
+					is_primary_holder_title = yes
+				}
+			}
+
+			NOT = { has_landed_title = e_hre }
+
+			OR = { # To make sure they are still de jure vassals of HRE
+				# Counts
+				e_hre = {
+					persistent_event_target:hre_title_1_per = {
+						holder = ROOT
+
+						OR = {
+							any_dejure_liege = {
+								title = FROMFROM
+							}
+
+							ROOT = { # Popes need no de jure
+								controls_religion = yes
+							}
+						}
+					}
+				}
+
+				e_hre = {
+					persistent_event_target:hre_title_2_per = {
+						holder = ROOT
+
+						OR = {
+							any_dejure_liege = {
+								title = FROMFROM
+							}
+
+							ROOT = { # Popes need no de jure
+								controls_religion = yes
+							}
+						}
+					}
+				}
+
+				e_hre = {
+					persistent_event_target:hre_title_3_per = {
+						holder = ROOT
+
+						OR = {
+							any_dejure_liege = {
+								title = FROMFROM
+							}
+
+							ROOT = { # Popes need no de jure
+								controls_religion = yes
+							}
+						}
+					}
+				}
+
+				# Dukes
+				e_hre = {
+					persistent_event_target:hre_title_4_per = {
+						holder = ROOT
+
+						OR = {
+							any_dejure_liege = {
+								title = FROMFROM
+							}
+
+							ROOT = { # Popes need no de jure
+								controls_religion = yes
+							}
+						}
+					}
+				}
+
+				e_hre = {
+					persistent_event_target:hre_title_5_per = {
+						holder = ROOT
+
+						OR = {
+							any_dejure_liege = {
+								title = FROMFROM
+							}
+
+							ROOT = { # Popes need no de jure
+								controls_religion = yes
+							}
+						}
+					}
+				}
+
+				e_hre = {
+					persistent_event_target:hre_title_6_per = {
+						holder = ROOT
+
+						OR = {
+							any_dejure_liege = {
+								title = FROMFROM
+							}
+
+							ROOT = { # Popes need no de jure
+								controls_religion = yes
+							}
+						}
+					}
+				}
+
+				e_hre = {
+					persistent_event_target:hre_title_7_per = {
+						holder = ROOT
+
+						OR = {
+							any_dejure_liege = {
+								title = FROMFROM
+							}
+
+							ROOT = { # Popes need no de jure
+								controls_religion = yes
+							}
+						}
+					}
+				}
+			}
+		}
+
+		additive_modifier = { # Fallback Electors (same religion)
+			value = 30
+
+			FROMFROM = {
+				holder_scope = { religion = ROOT } # Tied to religion
+
+				# Either title is higher than Duke-tier, or must be primary
+				OR = {
+					higher_real_tier_than = DUKE
+					is_primary_holder_title = yes
+				}
+			}
+
+			# If the Elector Title is a Duchy, any vassal can be an elector, otherwise only Dukes and above
+			trigger_if = {
+				limit = { FROMFROM = { real_tier = DUKE } }
+				higher_real_tier_than = BARON
+			}
+			trigger_else = {
+				higher_real_tier_than = COUNT
+			}
+
+			OR = { # Either de facto direct vassal, or independent ruler who is de jure vassal
+				vassal_of = FROMFROM
+				independent = yes
+			}
+
+			# De jure vassal, or any vassal if title titular
+			trigger_if = {
+				limit = { FROMFROM = { is_titular = yes } }
+				vassal_of = FROMFROM
+			}
+			trigger_else = {
+				any_dejure_liege = {
+					title = FROMFROM
+				}
+			}
+		}
+
+		additive_modifier = { # Fallback Electors (same religious group)
+			value = 15
+
+			FROMFROM = {
+				# Tied to religion
+				holder_scope = {
+					NOT = { religion = ROOT }
+					religion_group = ROOT
+				}
+
+				# Either title is higher than Duke-tier, or must be primary
+				OR = {
+					higher_real_tier_than = DUKE
+					is_primary_holder_title = yes
+				}
+			}
+
+			# If the Elector Title is a Duchy, any vassal can be an elector, otherwise only Dukes and above
+			trigger_if = {
+				limit = { FROMFROM = { real_tier = DUKE } }
+				higher_real_tier_than = BARON
+			}
+			trigger_else = {
+				higher_real_tier_than = COUNT
+			}
+
+			OR = { # Either de facto direct vassal, or independent ruler who is de jure vassal
+				vassal_of = FROMFROM
+				independent = yes
+			}
+
+			# De jure vassal, or any vassal if title titular
+			trigger_if = {
+				limit = { FROMFROM = { is_titular = yes } }
+				vassal_of = FROMFROM
+			}
+			trigger_else = {
+				any_dejure_liege = {
+					title = FROMFROM
+				}
+			}
+		}
+
+	#	additive_modifier = { # Fallback Electors (any religion)
+	#		value = 10
+	#
+	#		FROMFROM = {
+	#			# Tied to religion
+	#			holder_scope = {
+	#				NOT = { religion_group = ROOT }
+	#			}
+	#
+	#			# Either title is higher than Duke-tier, or must be primary
+	#			OR = {
+	#				higher_tier_than = DUKE
+	#
+	#				holder_scope = {
+	#					primary_title = {
+	#						title = PREVPREV
+	#					}
+	#				}
+	#			}
+	#		}
+	#
+	#		# If the Elector Title is a Duchy, any vassal can be an elector, otherwise only Dukes and above
+	#		trigger_if = {
+	#			limit = { FROMFROM = { real_tier = DUKE } }
+	#			higher_real_tier_than = BARON
+	#		}
+	#		trigger_else = {
+	#			higher_real_tier_than = COUNT
+	#		}
+	#
+	#		OR = { # Either de facto direct vassal, or independent ruler who is de jure vassal
+	#			vassal_of = FROMFROM
+	#			independent = yes
+	#		}
+	#
+	#		# De jure vassal, or any vassal if title titular
+	#		trigger_if = {
+	#			limit = { FROMFROM = { is_titular = yes } }
+	#			vassal_of = FROMFROM
+	#		}
+	#		trigger_else = {
+	#			any_dejure_liege = {
+	#				title = FROMFROM
+	#			}
+	#		}
+	#	}
+
+		additive_modifier = {
+			value = 4
+
+			is_theocracy = yes
+
+			FROMFROM = {
+				holder_scope = {
+					religion = ROOT
+				}
+			}
+		}
+
+		additive_modifier = {
+			value = -5
+			is_republic = yes
+		}
+
+		additive_modifier = {
+			value = -5
+			is_merchant_republic = yes
+		}
+
+		additive_modifier = {
+			value = -5
+			is_tribal = yes
+		}
+
+		additive_modifier = {
+			value = -5
+			is_nomadic = yes
+		}
+	}
+
+	# ROOT is current title holder
+	# FROM is candidate
+	# FROMFROM is title
+	# FROMFROMFROM is null
+	candidate_trigger = {
+		# Title must currently exist
+		FROMFROM = {
+			has_holder = yes
+		}
+
+		FROM = {
+			# Either the candidate is in the realm, or is landless, or the title is independent, or the realm of the title does NOT have protected inheritance
+			OR = {
+				is_vassal_or_below_of = ROOT
+				is_ruler = no
+
+				ROOT_FROMFROM = {
+					OR = {
+						holder_scope = {
+							independent = yes
+						}
+
+						NOR = {
+							has_law = out_of_realm_inheritance_law_1
+							has_law = crown_authority_3
+							has_law = crown_authority_4
+						}
+					}
+				}
+			}
+
+			OR = {
+				has_claim = ROOT_FROMFROM
+
+				trigger_if = {
+					limit = { is_close_relative = ROOT }
+
+					OR = {
+						dynasty = ROOT
+
+						AND = {
+							is_landed = yes
+							higher_real_tier_than = BARON
+						}
+					}
+				}
+
+				trigger_if = {
+					limit = {
+						is_landed = yes
+
+						# Only de jure vassals
+						any_dejure_liege = {
+							holder = ROOT
+						}
+					}
+
+					OR = {
+						# Or Duke-tier...
+						higher_real_tier_than = COUNT
+
+						#...Or Count-tier under a Duchy...
+						trigger_if = {
+							limit = { ROOT = { real_tier = DUKE } }
+							higher_real_tier_than = BARON
+						}
+
+						#...Or Baron-tier under a County
+						trigger_if = {
+							limit = { ROOT = { lower_real_tier_than = DUKE } }
+							is_landed = yes
+						}
+					}
+				}
+			}
+
+			# Candidate should not be a landless Courtier who is about to inherit a Theocracy or Republic
+			trigger_if = {
+				limit = {
+					any_heir_title = {
+						OR = {
+							is_republic = yes
+							is_theocracy = yes
+						}
+					}
+				}
+
+				is_landed = yes
+				is_republic = no
+				is_theocracy = no
+			}
+
+			# If the title controls the religion, candidates must be of the same religion
+			trigger_if = {
+				limit = { ROOT = { controls_religion = yes } }
+				religion = ROOT
+			}
+
+			trigger_if = {
+				limit = { trait = bastard }
+				is_ruler = yes
+			}
+
+			is_ascetic_trigger = no
+			is_theocracy = no
+			is_republic = no
+
+			NOR = {
+				# Parent is a candidate for election
+				mother = {
+					is_alive = yes
+					NOT = { is_married = ROOT }
+					parent_for_elective_succession_trigger = yes
+				}
+
+				father = {
+					is_alive = yes
+					NOT = { is_married = ROOT }
+					parent_for_elective_succession_trigger = yes
+				}
+
+				trait = cat
+				trait = disinherited
+				trait = horse
+				trait = eunuch
+				trait = crusader_king
+				trait = crusader_queen
+				character = ROOT # Not the current ruler
+				trait = bear
+				trait = dragon_bride_unmarried
+				trait = dragon_bride_married
+				trait = sent_to_china
+			}
+		}
+	}
+
+	candidate_vote_score = {
+		days = 0
+
+		### Elector voting himself ###
+		elector_self_feudal_vote = yes
+
+		### Candidate ###
+
+		# Heir
+		elector_heir_vote = yes
+
+		## All candidates
+
+		# Sexism
+		elector_candidate_gender_vote = yes
+
+		# Ageism
+		elector_candidate_age_vote = yes
+
+		# Culturism
+		elector_candidate_culture_vote = yes
+
+		# Faithism
+		elector_candidate_religion_bias_strong_vote = yes
+
+		# Barbarism
+		elector_candidate_barbarism_vote = yes
+
+		# Nepotism
+		elector_candidate_nepotism_vote = yes
+
+		# Prestige
+		elector_candidate_prestige_vote = yes
+
+		# Piety
+		elector_candidate_piety_vote = yes
+
+		# Education and lifestyle
+		elector_candidate_education_lifestyle_vote = yes
+
+		# Claims
+		elector_candidate_claims_vote = yes
+
+		# Traits
+		elector_candidate_traits_vote = yes
+		elector_candidate_traits_disfigured_vote = yes
+		elector_candidate_traits_excommunication_bias_strong_vote = yes
+		elector_candidate_traits_feudal_vote = yes
+		elector_candidate_traits_pagan_branch_vote = yes
+		elector_candidate_traits_sunni_branch_vote = yes
+		elector_candidate_traits_hindu_branch_vote = yes
+		elector_candidate_traits_buddhist_branch_vote = yes
+		elector_candidate_traits_jain_branch_vote = yes
+		elector_candidate_traits_taoist_branch_vote = yes
+		elector_candidate_traits_confucian_branch_vote = yes
+
+		# Ruler traits
+		elector_ruler_traits_vote = yes
+
+		# Candidate opinion
+		elector_candidate_opinion_vote = yes
+
+		# Ruler opinion
+		elector_ruler_opinion_vote = yes
+
+		# Bloodlines
+		additive_modifier = {
+			value = 25
+			localisation_key = tooltip_feudal_elector_vote_bloodline
+
+			FROM = {
+				any_owned_bloodline = {
+					has_bloodline_flag = bloodline_princely_elective_bonus
+					bloodline_is_active_for = PREV
+				}
+
+				NAND = { # Do not judge yourself... revisited!
+					character = ROOT
+					trait = humble
+				}
+			}
+		}
+	}
+}
