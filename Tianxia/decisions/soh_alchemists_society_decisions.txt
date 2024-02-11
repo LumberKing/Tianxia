@@ -43,8 +43,8 @@ society_decisions = {
 				years = 2 # Shorter than for the Hermetics
 				hidden = yes
 			}
-
-			# TIANXIATODO: Event
+			
+			character_event = { id = soh.10903 } # Decide on your approach
 		}
 
 		ai_will_do = {
@@ -54,6 +54,7 @@ society_decisions = {
 				# Already have ingredients
 				NOT = {
 					any_artifact = {
+						count >= 3
 						has_artifact_flag = ingredient
 					}
 				}
@@ -90,7 +91,7 @@ society_decisions = {
 				text = start_constructing_laboratory_tooltip
 
 				set_character_flag = building_laboratory
-				# TIANXIATODO: Event
+				character_event = { id = soh.10919 }
 			}
 		}
 
@@ -153,7 +154,7 @@ society_decisions = {
 				hidden = yes
 			}
 			
-			# TIANXIATODO: Event
+			character_event = { id = soh.10942 } # Confirmation event
 		}
 		
 		ai_will_do = {
@@ -161,7 +162,7 @@ society_decisions = {
 			
 			trigger = {
 				any_artifact = {
-					count >= 4
+					count >= 2
 					has_artifact_flag = ingredient
 				}
 				wealth < 1000
@@ -175,6 +176,16 @@ society_decisions = {
 			mult_modifier = {
 				factor = 0.1
 				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					any_artifact = {
+						count >= 4
+						has_artifact_flag = ingredient
+					}
+				}
 			}
 		}
 	}
@@ -198,7 +209,7 @@ society_decisions = {
 				trait = in_mourning
 			}
 			
-			has_society_currency_medium_trigger = yes
+			has_society_currency_minor_trigger = yes
 
 			custom_tooltip = {
 				text = must_have_a_laboratory_tt
@@ -218,6 +229,39 @@ society_decisions = {
 				text = no_recent_laboratory_experiment_tt
 
 				NOT = { has_character_modifier = recent_laboratory_test }
+			}
+		}
+		
+		effect = {
+			detract_society_currency_minor_effect = yes
+			
+			add_character_modifier = {
+				name = recent_laboratory_test
+				years = 2
+				hidden = yes
+			}
+			
+			character_event = { id = soh.11001 } # Fonfirmation
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			trigger = {
+				any_artifact = {
+					count >= 2
+					has_artifact_flag = ingredient
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				has_society_currency_medium_trigger = no
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = ambitious
 			}
 		}
 	}
@@ -290,7 +334,17 @@ society_decisions = {
 					trait = ambitious
 					trait = proud
 				}
+				NOT = {
+					trait = craven
+				}
 				trait = physician
+				OR = {
+					trait = brave
+					check_variable = {
+						which = alchemy_healing_knowledge
+						value >= 25
+					}
+				}
 			}
 			
 			mult_modifier = {
@@ -340,12 +394,6 @@ targeted_decisions = {
 			}
 
 			custom_tooltip = {
-				text = must_not_already_be_self_experimenting_tt
-
-				NOT = { has_character_flag = self_experiment_ongoing }
-			}
-
-			custom_tooltip = {
 				text = must_not_recently_have_self_experimented_tt
 
 				NOT = { has_character_modifier = recent_self_experiment }
@@ -354,20 +402,28 @@ targeted_decisions = {
 		
 		effect = {
 			detract_society_currency_minor_effect = yes
-			set_character_flag = self_experiment_ongoing
 			
-			# TIANXIATODO: Event
+			add_character_modifier = {
+				name = recent_self_experiment
+				years = 2
+				hidden = yes
+			}
+			
+			character_event = { id = soh.11135 } # Confirmation event
 		}
 		
 		ai_will_do = {
 			factor = 1
 			
 			trigger = {
-				NOR = {
-					trait = craven
-					trait = paranoid
-					trait = proud
-					trait = content
+				OR = {
+					NOR = {
+						trait = craven
+						trait = paranoid
+						trait = proud
+						trait = content
+					}
+					trait = lunatic
 				}
 			}
 			
@@ -384,6 +440,26 @@ targeted_decisions = {
 			mult_modifier = {
 				factor = 0.1
 				society_rank >= 3
+			}
+			
+			mult_modifier = {
+				factor = 2
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 2
+				trait = diligent
+			}
+			
+			mult_modifier = {
+				factor = 2
+				trait = brave
+			}
+			
+			mult_modifier = {
+				factor = 100
+				trait = lunatic # They called you MAD! But you WILL show them! Show them ALL! MWAHAHAAHAHA! Etc.
 			}
 		}
 	}
@@ -439,6 +515,7 @@ targeted_decisions = {
 					who = FROM
 					modifier = opinion_refused_experimentation
 				}
+				
 				has_character_modifier = prisoner_took_potion
 			}
 		}
@@ -446,9 +523,13 @@ targeted_decisions = {
 		effect = {
 			FROM = {
 				detract_society_currency_medium_effect = yes
+				
+				save_event_target_as = experimenting_alchemist
+				
+				clear_flags_with_prefix = prisoner_experiment_
 			}
 			
-			# TIANXIATODO: Event
+			character_event = { id = soh.11268 } # Prisoner gets the offer
 		}
 		
 		ai_will_do = {
@@ -584,6 +665,7 @@ targeted_decisions = {
 
 				detract_society_currency_minor_effect = yes
 				set_character_flag = preparing_potion
+				save_event_target_as = brewing_potion
 			}
 
 			if = {
@@ -591,9 +673,9 @@ targeted_decisions = {
 
 				custom_tooltip = {
 					text = brew_healing_potion_effect_self
-
-					set_character_flag = potion_target_is_self
-					# TIANXIATODO: Event
+					save_event_target_as = potion_target
+					
+					character_event = { id = soh.11301 } # Confirmation
 				}
 			}
 			else = { # Making someone else a potion
@@ -603,7 +685,7 @@ targeted_decisions = {
 					text = brew_healing_potion_effect_other
 
 					FROM = {
-						# TIANXIATODO: Event
+						character_event = { id = soh.11302 } # Confirmation
 					}
 				}
 			}
@@ -681,10 +763,10 @@ targeted_decisions = {
 					}
 				}
 
-				# TIANXIATODO: Event
+				character_event = { id = soh.11300 }
 			}
 			else = {
-				# TIANXIATODO: Event
+				character_event = { id = soh.11299 }
 			}
 		}
 
@@ -721,6 +803,13 @@ targeted_decisions = {
 				trait = headache
 				trait = malaise
 				trait = fatigue
+				has_character_modifier = drowsy_alchemist
+				has_character_modifier = alchemist_hallucinations
+				has_character_modifier = alchemist_blurred_vision
+				has_character_modifier = alchemist_dizzy
+				has_character_modifier = clouded_mind
+				has_character_modifier = apathetic
+				has_character_modifier = potion_crash
 			}
 
 			employer = {
@@ -771,6 +860,7 @@ targeted_decisions = {
 
 				detract_society_currency_minor_effect = yes
 				set_character_flag = preparing_potion
+				save_event_target_as = brewing_potion
 			}
 
 			if = {
@@ -778,9 +868,9 @@ targeted_decisions = {
 
 				custom_tooltip = {
 					text = brew_clarity_potion_effect_self
-
-					set_character_flag = potion_target_is_self
-					# TIANXIATODO: Event
+					save_event_target_as = potion_target
+					
+					character_event = { id = soh.11322 } # Confirmation
 				}
 			}
 			else = { # Making someone else a potion
@@ -790,7 +880,7 @@ targeted_decisions = {
 					text = brew_clarity_potion_effect_other
 
 					FROM = {
-						# TIANXIATODO: Event
+						character_event = { id = soh.11323 } # Confirmation
 					}
 				}
 			}
@@ -931,6 +1021,7 @@ targeted_decisions = {
 
 				detract_society_currency_medium_effect = yes
 				set_character_flag = preparing_potion
+				save_event_target_as = brewing_potion
 			}
 
 			if = {
@@ -938,9 +1029,9 @@ targeted_decisions = {
 
 				custom_tooltip = {
 					text = brew_fertility_potion_effect_self
-
-					set_character_flag = potion_target_is_self
-					# TIANXIATODO: Event
+					save_event_target_as = potion_target
+					
+					character_event = { id = soh.11343 } # Confirmation
 				}
 			}
 			else = { # Making someone else a potion
@@ -950,7 +1041,7 @@ targeted_decisions = {
 					text = brew_fertility_potion_effect_other
 
 					FROM = {
-						# TIANXIATODO: Event
+						character_event = { id = soh.11344 } # Confirmation
 					}
 				}
 			}
@@ -958,6 +1049,13 @@ targeted_decisions = {
 
 		ai_will_do = {
 			factor = 0.01
+			
+			trigger = {
+				NAND = {
+					character = FROM
+					trait = homosexual
+				}
+			}
 
 			mult_modifier = {
 				factor = 100
@@ -1010,12 +1108,24 @@ targeted_decisions = {
 
 					block_general_event_trigger = no
 				}
+				
+				custom_tooltip = {
+					text = must_not_already_be_interviewing_tt
+
+					NOT = { has_character_flag = interview_ongoing }
+				}
 			}
 			
-			NOT = {
+			NOR = {
 				has_opinion_modifier = {
 					who = FROM
 					modifier = opinion_recent_interview
+				}
+				
+				custom_tooltip = {
+					text = must_not_already_be_interviewed_tt
+
+					NOT = { has_character_flag = interview_ongoing }
 				}
 			}
 		}
@@ -1023,9 +1133,20 @@ targeted_decisions = {
 		effect = {
 			FROM = {
 				detract_society_currency_medium_effect = yes
+				save_event_target_as = interviewer
+				clr_character_flag = interview_healing
+				clr_character_flag = interview_poison
+				set_character_flag = interview_ongoing
 			}
 			
-			# TIANXIATODO: Event
+			opinion = {
+				who = FROM
+				modifier = opinion_recent_interview
+			}
+			
+			set_character_flag = interview_ongoing
+			
+			character_event = { id = soh.11379 } # Inform target
 		}
 
 		ai_will_do = {
@@ -1142,6 +1263,7 @@ targeted_decisions = {
 
 				detract_society_currency_medium_effect = yes
 				set_character_flag = preparing_potion
+				save_event_target_as = brewing_potion
 			}
 
 			if = {
@@ -1149,9 +1271,9 @@ targeted_decisions = {
 
 				custom_tooltip = {
 					text = brew_aphrodisiac_effect_self
-
-					set_character_flag = potion_target_is_self
-					# TIANXIATODO: Event
+					save_event_target_as = potion_target
+					
+					character_event = { id = soh.11355 }
 				}
 			}
 			else = { # Making someone else a potion
@@ -1161,7 +1283,7 @@ targeted_decisions = {
 					text = brew_aphrodisiac_effect_other
 
 					FROM = {
-						# TIANXIATODO: Event
+						character_event = { id = soh.11356 }
 					}
 				}
 			}
