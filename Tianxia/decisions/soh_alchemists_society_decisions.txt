@@ -1,7 +1,8 @@
 society_decisions = {
 	gather_alchemical_ingredients = {
 		ai_check_interval = 24
-
+		is_in_society = yes
+		
 		potential = {
 			society_member_of = the_alchemists
 		}
@@ -59,15 +60,20 @@ society_decisions = {
 					}
 				}
 			}
+			
+			mult_modifier = {
+				factor = 5
+				has_quest = quest_alchemist_gather_ingredients
+			}
 		}
 	}
 
 	build_alchemical_laboratory = {
 		ai_check_interval = 36
+		is_in_society = yes
+		only_playable = yes
 
 		is_high_prio = yes
-
-		only_playable = yes
 
 		potential = {
 			society_member_of = the_alchemists
@@ -111,6 +117,7 @@ society_decisions = {
 	
 	sell_potions = {
 		ai_check_interval = 24
+		is_in_society = yes
 		
 		potential = {
 			society_member_of = the_alchemists
@@ -179,6 +186,11 @@ society_decisions = {
 			}
 			
 			mult_modifier = {
+				factor = 5
+				trait = greedy
+			}
+			
+			mult_modifier = {
 				factor = 0.1
 				NOT = {
 					any_artifact = {
@@ -187,11 +199,17 @@ society_decisions = {
 					}
 				}
 			}
+			
+			mult_modifier = {
+				factor = 2
+				has_quest = quest_alchemist_sell_potions
+			}
 		}
 	}
 	
 	laboratory_experiment = {
 		ai_check_interval = 24
+		is_in_society = yes
 		
 		potential = {
 			society_member_of = the_alchemists
@@ -261,18 +279,28 @@ society_decisions = {
 			}
 			
 			mult_modifier = {
-				factor = 0.1
+				factor = 2
 				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 5
+				has_quest = quest_alchemist_laboratory_experiment
 			}
 		}
 	}
 	
 	brew_immortality_potion = {
 		ai_check_interval = 120
+		is_in_society = yes
 		
 		potential = {
 			society_member_of = the_alchemists
 			society_rank == 4
+			NOR = {
+				trait = immortal
+				trait = kitsune
+			}
 		}
 		
 		allow = {
@@ -310,6 +338,12 @@ society_decisions = {
 				text = not_already_brewing_immortality_potion_tt
 
 				NOT = { has_character_modifier = brewing_immortality_potion }
+			}
+			
+			custom_tooltip = {
+				text = not_already_getting_immortality_potion_tt
+				
+				NOT = { has_character_modifier = getting_immortality_potion }
 			}
 			
 			NOR = {
@@ -359,6 +393,105 @@ society_decisions = {
 			mult_modifier = {
 				factor = 10
 				has_ambition = obj_become_immortal
+			}
+		}
+	}
+	
+	request_ingredients = {
+		ai_check_interval = 60
+		is_in_society = yes
+		
+		potential = {
+			society_member_of = the_alchemists
+			has_minor_title = title_court_alchemist
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			liege = {
+				is_inaccessible_or_incapable_trigger = no
+			}
+			
+			custom_tooltip = {
+				text = tooltip_not_busy
+
+				block_general_event_trigger = no
+			}
+			
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = in_mourning
+			}
+
+			custom_tooltip = {
+				text = request_ingredients_cooldown_tt
+
+				NOT = { has_character_modifier = request_ingredients_decision_cooldown_timer }
+			}
+
+			custom_tooltip = {
+				text = acquire_ingredients_decision_too_many_ingredients_alchemist
+
+				NOT = {
+					any_artifact = {
+						count >= 10 # A higher bar than for the Hermetics; the Alchemists are all about ingredients!
+						has_artifact_flag = ingredient
+					}
+				}
+			}
+		}
+		
+		effect = {
+			add_character_modifier = {
+				name = request_ingredients_decision_cooldown_timer
+				years = 5
+				hidden = yes
+			}
+			
+			liege = {
+				character_event = { id = soh.11502 } # Liege gets request
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0.1
+			
+			trigger = {
+				OR = {
+					trait = greedy
+					NOT = {
+						any_artifact = {
+							count >= 5
+							has_artifact_flag = ingredient
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = envious
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = greedy
+			}
+			
+			mult_modifier = {
+				factor = 0.5
+				trait = charitable
+			}
+			
+			mult_modifier = {
+				factor = 2
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = content
 			}
 		}
 	}
@@ -467,6 +600,11 @@ targeted_decisions = {
 			mult_modifier = {
 				factor = 100
 				trait = lunatic # They called you MAD! But you WILL show them! Show them ALL! MWAHAHAAHAHA! Etc.
+			}
+			
+			mult_modifier = {
+				factor = 2
+				has_quest = quest_alchemist_self_experiment
 			}
 		}
 	}
@@ -609,6 +747,30 @@ targeted_decisions = {
 				factor = 2
 				FROM = {
 					trait = ambitious
+				}
+			}
+			
+			mult_modifier = {
+				factor = 5
+				FROM = {
+					trait = lunatic
+				}
+			}
+			
+			mult_modifier = {
+				factor = 2
+				FROM = {
+					has_quest = quest_alchemist_prisoner_experiment
+				}
+				NOR = {
+					is_friend = FROM
+					is_lover = FROM
+					AND = {
+						is_close_realtive = FROM
+						NOT = {
+							is_rival = FROM
+						}
+					}
 				}
 			}
 		}
@@ -1244,6 +1406,15 @@ targeted_decisions = {
 				}
 			}
 			
+			trigger_if = {
+				limit = {
+					trait = celibate
+				}
+				NOT = {
+					trait = celibate
+				}
+			}
+			
 			is_inaccessible_or_incapable_trigger = no
 
 			FROM = {
@@ -1326,6 +1497,1226 @@ targeted_decisions = {
 					value >= 30
 				}
 			}
+		}
+	}
+	
+	request_healing_potion_court_alchemist = {
+		filter = court
+		ai_target_filter = none # Uses an offset on_bi_yearly_pulse event
+		ai_check_interval = 1000
+
+		ai = no
+		
+		from_potential = {
+			has_dlc = "Mystics"
+			is_adult = yes
+			has_chinese_government_trigger = yes
+			
+			OR = {
+				character_disease_trigger = yes
+				has_symptom_trigger = yes
+				has_minor_disease_trigger = yes
+			}
+		}
+		
+		potential = {
+			society_member_of = the_alchemists
+			society_rank >= 2
+			liege = {
+				character = FROM # Filter out prisoners
+			}
+			has_minor_title = title_court_alchemist
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			custom_tooltip = {
+				text = must_not_already_be_preparing_an_alchemical_potion_tt
+
+				NOT = { has_character_flag = preparing_potion }
+			}
+			
+			custom_tooltip = {
+				text = FROM_must_not_have_recently_requested_a_potion_from_THIS
+				
+				NOT = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_requested_potion
+					}
+				}
+			}
+
+			FROM = {
+				custom_tooltip = {
+					text = tooltip_not_busy
+
+					block_general_event_trigger = no
+				}
+				
+				custom_tooltip = {
+					text  = must_not_recently_have_taken_this_potion_tt
+					
+					NOT = { has_character_modifier = recent_healing_potion }
+				}
+			}
+			
+			OR = {
+				custom_tooltip = {
+					text = must_have_ingredients_tt
+
+					any_artifact = {
+						count >= 2
+						has_artifact_flag = ingredient
+					}
+				}
+				
+				FROM = {
+					OR = {
+						wealth >= 25
+						custom_tooltip = {
+							text = must_have_ingredients_tt
+
+							any_artifact = {
+								count >= 2
+								has_artifact_flag = ingredient
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			save_event_target_as = brewing_potion
+			
+			opinion = {
+				who = FROM
+				modifier = opinion_requested_potion
+			}
+			
+			FROM = {
+				character_event = { id = soh.11541 } # Determine just how to make the request
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	request_healing_potion_friend_lover = {
+		filter = realm
+		ai_target_filter = none # Uses an offset on_bi_yearly_pulse event
+		ai_check_interval = 1000
+
+		ai = no
+		
+		from_potential = {
+			has_dlc = "Mystics"
+			is_adult = yes
+			has_chinese_government_trigger = yes
+			
+			OR = {
+				character_disease_trigger = yes
+				has_symptom_trigger = yes
+				has_minor_disease_trigger = yes
+			}
+		}
+		
+		potential = {
+			society_member_of = the_alchemists
+			society_rank >= 2
+			same_realm = FROM
+			OR = {
+				is_friend = FROM
+				is_lover = FROM
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			custom_tooltip = {
+				text = must_not_already_be_preparing_an_alchemical_potion_tt
+
+				NOT = { has_character_flag = preparing_potion }
+			}
+			
+			custom_tooltip = {
+				text = FROM_must_not_have_recently_requested_a_potion_from_THIS
+				
+				NOT = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_requested_potion
+					}
+				}
+			}
+
+			FROM = {
+				custom_tooltip = {
+					text = tooltip_not_busy
+
+					block_general_event_trigger = no
+				}
+				
+				custom_tooltip = {
+					text  = must_not_recently_have_taken_this_potion_tt
+					
+					NOT = { has_character_modifier = recent_healing_potion }
+				}
+			}
+			
+			OR = {
+				custom_tooltip = {
+					text = must_have_ingredients_tt
+
+					any_artifact = {
+						count >= 2
+						has_artifact_flag = ingredient
+					}
+				}
+				
+				FROM = {
+					OR = {
+						wealth >= 25
+						custom_tooltip = {
+							text = must_have_ingredients_tt
+
+							any_artifact = {
+								count >= 2
+								has_artifact_flag = ingredient
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			save_event_target_as = brewing_potion
+			
+			opinion = {
+				who = FROM
+				modifier = opinion_requested_potion
+			}
+			
+			FROM = {
+				character_event = { id = soh.11541 } # Determine just how to make the request
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	request_clarity_potion_court_alchemist = {
+		filter = court
+		ai_target_filter = none # Uses an offset on_bi_yearly_pulse event
+		ai_check_interval = 1000
+
+		ai = no
+		
+		from_potential = {
+			is_adult = yes
+			
+			OR = {
+				trait = stressed
+				trait = depressed
+				trait = headache
+				trait = malaise
+				trait = fatigue
+				has_character_modifier = drowsy_alchemist
+				has_character_modifier = alchemist_hallucinations
+				has_character_modifier = alchemist_blurred_vision
+				has_character_modifier = alchemist_dizzy
+				has_character_modifier = clouded_mind
+				has_character_modifier = apathetic
+				has_character_modifier = potion_crash
+			}
+		}
+		
+		potential = {
+			society_member_of = the_alchemists
+			society_rank >= 3
+			liege = {
+				character = FROM # Filter out prisoners
+			}
+			has_minor_title = title_court_alchemist
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			custom_tooltip = {
+				text = must_not_already_be_preparing_an_alchemical_potion_tt
+
+				NOT = { has_character_flag = preparing_potion }
+			}
+			
+			custom_tooltip = {
+				text = FROM_must_not_have_recently_requested_a_potion_from_THIS
+				
+				NOT = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_requested_potion
+					}
+				}
+			}
+
+			FROM = {
+				custom_tooltip = {
+					text = tooltip_not_busy
+
+					block_general_event_trigger = no
+				}
+				
+				custom_tooltip = {
+					text  = must_not_recently_have_taken_this_potion_tt
+					
+					NOT = { has_character_modifier = recent_clarity_potion }
+				}
+			}
+			
+			OR = {
+				custom_tooltip = {
+					text = must_have_ingredients_tt
+
+					any_artifact = {
+						count >= 2
+						has_artifact_flag = ingredient
+					}
+				}
+				
+				FROM = {
+					OR = {
+						wealth >= 25
+						custom_tooltip = {
+							text = must_have_ingredients_tt
+
+							any_artifact = {
+								count >= 2
+								has_artifact_flag = ingredient
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			save_event_target_as = brewing_potion
+			
+			opinion = {
+				who = FROM
+				modifier = opinion_requested_potion
+			}
+			
+			FROM = {
+				character_event = { id = soh.11573 } # Determine just how to make the request
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	request_clarity_potion_friend_lover = {
+		filter = realm
+		ai_target_filter = none # Uses an offset on_bi_yearly_pulse event
+		ai_check_interval = 1000
+
+		ai = no
+		
+		from_potential = {
+			is_adult = yes
+			
+			OR = {
+				trait = stressed
+				trait = depressed
+				trait = headache
+				trait = malaise
+				trait = fatigue
+				has_character_modifier = drowsy_alchemist
+				has_character_modifier = alchemist_hallucinations
+				has_character_modifier = alchemist_blurred_vision
+				has_character_modifier = alchemist_dizzy
+				has_character_modifier = clouded_mind
+				has_character_modifier = apathetic
+				has_character_modifier = potion_crash
+			}
+		}
+		
+		potential = {
+			society_member_of = the_alchemists
+			society_rank >= 3
+			OR = {
+				is_friend = FROM
+				is_lover = FROM
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			custom_tooltip = {
+				text = must_not_already_be_preparing_an_alchemical_potion_tt
+
+				NOT = { has_character_flag = preparing_potion }
+			}
+			
+			custom_tooltip = {
+				text = FROM_must_not_have_recently_requested_a_potion_from_THIS
+				
+				NOT = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_requested_potion
+					}
+				}
+			}
+
+			FROM = {
+				custom_tooltip = {
+					text = tooltip_not_busy
+
+					block_general_event_trigger = no
+				}
+				
+				custom_tooltip = {
+					text  = must_not_recently_have_taken_this_potion_tt
+					
+					NOT = { has_character_modifier = recent_clarity_potion }
+				}
+			}
+			
+			OR = {
+				custom_tooltip = {
+					text = must_have_ingredients_tt
+
+					any_artifact = {
+						count >= 2
+						has_artifact_flag = ingredient
+					}
+				}
+				
+				FROM = {
+					OR = {
+						wealth >= 25
+						custom_tooltip = {
+							text = must_have_ingredients_tt
+
+							any_artifact = {
+								count >= 2
+								has_artifact_flag = ingredient
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			save_event_target_as = brewing_potion
+			
+			opinion = {
+				who = FROM
+				modifier = opinion_requested_potion
+			}
+			
+			FROM = {
+				character_event = { id = soh.11573 } # Determine just how to make the request
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	request_fertility_potion_court_alchemist = {
+		filter = court
+		ai_target_filter = none  # Uses an offset on_bi_yearly_pulse event
+		ai_check_interval = 1000
+
+		ai = no
+		
+		from_potential = {
+			has_dlc = "Mystics"
+			is_adult = yes
+			has_chinese_government_trigger = yes
+		}
+		
+		potential = {
+			society_member_of = the_alchemists
+			society_rank >= 3
+			liege = {
+				character = FROM # Filter out prisoners
+			}
+			has_minor_title = title_court_alchemist
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			custom_tooltip = {
+				text = must_not_already_be_preparing_an_alchemical_potion_tt
+
+				NOT = { has_character_flag = preparing_potion }
+			}
+
+			FROM = {
+				custom_tooltip = {
+					text = tooltip_not_busy
+
+					block_general_event_trigger = no
+				}
+				
+				custom_tooltip = {
+					text  = must_not_recently_have_taken_this_potion_tt
+					
+					NOT = { has_character_modifier = recent_fertility_potion }
+				}
+				
+				trigger_if = {
+					limit = {
+						is_female = yes
+					}
+					
+					OR = {
+						is_female = no
+						practical_age < 45
+					}
+				}
+				
+				trigger_else_if = {
+					limit = {
+						trait = eunuch
+					}
+					
+					NOT = {
+						trait = eunuch
+					}
+				}
+				
+				trigger_else_if = {
+					limit = {
+						trait = celibate
+					}
+					
+					NOT = {
+						trait = celibate
+					}
+				}
+				
+				trigger_if = {
+					limit = {
+						trait = in_mourning
+					}
+					NOT = {
+						trait = in_mourning
+					}
+				}
+			}
+			
+			OR = {
+				custom_tooltip = {
+					text = must_have_ingredients_tt
+
+					any_artifact = {
+						count >= 2
+						has_artifact_flag = ingredient
+					}
+				}
+				
+				FROM = {
+					OR = {
+						wealth >= 25
+						custom_tooltip = {
+							text = must_have_ingredients_tt
+
+							any_artifact = {
+								count >= 2
+								has_artifact_flag = ingredient
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			save_event_target_as = brewing_potion
+			
+			opinion = {
+				who = FROM
+				modifier = opinion_requested_potion
+			}
+			
+			FROM = {
+				character_event = { id = soh.11605 } # Determine just how to make the request
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	request_fertility_potion_friend_lover = {
+		filter = realm
+		ai_target_filter = none # Uses an offset on_bi_yearly_pulse event
+		ai_check_interval = 1000
+
+		ai = no
+		
+		from_potential = {
+			has_dlc = "Mystics"
+			is_adult = yes
+			has_chinese_government_trigger = yes
+			
+			OR = {
+				character_disease_trigger = yes
+				has_symptom_trigger = yes
+				has_minor_disease_trigger = yes
+			}
+		}
+		
+		potential = {
+			society_member_of = the_alchemists
+			society_rank >= 3
+			same_realm = FROM
+			OR = {
+				is_friend = FROM
+				is_lover = FROM
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			custom_tooltip = {
+				text = must_not_already_be_preparing_an_alchemical_potion_tt
+
+				NOT = { has_character_flag = preparing_potion }
+			}
+
+			FROM = {
+				custom_tooltip = {
+					text = tooltip_not_busy
+
+					block_general_event_trigger = no
+				}
+				
+				custom_tooltip = {
+					text  = must_not_recently_have_taken_this_potion_tt
+					
+					NOT = { has_character_modifier = recent_fertility_potion }
+				}
+				
+				trigger_if = {
+					limit = {
+						is_female = yes
+					}
+					
+					OR = {
+						is_female = no
+						practical_age < 45
+					}
+				}
+				
+				trigger_else_if = {
+					limit = {
+						trait = eunuch
+					}
+					
+					NOT = {
+						trait = eunuch
+					}
+				}
+				
+				trigger_else_if = {
+					limit = {
+						trait = celibate
+					}
+					
+					NOT = {
+						trait = celibate
+					}
+				}
+				
+				trigger_if = {
+					limit = {
+						trait = in_mourning
+					}
+					NOT = {
+						trait = in_mourning
+					}
+				}
+			}
+			
+			OR = {
+				custom_tooltip = {
+					text = must_have_ingredients_tt
+
+					any_artifact = {
+						count >= 2
+						has_artifact_flag = ingredient
+					}
+				}
+				
+				FROM = {
+					OR = {
+						wealth >= 25
+						custom_tooltip = {
+							text = must_have_ingredients_tt
+
+							any_artifact = {
+								count >= 2
+								has_artifact_flag = ingredient
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			save_event_target_as = brewing_potion
+			
+			opinion = {
+				who = FROM
+				modifier = opinion_requested_potion
+			}
+			
+			FROM = {
+				character_event = { id = soh.11605 } # Determine just how to make the request
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	request_aphrodisiac_court_alchemist = {
+		filter = court
+		ai_target_filter = none  # Uses an offset on_bi_yearly_pulse event
+		ai_check_interval = 1000
+
+		ai = no
+		
+		from_potential = {
+			has_dlc = "Mystics"
+			is_adult = yes
+			has_chinese_government_trigger = yes
+		}
+		
+		potential = {
+			society_member_of = the_alchemists
+			society_rank == 4
+			liege = {
+				character = FROM # Filter out prisoners
+			}
+			has_minor_title = title_court_alchemist
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			custom_tooltip = {
+				text = must_not_already_be_preparing_an_alchemical_potion_tt
+
+				NOT = { has_character_flag = preparing_potion }
+			}
+			
+			custom_tooltip = {
+				text = FROM_must_not_have_recently_requested_a_potion_from_THIS
+				
+				NOT = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_requested_potion
+					}
+				}
+			}
+
+			FROM = {
+				custom_tooltip = {
+					text = tooltip_not_busy
+
+					block_general_event_trigger = no
+				}
+				
+				custom_tooltip = {
+					text  = must_not_recently_have_taken_this_potion_tt
+					
+					NOT = { has_character_modifier = recent_aphrodisiac }
+				}
+				
+				trigger_if = {
+					limit = {
+						trait = in_mourning
+					}
+					NOT = {
+						trait = in_mourning
+					}
+				}
+				
+				trigger_if = {
+					limit = {
+						trait = celibate
+					}
+					NOT = {
+						trait = celibate
+					}
+				}
+			}
+			
+			OR = {
+				custom_tooltip = {
+					text = must_have_ingredients_tt
+
+					any_artifact = {
+						count >= 2
+						has_artifact_flag = ingredient
+					}
+				}
+				
+				FROM = {
+					OR = {
+						wealth >= 25
+						custom_tooltip = {
+							text = must_have_ingredients_tt
+
+							any_artifact = {
+								count >= 2
+								has_artifact_flag = ingredient
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			save_event_target_as = brewing_potion
+			
+			opinion = {
+				who = FROM
+				modifier = opinion_requested_potion
+			}
+			
+			FROM = {
+				character_event = { id = soh.11637 } # Determine just how to make the request
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	request_aphrodisiac_friend_lover = {
+		filter = realm
+		ai_target_filter = none # Uses an offset on_bi_yearly_pulse event
+		ai_check_interval = 1000
+
+		ai = no
+		
+		from_potential = {
+			has_dlc = "Mystics"
+			is_adult = yes
+			has_chinese_government_trigger = yes
+		}
+		
+		potential = {
+			society_member_of = the_alchemists
+			society_rank == 4
+			same_realm = FROM
+			OR = {
+				is_friend = FROM
+				is_lover = FROM
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			custom_tooltip = {
+				text = must_not_already_be_preparing_an_alchemical_potion_tt
+
+				NOT = { has_character_flag = preparing_potion }
+			}
+			
+			custom_tooltip = {
+				text = FROM_must_not_have_recently_requested_a_potion_from_THIS
+				
+				NOT = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_requested_potion
+					}
+				}
+			}
+
+			FROM = {
+				custom_tooltip = {
+					text = tooltip_not_busy
+
+					block_general_event_trigger = no
+				}
+				
+				custom_tooltip = {
+					text  = must_not_recently_have_taken_this_potion_tt
+					
+					NOT = { has_character_modifier = recent_aphrodisiac }
+				}
+				
+				trigger_if = {
+					limit = {
+						trait = in_mourning
+					}
+					NOT = {
+						trait = in_mourning
+					}
+				}
+				
+				trigger_if = {
+					limit = {
+						trait = celibate
+					}
+					NOT = {
+						trait = celibate
+					}
+				}
+			}
+			
+			OR = {
+				custom_tooltip = {
+					text = must_have_ingredients_tt
+
+					any_artifact = {
+						count >= 2
+						has_artifact_flag = ingredient
+					}
+				}
+				
+				FROM = {
+					OR = {
+						wealth >= 25
+						custom_tooltip = {
+							text = must_have_ingredients_tt
+
+							any_artifact = {
+								count >= 2
+								has_artifact_flag = ingredient
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			save_event_target_as = brewing_potion
+			
+			opinion = {
+				who = FROM
+				modifier = opinion_requested_potion
+			}
+			
+			FROM = {
+				character_event = { id = soh.11637 } # Determine just how to make the request
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	request_immortality_potion_court_alchemist = {
+		filter = court
+		ai_target_filter = court
+		ai_check_interval = 120
+
+		only_playable = yes
+		
+		from_potential = {
+			has_dlc = "Mystics"
+			is_adult = yes
+			has_chinese_government_trigger = yes
+			NOR = {
+				society_member_of = the_alchemists # You should brew your own!
+				trait = immortal
+				trait = kitsune
+			}
+		}
+		
+		potential = {
+			society_member_of = the_alchemists
+			society_rank == 4
+			liege = {
+				character = FROM # Filter out prisoners
+			}
+			has_minor_title = title_court_alchemist
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			is_inaccessible_or_incapable_trigger = no
+			
+			custom_tooltip = {
+				text = FROM_must_not_have_recently_requested_a_potion_from_THIS
+				
+				NOT = {
+					has_opinion_modifier = {
+						who = FROM
+						modifier = requested_immortality_potion
+					}
+				}
+			}
+
+			FROM = {
+				custom_tooltip = {
+					text = tooltip_not_busy
+
+					block_general_event_trigger = no
+				}
+				
+				custom_tooltip = {
+					text = not_already_brewing_immortality_potion_tt
+					
+					NOT = { has_character_modifier = brewing_immortality_potion }
+				}
+				
+				custom_tooltip = {
+					text = not_already_getting_immortality_potion_tt
+					
+					NOT = { has_character_modifier = getting_immortality_potion }
+				}
+				
+				NOR = {
+					trait = depressed
+					trait = content
+				}
+			}
+
+			custom_tooltip = {
+				text = must_have_a_laboratory_tt
+
+				has_character_flag = built_laboratory
+			}
+			
+			OR = {
+				custom_tooltip = {
+					text = must_have_many_ingredients_tt
+
+					any_artifact = {
+						count >= 5
+						has_artifact_flag = ingredient
+					}
+				}
+				
+				FROM = {
+					wealth >= 100
+				}
+			}
+
+			custom_tooltip = {
+				text = not_already_brewing_immortality_potion_tt
+
+				NOT = { has_character_modifier = brewing_immortality_potion }
+			}
+		}
+		
+		effect = {
+			save_event_target_as = target_court_alchemist
+			
+			# TIANXIATODO: Event
+		}
+		
+		ai_will_do = {
+			factor = 0.01
+			
+			trigger = {
+				NOR = {
+					AND = {
+						is_rival = FROM
+						FROM = {
+							NOT = {
+								trait = trusting
+							}
+						}
+					}
+				}
+				FROM = {
+					OR = {
+						trait = ambitious
+						trait = proud
+					}
+					NOT = {
+						trait = craven
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				always = yes # Show it down
+			}
+			
+			mult_modifier = {
+				factor = 10
+				FROM = {
+					has_ambition = obj_become_immortal
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = physician
+			}
+			
+			mult_modifier = {
+				factor = 10
+				is_friend = FROM
+			}
+		}
+	}
+	
+	request_prisoner_testing = {
+		ai = no
+		is_in_society = yes
+		ai_check_interval = 1000
+		filter = realm
+		ai_target_filter = none # The AI will do this on_five_year_pulse
+		
+		from_potential = {
+			has_dlc = "Mystics"
+			society_member_of = the_alchemists
+			society_rank >= 2
+		}
+		
+		potential = {
+			is_adult = yes
+			is_actually_incapable_trigger = no
+			prisoner = yes
+			host = {
+				NOT = {
+					character = FROM
+				}
+				any_vassal = {
+					character = FROM
+				}
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			FROM = {
+				has_society_currency_medium_trigger = yes
+				
+				has_regent = no
+				
+				custom_tooltip = {
+					text = tooltip_not_busy
+
+					block_general_event_trigger = no
+				}
+
+				custom_tooltip = {
+					text = must_have_ingredients_tt
+
+					any_artifact = {
+						count >= 2
+						has_artifact_flag = ingredient
+					}
+				}
+
+				custom_tooltip = {
+					text = no_recent_prisoner_experiment
+
+					NOT = { has_character_modifier = recent_prisoner_experiment }
+				}
+			}
+			
+			liege = {
+				is_inaccessible_or_incapable_trigger = no
+				
+				has_regent = no
+				
+				NOT = {
+					reverse_has_opinion_modifier = {
+						who = FROM
+						modifier = opinion_requested_prisoner_experiment
+					}
+				}
+			}
+			
+			NOR = {
+				reverse_has_opinion_modifier = {
+					who = FROM
+					modifier = opinion_refused_experimentation
+				}
+				
+				has_character_modifier = prisoner_took_potion
+			}
+		}
+		
+		effect = {
+			FROM = {
+				detract_society_currency_medium_effect = yes
+				
+				save_event_target_as = experimenting_alchemist
+				
+				add_character_modifier = {
+					name = recent_prisoner_experiment
+					years = 2
+					hidden = yes
+				}
+				
+				reverse_opinion = {
+					who = liege
+					modifier = opinion_requested_prisoner_experiment
+				}
+				
+				clear_flags_with_prefix = prisoner_experiment_
+			}
+			
+			save_event_target_as = prisoner_experimented_upon
+			
+			liege = {
+				character_event = { id = soh.11508 } # Liege gets request
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
 		}
 	}
 }
