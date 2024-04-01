@@ -1,0 +1,1116 @@
+# Misc extra RIP events
+
+namespace = tianxia
+
+# IDs 1701-1800 reserved
+
+##### Eternal Life
+
+# Eternal Life reincarnation notification
+character_event = {
+	id = tianxia.1701
+	desc = EVTDESC_TIANXIA_1701
+	picture = GFX_evt_birth
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		FROMFROM = {
+			save_event_target_as = reborn_ancestor
+		}
+	}
+	
+	option = {
+		name = EVTOPTA_TIANXIA_1701 # It is FROMFROM reborn!
+		
+		FROM = {
+			dynasty = event_target:reborn_ancestor
+			
+			add_trait = legit_bastard
+			
+			if = {
+				limit = {
+					event_target:reborn_ancestor = {
+						is_female = yes
+					}
+				}
+				
+				FROM = {
+					set_mother = event_target:reborn_ancestor
+				}
+			}
+			
+			else = {
+				set_father = event_target:reborn_ancestor
+				set_real_father = event_target:reborn_ancestor
+			}
+			
+			save_event_target_as = inheritance_sanity_check_character
+			inheritance_sanity_check_effect = yes
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 10
+				trait = trusting
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = kind
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = humble
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_TIANXIA_1701 # A bastard, perhaps, but not a trueborn child!
+		
+		FROM = {
+			dynasty = event_target:reborn_ancestor
+			add_trait = bastard
+			
+			if = {
+				limit = {
+					event_target:reborn_ancestor = {
+						is_female = yes
+					}
+				}
+				
+				FROM = {
+					set_mother = event_target:reborn_ancestor
+				}
+			}
+			
+			else = {
+				set_father = event_target:reborn_ancestor
+				set_real_father = event_target:reborn_ancestor
+			}
+			
+			save_event_target_as = inheritance_sanity_check_character
+			inheritance_sanity_check_effect = yes
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 10
+				trait = trusting
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = proud
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTC_TIANXIA_1701 # That is not FROMFROM!
+		
+		FROM = {
+			if = {
+				limit = {
+					event_target:reborn_ancestor = {
+						is_female = no
+					}
+				}
+				set_real_father = event_target:reborn_ancestor
+			}
+			
+			save_event_target_as = inheritance_sanity_check_character
+			inheritance_sanity_check_effect = yes
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 10
+				trait = paranoid
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = proud
+			}
+			
+			mult_modifier = { # TIANXIATODO: True religion
+				factor = 100
+				NOR = {
+					has_dharmic_religion_trigger = yes
+					religion_openly_bon_or_reformed_trigger = yes
+					religion_openly_west_african_or_reformed_trigger = yes
+					religion = mazdaki
+					religion = manichaean
+					religion = khurmazta
+					religion = druze
+					religion_openly_yi_or_reformed_trigger = yes
+					has_religion_feature = religion_feature_reincarnation
+				}
+			}
+		}
+	}
+}
+
+
+
+##### Meddling with vassals
+
+### End War
+
+# on_yearly_pulse for vassal, fire the event for the liege
+character_event = {
+	id = tianxia.1702
+	hide_window = yes
+	
+	is_triggered_only = yes # on_yearly_pulse
+	
+	has_dlc = "Reapers"
+	only_playable = yes
+	war = yes
+	
+	trigger = {
+		independent = no # Only vassals
+		
+		will_liege_enforce_peace = no
+		has_liege_enforced_peace = no
+		
+		OR = {
+			has_game_rule = {
+				name = ai_vassal_meddling
+				value = allowed
+			}
+			has_game_rule = {
+				name = ai_vassal_meddling
+				value = only_wars
+			}
+		}
+		
+		# Has a suitable liege
+		liege = {
+			ai = yes
+			is_tribal = no
+			is_nomadic = no
+			OR = {
+				prestige >= 200
+				holds_favor_on = ROOT
+			}
+			is_actually_incapable_trigger = no
+			prisoner = no
+			in_seclusion = no
+			has_regent = no
+			NOR = {
+				has_character_modifier = mandate_of_heaven_2
+				has_character_modifier = mandate_of_heaven_1
+			}
+			NOR = {
+				trait = under_regency
+				trait = under_regency2
+				trait = under_regency3
+			}
+			
+			NOT = {
+				reverse_has_opinion_modifier = {
+					who = ROOT
+					modifier = opinion_interfered_in_war
+				}
+			}
+		}
+		
+		# Is at war with a fellow vassal
+		any_war = {
+			OR = {
+				AND = {
+					attacker = {
+						character = ROOT
+					}
+					
+					defender = {
+						liege = {
+							any_vassal = {
+								character = ROOT
+							}
+							
+							# The liege has a reason to care
+							OR = {
+								is_friend = PREV
+								is_lover = PREV
+								AND = {
+									dynasty = PREV
+									player_heir = {
+										character = PREV
+									}
+								}
+								is_close_relative = PREV
+								is_rival = ROOT
+							}
+							NOR = {
+								is_rival = PREV
+								is_friend = ROOT
+								is_lover = ROOT
+								AND = {
+									dynasty = ROOT
+									player_heir = {
+										character = ROOT
+									}
+								}
+								is_close_relative = ROOT
+							}
+						}
+					}
+					
+					war_score >= 50 # Winning the war
+				}
+				
+				AND = {
+					defender = {
+						character = ROOT
+					}
+					
+					attacker = {
+						liege = {
+							any_vassal = {
+								character = ROOT
+							}
+							
+							# The liege has a reason to care
+							OR = {
+								is_friend = PREV
+								is_lover = PREV
+								AND = {
+									dynasty = PREV
+									player_heir = {
+										character = PREV
+									}
+								}
+								is_close_relative = PREV
+								is_rival = ROOT
+							}
+							NOR = {
+								is_rival = PREV
+								is_friend = ROOT
+								is_lover = ROOT
+								AND = {
+									dynasty = ROOT
+									player_heir = {
+										character = ROOT
+									}
+								}
+								is_close_relative = ROOT
+							}
+						}
+					}
+					
+					war_score <= -50 # Winning the war
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		random_list = {
+			50 = {
+				liege = {
+					any_vassal = {
+						limit = {
+							OR = {
+								is_friend = PREV
+								is_lover = PREV
+								AND = {
+									dynasty = PREV
+									player_heir = {
+										character = PREV
+									}
+								}
+								is_close_relative = PREV
+								liege = {
+									is_rival = ROOT
+								}
+							}
+							
+							liege = {
+								NOR = {
+									is_rival = PREV
+									is_friend = ROOT
+									is_lover = ROOT
+									AND = {
+										dynasty = ROOT
+										player_heir = {
+											character = ROOT
+										}
+									}
+									is_close_relative = ROOT
+								}
+							}
+							
+							any_war = {
+								attacker = {
+									character = ROOT
+								}
+								defender = {
+									character = PREV
+								}
+							}
+						}
+						
+						save_event_target_as = target_defender
+						
+						ROOT = {
+							save_event_target_as = target_vassal
+							
+							liege = {
+								character_event = { id = tianxia.1703 } # Liege gets event
+							}
+						}
+					}
+				}
+			}
+			
+			50 = {
+				liege = {
+					any_vassal = {
+						limit = {
+							OR = {
+								is_friend = PREV
+								is_lover = PREV
+								AND = {
+									dynasty = PREV
+									player_heir = {
+										character = PREV
+									}
+								}
+								is_close_relative = PREV
+								liege = {
+									is_rival = ROOT
+								}
+							}
+							
+							liege = {
+								NOR = {
+									is_rival = PREV
+									is_friend = ROOT
+									is_lover = ROOT
+									AND = {
+										dynasty = ROOT
+										player_heir = {
+											character = ROOT
+										}
+									}
+									is_close_relative = ROOT
+								}
+							}
+							
+							any_war = {
+								defender = {
+									character = ROOT
+								}
+								attacker = {
+									character = PREV
+								}
+							}
+						}
+						
+						save_event_target_as = target_attacker
+						
+						ROOT = {
+							save_event_target_as = target_vassal
+							
+							liege = {
+								character_event = { id = tianxia.1706 } # Liege gets event
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# AI liege gets event - attacker in war
+character_event = {
+	id = tianxia.1703
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				holds_favor_on = event_target:target_vassal
+			}
+			
+			# Call in the Favor; the player doesn't get to pick the other option, so the AI also doesn't get it
+			
+			event_target:target_vassal = {
+				reverse_remove_favor = ROOT
+
+				character_event = { id = tianxia.1704 } # Ping
+			}
+		}
+		
+		else = {
+			random_list = {
+				50 = {
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_defender
+							value >= 25
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_defender
+							value >= 50
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_defender
+							value >= 75
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_vassal
+							value < -25
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_vassal
+							value < -50
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_vassal
+							value < -75
+						}
+					}
+					
+					# Meddle
+					prestige = -100
+					
+					reverse_opinion = {
+						name = opinion_interfered_in_war
+						who = event_target:target_vassal
+						years = 5
+					}
+					
+					event_target:target_vassal = {
+						character_event = { id = tianxia.1705 } # Ping
+					}
+				}
+				
+				50 = {
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_vassal
+							value >= 25
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_vassal
+							value >= 50
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_vassal
+							value >= 75
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_defender
+							value < -25
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_defender
+							value < -50
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_defender
+							value < -75
+						}
+					}
+					
+					# Do nothing
+				}
+			}
+		}
+	}
+}
+
+# Ping to get the correct scopes - Favor
+character_event = {
+	id = tianxia.1704
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		letter_event = {
+			id = RIP.30010
+			days = 3
+		}
+	}
+}
+
+# Ping to get the correct scopes - no Favor
+character_event = {
+	id = tianxia.1705
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		letter_event = {
+			id = RIP.30000
+			days = 3
+		}
+	}
+}
+
+# AI liege gets event - defender in war
+character_event = {
+	id = tianxia.1706
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				holds_favor_on = event_target:target_vassal
+			}
+			
+			# Call in the Favor; the player doesn't get to pick the other option, so the AI also doesn't get it
+			
+			event_target:target_vassal = {
+				reverse_remove_favor = ROOT
+
+				character_event = { id = tianxia.1707 } # Ping
+			}
+		}
+		
+		else = {
+			random_list = {
+				50 = {
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_attacker
+							value >= 25
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_attacker
+							value >= 50
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_attacker
+							value >= 75
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_vassal
+							value < -25
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_vassal
+							value < -50
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_vassal
+							value < -75
+						}
+					}
+					
+					# Meddle
+					prestige = -200
+					
+					reverse_opinion = {
+						name = opinion_interfered_in_war
+						who = event_target:target_vassal
+						years = 5
+					}
+					
+					event_target:target_vassal = {
+						character_event = { id = tianxia.1708 } # Ping
+					}
+				}
+				
+				50 = {
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_vassal
+							value >= 25
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_vassal
+							value >= 50
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_vassal
+							value >= 75
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_attacker
+							value < -25
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_attacker
+							value < -50
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = event_target:target_attacker
+							value < -75
+						}
+					}
+					
+					# Do nothing
+				}
+			}
+		}
+	}
+}
+
+# Ping to get the correct scopes - Favor
+character_event = {
+	id = tianxia.1707
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		letter_event = {
+			id = RIP.30030
+			days = 3
+		}
+	}
+}
+
+# Ping to get the correct scopes - no Favor
+character_event = {
+	id = tianxia.1708
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		letter_event = {
+			id = RIP.30020
+			days = 3
+		}
+	}
+}
+
+
+
+### Demand Gavelkind
+
+# on_decade_pulse for vassal, fire the event for the liege
+character_event = {
+	id = tianxia.1709
+	hide_window = yes
+	
+	is_triggered_only = yes # on_decade_pulse
+	
+	has_dlc = "Reapers"
+	only_playable = yes
+	
+	trigger = {
+		independent = no
+		
+		is_feudal = yes
+		mercenary = no
+		holy_order = no
+		is_vice_royalty = no
+		is_inaccessible_or_incapable_trigger = no
+		
+		OR = {
+			has_game_rule = {
+				name = ai_vassal_meddling
+				value = allowed
+			}
+			has_game_rule = {
+				name = ai_vassal_meddling
+				value = only_gavelkind
+			}
+		}
+		
+		liege = {
+			ai = yes
+			is_feudal = yes
+			is_vice_royalty = no
+			prisoner = no
+			is_actually_incapable_trigger = no
+			
+			NOT =  {
+				reverse_has_opinion_modifier = {
+					name = opinion_demanded_succ_law_change
+					who = ROOT
+				}
+			}
+			
+			prestige >= 100
+		}
+		
+		any_demesne_title = {
+			tier = ROOT
+			OR = {
+				controls_religion = no
+				is_primary_holder_title = yes
+			}
+			is_law_potential = succ_gavelkind
+			NOT = {
+				has_law = succ_gavelkind
+			}
+		}
+		
+		# Don't shoot yourself in the foot!
+		NOR = {
+			is_friend = liege
+			is_lover = liege
+			AND = {
+				dynasty = liege
+				OR = {
+					is_close_relative = liege
+					NOT = {
+						is_rival = liege
+					}
+				}
+			}
+			any_demesne_title = {
+				tier = ROOT
+				current_heir = {
+					any_vassal = {
+						character = ROOT
+					}
+				}
+			}
+			liege = {
+				OR = {
+					dynasty = ROOT
+					is_parent_of = ROOT
+				}
+				player_heir = {
+					character = ROOT
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		liege = {
+			character_event = { id = tianxia.1710 }
+		}
+	}
+}
+
+# AI liege gets event
+character_event = {
+	id = tianxia.1710
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				holds_favor_on = FROM
+			}
+			
+			# Call in the Favor; the player doesn't get to pick the other option, so the AI also doesn't get it
+			random_list = {
+				50 = {
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = FROM
+							value < -25
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = FROM
+							value < -50
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = FROM
+							value < -75
+						}
+					}
+					
+					# Meddle
+					prestige = -100
+					
+					FROM = {
+						random_demesne_title = {
+							limit = {
+								tier = PREV
+								OR = {
+									controls_religion = no
+									is_primary_holder_title = yes
+								}
+								NOT = {
+									has_law = succ_gavelkind
+								}
+							}
+							
+							preferred_limit = {
+								is_primary_holder_title = no
+							}
+							
+							save_event_target_as = gavelkind_title
+						}
+					
+						reverse_remove_favor = ROOT
+					}
+					
+					reverse_opinion = {
+						name = opinion_demanded_succ_law_change
+						who = FROM
+						years = 5
+					}
+					
+					FROM = {
+						character_event = { id = tianxia.1711 } # Ping
+					}
+				}
+				
+				50 = {
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = FROM
+							value >= 25
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = FROM
+							value >= 50
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = FROM
+							value >= 75
+						}
+					}
+					
+					# Do nothing
+				}
+			}
+		}
+		
+		else = {
+			random_list = {
+				50 = {
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = FROM
+							value < -25
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = FROM
+							value < -50
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = FROM
+							value < -75
+						}
+					}
+					
+					# Meddle
+					prestige = -100
+					
+					FROM = {
+						random_demesne_title = {
+							limit = {
+								tier = PREV
+								OR = {
+									controls_religion = no
+									is_primary_holder_title = yes
+								}
+								NOT = {
+									has_law = succ_gavelkind
+								}
+							}
+							
+							preferred_limit = {
+								is_primary_holder_title = no
+							}
+							
+							save_event_target_as = gavelkind_title
+						}
+					}
+					
+					reverse_opinion = {
+						name = opinion_demanded_succ_law_change
+						who = FROM
+						years = 5
+					}
+					
+					FROM = {
+						character_event = { id = tianxia.1712 } # Ping
+					}
+				}
+				
+				50 = {
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = FROM
+							value >= 25
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = FROM
+							value >= 50
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						opinion = {
+							who = FROM
+							value >= 75
+						}
+					}
+					
+					# Do nothing
+				}
+			}
+		}
+	}
+}
+
+# Ping to get the correct scopes - Favor
+character_event = {
+	id = tianxia.1711
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		letter_event = {
+			id = RIP.30040
+			days = 3
+		}
+	}
+}
+
+# Ping to get the correct scopes - no Favor
+character_event = {
+	id = tianxia.1712
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		letter_event = {
+			id = RIP.30050
+			days = 3
+		}
+	}
+}
