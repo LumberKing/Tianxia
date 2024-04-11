@@ -1299,7 +1299,7 @@ decisions = {
 	}
 
 	# Seclusion
-	shut_the_gates = { # TIANXIATODO: Fix as part of seclusion rework
+	shut_the_gates = {
 		is_high_prio = yes
 
 		only_rulers = yes
@@ -1402,45 +1402,67 @@ decisions = {
 
 				force_host = ROOT
 			}
+			
+			any_courtier_or_vassal = {
+				limit = {
+					has_minor_title = title_court_physician
+				}
+				
+				if = {
+					limit = {
+						employer = {
+							NOT = {
+								character = ROOT
+							}
+						}
+					}
+					
+					remove_title = title_court_physician
+				}
+				
+				else = {
+					set_character_flag = going_into_seclusion
+				}
+			}
 
 			character_event = { id = RIP.12000 }
 
-			if = {
-				limit = {
-					ai = no
-					war = yes
-					multiplayer = yes
-				}
-
-				character_event = {
-					id = RIP.12099
-					months = 40
-					random = 1800
-				}
-			}
-			else_if = {
-				limit = {
-					ai = no
-
-					OR = {
-						war = yes
-						multiplayer = yes
-					}
-				}
-
-				character_event = {
-					id = RIP.12099
-					months = 15
-					random = 540
-				}
-			}
-			else = {
-				character_event = {
-					id = RIP.12099
-					months = 5
-					random = 180
-				}
-			}
+			#if = { # Vanilla seclusion flavour tombola; replaced
+			#	limit = {
+			#		ai = no
+			#		war = yes
+			#		multiplayer = yes
+			#	}
+			#
+			#	character_event = {
+			#		id = RIP.12099
+			#		months = 40
+			#		random = 1800
+			#	}
+			#}
+			#else_if = {
+			#	limit = {
+			#		ai = no
+			#
+			#		OR = {
+			#			war = yes
+			#			multiplayer = yes
+			#		}
+			#	}
+			#
+			#	character_event = {
+			#		id = RIP.12099
+			#		months = 15
+			#		random = 540
+			#	}
+			#}
+			#else = {
+			#	character_event = {
+			#		id = RIP.12099
+			#		months = 5
+			#		random = 180
+			#	}
+			#}
 
 			hidden_effect = {
 				any_courtier = {
@@ -1499,7 +1521,7 @@ decisions = {
 				if = { # Notify employer that councillor is going into seclusion
 					limit = {
 						is_voter = yes
-						liege = { ai = no }
+						#liege = { ai = no }
 					}
 
 					liege = {
@@ -1509,6 +1531,14 @@ decisions = {
 						}
 					}
 				}
+			}
+			
+			any_courtier_or_vassal = {
+				limit = {
+					has_minor_title = title_court_physician
+				}
+				
+				clr_character_flag = going_into_seclusion
 			}
 		}
 
@@ -1570,7 +1600,7 @@ decisions = {
 		}
 	}
 
-	open_the_gates = { # TIANXIATODO: Fix as part of Seclusion rework
+	open_the_gates = {
 		ai_check_interval = 3
 
 		is_high_prio = yes
@@ -1585,23 +1615,13 @@ decisions = {
 			in_seclusion = yes
 		}
 
-		effect = {
+		effect = { # TIANXIATODO: Replace with a scripted effect with everything needed in Tianxia
 			custom_tooltip = {
 				text = open_the_gates_info_tooltip
-
-				clr_character_flag = do_not_disturb
-				clr_character_flag = exposed_to_outside
-				clr_character_flag = seclusion_piling_corpses
-				clr_character_flag = seclusion_lazy_seduction
-				clr_character_flag = seclusion_nightmares
-				clr_character_flag = seclusion_gained_friend
-				clr_character_flag = seclusion_child_has_lover
-				clr_character_flag = seclusion_tunnel
-				clr_character_flag = seclusion_food_events
+				clean_up_seclusion_effect = yes
 			}
 
 			remove_character_modifier = in_seclusion
-			clr_character_flag = seclusion_events_on
 
 			add_character_modifier = {
 				name = recently_opened_gates
@@ -1616,8 +1636,7 @@ decisions = {
 
 			hidden_effect = {
 				any_courtier = {
-					clr_character_flag = seclusion_events_on
-					remove_character_modifier = in_seclusion
+					clean_up_seclusion_effect = yes
 
 					character_event = {
 						id = RIP.11557 # Clears starvation modifiers
@@ -1661,16 +1680,6 @@ decisions = {
 					}
 				}
 			}
-
-			if = {
-				limit = { has_character_modifier = secluded_revelry }
-				remove_character_modifier = secluded_revelry
-			}
-
-			if = {
-				limit = { has_character_modifier = savoring_the_end_days }
-				remove_character_modifier = savoring_the_end_days
-			}
 		}
 
 		ai_will_do = {
@@ -1680,12 +1689,33 @@ decisions = {
 				OR = {
 					capital_scope = { has_disease = no }
 					has_character_modifier = starving_food_shortage
+					is_dumb_trigger = yes
 				}
+				OR = {
+					NOT = {
+						trait = craven
+					}
+					capital_scope = {
+						NOT = {
+							any_neighbor_province = {
+								has_disease = yes
+							}
+						}
+					}
+					has_character_modifier = starving_food_shortage
+					is_dumb_trigger = yes
+				}
+					
 			}
 
 			mult_modifier = {
 				factor = 0.5
 				trait = paranoid
+			}
+
+			mult_modifier = {
+				factor = 0.5
+				trait = craven
 			}
 
 			mult_modifier = {
@@ -1697,6 +1727,17 @@ decisions = {
 				factor = 3
 				capital_scope = { has_disease = no }
 				has_character_modifier = starving_food_shortage
+			}
+
+			mult_modifier = {
+				factor = 3
+				has_character_modifier = starving_food_shortage
+				trait = gluttonous
+			}
+
+			mult_modifier = {
+				factor = 0.1
+				capital_scope = { has_disease = yes }
 			}
 		}
 	}
