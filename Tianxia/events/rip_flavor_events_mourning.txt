@@ -1,0 +1,2151 @@
+namespace = RIP
+
+### MOURNING FLAVOR EVENTS ###
+
+# Lovers/rivals/friends
+character_event = {
+	id = RIP.29000
+
+	is_triggered_only = yes # on_death, ramdom_events
+	hide_window = yes
+
+	trigger = {
+		OR = {
+			any_lover = {
+				is_alive = yes
+				is_inaccessible_or_incapable_trigger = no
+			}
+
+			any_friend = {
+				is_alive = yes
+				is_inaccessible_or_incapable_trigger = no
+			}
+
+			any_rival = {
+				is_alive = yes
+				is_inaccessible_or_incapable_trigger = no
+			}
+		}
+
+		death_no_trace_trigger = no
+		#death_in_china_trigger = no
+	}
+
+	option = {
+		save_event_target_as = rip_dead
+
+		random_spouse = {
+			limit = {
+				is_inaccessible_or_incapable_trigger = no
+			}
+			save_event_target_as = rip_widow
+		}
+
+		random_child = {
+			limit = {
+				is_adult = yes
+				is_inaccessible_or_incapable_trigger = no
+			}
+
+			save_event_target_as = rip_child
+		}
+
+		# Lover event
+		random_lover = {
+			limit = {
+				is_inaccessible_or_incapable_trigger = no
+				NOT = { has_character_modifier = grief_timer }
+			}
+
+			character_event = {
+				id = RIP.29001
+				days = 20
+			}
+		}
+
+		# Friend event
+		random_friend = {
+			limit = {
+				is_inaccessible_or_incapable_trigger = no
+				NOT = { has_character_modifier = grief_timer }
+			}
+
+			save_event_target_as = rip_friend_1
+
+			ROOT = {
+				random_friend = {
+					limit = {
+						is_inaccessible_or_incapable_trigger = no
+
+						NOR = {
+							character = event_target:rip_friend_1
+							is_rival = event_target:rip_friend_1
+							is_friend = event_target:rip_friend_1
+							is_lover = event_target:rip_friend_1
+							is_close_relative = event_target:rip_friend_1
+						}
+					}
+
+					save_event_target_as = rip_friend_2
+				}
+			}
+
+			random_list = {
+				75 = {
+					trigger = {
+						# Prevent crocodile tears
+						event_target:rip_dead = {
+							NOT = {
+								killer = {
+									character = event_target:rip_friend_1
+								}
+							}
+						}
+					}
+
+					character_event = {
+						id = RIP.29005
+						months = 1
+					}
+				}
+
+				25 = {
+					trigger = {
+						ROOT = {
+							any_child = {
+								age >= 12
+
+								NOR = {
+									character = event_target:rip_friend_1
+									is_rival = event_target:rip_friend_1
+									is_friend = event_target:rip_friend_1
+									is_lover = event_target:rip_friend_1
+								}
+							}
+						}
+					}
+
+					character_event = {
+						id = RIP.29020
+						months = 1
+					}
+				}
+			}
+		}
+
+		# Rival event
+		random_rival = {
+			limit = {
+				is_inaccessible_or_incapable_trigger = no
+				NOT = { has_character_modifier = grief_timer }
+				top_liege = {
+					any_realm_character = {
+						character = ROOT
+					}
+				}
+			}
+
+			save_event_target_as = rip_enemy_1
+
+			liege = {
+				random_courtier = {
+					limit = {
+						is_inaccessible_or_incapable_trigger = no
+
+						NOR = {
+							character = event_target:rip_enemy_1
+							is_rival = event_target:rip_enemy_1
+							is_friend = event_target:rip_enemy_1
+							is_lover = event_target:rip_enemy_1
+						}
+					}
+
+					save_event_target_as = rip_new_enemy
+				}
+			}
+
+			ROOT = {
+				random_rival = {
+					limit = {
+						is_inaccessible_or_incapable_trigger = no
+
+						NOR = {
+							character = event_target:rip_enemy_1
+							is_rival = event_target:rip_enemy_1
+							is_friend = event_target:rip_enemy_1
+							is_lover = event_target:rip_enemy_1
+						}
+					}
+
+					save_event_target_as = rip_enemy_2
+				}
+
+				random_child = {
+					limit = {
+						is_inaccessible_or_incapable_trigger = no
+
+						NOR = {
+							character = event_target:rip_enemy_1
+							is_rival = event_target:rip_enemy_1
+							is_friend = event_target:rip_enemy_1
+							is_lover = event_target:rip_enemy_1
+						}
+					}
+
+					save_event_target_as = rip_new_enemy
+				}
+
+				random_friend = {
+					limit = {
+						is_inaccessible_or_incapable_trigger = no
+
+						NOR = {
+							character = event_target:rip_enemy_1
+							is_rival = event_target:rip_enemy_1
+							is_friend = event_target:rip_enemy_1
+							is_lover = event_target:rip_enemy_1
+						}
+					}
+
+					save_event_target_as = rip_new_enemy
+				}
+			}
+
+			character_event = {
+				id = RIP.29010
+				days = 40
+			}
+		}
+	}
+}
+
+# Lover
+character_event = {
+	id = RIP.29001
+	desc = EVTDSC_RIP_29001
+	picture = GFX_evt_death
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+	
+	trigger = {
+		is_inaccessible_or_incapable_trigger = no
+	}
+
+	immediate = {
+		add_character_modifier = {
+			name = grief_timer
+			years = 10
+			hidden = yes
+		}
+	}
+
+	# Visit their tomb
+	option = {
+		name = EVTOPTA_RIP_29001
+
+		custom_tooltip = {
+			text = EVTOPTA_RIP_29001_TOOLTIP
+
+			if = {
+				limit = {
+					event_target:rip_widow = { always = yes }
+					NOT = { character = event_target:rip_widow }
+				}
+
+				event_target:rip_widow = {
+					character_event = {
+						id = RIP.29002
+						days = 7
+					}
+				}
+			}
+			else = {
+				character_event = {
+					id = RIP.29004
+					days = 7
+				}
+			}
+		}
+
+		ai_chance = {
+			factor = 10
+			
+			mult_modifier = {
+				factor = 10
+				trait = kind
+			}
+		}
+	}
+
+	# Stay in room and cry
+	option = {
+		name = EVTOPTB_RIP_29001
+
+		trigger = {
+			NOR = {
+				trait = cruel
+				trait = cynical
+				trait = depressed
+			}
+		}
+
+		custom_tooltip = { text = EVTOPTB_RIP_29001_TOOLTIP }
+
+		if = {
+			limit = {
+				NOT = { trait = depressed }
+			}
+
+			random = {
+				chance = 50
+
+				add_trait_depressed_effect = yes
+
+				hidden_effect = {
+					# Recover from depression
+					random_list = {
+						10 = {
+							character_event = {
+								id = RIP.29015
+								days = 200
+								random = 600
+							}
+						}
+
+						20 = {
+							trigger = {
+								NOT = { has_character_modifier = pet_cat }
+							}
+
+							character_event = {
+								id = RIP.29016
+								days = 200
+								random = 600
+							}
+						}
+
+						10 = {
+							trigger = {
+								any_child = {
+									age >= 3
+									age < 13
+								}
+							}
+
+							character_event = {
+								id = RIP.29019
+								days = 200
+								random = 600
+							}
+						}
+
+						20 = { } # Nothing
+					}
+				}
+			}
+		}
+
+		ai_chance = {
+			factor = 15
+			
+			mult_modifier = {
+				factor = 10
+				trait = shy
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTD_RIP_29001
+
+		trigger = { trait = depressed }
+
+		custom_tooltip = { text = EVTOPTD_RIP_29001_TOOLTIP }
+		
+		death = { death_reason = death_suicide_hanging } # TIANXIATODO: Review suicide type
+		
+		ai_chance = {
+			factor = 10
+			
+			trigger = {
+				NOR = {
+					any_friend = {
+						always = yes
+					}
+					any_lover = {
+						always = yes
+					}
+				}
+			}
+		}
+	}
+
+	# Face the world. You're a badass!
+	option = {
+		name = EVTOPTC_RIP_29001
+
+		trigger = {
+			NOR = {
+				trait = kind
+				trait = craven
+			}
+		}
+
+		custom_tooltip = { text = EVTOPTC_RIP_29001_TOOLTIP }
+
+		random_list = {
+			33 = {
+				trigger = {
+					NOT = { trait = cynical }
+				}
+
+				add_trait_fully_cynical_effect = yes
+			}
+
+			33 = {
+				trigger = {
+					NOT = { trait = cruel }
+				}
+
+				add_trait_fully_cruel_effect = yes
+			}
+
+			33 = { } # Nothing
+		}
+
+		ai_chance = {
+			factor = 10
+			
+			mult_modifier = {
+				factor = 10
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = cruel
+			}
+		}
+	}
+}
+
+# Widow finds lover at tomb
+character_event = {
+	id = RIP.29002
+	desc = EVTDSC_RIP_29002
+	picture = GFX_evt_death
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	# Let them mourn
+	option = {
+		name = EVTOPTA_RIP_29002
+
+		trigger = {
+			NOR = {
+				trait = cruel
+				trait = envious
+				trait = wroth
+			}
+		}
+
+		add_trait_fully_kind_effect = yes
+
+		FROM = {
+			character_event = {
+				id = RIP.29004
+				days = 3
+			}
+		}
+		
+		ai_chance = {	
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					is_rival = FROM
+				}
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = kind
+			}
+			
+			mult_modifier = {
+				factor = 2
+				trait = humble
+			}
+		}
+	}
+
+	# Lash out
+	option = {
+		name = EVTOPTB_RIP_29002
+
+		trigger = {
+			NOT = { trait = kind }
+		}
+
+		tooltip = {
+			if = {
+				limit = { NOT = { is_rival = FROM } }
+				add_rival = FROM
+			}
+		}
+
+		add_trait_fully_envious_effect = yes
+
+		FROM = {
+			character_event = {
+				id = RIP.29003
+				days = 3
+			}
+		}
+
+		ai_chance = {
+			factor = 30
+			
+			trigger = {
+				NOR = {
+					is_friend = FROM
+					is_lover = FROM
+				}
+			}
+		}
+	}
+}
+
+# Lover visits tomb, meets widow
+character_event = {
+	id = RIP.29003
+	desc = EVTDSC_RIP_29003
+	picture = GFX_evt_quarrel
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29003
+
+		if = {
+			limit = {
+				NOT = { is_rival = FROM }
+			}
+
+			add_rival = FROM
+		}
+	}
+}
+
+# Lover visits tomb, finds memento
+character_event = {
+	id = RIP.29004
+	desc = EVTDSC_RIP_29004
+	picture = GFX_evt_death
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+	hide_from = yes
+
+	option = {
+		name = EVTOPTA_RIP_29004
+
+		add_character_modifier = {
+			name = lovers_memento
+			duration = -1
+		}
+	}
+}
+
+# Death of a friend
+character_event = {
+	id = RIP.29005
+	desc = EVTDSC_RIP_29005
+	picture = GFX_evt_death
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+	
+	trigger = {
+		is_inaccessible_or_incapable_trigger = no
+	}
+
+	immediate = {
+		add_character_modifier = {
+			name = grief_timer
+			years = 10
+			hidden = yes
+		}
+	}
+
+	# Go out drinking
+	option = {
+		name = EVTOPTA_RIP_29005
+
+		custom_tooltip = {
+			text = EVTOPTA_RIP_29005_TOOLTIP
+
+			hidden_effect = {
+				if = {
+					limit = { event_target:rip_friend_2 = { always = yes } }
+
+					event_target:rip_friend_2 = {
+						character_event = {
+							id = RIP.29006
+							days = 3
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						any_courtier = {
+							block_general_event_trigger = no
+							NOR = {
+								is_friend = ROOT
+								is_lover = ROOT
+								is_rival = ROOT
+							}
+							ai = yes
+						}
+					}
+
+					random_courtier = {
+						limit = {
+							block_general_event_trigger = no
+							NOR = {
+								is_friend = ROOT
+								is_lover = ROOT
+								is_rival = ROOT
+							}
+							ai = yes
+						}
+
+						character_event = {
+							id = RIP.29006
+							days = 3
+						}
+					}
+				}
+				else = {
+					character_event = {
+						id = RIP.29008
+						days = 3
+					}
+				}
+			}
+		}
+
+		ai_chance = {
+			factor = 20
+			
+			trigger = {
+				NOR = {
+					AND = {
+						trait = temperate
+						NOR = {
+							trait = drunkard
+							trait = hedonist
+							trait = decadent
+						}
+					}
+					AND = {
+						religion_group = muslim
+						NOR = {
+							trait = drunkard
+							trait = hedonist
+							trait = decadent
+						}
+					}
+				}
+			}
+		}
+	}
+
+	# Be alone
+	option = {
+		name = EVTOPTB_RIP_29005
+
+		trigger = {
+			NOR = {
+				trait = cruel
+				trait = cynical
+				trait = depressed
+			}
+		}
+
+		custom_tooltip = { text = EVTOPTB_RIP_29001_TOOLTIP }
+
+		random = {
+			chance = 50
+
+			add_trait_depressed_effect = yes
+
+			hidden_effect = {
+				# Recover from depression
+				random_list = {
+					10 = {
+						trigger = {
+							has_secret_religion = no
+						}
+						
+						character_event = {
+							id = RIP.29015
+							days = 200
+							random = 600
+						}
+					}
+
+					20 = {
+						trigger = {
+							NOT = { has_character_modifier = pet_cat }
+						}
+
+						character_event = {
+							id = RIP.29016
+							days = 200
+							random = 600
+						}
+					}
+
+					10 = {
+						trigger = {
+							any_child = {
+								age >= 3
+								age < 13
+							}
+						}
+
+						character_event = {
+							id = RIP.29019
+							days = 200
+							random = 600
+						}
+					}
+
+					20 = { } # Nothing
+				}
+			}
+		}
+
+		ai_chance = {
+			factor = 10
+			
+			mult_modifier = {
+				factor = 10
+				trait = shy
+			}
+		}
+	}
+
+	# Suicide
+	option = {
+		name = EVTOPTD_RIP_29001
+
+		trigger = { trait = depressed }
+
+		custom_tooltip = { text = EVTOPTD_RIP_29001_TOOLTIP }
+
+		death = { death_reason = death_suicide_hanging } # TIANXIATODO: Review suicide type
+		
+		ai_chance = {
+			factor = 10
+			
+			trigger = {
+				NOR = {
+					any_friend = {
+						always = yes
+					}
+					any_lover = {
+						always = yes
+					}
+				}
+			}
+		}
+	}
+
+	# Get rid of all of your friends
+	option = {
+		name = EVTOPTD_RIP_29005
+
+		trigger = { num_of_friends >= 1 }
+
+		custom_tooltip = { text = EVTOPTD_RIP_29005_TOOLTIP }
+
+		any_friend = {
+			show_scope_change = no
+
+			remove_friend = ROOT
+		}
+
+		ai_chance = {
+			factor = 5
+			
+			mult_modifier = {
+				factor = 10
+				trait = shy
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = cynical
+			}
+		}
+	}
+}
+
+# Ping new friend
+character_event = {
+	id = RIP.29006
+	desc = EVTDSC_RIP_29006
+	picture = GFX_evt_brothel
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	# Approach
+	option = {
+		name = EVTOPTA_RIP_29007_A
+
+		FROM = {
+			show_scope_change = no
+
+			character_event = {
+				id = RIP.29007
+				tooltip = EVTOPTA_RIP_29006_TOOLTIP
+			}
+		}
+
+		ai_chance = {
+			factor = 75
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = shy
+			}
+			
+			mult_modifier = {
+				factor = 0.5
+				trait = cynical
+			}
+		}
+	}
+
+	# Leave alone
+	option = {
+		name = EVTOPTB_RIP_29006
+
+		FROM = {
+			show_scope_change = no
+
+			character_event = {
+				id = RIP.29008
+				tooltip = EVTOPTB_RIP_29006_TOOLTIP
+			}
+		}
+
+		ai_chance = {
+			factor = 25
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = gregarious
+			}
+		}
+	}
+}
+
+# Meet new friend
+character_event = {
+	id = RIP.29007
+	picture = GFX_evt_brothel
+	border = GFX_event_normal_frame_diplomacy
+
+	desc = {
+		trigger = { event_target:rip_friend_2 = { always = yes } }
+		text = EVTDSC_RIP_29007_A
+	}
+	desc = {
+		trigger = { NOT = { event_target:rip_friend_2 = { always = yes } } }
+		text = EVTDSC_RIP_29007_B
+	}
+
+	is_triggered_only = yes
+
+	# Let's be friends
+	option = {
+		name = {
+			text = EVTOPTA_RIP_29007_A
+			trigger = { event_target:rip_friend_2 = { always = yes } }
+		}
+		name = {
+			text = EVTOPTA_RIP_29007_B
+			trigger = { NOT = { event_target:rip_friend_2 = { always = yes } } }
+		}
+
+		add_friend = FROM
+
+		FROM = {
+			character_event = {
+				id = RIP.29009
+				days = 3
+			}
+		}
+
+		ai_chance = {
+			factor = 75
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = shy
+			}
+			
+			mult_modifier = {
+				factor = 0.5
+				trait = cynical
+			}
+		}
+	}
+
+	# I don't want your company!
+	option = {
+		name = EVTOPTB_RIP_29007
+
+		custom_tooltip = {
+			text = EVTOPTB_RIP_29007_TOOLTIP
+
+			character_event = {
+				id = RIP.29008
+				days = 3
+			}
+
+			FROM = {
+				character_event = {
+					id = RIP.29009
+					days = 3
+				}
+			}
+		}
+
+		reverse_opinion = {
+			name = opinion_rejected_friend
+			who = FROM
+			years = 3
+		}
+
+		ai_chance = {
+			factor = 25
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = gregarious
+			}
+		}
+	}
+}
+
+# Become a drunkard
+character_event = {
+	id = RIP.29008
+	desc = EVTDSC_RIP_29008
+	picture = GFX_evt_drunk
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+	hide_from = yes
+
+	option = {
+		name = EVTOPTB_RIP_29008
+
+		add_trait_silently_drunkard_effect = yes
+	}
+}
+
+# Did approaching the drinking friend of friend work?
+character_event = {
+	id = RIP.29009
+	border = GFX_event_normal_frame_diplomacy
+
+	desc = {
+		text = EVTDSC_RIP_29009_A
+		picture = GFX_evt_feast
+		trigger = { is_friend = FROM }
+	}
+	desc = {
+		text = EVTDSC_RIP_29009_B
+		picture = GFX_evt_quarrel
+		trigger = { NOT = { is_friend = FROM } }
+	}
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = {
+			text = EVTOPTA_RIP_29009_A
+			trigger = { is_friend = FROM }
+		}
+		name = {
+			text = EVTOPTA_RIP_29009_B
+			trigger = { NOT = { is_friend = FROM } }
+		}
+	}
+}
+
+# Death of a rival
+character_event = {
+	id = RIP.29010
+	desc = EVTDSC_RIP_29010
+	picture = GFX_evt_death
+	border = GFX_event_normal_frame_war
+
+	is_triggered_only = yes
+	
+	trigger = {
+		is_inaccessible_or_incapable_trigger = no
+	}
+
+	immediate = {
+		add_character_modifier = {
+			name = grief_timer
+			years = 10
+			hidden = yes
+		}
+	}
+
+	# Steal skull
+	option = {
+		name = EVTOPTA_RIP_29010
+
+		trigger = {
+			OR = {
+				trait = cruel
+				trait = wroth
+				trait = impaler
+				trait = lunatic
+				trait = possessed
+				trait = arbitrary
+			}
+		}
+
+		custom_tooltip = {
+			text = EVTOPTA_RIP_29010_TOOLTIP
+
+			hidden_effect = {
+				random_list = {
+					# Failure
+					40 = {
+						trigger = {
+							OR = {
+								event_target:rip_widow = { is_inaccessible_or_incapable_trigger = no }
+								event_target:rip_child = { is_inaccessible_or_incapable_trigger = no }
+							}
+
+							trigger_if = {
+								limit = { character = event_target:rip_widow }
+								NOT = { character = event_target:rip_child }
+							}
+						}
+
+						if = {
+							limit = {
+								NOT = { character = event_target:rip_widow }
+							}
+
+							event_target:rip_widow = {
+								character_event = {
+									id = RIP.29011
+									days = 7
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								NOT = { character = event_target:rip_child }
+							}
+
+							event_target:rip_child = {
+								character_event = {
+									id = RIP.29011
+									days = 7
+								}
+							}
+						}
+					}
+
+					60 = {
+						mult_modifier = {
+							factor = 1.2
+							intrigue >= 9
+						}
+
+						mult_modifier = {
+							factor = 1.2
+							intrigue >= 12
+						}
+
+						mult_modifier = {
+							factor = 1.2
+							intrigue >= 15
+						}
+
+						mult_modifier = {
+							factor = 1.2
+							intrigue >= 18
+						}
+
+						mult_modifier = {
+							factor = 1.2
+							intrigue >= 21
+						}
+
+						character_event = {
+							id = RIP.29013 # Success
+							days = 7
+						}
+					}
+				}
+			}
+		}
+
+		ai_chance = {
+			factor = 2
+			
+			trigger = {
+				NOR = {
+					trait = craven
+					trait = kind
+				}
+			}
+		}
+	}
+
+	# Enemy of my enemy
+	option = {
+		name = EVTOPTB_RIP_29010
+
+		trigger = {
+			event_target:rip_enemy_2 = { is_alive = yes }
+		}
+
+		custom_tooltip = { text = EVTOPTB_RIP_29010_TOOLTIP }
+
+		add_friend = event_target:rip_enemy_2
+
+		ai_chance = {
+			factor = 10
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = shy
+			}
+		}
+	}
+
+	# Get a new enemy
+	option = {
+		name = EVTOPTC_RIP_29010
+
+		trigger = {
+			event_target:rip_new_enemy = { is_alive = yes }
+		}
+
+		custom_tooltip = { text = EVTOPTC_RIP_29010_TOOLTIP }
+
+		add_rival = event_target:rip_new_enemy
+
+		ai_chance = {
+			factor = 5
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = kind
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = wroth
+			}
+		}
+	}
+
+	# Repent
+	option = {
+		name = EVTOPTD_RIP_29010
+
+		trigger = {
+			OR = {
+				any_rival = { is_alive = yes }
+				NOT = { trait = kind }
+			}
+		}
+
+		custom_tooltip = { text = EVTOPTD_RIP_29010_TOOLTIP }
+
+		#if = {
+		#	limit = { trait = cruel }
+		#	remove_trait = cruel
+		#}
+		#else_if = {
+		#	limit = { trait = envious }
+		#	remove_trait = envious
+		#}
+		#else_if = {
+		#	limit = {
+		#		NOT = { trait = kind }
+		#	}
+		#	add_trait = kind
+		#}
+		
+		add_trait_fully_kind_effect = yes
+
+		random_rival = {
+			show_scope_change = no
+
+			remove_rival = ROOT
+		}
+
+		ai_chance = {
+			factor = 5
+			
+			trigger = {
+				NOR = {
+					trait = wroth
+					trait = cruel
+					trait = stubborn
+				}
+			}
+		}
+	}
+
+	# No time
+	option = {
+		name = EVTOPTE_RIP_29010
+
+		custom_tooltip = { text = EVTOPTE_RIP_29010_TOOLTIP }
+
+		remove_trait_silently_stressed_effect = yes
+		remove_trait_silently_depressed_effect = yes
+
+		ai_chance = {
+			factor = 15
+		}
+	}
+}
+
+# Spouse/child catches someone trying to steal skull
+character_event = {
+	id = RIP.29011
+	desc = EVTDSC_RIP_29011
+	picture = GFX_evt_bloody_tools
+	border = GFX_event_normal_frame_intrigue
+
+	is_triggered_only = yes
+
+	# Imprison
+	option = {
+		name = EVTOPTA_RIP_29011	
+
+		trigger = { is_ruler = yes }
+
+		# Adds rival
+		if = {
+			limit = {
+				NOT = { is_rival = FROM }
+			}
+
+			add_rival = FROM
+		}
+		
+		if = {
+			limit = {
+				has_dlc = "Jade Dragon"
+				e_china = {
+					holder_scope = {
+						is_chinese_emperor_trigger = yes
+						OR = {
+							character = ROOT
+							AND = {
+								is_close_relative = ROOT
+								dynasty = ROOT
+							}
+						}
+						NOT = {
+							character = FROM
+						}
+					}
+				}
+			}
+			
+			if = {
+				limit = {
+					is_chinese_emperor_trigger = yes
+				}
+				FROM = {
+					detract_grace_super_huge_effect = yes
+				}
+			}
+			else = {
+				FROM = {
+					detract_grace_massive_effect = yes
+				}
+			}
+		}
+
+		# If they are your liege, you become a traitor
+		if = {
+			limit = { is_vassal_or_below_of = FROM }
+
+			reverse_opinion = {
+				name = opinion_traitor
+				who = FROM
+				years = 20
+			}
+		}
+
+		# If you are their liege, they become a traitor
+		if = {
+			limit = { is_liege_or_above_of = FROM }
+
+			opinion = {
+				name = opinion_traitor
+				who = FROM
+				years = 20
+			}
+		}
+
+		FROM = {
+			show_scope_change = no
+			
+			if = {
+				limit = {
+					has_dlc = "Jade Dragon"
+					e_china = {
+						holder_scope = {
+							is_chinese_emperor_trigger = yes
+							OR = {
+								character = PREVPREV
+								AND = {
+									is_close_relative = PREVPREV
+									dynasty = PREVPREV
+								}
+							}
+							NOT = {
+								character = ROOT
+							}
+						}
+					}
+				}
+				
+				if = {
+					limit = {
+						is_chinese_emperor_trigger = yes
+					}
+					ROOT = {
+						detract_grace_major_effect = yes
+					}
+				}
+				else = {
+					ROOT = {
+						detract_grace_medium_effect = yes
+					}
+				}
+			}
+
+			imprison = ROOT
+			set_character_flag = rip_imprisoned
+			character_event = { id = RIP.29012 }
+		}
+
+		ai_chance = {
+			factor = 1
+
+			mult_modifier = {
+				factor = 3
+				trait = wroth
+			}
+
+			mult_modifier = {
+				factor = 10
+				trait = just
+			}
+		}
+	}
+
+	# Get out
+	option = {
+		name = EVTOPTB_RIP_29011
+
+		if = {
+			limit = {
+				NOT = { is_rival = FROM }
+			}
+
+			add_rival = FROM
+		}
+		
+		if = {
+			limit = {
+				has_dlc = "Jade Dragon"
+				e_china = {
+					holder_scope = {
+						is_chinese_emperor_trigger = yes
+						OR = {
+							character = ROOT
+							AND = {
+								is_close_relative = ROOT
+								dynasty = ROOT
+							}
+						}
+						NOT = {
+							character = FROM
+						}
+					}
+				}
+			}
+			
+			if = {
+				limit = {
+					is_chinese_emperor_trigger = yes
+				}
+				FROM = {
+					detract_grace_super_huge_effect = yes
+				}
+			}
+			else = {
+				FROM = {
+					detract_grace_massive_effect = yes
+				}
+			}
+		}
+
+		# If you are their liege, they become a traitor
+		if = {
+			limit = { is_liege_or_above_of = FROM }
+
+			opinion = {
+				name = opinion_traitor
+				who = FROM
+				years = 20
+			}
+		}
+
+		FROM = {
+			show_scope_change = no
+
+			character_event = {
+				id = RIP.29012
+				tooltip = EVTOPTB_RIP_29011_TOOLTIP
+			}
+		}
+
+		ai_chance = {
+			factor = 5
+			
+			trigger = {
+				NOR = {
+					is_rival = FROM
+					AND = {
+						trait = just
+						NOR = {
+							is_friend = FROM
+							is_lover = FROM
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = arbitrary
+			}
+		}
+	}
+}
+
+# Effects of getting caught
+character_event = {
+	id = RIP.29012
+	border = GFX_event_normal_frame_intrigue
+
+	desc = {
+		text = EVTDSC_RIP_29012_A
+		picture = GFX_evt_into_the_dungeon
+		trigger = { has_character_flag = rip_imprisoned }
+	}
+	desc = {
+		text = EVTDSC_RIP_29012_B
+		picture = GFX_evt_bloody_tools
+		trigger = { NOT = { has_character_flag = rip_imprisoned } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29012
+
+		add_rival = FROM
+
+		tooltip = {
+			# If they are your liege, you become a traitor
+			if = {
+				limit = { is_vassal_or_below_of = FROM }
+
+				reverse_opinion = {
+					name = opinion_traitor
+					who = FROM
+					years = 20
+				}
+			}
+		}
+
+		add_character_modifier = {
+			name = graverobber
+			years = 10
+		}
+
+		if = {
+			limit = { has_character_flag = rip_imprisoned }
+
+			clr_character_flag = rip_imprisoned
+
+			tooltip = {
+				imprison = FROM
+			}
+		}
+
+		tooltip = {
+			# If you are their liege, they become a traitor
+			if = {
+				limit = { is_liege_or_above_of = ROOT }
+
+				opinion = {
+					name = opinion_traitor
+					who = FROM
+					years = 20
+				}
+			}
+		}
+	}
+}
+
+# Successfully steal skull
+character_event = {
+	id = RIP.29013
+	desc = EVTDSC_RIP_29013
+	picture = GFX_evt_bloody_tools
+	border = GFX_event_normal_frame_intrigue
+
+	is_triggered_only = yes
+	hide_from = yes
+
+	option = {
+		name = EVTOPTA_RIP_29013
+
+		custom_tooltip = {
+			text = EVTOPTA_RIP_29013_TT
+
+			add_artifact = rival_skull
+
+			new_artifact = {
+				set_original_owner = event_target:rip_dead
+			}
+
+			hidden_effect = {
+				event_target:rip_widow = {
+					character_event = { id = RIP.29014 }
+				}
+
+				event_target:rip_dead = {
+					any_child = {
+						character_event = { id = RIP.29014 }
+					}
+				}
+			}
+		}
+	}
+}
+
+# Notification of stolen skull
+character_event = {
+	id = RIP.29014
+	desc = EVTDSC_RIP_29014
+	picture = GFX_evt_bloody_tools
+	border = GFX_event_normal_frame_intrigue
+
+	is_triggered_only = yes
+	show_from_from_from = yes
+
+	trigger = {
+		NOT = { character = FROM }
+	}
+
+	option = {
+		name = EVTOPTA_RIP_29014
+
+		random_list = {
+			30 = {
+				trigger = {
+					NOT = { trait = stressed }
+				}
+
+				add_trait_stressed_effect = yes
+			}
+
+			20 = {
+				trigger = {
+					NOT = { trait = depressed }
+				}
+
+				add_trait_depressed_effect = yes
+			}
+
+			60 = { } # Nothing
+		}
+	}
+}
+
+# Done mourning, faith
+character_event = {
+	id = RIP.29015
+	desc = EVTDSC_RIP_29015
+	picture = GFX_evt_bishop
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+	hide_from = yes
+
+	trigger = {
+		trait = depressed
+		has_secret_religion = no
+	}
+
+	option = {
+		name = EVTOPTA_RIP_29015
+
+		remove_trait_depressed_effect = yes
+		
+		add_trait_partially_silently_zealous_effect = yes
+	}
+
+	option = {
+		name = EVTOPTB_RIP_29015
+
+		add_trait_partially_silently_cynical_effect = yes
+	}
+}
+
+# Done mourning, cat
+character_event = {
+	id = RIP.29016
+	desc = EVTDSC_RIP_29016
+	picture = GFX_evt_cat
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+	hide_from = yes
+
+	trigger = { trait = depressed }
+
+	option = {
+		name = EVTOPTA_RIP_29016
+
+		remove_trait_depressed_effect = yes
+		
+		add_cat_effect = yes
+	}
+
+	option = {
+		name = EVTOPTB_RIP_29016
+		
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+
+# Done mourning, child
+character_event = {
+	id = RIP.29019
+	desc = EVTDSC_RIP_29019
+	picture = GFX_evt_family
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	trigger = {
+		trait = depressed
+
+		any_child = {
+			age >= 3
+			age < 13
+			NOT = {
+				is_rival = ROOT
+			}
+		}
+	}
+
+	immediate = {
+		random_child = {
+			limit = {
+				age = 3
+				age < 13
+				NOT = {
+					is_rival = ROOT
+				}
+			}
+
+			save_event_target_as = rip_child
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RIP_29019
+
+		custom_tooltip = { text = EVTOPTA_RIP_29019_TOOLTIP }
+
+		remove_trait_depressed_effect = yes
+		
+		add_friend = event_target:rip_child
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 10
+				trait = kind
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RIP_29019
+
+		custom_tooltip = { text = EVTOPTB_RIP_29019_TOOLTIP }
+
+		reverse_opinion = {
+			name = opinion_neglectful_parent
+			who = event_target:rip_child
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 10
+				trait = cynical
+			}
+		}
+	}
+}
+
+# You promised friend to look after their child
+character_event = {
+	id = RIP.29020
+	desc = EVTDSC_RIP_29020
+	picture = GFX_evt_death
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+
+	immediate = {
+		add_character_modifier = {
+			name = grief_timer
+			years = 10
+			hidden = yes
+		}
+
+		event_target:rip_dead = {
+			random_child = {
+				limit = {
+					age >= 12
+
+					NOR = {
+						is_rival = ROOT
+						is_friend = ROOT
+						is_lover = ROOT
+						character = ROOT
+					}
+				}
+
+				preferred_limit = { ai = no }
+				preferred_limit = { is_heir = yes }
+			}
+
+			save_event_target_as = rip_heir
+		}
+	}
+
+	# Approach
+	option = {
+		name = EVTOPTA_RIP_29020
+
+		event_target:rip_heir = {
+			show_scope_change = no
+
+			character_event = {
+				id = RIP.29021
+				days = 7
+				tooltip = EVTOPTA_RIP_29020_TOOLTIP
+			}
+		}
+
+		ai_chance = {
+			factor = 7
+
+			mult_modifier = {
+				factor = 2
+
+				OR = {
+					trait = gregarious
+					trait = kind
+					trait = just
+				}
+			}
+		}
+	}
+
+	# Or become lovers...?
+	option = {
+		name = EVTOPTC_RIP_29020
+
+		trigger = {
+			# Must be appropriate love target
+			event_target:rip_heir = {
+				root_attraction_trigger = yes
+				is_adult = yes
+				attracted_to_root_trigger = yes
+
+				trigger_if = {
+					limit = { is_close_relative = ROOT }
+
+					religion_has_incest = yes
+
+					event_target:rip_heir = {
+						religion_has_incest = yes
+					}
+				}
+			}
+
+			# Root must be motivated
+			OR = {
+				event_target:rip_heir = {
+					has_fair_trait_trigger = yes
+				}
+
+				trait = lustful
+				trait = master_seducer
+				trait = master_seductress
+
+				trigger_if = {
+					limit = { age >= 40 }
+
+					has_lover = no
+					is_married = no
+				}
+			}
+
+			# Root can't be unmotivated
+			NOR = {
+				trait = chaste
+				trait = celibate
+			}
+		}
+
+		event_target:rip_heir = {
+			show_scope_change = no
+
+			character_event = {
+				id = RIP.29024
+				days = 7
+				tooltip = EVTOPTC_RIP_29020_TOOLTIP
+			}
+		}
+
+		random = {
+			chance = 50
+			add_trait_fully_lustful_effect = yes
+		}
+
+		ai_chance = {
+			factor = 15
+			
+			trigger = {
+				NOR = {
+					trait = chaste
+					trait = celibate
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = lustful
+			}
+		}
+	}
+
+	# Don't approach
+	option = {
+		name = EVTOPTB_RIP_29020
+
+		custom_tooltip = { text = EVTOPTB_RIP_29020_TOOLTIP }
+
+		random = {
+			chance = 50
+			add_trait_partially_shy_effect = yes
+		}
+
+		ai_chance = {
+			factor = 3
+
+			mult_modifier = {
+				factor = 2
+
+				OR = {
+					trait = shy
+					trait = cruel
+					trait = arbitrary
+				}
+			}
+		}
+	}
+}
+
+# Getting approached by dead parent's friend
+character_event = {
+	id = RIP.29021
+	desc = EVTDSC_RIP_29021
+	picture = GFX_evt_death
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	# Let's be friends
+	option = {
+		name = EVTOPTA_RIP_29021
+
+		add_friend = FROM
+
+		FROM = {
+			character_event = { id = RIP.29022 }
+		}
+
+		ai_chance = {
+			factor = 7
+
+			mult_modifier = {
+				factor = 2
+
+				OR = {
+					trait = gregarious
+					trait = kind
+					trait = just
+				}
+			}
+		}
+	}
+
+	# I am fine on my own
+	option = {
+		name = EVTOPTB_RIP_29021
+
+
+		FROM = {
+			show_scope_change = no
+
+			opinion = {
+				name = opinion_rejected_friend
+				who = ROOT
+				years = 5
+			}
+
+			character_event = { id = RIP.29023 }
+		}
+
+		ai_chance = {
+			factor = 3
+
+			mult_modifier = {
+				factor = 2
+
+				OR = {
+					trait = shy
+					trait = cruel
+					trait = arbitrary
+				}
+			}
+		}
+	}
+}
+
+# Confirmed friendship
+character_event = {
+	id = RIP.29022
+	border = GFX_event_normal_frame_diplomacy
+	desc = EVTDSC_RIP_29022
+	picture = GFX_evt_courtiers_talking
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_RIP_29022
+
+		tooltip = {
+			add_friend = FROM
+		}
+	}
+}
+
+# Denied friendship
+character_event = {
+	id = RIP.29023
+	desc = EVTDSC_RIP_29023
+	picture = GFX_evt_quarrel
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_RIP_29023
+
+		tooltip = {
+			opinion = {
+				name = opinion_rejected_friend
+				who = FROM
+				years = 5
+			}
+		}
+	}
+}
+
+# Getting approached by dead parent's friend, lover
+character_event = {
+	id = RIP.29024
+	desc = EVTDSC_RIP_29024
+	picture = GFX_evt_death
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	# Let's be lovers
+	option = {
+		name = EVTOPTA_RIP_29024
+
+		add_lover = FROM
+
+		FROM = {
+			character_event = { id = RIP.29025 }
+		}
+
+		ai_chance = {
+			factor = 1
+
+			trigger = {
+				FROM = { root_attraction_trigger = yes }
+				NOR = {
+					trait = celibate
+					trait = chaste
+				}
+			}
+
+			mult_modifier = {
+				factor = 5
+
+				OR = {
+					trait = lustful
+					trait = master_seducer
+					trait = master_seductress
+				}
+			}
+		}
+	}
+
+	# No!
+	option = {
+		name = EVTOPTB_RIP_29024
+
+
+		FROM = {
+			show_scope_change = no
+
+			opinion = {
+				name = opinion_advance_rejected
+				who = ROOT
+				years = 10
+			}
+
+			character_event = { id = RIP.29026 }
+		}
+
+		ai_chance = {
+			factor = 3
+
+			mult_modifier = {
+				factor = 2
+
+				OR = {
+					is_married = yes
+					trait = shy
+					trait = chaste
+					is_ascetic_trigger = yes
+				}
+			}
+
+			mult_modifier = {
+				factor = 5
+				has_lover = yes
+			}
+		}
+	}
+}
+
+# Confirmed lovers
+character_event = {
+	id = RIP.29025
+	desc = EVTDSC_RIP_29025
+	picture = GFX_evt_lovers
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_RIP_29022
+
+		tooltip = {
+			add_lover = FROM
+		}
+	}
+}
+
+# Denied lover
+character_event = {
+	id = RIP.29026
+	desc = EVTDSC_RIP_29026
+	picture = GFX_evt_quarrel
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_RIP_29023
+
+		tooltip = {
+			opinion = {
+				who = FROM
+				name = opinion_advance_rejected
+				years = 10
+			}
+		}
+	}
+}
