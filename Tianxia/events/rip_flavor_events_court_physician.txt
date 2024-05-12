@@ -3415,3 +3415,223 @@ character_event = {
 		name = I_SEE
 	}
 }
+
+### Phantom pain
+
+# Phantom pain emerges
+character_event = {
+	id = RIP.29500
+	picture = GFX_evt_doctor_tending_to_sick
+	border = GFX_event_normal_frame_religion
+
+	desc = {
+		text = EVTDSC_RIP_29500_NOSE
+		trigger = { trait = disfigured }
+	}
+	desc = {
+		text = EVTDSC_RIP_29500_EYE
+		trigger = { trait = one_eyed }
+	}
+	desc = {
+		text = EVTDSC_RIP_29500_HAND
+		trigger = { trait = one_handed }
+	}
+	desc = {
+		text = EVTDSC_RIP_29500_LEG
+		trigger = { trait = one_legged }
+	}
+
+	is_triggered_only = yes
+	hide_from = yes
+
+	immediate = {
+		any_courtier_or_vassal = {
+			limit = { has_minor_title = title_court_physician }
+			save_event_target_as = rip_physician
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RIP_29500
+
+		add_character_modifier = {
+			name = phantom_pain
+			duration = -1
+		}
+
+		character_event = {
+			id = RIP.29501
+			months = 1
+			random = 60
+		}
+	}
+}
+
+# Court physician suggests treatments
+character_event = {
+	id = RIP.29501
+	desc = EVTDSC_RIP_29501
+	border = GFX_event_normal_frame_religion
+	picture = GFX_evt_court_physician
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_character_modifier = phantom_pain
+	}
+
+	option = {
+		name = EVTOPTA_RIP_29501
+
+		random_list = {
+			50 = {
+				character_event = {
+					id = RIP.29502
+					months = 1
+					tooltip = EVTOPTA_RIP_29501_SUCCESS
+				}
+			}
+
+			# Gives food poisoning
+			50 = {
+				character_event = {
+					id = RIP.29503
+					days = 15
+					tooltip = EVTOPTA_RIP_29501_FAILURE
+				}
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RIP_29501
+
+		random_list = {
+			80 = {
+				character_event = {
+					id = RIP.29502
+					months = 1
+					tooltip = EVTOPTA_RIP_29501_SUCCESS
+				}
+			}
+
+			# Gives infirm
+			20 = {
+				character_event = {
+					id = RIP.29504
+					days = 15
+					tooltip = EVTOPTB_RIP_29501_FAILURE
+				}
+			}
+		}
+	}
+
+
+	option = {
+		name = EVTOPTC_RIP_29501
+
+		custom_tooltip = { text = EVTOPTC_RIP_29501_TOOLTIP }
+	}
+}
+
+# Phantom pain gone
+character_event = {
+	id = RIP.29502
+	desc = EVTDSC_RIP_29502
+	picture = GFX_evt_prospering_province
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_character_modifier = phantom_pain
+	}
+
+	option = {
+		name = EVTOPTA_RIP_29502
+
+		remove_character_modifier = phantom_pain
+	}
+}
+
+# Failed mild treatment
+character_event = {
+	id = RIP.29503
+	desc = EVTDSC_RIP_29503
+	picture = GFX_evt_doctor_tending_to_sick
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29503
+
+		if = {
+			limit = {
+				NOT = { has_character_flag = developing_illness }
+			}
+
+			tooltip = { add_trait = diarrhea }
+
+			set_character_flag = got_food_poisoning
+			set_character_flag = developing_illness
+			character_event = { id = RIP.5002 }
+		}
+	}
+}
+
+# Failed extreme treatment
+character_event = {
+	id = RIP.29504
+	desc = EVTDSC_RIP_29504
+	picture = GFX_evt_doctor_crazy_treatment
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29504
+		
+		if = {
+			limit = {
+				has_dlc = "Jade Dragon"
+				e_china = {
+					holder_scope = {
+						is_chinese_emperor_trigger = yes
+						OR = {
+							character = ROOT
+							AND = {
+								is_close_relative = ROOT
+								dynasty = ROOT
+							}
+						}
+						NOT = {
+							character = event_target:rip_physician
+						}
+					}
+				}
+			}
+			
+			if = {
+				limit = {
+					is_chinese_emperor_trigger = yes
+				}
+				event_target:rip_physician = {
+					detract_grace_super_huge_effect = yes
+				}
+			}
+			else = {
+				event_target:rip_physician = {
+					detract_grace_massive_effect = yes
+				}
+			}
+		}
+
+		add_trait_silently_infirm_effect = yes
+
+		opinion = {
+			name = opinion_traitor
+			who = event_target:rip_physician
+		}
+	}
+}
