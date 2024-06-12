@@ -3204,7 +3204,12 @@ character_event = {
 	trigger = {
 		is_inaccessible_or_incapable_trigger = no
 		has_minor_title = title_court_physician
-		vassal_of = event_target:host_target
+		OR = {
+			vassal_of = event_target:host_target
+			host = {
+				character = event_target:host_target
+			}
+		}
 		event_target:sickly_infant = {
 			is_alive = yes
 		}
@@ -12050,6 +12055,4028 @@ character_event = {
 			clr_character_flag = EVTDESC_RIP_11046_HORSE_3_FLAG
 			clr_character_flag = EVTDESC_RIP_11046_HORSE_4_FLAG
 			clr_character_flag = EVTDESC_RIP_11046_HORSE_5_FLAG
+		}
+	}
+}
+
+# Ping sick character to ensure the Court Physician still is in a position to treat them
+character_event = {
+	id = tianxia.1766
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	prisoner = no
+	
+	trigger = {
+		character_disease_trigger = yes # Still sick
+		any_courtier_or_vassal = { # With an appropriate Court Physician
+			has_minor_title = title_court_physician
+			OR = { # We are still expected to treat the character
+				is_inaccessible_or_incapable_trigger = no
+				AND = {
+					is_actually_incapable_trigger = no
+					prisoner = no
+					in_seclusion = yes
+					host = {
+						character = ROOT
+						in_seclusion = yes
+					}
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		# Make sure the Court Physician is the correct character, in case they were changed mid-chain
+		random_courtier_or_vassal = {
+			limit = {
+				has_minor_title = title_court_physician
+				OR = {
+					vassal_of = PREV
+					host = {
+						character = PREV
+					}
+				}
+			}
+
+			save_event_target_as = court_physician
+			
+			character_event = { id = tianxia.1767 } # Decide on approach
+		}
+	}
+}
+
+# Physician approached about treatment - decide whether to try to help the character or to try to harm them
+character_event = {
+	id = tianxia.1767
+	desc = EVTDESC_TIANXIA_1767
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = EVTOPTA_TIANXIA_1767 # I will treat them to the best of my ability!
+		
+		FROM = {
+			reverse_opinion = {
+				who = ROOT
+				modifier = opinion_treating_to_heal
+				months = 1
+			}
+			
+			character_event = { id = RIP.11035 } # Sick person gets the "Decide on treatment category" event
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					is_rival = FROM
+					trait = deceitful
+					NOT = {
+						event_target:court_physician = {
+							culture = horse_culture
+
+							NOR = {
+								has_alternate_start_parameter = {
+									key = special_culture
+									value = animal_kingdoms
+								}
+
+								has_alternate_start_parameter = {
+									key = special_culture
+									value = animal_world
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = honest
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = kind
+			}
+
+			mult_modifier = {
+				factor = 1.2
+
+				opinion = {
+					who = FROM
+					value >= 25
+				}
+			}
+
+			mult_modifier = {
+				factor = 1.2
+
+				opinion = {
+					who = FROM
+					value >= 50
+				}
+			}
+
+			mult_modifier = {
+				factor = 1.2
+
+				opinion = {
+					who = FROM
+					value >= 75
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = EVTOPTB_TIANXIA_1767 # Time for some malpractice, I think!
+		
+		FROM = {
+			reverse_opinion = {
+				who = ROOT
+				modifier = opinion_treating_to_harm
+				months = 1
+			}
+			
+			character_event = { id = RIP.11035 } # Sick person gets the "Decide on treatment category" event
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOR = {
+					is_friend = FROM
+					is_lover = FROM
+					AND = {
+						is_close_relative = FROM
+						NOT = {
+							is_rival = FROM
+						}
+					}
+					event_target:court_physician = {
+						culture = horse_culture
+
+						NOR = {
+							has_alternate_start_parameter = {
+								key = special_culture
+								value = animal_kingdoms
+							}
+
+							has_alternate_start_parameter = {
+								key = special_culture
+								value = animal_world
+							}
+						}
+					}
+				}
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = deceitful
+			}
+			
+			mult_modifier = {
+				factor = 5
+				trait = cruel
+			}
+			
+			mult_modifier = {
+				factor = 1.2
+
+				reverse_opinion = {
+					who = FROM
+					value < 0
+				}
+			}
+
+			mult_modifier = {
+				factor = 1.2
+
+				reverse_opinion = {
+					who = FROM
+					value < -25
+				}
+			}
+
+			mult_modifier = {
+				factor = 1.2
+
+				reverse_opinion = {
+					who = FROM
+					value < -50
+				}
+			}
+
+			mult_modifier = {
+				factor = 1.2
+
+				reverse_opinion = {
+					who = FROM
+					value < -75
+				}
+			}
+		}
+	}
+}
+
+# Ping to ensure the physician still can cure ROOT
+character_event = {
+	id = tianxia.1768
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	prisoner = no
+	
+	trigger = {
+		character_disease_trigger = yes # Still sick
+		event_target:court_physician = { # With an appropriate Court Physician
+			has_minor_title = title_court_physician
+			OR = {
+				vassal_of = ROOT
+				host = {
+					character = ROOT
+				}
+			}
+			OR = { # We are still expected to treat the character
+				is_inaccessible_or_incapable_trigger = no
+				AND = {
+					is_actually_incapable_trigger = no
+					prisoner = no
+					in_seclusion = yes
+					host = {
+						character = ROOT
+						in_seclusion = yes
+					}
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		trigger_switch = {
+			on_trigger = has_character_flag
+			
+			treatment_is_experimental = { event_target:court_physician = { character_event = { id = tianxia.1769 } } }
+			treatment_is_mystic = { event_target:court_physician = { character_event = { id = tianxia.1770 } } }
+			treatment_is_regular = { event_target:court_physician = { character_event = { id = tianxia.1771 } } }
+			treatment_is_cautious = { event_target:court_physician = { character_event = { id = tianxia.1772 } } }
+		}
+	}
+}
+
+# Experimental treatment - pick one of the options presented
+character_event = {
+	id = tianxia.1769
+	desc = EVTDESC_TIANXIA_1769
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	immediate = {
+		FROM = {
+			clear_flags_with_prefix = treatment_option_
+			clear_flags_with_prefix = EVTDESC_RIP_11040_
+		
+			# Generate up to four options - TIANXIATODO: More logic
+			random_list = {
+				10 = { set_character_flag = treatment_option_1_FLAG } # Bee stings
+				10 = { set_character_flag = treatment_option_2_FLAG } # Severed hand
+				10 = { set_character_flag = treatment_option_3_FLAG } # Mercury potion; mercury poisoning goes here!
+
+				10 = {
+					trigger = {
+						FROM = {
+							NOR = {
+								trait = one_legged
+								in_seclusion = yes
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_5_FLAG # Naked run in the wilderness; not if in seclusion
+				}
+
+				10 = { set_character_flag = treatment_option_6_FLAG } # Yellow powder, brimstone, rabid beaver
+				10 = { set_character_flag = treatment_option_8_FLAG } # Wound + diseased tissue
+				10 = { set_character_flag = treatment_option_9_FLAG } # Ground up scabs
+				10 = {
+					trigger = {
+						NOT = {
+							trait = blinded
+						}
+					}
+
+					set_character_flag = treatment_option_10_FLAG # Eye surgery
+				}
+
+				10 = {
+					trigger = {
+						is_female = no
+						NOT = { trait = eunuch }
+						ROOT = {
+							NOR = {
+								is_lover = FROM
+								AND = {
+									OR = {
+										is_married = FROM
+										is_consort = FROM
+									}
+									NOR = {
+										is_rival = FROM
+										has_opinion_modifier = {
+											who = FROM
+											modifier = opinion_forced_consort
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						is_friend = ROOT
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						is_close_relative = ROOT
+						NOT = {
+							is_rival = ROOT
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1000 # You know what you did!
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_forced_consort
+						}
+					}
+					
+					mult_modifier = {
+						factor = 10
+						is_rival = FROM
+						OR = {
+							is_married = FROM
+							is_consort = FROM
+						}
+						NOR = {
+							AND = {
+								is_senior_consort_party = yes
+								is_consort = FROM
+							}
+							AND = {
+								is_married_matrilineally = yes
+								is_married = FROM
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_11_FLAG # Castration
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = lunatic }
+					}
+
+					set_character_flag = treatment_option_12_FLAG # Maddening surgery
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = disfigured }
+						ROOT = {
+							NOR = {
+								is_lover = FROM
+								AND = {
+									OR = {
+										is_married = FROM
+										is_consort = FROM
+									}
+									NOR = {
+										is_rival = FROM
+										has_opinion_modifier = {
+											who = FROM
+											modifier = opinion_forced_consort
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						is_friend = ROOT
+					}
+					
+					mult_modifier = {
+						factor = 10
+						is_rival = FROM
+					}
+
+					set_character_flag = treatment_option_13_FLAG # Face surgery
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = one_handed }
+					}
+
+					set_character_flag = treatment_option_14_FLAG # Hand surgery
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = one_legged }
+					}
+
+					set_character_flag = treatment_option_15_FLAG # Leg surgery
+				}
+				
+				10 = {
+					set_character_flag = treatment_option_16_FLAG # Rabid dog brain; rabies
+				}
+				
+				10 = {
+					set_character_flag = treatment_option_17_FLAG # Electric fish shock; gout and headaches
+				}
+			}
+			
+			random_list = { # TIANXIATODO: Add more logic
+				10 = { set_character_flag = treatment_option_1_FLAG } # Bee stings
+				10 = { set_character_flag = treatment_option_2_FLAG } # Severed hand
+				10 = { set_character_flag = treatment_option_3_FLAG } # Mercury potion; mercury poisoning goes here!
+
+				10 = {
+					trigger = {
+						FROM = {
+							NOR = {
+								trait = one_legged
+								in_seclusion = yes
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_5_FLAG # Naked run in the wilderness; not if in seclusion
+				}
+
+				10 = { set_character_flag = treatment_option_6_FLAG } # Yellow powder, brimstone, rabid beaver
+				10 = { set_character_flag = treatment_option_8_FLAG } # Wound + diseased tissue
+				10 = { set_character_flag = treatment_option_9_FLAG } # Ground up scabs
+				10 = {
+					trigger = {
+						NOT = {
+							trait = blinded
+						}
+					}
+
+					set_character_flag = treatment_option_10_FLAG # Eye surgery
+				}
+
+				10 = {
+					trigger = {
+						is_female = no
+						NOT = { trait = eunuch }
+						ROOT = {
+							NOR = {
+								is_lover = FROM
+								AND = {
+									OR = {
+										is_married = FROM
+										is_consort = FROM
+									}
+									NOR = {
+										is_rival = FROM
+										has_opinion_modifier = {
+											who = FROM
+											modifier = opinion_forced_consort
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						is_friend = ROOT
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						is_close_relative = ROOT
+						NOT = {
+							is_rival = ROOT
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1000 # You know what you did!
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_forced_consort
+						}
+					}
+					
+					mult_modifier = {
+						factor = 10
+						is_rival = FROM
+						OR = {
+							is_married = FROM
+							is_consort = FROM
+						}
+						NOR = {
+							AND = {
+								is_senior_consort_party = yes
+								is_consort = FROM
+							}
+							AND = {
+								is_married_matrilineally = yes
+								is_married = FROM
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_11_FLAG # Castration
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = lunatic }
+					}
+
+					set_character_flag = treatment_option_12_FLAG # Maddening surgery
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = disfigured }
+						ROOT = {
+							NOR = {
+								is_lover = FROM
+								AND = {
+									OR = {
+										is_married = FROM
+										is_consort = FROM
+									}
+									NOR = {
+										is_rival = FROM
+										has_opinion_modifier = {
+											who = FROM
+											modifier = opinion_forced_consort
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						is_friend = ROOT
+					}
+					
+					mult_modifier = {
+						factor = 10
+						is_rival = FROM
+					}
+
+					set_character_flag = treatment_option_13_FLAG # Face surgery
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = one_handed }
+					}
+
+					set_character_flag = treatment_option_14_FLAG # Hand surgery
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = one_legged }
+					}
+
+					set_character_flag = treatment_option_15_FLAG # Leg surgery
+				}
+				
+				10 = {
+					set_character_flag = treatment_option_16_FLAG # Rabid dog brain; rabies
+				}
+				
+				10 = {
+					set_character_flag = treatment_option_17_FLAG # Electric fish shock; gout and headaches
+				}
+			}
+			
+			random_list = { # TIANXIATODO: Add more logic
+				10 = { set_character_flag = treatment_option_1_FLAG } # Bee stings
+				10 = { set_character_flag = treatment_option_2_FLAG } # Severed hand
+				10 = { set_character_flag = treatment_option_3_FLAG } # Mercury potion; mercury poisoning goes here!
+
+				10 = {
+					trigger = {
+						FROM = {
+							NOR = {
+								trait = one_legged
+								in_seclusion = yes
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_5_FLAG # Naked run in the wilderness; not if in seclusion
+				}
+
+				10 = { set_character_flag = treatment_option_6_FLAG } # Yellow powder, brimstone, rabid beaver
+				10 = { set_character_flag = treatment_option_8_FLAG } # Wound + diseased tissue
+				10 = { set_character_flag = treatment_option_9_FLAG } # Ground up scabs
+				10 = {
+					trigger = {
+						NOT = {
+							trait = blinded
+						}
+					}
+
+					set_character_flag = treatment_option_10_FLAG # Eye surgery
+				}
+
+				10 = {
+					trigger = {
+						is_female = no
+						NOT = { trait = eunuch }
+						ROOT = {
+							NOR = {
+								is_lover = FROM
+								AND = {
+									OR = {
+										is_married = FROM
+										is_consort = FROM
+									}
+									NOR = {
+										is_rival = FROM
+										has_opinion_modifier = {
+											who = FROM
+											modifier = opinion_forced_consort
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						is_friend = ROOT
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						is_close_relative = ROOT
+						NOT = {
+							is_rival = ROOT
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1000 # You know what you did!
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_forced_consort
+						}
+					}
+					
+					mult_modifier = {
+						factor = 10
+						is_rival = FROM
+						OR = {
+							is_married = FROM
+							is_consort = FROM
+						}
+						NOR = {
+							AND = {
+								is_senior_consort_party = yes
+								is_consort = FROM
+							}
+							AND = {
+								is_married_matrilineally = yes
+								is_married = FROM
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_11_FLAG # Castration
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = lunatic }
+					}
+
+					set_character_flag = treatment_option_12_FLAG # Maddening surgery
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = disfigured }
+						ROOT = {
+							NOR = {
+								is_lover = FROM
+								AND = {
+									OR = {
+										is_married = FROM
+										is_consort = FROM
+									}
+									NOR = {
+										is_rival = FROM
+										has_opinion_modifier = {
+											who = FROM
+											modifier = opinion_forced_consort
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						is_friend = ROOT
+					}
+					
+					mult_modifier = {
+						factor = 10
+						is_rival = FROM
+					}
+
+					set_character_flag = treatment_option_13_FLAG # Face surgery
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = one_handed }
+					}
+
+					set_character_flag = treatment_option_14_FLAG # Hand surgery
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = one_legged }
+					}
+
+					set_character_flag = treatment_option_15_FLAG # Leg surgery
+				}
+				
+				10 = {
+					set_character_flag = treatment_option_16_FLAG # Rabid dog brain; rabies
+				}
+				
+				10 = {
+					set_character_flag = treatment_option_17_FLAG # Electric fish shock; gout and headaches
+				}
+			}
+			
+			random_list = { # TIANXIATODO: Add more logic
+				10 = { set_character_flag = treatment_option_1_FLAG } # Bee stings
+				10 = { set_character_flag = treatment_option_2_FLAG } # Severed hand
+				10 = { set_character_flag = treatment_option_3_FLAG } # Mercury potion; mercury poisoning goes here!
+
+				10 = {
+					trigger = {
+						FROM = {
+							NOR = {
+								trait = one_legged
+								in_seclusion = yes
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_5_FLAG # Naked run in the wilderness; not if in seclusion
+				}
+
+				10 = { set_character_flag = treatment_option_6_FLAG } # Yellow powder, brimstone, rabid beaver
+				10 = { set_character_flag = treatment_option_8_FLAG } # Wound + diseased tissue
+				10 = { set_character_flag = treatment_option_9_FLAG } # Ground up scabs
+				10 = {
+					trigger = {
+						NOT = {
+							trait = blinded
+						}
+					}
+
+					set_character_flag = treatment_option_10_FLAG # Eye surgery
+				}
+
+				10 = {
+					trigger = {
+						is_female = no
+						NOT = { trait = eunuch }
+						ROOT = {
+							NOR = {
+								is_lover = FROM
+								AND = {
+									OR = {
+										is_married = FROM
+										is_consort = FROM
+									}
+									NOR = {
+										is_rival = FROM
+										has_opinion_modifier = {
+											who = FROM
+											modifier = opinion_forced_consort
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						is_friend = ROOT
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						is_close_relative = ROOT
+						NOT = {
+							is_rival = ROOT
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1000 # You know what you did!
+						has_opinion_modifier = {
+							who = FROM
+							modifier = opinion_forced_consort
+						}
+					}
+					
+					mult_modifier = {
+						factor = 10
+						is_rival = FROM
+						OR = {
+							is_married = FROM
+							is_consort = FROM
+						}
+						NOR = {
+							AND = {
+								is_senior_consort_party = yes
+								is_consort = FROM
+							}
+							AND = {
+								is_married_matrilineally = yes
+								is_married = FROM
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_11_FLAG # Castration
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = lunatic }
+					}
+
+					set_character_flag = treatment_option_12_FLAG # Maddening surgery
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = disfigured }
+						ROOT = {
+							NOR = {
+								is_lover = FROM
+								AND = {
+									OR = {
+										is_married = FROM
+										is_consort = FROM
+									}
+									NOR = {
+										is_rival = FROM
+										has_opinion_modifier = {
+											who = FROM
+											modifier = opinion_forced_consort
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					mult_modifier = {
+						factor = 0.1
+						is_friend = ROOT
+					}
+					
+					mult_modifier = {
+						factor = 10
+						is_rival = FROM
+					}
+
+					set_character_flag = treatment_option_13_FLAG # Face surgery
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = one_handed }
+					}
+
+					set_character_flag = treatment_option_14_FLAG # Hand surgery
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = one_legged }
+					}
+
+					set_character_flag = treatment_option_15_FLAG # Leg surgery
+				}
+				
+				10 = {
+					set_character_flag = treatment_option_16_FLAG # Rabid dog brain; rabies
+				}
+				
+				10 = {
+					set_character_flag = treatment_option_17_FLAG # Electric fish shock; gout and headaches
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_1_FLAG
+			}
+		}
+		
+		name = EVTOPTA_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_1_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_2_FLAG
+			}
+		}
+		
+		name = EVTOPTB_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_2_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_3_FLAG
+			}
+		}
+		
+		name = EVTOPTC_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_3_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_5_FLAG
+			}
+		}
+		
+		name = EVTOPTD_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_5_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_6_FLAG
+			}
+		}
+		
+		name = EVTOPTE_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_6_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_8_FLAG
+			}
+		}
+		
+		name = EVTOPTF_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_8_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_9_FLAG
+			}
+		}
+		
+		name = EVTOPTG_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_9_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_10_FLAG
+			}
+		}
+		
+		name = EVTOPTH_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_10_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_11_FLAG
+			}
+		}
+		
+		name = EVTOPTI_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_11_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_12_FLAG
+			}
+		}
+		
+		name = EVTOPTJ_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_12_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_13_FLAG
+			}
+		}
+		
+		name = EVTOPTK_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_13_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_14_FLAG
+			}
+		}
+		
+		name = EVTOPTL_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_14_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_15_FLAG
+			}
+		}
+		
+		name = EVTOPTM_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_15_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_16
+			}
+		}
+		
+		name = EVTOPTN_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_16_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_17_FLAG
+			}
+		}
+		
+		name = EVTOPTO_TIANXIA_1769
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11040_17_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	after = {
+		FROM = {
+			clr_character_flag = good_treatment_outcome
+			clr_character_flag = amazing_treatment_outcome
+			clr_character_flag = bad_treatment_outcome
+			clr_character_flag = terrible_treatment_outcome
+			
+			random_list = {
+				# Good experimental treatment
+				40 = {
+					mult_modifier = {
+						factor = 1.2
+						is_strong_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							trait = physician
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning >= 25
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning >= 20
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning >= 15
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning < 15
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning < 10
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						is_weak_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 0.6
+						event_target:court_physician = {
+							physician_bad_trigger = yes
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							physician_good_trigger = yes
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					random_list = {
+						80 = { set_character_flag = good_treatment_outcome }
+						20 = {
+							modifier = {
+								factor = 4
+								event_target:court_physician = {
+									OR = {
+										learning >= 25
+										physician_good_trigger = yes
+										is_smart_trigger = yes
+									}
+								}
+							}
+							
+							mult_modifier = {
+								factor = 0.25
+								event_target:court_physician = {
+									has_opinion_modifier = {
+										who = PREV
+										modifier = opinion_treating_to_harm
+									}
+								}
+							}
+
+							set_character_flag = amazing_treatment_outcome
+						}
+					}
+				}
+
+				# Bad experimental treatment
+				60 = {
+					mult_modifier = {
+						factor = 0.8
+						is_strong_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning >= 25
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning >= 20
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning >= 15
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning < 15
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning < 10
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						is_weak_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 1.4
+						event_target:court_physician = {
+							physician_bad_trigger = yes
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							physician_good_trigger = yes
+						}
+					}
+
+					random_list = {
+						80 = { set_character_flag = bad_treatment_outcome }
+						20 = {
+							mult_modifier = {
+								factor = 4
+								event_target:court_physician = {
+									OR = {
+										learning < 15
+										physician_good_trigger = yes
+										is_dumb_trigger = yes
+									}
+								}
+							}
+							
+							mult_modifier = {
+								factor = 4
+								event_target:court_physician = {
+									has_opinion_modifier = {
+										who = PREV
+										modifier = opinion_treating_to_harm
+									}
+								}
+							}
+
+							set_character_flag = terrible_treatment_outcome
+						}
+					}
+				}
+			}
+			
+			character_event = { id = RIP.11040 } # Actual experimental treatment event
+		}
+	}
+}
+
+# Mystic treatment - pick one of the options presented
+character_event = {
+	id = tianxia.1770
+	desc = EVTDESC_TIANXIA_1770
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	immediate = {
+		FROM = {
+			clear_flags_with_prefix = treatment_option_
+			clear_flags_with_prefix = EVTDESC_RIP_11047_
+		
+			# Generate up to four options - TIANXIATODO: More logic
+			random_list = {
+				10 = {
+					set_character_flag = treatment_option_1_FLAG # Mirrors and candles
+				}
+
+				10 = {
+					trigger = {
+						NAND = {
+							trait = paranoid
+							trait = possessed
+						}
+					}
+
+					set_character_flag = treatment_option_2_FLAG # Sacrificed animals, rubbed in ashes
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = one_handed }
+					}
+
+					set_character_flag = treatment_option_3_FLAG # Conjuring, burnt fingers
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = poet }
+					}
+
+					set_character_flag = treatment_option_4_FLAG # Improv greatest poem
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = cruel }
+					}
+
+					set_character_flag = treatment_option_5_FLAG # Bloodbath
+				}
+
+				5 = {
+					trigger = {
+						NOT = { trait = drunkard }
+					}
+
+					set_character_flag = treatment_option_6_FLAG # "Special brew"
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = brave }
+					}
+
+					set_character_flag = treatment_option_7_FLAG # Walk on fire
+				}
+
+				10 = {
+					trigger = {
+						event_target:court_physician = {
+							OR = {
+								trait = zealous
+								trait = cruel
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_8_FLAG # Physician tries to drown you
+				}
+
+				5 = {
+					trigger = {
+						event_target:court_physician = {
+							OR = {
+								trait = zealous
+								trait = cruel
+								trait = arbitrary
+								trait = impaler
+							}
+						}
+
+						any_courtier = {
+							is_child_of = ROOT
+							is_ill = no
+							is_abroad = no
+							NOT = { trait = inbred }
+							is_adult = no
+							attribute_diff = {
+								attribute = intrigue
+								who = event_target:court_physician
+								value < 0
+							}
+							NOR = {
+								is_friend = event_target:court_physician
+								is_child_of = event_target:court_physician
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_9_FLAG # Physician sacrifices your child
+				}
+
+				10 = {
+					trigger = {
+						NOR = {
+							trait = possessed
+							trait = lunatic
+						}
+					}
+
+					set_character_flag = treatment_option_10_FLAG # Am I the beast?
+				}
+
+				10 = { set_character_flag = treatment_option_11_FLAG } # The rat will carry your burdens
+				10 = {
+					trigger = {
+						NOR = {
+							is_rival = event_target:court_physician
+							event_target:court_physician = {
+								has_opinion_modifier = {
+									who = FROM
+									modifier = opinion_treating_to_harm
+								}
+							}
+						}
+						event_target:court_physician = {
+							OR = {
+								trait = lunatic
+								trait = possessed
+							}
+							OR = {
+								is_friend = FROM
+								is_lover = FROM
+								opinion = {
+									who = FROM
+									value >= 75
+								}
+							}
+						}
+					}
+					set_character_flag = treatment_option_12_FLAG # Physician suicide
+				}
+			}
+			
+			random_list = {
+				10 = {
+					set_character_flag = treatment_option_1_FLAG # Mirrors and candles
+				}
+
+				10 = {
+					trigger = {
+						NAND = {
+							trait = paranoid
+							trait = possessed
+						}
+					}
+
+					set_character_flag = treatment_option_2_FLAG # Sacrificed animals, rubbed in ashes
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = one_handed }
+					}
+
+					set_character_flag = treatment_option_3_FLAG # Conjuring, burnt fingers
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = poet }
+					}
+
+					set_character_flag = treatment_option_4_FLAG # Improv greatest poem
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = cruel }
+					}
+
+					set_character_flag = treatment_option_5_FLAG # Bloodbath
+				}
+
+				5 = {
+					trigger = {
+						NOT = { trait = drunkard }
+					}
+
+					set_character_flag = treatment_option_6_FLAG # "Special brew"
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = brave }
+					}
+
+					set_character_flag = treatment_option_7_FLAG # Walk on fire
+				}
+
+				10 = {
+					trigger = {
+						event_target:court_physician = {
+							OR = {
+								trait = zealous
+								trait = cruel
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_8_FLAG # Physician tries to drown you
+				}
+
+				5 = {
+					trigger = {
+						event_target:court_physician = {
+							OR = {
+								trait = zealous
+								trait = cruel
+								trait = arbitrary
+								trait = impaler
+							}
+						}
+
+						any_courtier = {
+							is_child_of = ROOT
+							is_ill = no
+							is_abroad = no
+							NOT = { trait = inbred }
+							is_adult = no
+							attribute_diff = {
+								attribute = intrigue
+								who = event_target:court_physician
+								value < 0
+							}
+							NOR = {
+								is_friend = event_target:court_physician
+								is_child_of = event_target:court_physician
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_9_FLAG # Physician sacrifices your child
+				}
+
+				10 = {
+					trigger = {
+						NOR = {
+							trait = possessed
+							trait = lunatic
+						}
+					}
+
+					set_character_flag = treatment_option_10_FLAG # Am I the beast?
+				}
+
+				10 = { set_character_flag = treatment_option_11_FLAG } # The rat will carry your burdens
+				10 = {
+					trigger = {
+						NOR = {
+							is_rival = event_target:court_physician
+							event_target:court_physician = {
+								has_opinion_modifier = {
+									who = FROM
+									modifier = opinion_treating_to_harm
+								}
+							}
+						}
+						event_target:court_physician = {
+							OR = {
+								trait = lunatic
+								trait = possessed
+							}
+							OR = {
+								is_friend = FROM
+								is_lover = FROM
+								opinion = {
+									who = FROM
+									value >= 75
+								}
+							}
+						}
+					}
+					set_character_flag = treatment_option_12_FLAG # Physician suicide
+				}
+			}
+			
+			random_list = {
+				10 = {
+					set_character_flag = treatment_option_1_FLAG # Mirrors and candles
+				}
+
+				10 = {
+					trigger = {
+						NAND = {
+							trait = paranoid
+							trait = possessed
+						}
+					}
+
+					set_character_flag = treatment_option_2_FLAG # Sacrificed animals, rubbed in ashes
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = one_handed }
+					}
+
+					set_character_flag = treatment_option_3_FLAG # Conjuring, burnt fingers
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = poet }
+					}
+
+					set_character_flag = treatment_option_4_FLAG # Improv greatest poem
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = cruel }
+					}
+
+					set_character_flag = treatment_option_5_FLAG # Bloodbath
+				}
+
+				5 = {
+					trigger = {
+						NOT = { trait = drunkard }
+					}
+
+					set_character_flag = treatment_option_6_FLAG # "Special brew"
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = brave }
+					}
+
+					set_character_flag = treatment_option_7_FLAG # Walk on fire
+				}
+
+				10 = {
+					trigger = {
+						event_target:court_physician = {
+							OR = {
+								trait = zealous
+								trait = cruel
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_8_FLAG # Physician tries to drown you
+				}
+
+				5 = {
+					trigger = {
+						event_target:court_physician = {
+							OR = {
+								trait = zealous
+								trait = cruel
+								trait = arbitrary
+								trait = impaler
+							}
+						}
+
+						any_courtier = {
+							is_child_of = ROOT
+							is_ill = no
+							is_abroad = no
+							NOT = { trait = inbred }
+							is_adult = no
+							attribute_diff = {
+								attribute = intrigue
+								who = event_target:court_physician
+								value < 0
+							}
+							NOR = {
+								is_friend = event_target:court_physician
+								is_child_of = event_target:court_physician
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_9_FLAG # Physician sacrifices your child
+				}
+
+				10 = {
+					trigger = {
+						NOR = {
+							trait = possessed
+							trait = lunatic
+						}
+					}
+
+					set_character_flag = treatment_option_10_FLAG # Am I the beast?
+				}
+
+				10 = { set_character_flag = treatment_option_11_FLAG } # The rat will carry your burdens
+				10 = {
+					trigger = {
+						NOR = {
+							is_rival = event_target:court_physician
+							event_target:court_physician = {
+								has_opinion_modifier = {
+									who = FROM
+									modifier = opinion_treating_to_harm
+								}
+							}
+						}
+						event_target:court_physician = {
+							OR = {
+								trait = lunatic
+								trait = possessed
+							}
+							OR = {
+								is_friend = FROM
+								is_lover = FROM
+								opinion = {
+									who = FROM
+									value >= 75
+								}
+							}
+						}
+					}
+					set_character_flag = treatment_option_12_FLAG # Physician suicide
+				}
+			}
+			
+			random_list = {
+				10 = {
+					set_character_flag = treatment_option_1_FLAG # Mirrors and candles
+				}
+
+				10 = {
+					trigger = {
+						NAND = {
+							trait = paranoid
+							trait = possessed
+						}
+					}
+
+					set_character_flag = treatment_option_2_FLAG # Sacrificed animals, rubbed in ashes
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = one_handed }
+					}
+
+					set_character_flag = treatment_option_3_FLAG # Conjuring, burnt fingers
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = poet }
+					}
+
+					set_character_flag = treatment_option_4_FLAG # Improv greatest poem
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = cruel }
+					}
+
+					set_character_flag = treatment_option_5_FLAG # Bloodbath
+				}
+
+				5 = {
+					trigger = {
+						NOT = { trait = drunkard }
+					}
+
+					set_character_flag = treatment_option_6_FLAG # "Special brew"
+				}
+
+				10 = {
+					trigger = {
+						NOT = { trait = brave }
+					}
+
+					set_character_flag = treatment_option_7_FLAG # Walk on fire
+				}
+
+				10 = {
+					trigger = {
+						event_target:court_physician = {
+							OR = {
+								trait = zealous
+								trait = cruel
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_8_FLAG # Physician tries to drown you
+				}
+
+				5 = {
+					trigger = {
+						event_target:court_physician = {
+							OR = {
+								trait = zealous
+								trait = cruel
+								trait = arbitrary
+								trait = impaler
+							}
+						}
+
+						any_courtier = {
+							is_child_of = ROOT
+							is_ill = no
+							is_abroad = no
+							NOT = { trait = inbred }
+							is_adult = no
+							attribute_diff = {
+								attribute = intrigue
+								who = event_target:court_physician
+								value < 0
+							}
+							NOR = {
+								is_friend = event_target:court_physician
+								is_child_of = event_target:court_physician
+							}
+						}
+					}
+
+					set_character_flag = treatment_option_9_FLAG # Physician sacrifices your child
+				}
+
+				10 = {
+					trigger = {
+						NOR = {
+							trait = possessed
+							trait = lunatic
+						}
+					}
+
+					set_character_flag = treatment_option_10_FLAG # Am I the beast?
+				}
+
+				10 = { set_character_flag = treatment_option_11_FLAG } # The rat will carry your burdens
+				10 = {
+					trigger = {
+						NOR = {
+							is_rival = event_target:court_physician
+							event_target:court_physician = {
+								has_opinion_modifier = {
+									who = FROM
+									modifier = opinion_treating_to_harm
+								}
+							}
+						}
+						event_target:court_physician = {
+							OR = {
+								trait = lunatic
+								trait = possessed
+							}
+							OR = {
+								is_friend = FROM
+								is_lover = FROM
+								opinion = {
+									who = FROM
+									value >= 75
+								}
+							}
+						}
+					}
+					set_character_flag = treatment_option_12_FLAG # Physician suicide
+				}
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_1_FLAG
+			}
+		}
+		
+		name = EVTOPTA_TIANXIA_1770
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11047_1_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_2_FLAG
+			}
+		}
+		
+		name = EVTOPTB_TIANXIA_1770
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11047_2_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_3_FLAG
+			}
+		}
+		
+		name = EVTOPTC_TIANXIA_1770
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11047_3_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_4_FLAG
+			}
+		}
+		
+		name = EVTOPTD_TIANXIA_1770
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11047_4_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_5_FLAG
+			}
+		}
+		
+		name = EVTOPTE_TIANXIA_1770
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11047_5_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_6_FLAG
+			}
+		}
+		
+		name = EVTOPTF_TIANXIA_1770
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11047_6_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_7_FLAG
+			}
+		}
+		
+		name = EVTOPTG_TIANXIA_1770
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11047_7_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_8_FLAG
+			}
+		}
+		
+		name = EVTOPTH_TIANXIA_1770
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11047_8_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_9_FLAG
+			}
+		}
+		
+		name = EVTOPTI_TIANXIA_1770
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11047_9_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_10_FLAG
+			}
+		}
+		
+		name = EVTOPTJ_TIANXIA_1770
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11047_10_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_11_FLAG
+			}
+		}
+		
+		name = EVTOPTK_TIANXIA_1770
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11047_11_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_12_FLAG
+			}
+		}
+		
+		name = EVTOPTL_TIANXIA_1770
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11047_12_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	after = {
+		FROM = {
+			clr_character_flag = good_treatment_outcome
+			clr_character_flag = amazing_treatment_outcome
+			clr_character_flag = bad_treatment_outcome
+			clr_character_flag = terrible_treatment_outcome
+			
+			random_list = {
+				# Good
+				40 = {
+					mult_modifier = {
+						factor = 1.2
+						is_strong_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							trait = physician
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning >= 25
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning >= 20
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning >= 15
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning < 15
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning < 10
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						is_weak_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 0.6
+						event_target:court_physician = {
+							physician_bad_trigger = yes
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							physician_good_trigger = yes
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					random_list = {
+						60 = { set_character_flag = good_treatment_outcome }
+						40 = {
+							set_character_flag = amazing_treatment_outcome
+						}
+					}
+				}
+
+				# Bad
+				60 = {
+					mult_modifier = {
+						factor = 0.8
+						is_strong_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning >= 25
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning >= 20
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning >= 15
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning < 15
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning < 10
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						is_weak_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 1.4
+						event_target:court_physician = {
+							physician_bad_trigger = yes
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							physician_good_trigger = yes
+						}
+					}
+
+					random_list = {
+						50 = { set_character_flag = bad_treatment_outcome }
+						50 = {
+							mult_modifier = {
+								factor = 4
+								event_target:court_physician = {
+									has_opinion_modifier = {
+										who = PREV
+										modifier = opinion_treating_to_harm
+									}
+								}
+							}
+
+							set_character_flag = terrible_treatment_outcome
+						}
+					}
+				}
+			}
+			
+			character_event = { id = RIP.11047 } # Actual experimental treatment event
+		}
+	}
+}
+
+# Regular treatment - pick one of the options presented
+character_event = {
+	id = tianxia.1771
+	desc = EVTDESC_TIANXIA_1771
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	immediate = {
+		FROM = {
+			clear_flags_with_prefix = treatment_option_
+			clear_flags_with_prefix = EVTDESC_RIP_11041_
+		
+			# Generate up to four options - TIANXIATODO: More logic
+			random_list = {
+				10 = {
+					trigger = { is_adult = yes }
+					set_character_flag = treatment_option_1_FLAG # Bloodletting, star charts
+				}
+
+				10 = {
+					trigger = { is_adult = yes }
+					set_character_flag = treatment_option_2_FLAG # Butt trumpet
+				}
+
+				10 = { set_character_flag = treatment_option_3_FLAG } # Leech
+				10 = { set_character_flag = treatment_option_4_FLAG } # Cow's dung and herbs
+				10 = { set_character_flag = treatment_option_5_FLAG } # Cat carcass
+
+				10 = {
+					trigger = { is_adult = yes }
+					set_character_flag = treatment_option_6_FLAG # Toad carcasses
+				}
+
+				10 = { set_character_flag = treatment_option_7_FLAG } # Pregnant sow urine
+				10 = { set_character_flag = treatment_option_8_FLAG } # Live fish
+				10 = { set_character_flag = treatment_option_10_FLAG } # Red powder (spice?)
+				10 = { set_character_flag = treatment_option_11_FLAG } # Goat flattulence
+				10 = { set_character_flag = treatment_option_13_FLAG } # Laxative
+				10 = { set_character_flag = treatment_option_14_FLAG } # Cupping (heated cups)
+				10 = { set_character_flag = treatment_option_15_FLAG } # Burning herbs on body (moxibustion)
+			}
+			
+			random_list = {
+				10 = {
+					trigger = { is_adult = yes }
+					set_character_flag = treatment_option_1_FLAG # Bloodletting, star charts
+				}
+
+				10 = {
+					trigger = { is_adult = yes }
+					set_character_flag = treatment_option_2_FLAG # Butt trumpet
+				}
+
+				10 = { set_character_flag = treatment_option_3_FLAG } # Leech
+				10 = { set_character_flag = treatment_option_4_FLAG } # Cow's dung and herbs
+				10 = { set_character_flag = treatment_option_5_FLAG } # Cat carcass
+
+				10 = {
+					trigger = { is_adult = yes }
+					set_character_flag = treatment_option_6_FLAG # Toad carcasses
+				}
+
+				10 = { set_character_flag = treatment_option_7_FLAG } # Pregnant sow urine
+				10 = { set_character_flag = treatment_option_8_FLAG } # Live fish
+				10 = { set_character_flag = treatment_option_10_FLAG } # Red powder (spice?)
+				10 = { set_character_flag = treatment_option_11_FLAG } # Goat flattulence
+				10 = { set_character_flag = treatment_option_13_FLAG } # Laxative
+				10 = { set_character_flag = treatment_option_14_FLAG } # Cupping (heated cups)
+				10 = { set_character_flag = treatment_option_15_FLAG } # Burning herbs on body (moxibustion)
+			}
+			
+			random_list = {
+				10 = {
+					trigger = { is_adult = yes }
+					set_character_flag = treatment_option_1_FLAG # Bloodletting, star charts
+				}
+
+				10 = {
+					trigger = { is_adult = yes }
+					set_character_flag = treatment_option_2_FLAG # Butt trumpet
+				}
+
+				10 = { set_character_flag = treatment_option_3_FLAG } # Leech
+				10 = { set_character_flag = treatment_option_4_FLAG } # Cow's dung and herbs
+				10 = { set_character_flag = treatment_option_5_FLAG } # Cat carcass
+
+				10 = {
+					trigger = { is_adult = yes }
+					set_character_flag = treatment_option_6_FLAG # Toad carcasses
+				}
+
+				10 = { set_character_flag = treatment_option_7_FLAG } # Pregnant sow urine
+				10 = { set_character_flag = treatment_option_8_FLAG } # Live fish
+				10 = { set_character_flag = treatment_option_10_FLAG } # Red powder (spice?)
+				10 = { set_character_flag = treatment_option_11_FLAG } # Goat flattulence
+				10 = { set_character_flag = treatment_option_13_FLAG } # Laxative
+				10 = { set_character_flag = treatment_option_14_FLAG } # Cupping (heated cups)
+				10 = { set_character_flag = treatment_option_15_FLAG } # Burning herbs on body (moxibustion)
+			}
+			
+			random_list = {
+				10 = {
+					trigger = { is_adult = yes }
+					set_character_flag = treatment_option_1_FLAG # Bloodletting, star charts
+				}
+
+				10 = {
+					trigger = { is_adult = yes }
+					set_character_flag = treatment_option_2_FLAG # Butt trumpet
+				}
+
+				10 = { set_character_flag = treatment_option_3_FLAG } # Leech
+				10 = { set_character_flag = treatment_option_4_FLAG } # Cow's dung and herbs
+				10 = { set_character_flag = treatment_option_5_FLAG } # Cat carcass
+
+				10 = {
+					trigger = { is_adult = yes }
+					set_character_flag = treatment_option_6_FLAG # Toad carcasses
+				}
+
+				10 = { set_character_flag = treatment_option_7_FLAG } # Pregnant sow urine
+				10 = { set_character_flag = treatment_option_8_FLAG } # Live fish
+				10 = { set_character_flag = treatment_option_10_FLAG } # Red powder (spice?)
+				10 = { set_character_flag = treatment_option_11_FLAG } # Goat flattulence
+				10 = { set_character_flag = treatment_option_13_FLAG } # Laxative
+				10 = { set_character_flag = treatment_option_14_FLAG } # Cupping (heated cups)
+				10 = { set_character_flag = treatment_option_15_FLAG } # Burning herbs on body (moxibustion)
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_1_FLAG
+			}
+		}
+		
+		name = EVTOPTA_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_1_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_2_FLAG
+			}
+		}
+		
+		name = EVTOPTB_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_2_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_3_FLAG
+			}
+		}
+		
+		name = EVTOPTC_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_3_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_4_FLAG
+			}
+		}
+		
+		name = EVTOPTD_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_4_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_5_FLAG
+			}
+		}
+		
+		name = EVTOPTE_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_5_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_6_FLAG
+			}
+		}
+		
+		name = EVTOPTF_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_6_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_7_FLAG
+			}
+		}
+		
+		name = EVTOPTG_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_7_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_8_FLAG
+			}
+		}
+		
+		name = EVTOPTH_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_8_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_10_FLAG
+			}
+		}
+		
+		name = EVTOPTI_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_10_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_11_FLAG
+			}
+		}
+		
+		name = EVTOPTJ_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_11_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_13_FLAG
+			}
+		}
+		
+		name = EVTOPTK_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_13_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_14_FLAG
+			}
+		}
+		
+		name = EVTOPTL_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_14_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_15_FLAG
+			}
+		}
+		
+		name = EVTOPTM_TIANXIA_1771
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11041_15_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	after = {
+		FROM = {
+			clr_character_flag = good_treatment_outcome
+			clr_character_flag = amazing_treatment_outcome
+			clr_character_flag = bad_treatment_outcome
+			clr_character_flag = terrible_treatment_outcome
+			
+			random_list = {
+				# Good
+				60 = {
+					mult_modifier = {
+						factor = 1.2
+						is_strong_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							trait = physician
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning >= 25
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning >= 20
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning >= 15
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning < 15
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning < 10
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						is_weak_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 0.6
+						event_target:court_physician = {
+							physician_bad_trigger = yes
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							physician_good_trigger = yes
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					set_character_flag = good_treatment_outcome
+				}
+
+				# Bad
+				40 = {
+					mult_modifier = {
+						factor = 0.8
+						is_strong_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning >= 25
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning >= 20
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning >= 15
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning < 15
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning < 10
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						is_weak_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 1.4
+						event_target:court_physician = {
+							physician_bad_trigger = yes
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							physician_good_trigger = yes
+						}
+					}
+
+					set_character_flag = bad_treatment_outcome
+				}
+			}
+			
+			character_event = { id = RIP.11041 } # Actual experimental treatment event
+		}
+	}
+}
+
+# Cautious treatment - pick one of the options presented
+character_event = {
+	id = tianxia.1772
+	desc = EVTDESC_TIANXIA_1772
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+
+	immediate = {
+		FROM = {
+			clear_flags_with_prefix = treatment_option_
+			clear_flags_with_prefix = EVTDESC_RIP_11042_
+		
+			# Generate up to four options - TIANXIATODO: More logic
+			random_list = {
+				10 = { set_character_flag = treatment_option_1_FLAG } # Rest in bed
+				10 = { set_character_flag = treatment_option_2_FLAG } # Eat raw vegetables and drink herbal teas
+				10 = { set_character_flag = treatment_option_3_FLAG } # Rub and slap hands and feet
+				10 = { set_character_flag = treatment_option_4_FLAG } # Clear, tasteless potion (water?)
+				10 = { set_character_flag = treatment_option_5_FLAG } # Nose tickled with feather
+				10 = {
+					trigger = {
+						religion = event_target:court_physician
+						event_target:court_physician = {
+							has_secret_religion = no
+						}
+					}
+					set_character_flag = treatment_option_6_FLAG # Religious ceremony
+				}
+				10 = { set_character_flag = treatment_option_7_FLAG } # Bedtime stories
+				10 = {
+					mult_modifier = {
+						factor = 2
+						OR = {
+							trait = lunatic
+							trait = possessed
+						}
+					}
+					set_character_flag = treatment_option_8_FLAG # Singing you to sleep
+				}
+				10 = { set_character_flag = treatment_option_9_FLAG } # Warm water and honey
+				10 = { set_character_flag = treatment_option_10_FLAG } # Green root drink
+				10 = { set_character_flag = treatment_option_11_FLAG } # Silver ring with black ram wool; rabies
+				10 = { set_character_flag = treatment_option_12_FLAG } # Paint body part with henna
+			}
+			
+			random_list = {
+				10 = { set_character_flag = treatment_option_1_FLAG } # Rest in bed
+				10 = { set_character_flag = treatment_option_2_FLAG } # Eat raw vegetables and drink herbal teas
+				10 = { set_character_flag = treatment_option_3_FLAG } # Rub and slap hands and feet
+				10 = { set_character_flag = treatment_option_4_FLAG } # Clear, tasteless potion (water?)
+				10 = { set_character_flag = treatment_option_5_FLAG } # Nose tickled with feather
+				10 = {
+					trigger = {
+						religion = event_target:court_physician
+						event_target:court_physician = {
+							has_secret_religion = no
+						}
+					}
+					set_character_flag = treatment_option_6_FLAG # Religious ceremony
+				}
+				10 = { set_character_flag = treatment_option_7_FLAG } # Bedtime stories
+				10 = {
+					mult_modifier = {
+						factor = 2
+						OR = {
+							trait = lunatic
+							trait = possessed
+						}
+					}
+					set_character_flag = treatment_option_8_FLAG # Singing you to sleep
+				}
+				10 = { set_character_flag = treatment_option_9_FLAG } # Warm water and honey
+				10 = { set_character_flag = treatment_option_10_FLAG } # Green root drink
+				10 = { set_character_flag = treatment_option_11_FLAG } # Silver ring with black ram wool; rabies
+				10 = { set_character_flag = treatment_option_12_FLAG } # Paint body part with henna
+			}
+			
+			random_list = {
+				10 = { set_character_flag = treatment_option_1_FLAG } # Rest in bed
+				10 = { set_character_flag = treatment_option_2_FLAG } # Eat raw vegetables and drink herbal teas
+				10 = { set_character_flag = treatment_option_3_FLAG } # Rub and slap hands and feet
+				10 = { set_character_flag = treatment_option_4_FLAG } # Clear, tasteless potion (water?)
+				10 = { set_character_flag = treatment_option_5_FLAG } # Nose tickled with feather
+				10 = {
+					trigger = {
+						religion = event_target:court_physician
+						event_target:court_physician = {
+							has_secret_religion = no
+						}
+					}
+					set_character_flag = treatment_option_6_FLAG # Religious ceremony
+				}
+				10 = { set_character_flag = treatment_option_7_FLAG } # Bedtime stories
+				10 = {
+					mult_modifier = {
+						factor = 2
+						OR = {
+							trait = lunatic
+							trait = possessed
+						}
+					}
+					set_character_flag = treatment_option_8_FLAG # Singing you to sleep
+				}
+				10 = { set_character_flag = treatment_option_9_FLAG } # Warm water and honey
+				10 = { set_character_flag = treatment_option_10_FLAG } # Green root drink
+				10 = { set_character_flag = treatment_option_11_FLAG } # Silver ring with black ram wool; rabies
+				10 = { set_character_flag = treatment_option_12_FLAG } # Paint body part with henna
+			}
+			
+			random_list = {
+				10 = { set_character_flag = treatment_option_1_FLAG } # Rest in bed
+				10 = { set_character_flag = treatment_option_2_FLAG } # Eat raw vegetables and drink herbal teas
+				10 = { set_character_flag = treatment_option_3_FLAG } # Rub and slap hands and feet
+				10 = { set_character_flag = treatment_option_4_FLAG } # Clear, tasteless potion (water?)
+				10 = { set_character_flag = treatment_option_5_FLAG } # Nose tickled with feather
+				10 = {
+					trigger = {
+						religion = event_target:court_physician
+						event_target:court_physician = {
+							has_secret_religion = no
+						}
+					}
+					set_character_flag = treatment_option_6_FLAG # Religious ceremony
+				}
+				10 = { set_character_flag = treatment_option_7_FLAG } # Bedtime stories
+				10 = {
+					mult_modifier = {
+						factor = 2
+						OR = {
+							trait = lunatic
+							trait = possessed
+						}
+					}
+					set_character_flag = treatment_option_8_FLAG # Singing you to sleep
+				}
+				10 = { set_character_flag = treatment_option_9_FLAG } # Warm water and honey
+				10 = { set_character_flag = treatment_option_10_FLAG } # Green root drink
+				10 = { set_character_flag = treatment_option_11_FLAG } # Silver ring with black ram wool; rabies
+				10 = { set_character_flag = treatment_option_12_FLAG } # Paint body part with henna
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_1_FLAG
+			}
+		}
+		
+		name = EVTOPTA_TIANXIA_1772
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11042_1_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_2_FLAG
+			}
+		}
+		
+		name = EVTOPTB_TIANXIA_1772
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11042_2_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_3_FLAG
+			}
+		}
+		
+		name = EVTOPTC_TIANXIA_1772
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11042_3_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_4_FLAG
+			}
+		}
+		
+		name = EVTOPTD_TIANXIA_1772
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11042_4_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_5_FLAG
+			}
+		}
+		
+		name = EVTOPTE_TIANXIA_1772
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11042_5_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_6_FLAG
+			}
+		}
+		
+		name = EVTOPTF_TIANXIA_1772
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11042_6_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_7_FLAG
+			}
+		}
+		
+		name = EVTOPTG_TIANXIA_1772
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11042_7_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_8_FLAG
+			}
+		}
+		
+		name = EVTOPTH_TIANXIA_1772
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11042_8_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_9_FLAG
+			}
+		}
+		
+		name = EVTOPTI_TIANXIA_1772
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11042_9_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_10_FLAG
+			}
+		}
+		
+		name = EVTOPTJ_TIANXIA_1772
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11042_10_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_11_FLAG
+			}
+		}
+		
+		name = EVTOPTK_TIANXIA_1772
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11042_11_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = treatment_option_12_FLAG
+			}
+		}
+		
+		name = EVTOPTL_TIANXIA_1772
+		
+		FROM = {
+			set_character_flag = EVTDESC_RIP_11042_12_FLAG
+		}
+		
+		ai_chance = {
+			factor = 100 # TIANXIATODO: Logic
+		}
+	}
+	
+	after = {
+		FROM = {
+			clr_character_flag = good_treatment_outcome
+			clr_character_flag = amazing_treatment_outcome
+			clr_character_flag = bad_treatment_outcome
+			clr_character_flag = terrible_treatment_outcome
+			
+			random_list = {
+				# Good
+				80 = {
+					mult_modifier = {
+						factor = 1.2
+						is_strong_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							trait = physician
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning >= 25
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning >= 20
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning >= 15
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning < 15
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning < 10
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						is_weak_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 0.6
+						event_target:court_physician = {
+							physician_bad_trigger = yes
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							physician_good_trigger = yes
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					set_character_flag = good_treatment_outcome
+				}
+
+				# Bad
+				20 = {
+					mult_modifier = {
+						factor = 0.8
+						is_strong_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning >= 25
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning >= 20
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							learning >= 15
+							has_opinion_modifier = {
+								who = PREV
+								modifier = opinion_treating_to_heal
+							}
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning < 15
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						event_target:court_physician = {
+							learning < 10
+						}
+					}
+
+					mult_modifier = {
+						factor = 1.2
+						is_weak_trigger = yes
+					}
+
+					mult_modifier = {
+						factor = 1.4
+						event_target:court_physician = {
+							physician_bad_trigger = yes
+						}
+					}
+
+					mult_modifier = {
+						factor = 0.8
+						event_target:court_physician = {
+							physician_good_trigger = yes
+						}
+					}
+
+					set_character_flag = bad_treatment_outcome
+				}
+			}
+			
+			character_event = { id = RIP.11042 } # Actual experimental treatment event
+		}
+	}
+}
+
+# Liege elected against treatment - inform physician
+character_event = {
+	id = tianxia.1773
+	desc = EVTDESC_TIANXIA_1773
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTA_TIANXIA_1773 # I see...
+	}
+	
+	option = {
+		trigger = {
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTB_TIANXIA_1773 # Did FROM suspect...?
+	}
+	
+	after = {
+		remove_opinion = {
+			who = FROM
+			modifier = opinion_treating_to_heal
+		}
+		remove_opinion = {
+			who = FROM
+			modifier = opinion_treating_to_harm
+		}
+	}
+}
+
+# Experimental treatment - informed of outcome
+character_event = {
+	id = tianxia.1774
+	desc = EVTDESC_TIANXIA_1774 # TIANXIATODO: Describe treatment?
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = amazing_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTA_TIANXIA_1774 # Excellent!
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = amazing_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTb_TIANXIA_1774 # Curses!
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = good_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTC_TIANXIA_1774 # Good!
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = good_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTD_TIANXIA_1774 # I see...
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = bad_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTE_TIANXIA_1774 # I see...
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = bad_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTF_TIANXIA_1774 # Good!
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = terrible_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTG_TIANXIA_1774 # Curses!
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = terrible_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTH_TIANXIA_1774 # Excellent!
+	}
+	
+	after = {
+		remove_opinion = {
+			who = FROM
+			modifier = opinion_treating_to_heal
+		}
+		remove_opinion = {
+			who = FROM
+			modifier = opinion_treating_to_harm
+		}
+	}
+}
+
+# Mystic treatment - informed of outcome
+character_event = {
+	id = tianxia.1775
+	desc = EVTDESC_TIANXIA_1775 # TIANXIATODO: Describe treatment?
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = amazing_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTA_TIANXIA_1775 # Excellent!
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = amazing_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTb_TIANXIA_1775 # Curses!
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = good_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTC_TIANXIA_1775 # Good!
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = good_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTD_TIANXIA_1775 # I see...
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = bad_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTE_TIANXIA_1775 # I see...
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = bad_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTF_TIANXIA_1775 # Good!
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = terrible_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTG_TIANXIA_1775 # Curses!
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = terrible_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTH_TIANXIA_1775 # Excellent!
+	}
+	
+	after = {
+		remove_opinion = {
+			who = FROM
+			modifier = opinion_treating_to_heal
+		}
+		remove_opinion = {
+			who = FROM
+			modifier = opinion_treating_to_harm
+		}
+	}
+}
+
+# Regular treatment - informed of outcome
+character_event = {
+	id = tianxia.1776
+	desc = EVTDESC_TIANXIA_1776 # TIANXIATODO: Describe treatment?
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = good_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTA_TIANXIA_1776 # Good!
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = good_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTB_TIANXIA_1776 # I see...
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = bad_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTC_TIANXIA_1776 # I see...
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = bad_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTD_TIANXIA_1776 # Good!
+	}
+	
+	after = {
+		remove_opinion = {
+			who = FROM
+			modifier = opinion_treating_to_heal
+		}
+		remove_opinion = {
+			who = FROM
+			modifier = opinion_treating_to_harm
+		}
+	}
+}
+
+# Cautious treatment - informed of outcome
+character_event = {
+	id = tianxia.1777
+	desc = EVTDESC_TIANXIA_1777 # TIANXIATODO: Describe treatment?
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+	
+	is_triggered_only = yes
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = good_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTA_TIANXIA_1777 # Good!
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = good_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTB_TIANXIA_1777 # I see...
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = bad_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_heal
+			}
+		}
+		
+		name = EVTOPTC_TIANXIA_1777 # I see...
+	}
+	
+	option = {
+		trigger = {
+			FROM = {
+				has_character_flag = bad_treatment_outcome
+			}
+			has_opinion_modifier = {
+				who = FROM
+				modifier = opinion_treating_to_harm
+			}
+		}
+		
+		name = EVTOPTD_TIANXIA_1777 # Good!
+	}
+	
+	after = {
+		remove_opinion = {
+			who = FROM
+			modifier = opinion_treating_to_heal
+		}
+		remove_opinion = {
+			who = FROM
+			modifier = opinion_treating_to_harm
 		}
 	}
 }
