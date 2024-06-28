@@ -1,4 +1,4 @@
-decisions = {	
+decisions = {
 	celebrate_lny = {
 		only_playable = yes
 		ai_check_interval = 12
@@ -64,9 +64,7 @@ decisions = {
 					}
 				}
 			}
-			is_actually_incapable_trigger = no
-			prisoner = no
-			is_inaccessible_trigger = no
+			is_inaccessible_or_incapable_trigger = no
 			wealth = 25
 			month < 2 # Before march
 			prestige = 100
@@ -75,7 +73,8 @@ decisions = {
 				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
 			}
 			NOR = {
-				trait = treasure_fleet_preparation # We don't want anyone to become busy with the Chuseok during the TF preparation...
+				trait = treasure_fleet_preparation
+				trait = penglai_expedition_preparation
 				trait = in_mourning
 			}
 		}
@@ -166,7 +165,7 @@ decisions = {
 			is_adult = yes
 			war = no
 			has_actual_regency_trigger = no
-			is_actually_incapable_trigger = no
+			is_inaccessible_or_incapable_trigger = no
 			is_ill = no
 			
 			trigger_if = {
@@ -183,7 +182,9 @@ decisions = {
 			
 			NOR = {
 				trait = treasure_fleet_preparation # We don't want anyone to become busy with the dragon hunt during the TF preparation...
+				trait = penglai_expedition_preparation
 				trait = hunting_dragons
+				trait = in_mourning
 				has_character_modifier = recent_dragon_hunt # Prevents spamming it (which could let you try to collect a ton of dragonslayers before actually going for the kill)
 			}
 			
@@ -275,7 +276,7 @@ decisions = {
 			
 			mult_modifier = {
 				factor = 0.1
-				can_be_commander_trigger_no_fromfrom = no
+				can_be_commander_no_fromfrom_trigger = no
 			}
 		}
 	}
@@ -304,8 +305,9 @@ decisions = {
 					independent = yes
 				}
 				
-				NOT = {
+				NOR = {
 					trait = treasure_fleet_preparation
+					trait = penglai_expedition_preparation
 				}
 			}
 		}
@@ -313,10 +315,11 @@ decisions = {
 		effect = {
 			add_trait = in_mourning
 			
-			set_best_mourning_target_effect = yes
+			#set_best_mourning_target_effect = yes
 			
 			if = {
 				limit = {
+					is_adult = yes
 					can_mourn_days_trigger = yes
 				}
 				
@@ -333,6 +336,7 @@ decisions = {
 		ai_will_do = {
 			trigger = {
 				NAND = {
+					is_adult = yes
 					OR = {
 						trait = cynical
 						trait = ambitious
@@ -362,6 +366,11 @@ decisions = {
 			}
 			
 			mult_modifier = {
+				factor = 10
+				is_adult = no
+			}
+			
+			mult_modifier = {
 				factor = 2
 				has_instances_of_character_modifier = {
 					name = failure_to_mourn
@@ -375,6 +384,268 @@ decisions = {
 					name = failure_to_mourn
 					amount >= 10
 				}
+			}
+		}
+	}
+	
+	prepare_penglai_expedition = {
+		only_playable = yes
+		is_high_prio = yes
+		ai_check_interval = 120
+		
+		potential = {
+			higher_real_tier_than = count
+			has_tribal_or_nomadic_government_trigger = no
+			OR = {
+				religion = taoist
+				AND = {
+					has_chinese_government_trigger = yes
+					real_tier = emperor
+				}
+			}
+			OR = {
+				independent = yes
+				higher_real_tier_than = duke
+			}
+			is_actual_immortal_trigger = no
+			NOT = {
+				trait = penglai_expedition_preparation
+			}
+		}
+		
+		allow = {
+			show_only_failed_conditions = yes
+			
+			mercenary = no
+			holy_order = no
+			
+			can_reach_penglai_trigger = yes
+			
+			is_adult = yes
+			
+			war = no # Can't be done if at war!
+			has_regent = no # Can't have a regent!
+			is_inaccessible_or_incapable_trigger = no # If regencies are disabled, you still can't do it if you should have a regent!
+			
+			custom_tooltip = {
+				text = is_not_busy_trigger_tooltip
+				hidden_tooltip = { NOT = { has_character_flag = do_not_disturb } }
+			}
+			
+			NOT = {
+				trait = treasure_fleet_preparation
+			}
+			
+			custom_tooltip = {
+				text = no_other_penglai_expedition_ongoing
+				NOT = {
+					has_global_flag = penglai_expedition_ongoing
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					has_character_flag = launched_penglai_expedition
+				}
+				
+				OR = {
+					custom_tooltip = {
+						text = penglai_expedition_fifty_years
+						had_character_flag = { flag = launched_penglai_expedition days = 18250 }
+					}
+					AND = {
+						custom_tooltip = {
+							text = penglai_expedition_twenty_five_years
+							had_character_flag = { flag = launched_penglai_expedition days = 9125 }
+						}
+						OR = {
+							real_tier = emperor
+							has_ambition = obj_become_immortal
+						}
+					}
+				}
+			}
+			
+			wealth >= 1000
+			
+			piety >= 1000
+		}
+		
+		effect = {
+			wealth = -1000
+			
+			set_global_flag = penglai_expedition_ongoing
+			
+			clr_character_flag = launched_penglai_expedition
+			
+			set_character_flag = launched_penglai_expedition
+			
+			add_trait = penglai_expedition_preparation
+			
+			hidden_tooltip = {
+				2861 = { # Chang'an
+					province_event = { id = soh.13144 years = 2 } # Cleanup
+				}
+			}
+			
+			character_event = { id = soh.12801 } # Initial event
+		}
+		
+		ai_will_do = {
+			factor = 1
+			
+			trigger = {
+				NOR = {
+					trait = content
+					trait = depressed
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01 # Slow it down
+				always = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					religion = taoist
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				NOT = {
+					has_ambition = obj_become_immortal
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				wealth < 2000
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = ambitious
+			}
+			
+			mult_modifier = {
+				factor = 10
+				real_tier = emperor
+			}
+		}
+	}
+}
+
+targeted_decisions = {
+	taoist_divination = {
+		filter = self
+		ai_target_filter = self
+		ai_check_interval = 10
+
+		potential = {
+			religion = taoist
+			has_dlc = "Mystics" # Close copy of Hermetic scrying
+		}
+
+		allow = {
+			is_adult = yes
+			
+			OR = {
+				piety >= 200
+				
+				AND = {
+					has_artifact = i_ching
+					piety >= 100
+				}
+			}
+			
+			custom_tooltip = {
+				text = tooltip_not_busy
+
+				block_general_event_trigger = no
+			}
+
+			custom_tooltip = {
+				text = taoist_divination_cooldown_tooltip
+
+				has_a_taoist_divination_modifier_trigger = no
+				NOT = { has_character_modifier = taoist_divination_cooldown }
+			}
+		}
+
+		effect = {
+			if = {
+				limit = {
+					has_artifact = i_ching
+				}
+				
+				piety = -100
+			}
+			
+			else = {
+				piety = -200
+			}
+
+			add_character_modifier = {
+				name = taoist_divination_cooldown
+				years = 1
+				hidden = yes
+			}
+
+			character_event = {
+				id = soh.13301
+				days = 1
+			}
+		}
+
+		ai_will_do = {
+			factor = 0.5
+			
+			trigger = {
+				OR = {
+					AND = {
+						has_artifact = i_ching
+						piety >= 250
+					}
+					piety >= 500
+				}
+			}
+
+			mult_modifier = {
+				factor = 0.5
+				is_dumb_trigger = yes
+			}
+
+			mult_modifier = {
+				factor = 0.5
+				trait = content
+			}
+
+			mult_modifier = {
+				factor = 0.5
+				trait = cynical
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = zealous
+			}
+
+			mult_modifier = {
+				factor = 2
+				trait = mystic
+			}
+
+			mult_modifier = {
+				factor = 1.5
+				trait = ambitious
+			}
+
+			mult_modifier = {
+				factor = 1.5
+				trait = trusting
 			}
 		}
 	}

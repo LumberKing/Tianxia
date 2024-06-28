@@ -53,6 +53,11 @@
 # maim_hand_effect
 # mangle_effect
 
+# update_seclusion_food_modifier_effect
+# update_seclusion_food_modifier_courtier_effect
+
+# clean_up_seclusion_effect
+# clean_up_seclusion_effect_courtier
 
 add_symptom_effect = {
 	custom_tooltip = {
@@ -202,13 +207,25 @@ add_maimed_trait_effect = {
 					trigger = {
 						has_dlc = "Reapers"
 
-						NOR = {
+						NOT = {
 							trait = one_eyed
-							trait = blinded
 						}
 					}
+					
+					if = {
+						limit = {
+							NOT = {
+								trait = one_eyed
+							}
+						}
+						
+						add_trait = one_eyed
+					}
+					
+					else = {
+						add_trait = blinded
+					}
 
-					add_trait = one_eyed
 					character_event = { id = RIP.11501 } # Inform player
 				}
 
@@ -959,19 +976,19 @@ remove_disease_trait_effect = {
 	if = {
 		limit = { trait = consumption }
 		remove_trait = consumption
-		set_character_flag = immune_tuberculosis
+		set_character_flag = immune_consumption
 	}
 
 	if = {
 		limit = { trait = slow_fever }
 		remove_trait = slow_fever
-		set_character_flag = immune_typhoid_fever
+		set_character_flag = immune_slow_fever
 	}
 
 	if = {
 		limit = { trait = camp_fever }
 		remove_trait = camp_fever
-		set_character_flag = immune_typhus
+		set_character_flag = immune_camp_fever
 	}
 
 	if = {
@@ -1743,12 +1760,22 @@ remove_random_maimed_effect = {
 		}
 
 		10 = {
-			trigger = { trait = blinded }
+			trigger = {
+				trait = blinded
+				NOT = {
+					has_character_modifier = evil_eye
+				}
+			}
 			set_character_flag = dark_healing_blinded # Effect is only used for dark healing
 		}
 
 		10 = {
-			trigger = { trait = one_eyed }
+			trigger = {
+				trait = one_eyed
+				NOT = {
+					has_character_modifier = evil_eye
+				}
+			}
 			set_character_flag = removed_one_eyed
 		}
 
@@ -1787,6 +1814,7 @@ remove_all_maimed_traits_effect = {
 			trait = one_eyed
 		}
 		remove_trait = one_eyed
+		remove_character_modifier = evil_eye
 	}
 	if = {
 		limit = {
@@ -1811,6 +1839,7 @@ remove_all_maimed_traits_effect = {
 			trait = blinded
 		}
 		remove_trait = blinded
+		remove_character_modifier = evil_eye
 	}
 	if = {
 		limit = {
@@ -1916,17 +1945,17 @@ remove_random_epidemic_disease_effect = {
 }
 
 remove_symptoms_effect = {
-	remove_trait = cough
-	remove_trait = fever
-	remove_trait = diarrhea
-	remove_trait = vomiting
-	remove_trait = chest_pain
-	remove_trait = cramps
-	remove_trait = rash
-	remove_trait = headache
-	remove_trait = abdominal_pain
-	remove_trait = fatigue
-	remove_trait = malaise
+	remove_trait_cough_effect = yes
+	remove_trait_fever_effect = yes
+	remove_trait_diarrhea_effect = yes
+	remove_trait_vomiting_effect = yes
+	remove_trait_chest_pain_effect = yes
+	remove_trait_cramps_effect = yes
+	remove_trait_rash_effect = yes
+	remove_trait_headache_effect = yes
+	remove_trait_abdominal_pain_effect = yes
+	remove_trait_fatigue_effect = yes
+	remove_trait_malaise_effect = yes
 }
 
 maim_hand_effect = {
@@ -1977,4 +2006,300 @@ mangle_effect = {
 
 	add_trait = severely_injured
 	resolve_severely_injured_effect = yes
+}
+
+update_seclusion_food_modifier_effect = {
+	if = {
+		limit = {
+			check_variable = {
+				which = seclusion_food
+				value >= 10
+			}
+		}
+		
+		remove_character_modifier = minor_food_shortage
+		remove_character_modifier = normal_food_shortage
+		remove_character_modifier = starving_food_shortage
+	}
+	
+	else_if = {
+		limit = {
+			check_variable = {
+				which = seclusion_food
+				value >= 5
+			}
+		}
+		
+		remove_character_modifier = normal_food_shortage
+		remove_character_modifier = starving_food_shortage
+		remove_character_modifier = plentiful_food
+		
+		add_character_modifier = {
+			modifier = minor_food_shortage
+			duration = -1
+		}
+	}
+	
+	else_if = {
+		limit = {
+			check_variable = {
+				which = seclusion_food
+				value >= 0
+			}
+		}
+		
+		remove_character_modifier = minor_food_shortage
+		remove_character_modifier = starving_food_shortage
+		remove_character_modifier = plentiful_food
+		
+		add_character_modifier = {
+			modifier = normal_food_shortage
+			duration = -1
+		}
+	}
+	
+	else = {
+		remove_character_modifier = minor_food_shortage
+		remove_character_modifier = normal_food_shortage
+		remove_character_modifier = plentiful_food
+		
+		add_character_modifier = {
+			modifier = starving_food_shortage
+			duration = -1
+		}
+	}
+	
+	if = {
+		limit = {
+			has_character_modifier = normal_food_shortage
+			NOR = {
+				has_character_modifier = well_fed_hidden
+				has_character_modifier = well_fed_visible
+			}
+		}
+		
+		random = {
+			chance = 5
+			lose_weight_small_effect = yes
+		}
+	}
+	
+	else_if = {
+		limit = {
+			has_character_modifier = starving_food_shortage
+			NOR = {
+				has_character_modifier = well_fed_hidden
+				has_character_modifier = well_fed_visible
+			}
+		}
+		
+		random = {
+			chance = 10
+			lose_weight_small_effect = yes
+		}
+	}
+	
+	custom_tooltip = {
+		text = courtiers_also_have_food_modifiers_updated
+		
+		any_courtier = {
+			limit = {
+				in_seclusion = yes
+			}
+			
+			update_seclusion_food_modifier_courtier_effect = yes
+		}
+	}
+}
+
+update_seclusion_food_modifier_courtier_effect = {
+	host = {
+		trigger_switch = {
+			on_trigger = has_character_modifier
+			
+			minor_food_shortage = {
+				PREV = {
+					remove_character_modifier = normal_food_shortage
+					remove_character_modifier = starving_food_shortage
+					remove_character_modifier = plentiful_food
+					
+					add_character_modifier = {
+						modifier = minor_food_shortage
+						duration = -1
+					}
+				}
+			}
+			
+			normal_food_shortage = {
+				PREV = {
+					remove_character_modifier = minor_food_shortage
+					remove_character_modifier = starving_food_shortage
+					remove_character_modifier = plentiful_food
+					
+					add_character_modifier = {
+						modifier = normal_food_shortage
+						duration = -1
+					}
+				}
+			}
+			
+			starving_food_shortage = {
+				PREV = {
+					remove_character_modifier = minor_food_shortage
+					remove_character_modifier = normal_food_shortage
+					remove_character_modifier = plentiful_food
+					
+					add_character_modifier = {
+						modifier = starving_food_shortage
+						duration = -1
+					}
+				}
+			}
+			
+			fallback = {
+				PREV = {
+					remove_character_modifier = minor_food_shortage
+					remove_character_modifier = normal_food_shortage
+					remove_character_modifier = starving_food_shortage
+				}
+			}
+		}
+	}
+	
+	if = {
+		limit = {
+			has_character_modifier = normal_food_shortage
+			NOR = {
+				has_character_modifier = well_fed_hidden
+				has_character_modifier = well_fed_visible
+			}
+		}
+		
+		random = {
+			chance = 5
+			lose_weight_small_effect = yes
+		}
+	}
+	
+	else_if = {
+		limit = {
+			has_character_modifier = starving_food_shortage
+			NOR = {
+				has_character_modifier = well_fed_hidden
+				has_character_modifier = well_fed_visible
+			}
+		}
+		
+		random = {
+			chance = 10
+			lose_weight_small_effect = yes
+		}
+	}
+}
+
+clean_up_seclusion_effect = {
+	clr_character_flag = do_not_disturb
+	remove_character_modifier = in_seclusion
+	
+	remove_character_modifier = secluded_revelry
+	remove_character_modifier = savoring_the_end_days
+	
+	clr_character_flag = seclusion_food_gathering
+	clr_character_flag = seclusion_tombola_setup
+	clr_character_flag = seclusion_piling_corpses
+	clr_character_flag = exposed_to_outside
+	
+	clr_character_flag = food_guard
+	clr_character_flag = food_smuggler_deal
+	clr_character_flag = seclusion_cannibal_supplies
+	clr_character_flag = seclusion_food_gathering_decision_made
+	clr_character_flag = seclusion_peasant_party_unrest
+	clr_character_flag = seclusion_peasant_supicion
+	clr_character_flag = seclusion_prayers_failed
+	clr_character_flag = seclusion_prayers_working
+	clr_character_flag = seclusion_prayers_failed_self
+	clr_character_flag = seclusion_rats
+	clr_character_flag = seclusion_relative_meeting_assassin
+	clr_character_flag = seclusion_relative_meeting_dw
+	clr_character_flag = seclusion_relative_meeting_harmless
+	clr_character_flag = seclusion_relative_meeting_srs
+	clr_character_flag = seclusion_type_set
+	
+	clear_flags_with_prefix = seclusion_food_
+	
+	clear_flags_with_prefix = seclusion_useless_
+	clr_character_flag = seclusion_prisoner_food
+	
+	remove_character_modifier = well_fed_hidden
+	remove_character_modifier = well_fed_visible
+	
+	set_variable = {
+		which = seclusion_food
+		value = 0
+	}
+	
+	clr_character_flag = tunnels_closed
+	
+	clr_character_flag = seclusion_courtier_conversion
+	clr_character_flag = seclusion_conversion_opportunity
+	clr_character_flag = seclusion_hedonist
+	clr_character_flag = seclusion_socializer
+	clr_character_flag = seclusion_peasant_uprising
+	clr_character_flag = seclusion_administrator
+	clr_character_flag = seclusion_relative
+	clr_character_flag = seclusion_tunnel
+	clr_character_flag = seclusion_early_end
+	
+	clr_character_flag = seclusion_inherit_open_gates
+}
+
+clean_up_seclusion_effect_courtier = {
+	clr_character_flag = do_not_disturb
+	remove_character_modifier = in_seclusion
+	
+	remove_character_modifier = secluded_revelry
+	remove_character_modifier = savoring_the_end_days
+	
+	clr_character_flag = seclusion_food_gathering
+	clr_character_flag = seclusion_tombola_setup
+	clr_character_flag = seclusion_piling_corpses
+	clr_character_flag = exposed_to_outside
+	
+	clr_character_flag = food_guard
+	clr_character_flag = food_smuggler_deal
+	clr_character_flag = seclusion_cannibal_supplies
+	clr_character_flag = seclusion_food_gathering_decision_made
+	clr_character_flag = seclusion_peasant_party_unrest
+	clr_character_flag = seclusion_peasant_supicion
+	clr_character_flag = seclusion_prayers_failed
+	clr_character_flag = seclusion_prayers_working
+	clr_character_flag = seclusion_prayers_failed_self
+	clr_character_flag = seclusion_rats
+	clr_character_flag = seclusion_relative_meeting_assassin
+	clr_character_flag = seclusion_relative_meeting_dw
+	clr_character_flag = seclusion_relative_meeting_harmless
+	clr_character_flag = seclusion_relative_meeting_srs
+	clr_character_flag = seclusion_type_set
+	
+	clear_flags_with_prefix = seclusion_food_
+	
+	clear_flags_with_prefix = seclusion_useless_
+	clr_character_flag = seclusion_prisoner_food
+	
+	remove_character_modifier = well_fed_hidden
+	remove_character_modifier = well_fed_visible
+	
+	clr_character_flag = tunnels_closed
+	
+	clr_character_flag = seclusion_courtier_conversion
+	clr_character_flag = seclusion_conversion_opportunity
+	clr_character_flag = seclusion_hedonist
+	clr_character_flag = seclusion_socializer
+	clr_character_flag = seclusion_peasant_uprising
+	clr_character_flag = seclusion_administrator
+	clr_character_flag = seclusion_relative
+	clr_character_flag = seclusion_tunnel
+	clr_character_flag = seclusion_early_end
+	
+	clr_character_flag = seclusion_inherit_open_gates
 }

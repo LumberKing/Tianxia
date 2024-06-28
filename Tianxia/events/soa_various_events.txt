@@ -1640,6 +1640,14 @@ character_event = {
 
 		if = {
 			limit = { has_dlc = "Mystics" }
+			
+			if = {
+				limit = {
+					is_in_society = yes
+					is_devil_worshiper_trigger = no
+				}
+				leave_society = yes
+			}
 
 			trigger_switch = {
 				on_trigger = has_character_flag
@@ -1701,7 +1709,7 @@ character_event = {
 
 				demonspawn_will_join_sacrificers = {
 					join_society = the_sacrificers
-					clr_character_flag = demonspawn_will_join_join_sacrificers
+					clr_character_flag = demonspawn_will_join_sacrificers
 				}
 			}
 
@@ -2025,7 +2033,26 @@ character_event = {
 	has_dlc = "Sons of Abraham"
 
 	trigger = {
-		is_maimed_trigger = yes
+		# Changed from simply checking is_maimed_trigger, seeing as a certain something should stick around...
+		OR = {
+			trait = maimed
+			trait = one_eyed
+			trait = one_handed
+			trait = one_legged
+			trait = disfigured
+			trait = mangled
+		}
+		OR = {
+			NAND = {
+				trait = one_eyed
+				has_character_modifier = evil_eye
+			}
+			trait = maimed
+			trait = one_handed
+			trait = one_legged
+			trait = disfigured
+			trait = mangled
+		}
 
 		OR = {
 			has_character_modifier = voice_of_satan
@@ -2051,7 +2078,12 @@ character_event = {
 		}
 
 		if = {
-			limit = { trait = one_eyed }
+			limit = {
+				trait = one_eyed
+				NOT = {
+					has_character_modifier = evil_eye
+				}
+			}
 			remove_trait = one_eyed
 		}
 
@@ -2113,8 +2145,19 @@ character_event = {
 
 	option = {
 		name = EVTOPTA_SOA_3051
-
-		remove_trait = blinded
+		
+		if = {
+			limit = {
+				has_character_modifier = evil_eye
+			}
+			hidden_tooltip = {
+				remove_trait = blinded
+			}
+			add_trait = one_eyed
+		}
+		else = {
+			remove_trait = blinded
+		}
 	}
 }
 
@@ -2234,12 +2277,12 @@ character_event = {
 	option = {
 		name = EVTOPTA_SOA_3054
 
-		if = {
-			limit = { trait = bubonic_plague }
-
-			remove_trait = bubonic_plague
-			set_character_flag = achievement_i_got_better
-		}
+		#if = {
+		#	limit = { trait = bubonic_plague }
+		#
+		#	remove_trait = bubonic_plague
+		#	set_character_flag = achievement_i_got_better
+		#}
 
 		cure_illness = yes
 		clear_disease_level_effect = yes
@@ -2856,6 +2899,11 @@ character_event = {
 				else = {
 					narrative_event = { id = SoA.3077 }
 				}
+			}
+			
+			add_character_modifier = {
+				modifier = suicide
+				duration = -1
 			}
 
 			death = { death_reason = death_suicide_fall }

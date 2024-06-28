@@ -3,7 +3,7 @@
 
 namespace = soh
 
-# soh.10701-10800 reserved
+# soh.10701-10800 reserved # TIANXIATODO: Change this when it makes sense
 
 
 
@@ -18,7 +18,7 @@ character_event = {
 	
 	only_women = yes
 	min_age = 16
-	only_capable = yes
+	#only_capable = yes
 	prisoner = no
 	
 	trigger = {
@@ -38,9 +38,18 @@ character_event = {
 		}
 		
 		# Spouse or consort of a CI/JI/DI ruler
-		OR = {
+		OR = {	
+			AND = {
+				is_landed = yes
+				OR = {
+					government = chinese_imperial_government
+					government = japanese_imperial_government
+					government = divine_imperial_government
+				}
+			}
 			spouse = {
 				is_adult = yes
+				is_landed = yes
 				OR = {
 					government = chinese_imperial_government
 					government = japanese_imperial_government
@@ -58,6 +67,7 @@ character_event = {
 			
 			any_consort = {
 				is_adult = yes
+				is_landed = yes
 				OR = {
 					government = chinese_imperial_government
 					government = japanese_imperial_government
@@ -296,8 +306,61 @@ character_event = {
 					}
 				}
 				
+				mult_modifier = { # High opinion
+					factor = 2
+					event_target:sex_partner = {
+						opinion = {
+							who = ROOT
+							value >= 50
+						}
+					}
+				}
+				
+				modifier = { # Low opinion
+					factor = 2
+					opinion = {
+						who = event_target:sex_partner
+						value >= 50
+					}
+				}
+				
 				# Possible impregnation
+				#log = "[This.GetBestName] is possibly having a child with [sex_partner.GetBestName]!"
+				
+				if = {
+					limit = {
+						OR = {
+							is_married = event_target:sex_partner
+							is_consort = event_target:sex_partner
+						}
+					}
+					set_character_flag = extra_pregnancy_chance
+				}
+				
+				if = {
+					limit = {
+						OR = {
+							is_married = event_target:sex_partner
+							is_consort = event_target:sex_partner
+						}
+						is_lover = event_target:sex_partner
+					}
+					set_character_flag = big_extra_pregnancy_chance
+				}
+				
 				unprotected_sex_effect_event_target = yes
+				
+				if = {
+					limit = {
+						is_pregnant = yes
+					}
+					
+					#log = "[This.GetBestName] is having a child with [sex_partner.GetBestName]!"
+				}
+				
+				else = {
+					#log = "[This.GetBestName] is not having a child with [sex_partner.GetBestName]!"
+				}
 			}
 			
 			50 = {
@@ -314,7 +377,7 @@ character_event = {
 				}
 				
 				mult_modifier = { # Low opinion
-					factor = 10
+					factor = 2
 					event_target:sex_partner = {
 						opinion = {
 							who = ROOT
@@ -322,11 +385,48 @@ character_event = {
 						}
 					}
 				}
+				
 				modifier = { # Low opinion
-					factor = 10
+					factor = 2
 					opinion = {
 						who = event_target:sex_partner
 						value < 0
+					}
+				}
+				
+				mult_modifier = { # Low opinion
+					factor = 2
+					event_target:sex_partner = {
+						opinion = {
+							who = ROOT
+							value < -25
+						}
+					}
+				}
+				
+				modifier = { # Low opinion
+					factor = 2
+					opinion = {
+						who = event_target:sex_partner
+						value < -25
+					}
+				}
+				
+				mult_modifier = { # Low opinion
+					factor = 2
+					event_target:sex_partner = {
+						opinion = {
+							who = ROOT
+							value < -50
+						}
+					}
+				}
+				
+				modifier = { # Low opinion
+					factor = 2
+					opinion = {
+						who = event_target:sex_partner
+						value < -50
 					}
 				}
 				
@@ -378,7 +478,15 @@ character_event = {
 					}
 				}
 				
-				# Do nothing
+				modifier = { 
+					factor = 10
+					reverse_has_opinion_modifier = {
+						who = event_target:sex_partner
+						modifier = opinion_forced_consort
+					}
+				}
+				
+				# Nothing
 			}
 		}
 	}

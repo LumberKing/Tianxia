@@ -27,6 +27,8 @@ excommunicated_ruler = {
 			NOR = {
 				trait = treasure_fleet_preparation
 				trait = treasure_fleet_voyage
+				trait = penglai_expedition_preparation
+				trait = on_penglai_expedition
 			}
 		}
 	}
@@ -251,6 +253,8 @@ depose_antipope = {
 			NOR = {
 				trait = treasure_fleet_preparation
 				trait = treasure_fleet_voyage
+				trait = penglai_expedition_preparation
+				trait = on_penglai_expedition
 			}
 		}
 	}
@@ -463,7 +467,7 @@ shepherds_crusade_invasion = {
 	can_use = {
 		# Attacker
 		ROOT = {
-			has_character_flag = shepherds_leader
+			has_character_flag = shepherds_crusade_leader
 			NOT = { religion = FROM }
 		}
 	}
@@ -533,7 +537,7 @@ shepherds_crusade_invasion = {
 				type = holy_war
 			}
 
-			clr_character_flag = shepherds_leader
+			clr_character_flag = shepherds_crusade_leader
 			set_defacto_liege = attacker
 
 			hidden_effect = {
@@ -722,15 +726,56 @@ shepherds_crusade_invasion = {
 			}
 
 			if = {
-				limit = { can_apply_average_nickname_trigger = yes }
+				limit = {
+					can_apply_cool_nickname_trigger = yes
+				}
 
 				random_list = {
-					10 = { give_nickname = nick_the_crusader }
-					10 = { give_nickname = nick_the_holy }
-					10 = { give_nickname = nick_the_pilgrim }
-					10 = { give_nickname = nick_the_protector }
-					10 = { give_nickname = nick_the_guardian }
-					40 = { give_nickname = nick_the_sword_of_god }
+					10 = {
+						trigger = {
+							can_apply_average_nickname_trigger = yes
+						}
+						give_nickname = nick_the_crusader
+					}
+					
+					10 = {
+						trigger = {
+							can_apply_average_nickname_trigger = yes
+						}
+						give_nickname = nick_the_holy
+					}
+					
+					10 = {
+						trigger = {
+							can_apply_lame_nickname_trigger = yes
+						}
+						give_nickname = nick_the_pilgrim
+					}
+					
+					10 = {
+						trigger = {
+							can_apply_average_nickname_trigger = yes
+						}
+						give_nickname = nick_the_protector
+					}
+					
+					10 = {
+						trigger = {
+							can_apply_average_nickname_trigger = yes
+						}
+						give_nickname = nick_the_guardian
+					}
+					
+					40 = {
+						give_nickname = nick_the_sword_of_god
+					}
+					
+					100 = {
+						trigger = {
+							has_nickname = yes
+						}
+						# Nothing
+					}
 				}
 			}
 
@@ -817,6 +862,8 @@ northern_crusade_war = {
 			NOR = {
 				trait = treasure_fleet_preparation
 				trait = treasure_fleet_voyage
+				trait = penglai_expedition_preparation
+				trait = on_penglai_expedition
 			}
 			
 			NOT = {
@@ -1326,13 +1373,13 @@ childrens_crusade = {
 				grant_title = attacker
 				hidden_effect = { make_primary_title = yes }
 				add_law = succ_primogeniture
-				add_law = cognatic_succession
+				#add_law = cognatic_succession
 			}
 
 			else_if = {
 				limit = {
 					holder_scope = {
-						NOT = { religion = attacker }
+						character = defender
 					}
 				}
 
@@ -1340,6 +1387,36 @@ childrens_crusade = {
 					target = attacker
 					type = holy_war
 				}
+				
+				add_law = succ_primogeniture
+			}
+		}
+		
+		d_jerusalem = {
+			show_scope_change = no
+
+			if = {
+				limit = { has_holder = no }
+
+				grant_title = attacker
+				hidden_effect = { make_primary_title = yes }
+				add_law = succ_primogeniture
+				#add_law = cognatic_succession
+			}
+
+			else_if = {
+				limit = {
+					holder_scope = {
+						character = defender
+					}
+				}
+
+				usurp_title_plus_barony_if_unlanded = {
+					target = attacker
+					type = holy_war
+				}
+				
+				add_law = succ_primogeniture
 			}
 		}
 
@@ -1475,11 +1552,16 @@ childrens_crusade = {
 				}
 
 				if = {
-					limit = { this_has_super_cool_nickname_trigger = no }
+					limit = { can_apply_super_cool_nickname_trigger = yes }
 
 					random_list = {
-						20 = { give_nickname = nick_the_angel_of_location }
-						15 = { give_nickname = nick_the_chosen_of_gabriel }
+						20 = {
+							give_nickname = nick_the_angel_of_location
+						}
+						
+						15 = {
+							give_nickname = nick_the_chosen_of_gabriel
+						}
 
 						15 = {
 							trigger = { is_female = no }
@@ -1491,8 +1573,23 @@ childrens_crusade = {
 							give_nickname = nick_the_maid_of_virgin
 						}
 
-						15 = { give_nickname = nick_the_messenger_of_christ }
-						5 = { give_nickname = nick_the_sword_of_god }
+						15 = {
+							give_nickname = nick_the_messenger_of_christ
+						}
+						
+						5 = {
+							trigger = {
+								can_apply_cool_nickname_trigger = yes
+							}
+							give_nickname = nick_the_sword_of_god
+						}
+						
+						100 = {
+							trigger = {
+								has_nickname = yes
+							}
+							# Nothing
+						}
 					}
 				}
 			}
@@ -1540,6 +1637,96 @@ childrens_crusade = {
 			religion_authority = {
 				name = lost_crusade
 				years = 20
+			}
+		}
+		
+		hidden_effect = {
+			if = {
+				limit = {
+					event_target:childrens_crusade_home_title = {
+						holder_scope = {
+							religion = attacker
+						}
+					}
+				}
+				
+				event_target:childrens_crusade_home_title = {
+					trigger_switch = {
+						on_trigger = has_law
+						
+						agnatic_succession = {
+							attacker = {
+								primary_title = {
+									add_law = {
+										law = agnatic_succession
+										cooldown = no
+										opinion_effect = no
+									}
+								}
+							}
+						}
+						
+						cognatic_succession = {
+							attacker = {
+								primary_title = {
+									add_law = {
+										law = cognatic_succession
+										cooldown = no
+										opinion_effect = no
+									}
+								}
+							}
+						}
+						
+						true_cognatic_succession = {
+							attacker = {
+								primary_title = {
+									add_law = {
+										law = true_cognatic_succession
+										cooldown = no
+										opinion_effect = no
+									}
+								}
+							}
+						}
+						
+						enatic_cognatic_succession = {
+							attacker = {
+								primary_title = {
+									add_law = {
+										law = enatic_cognatic_succession
+										cooldown = no
+										opinion_effect = no
+									}
+								}
+							}
+						}
+						
+						enatic_succession = {
+							attacker = {
+								primary_title = {
+									add_law = {
+										law = enatic_succession
+										cooldown = no
+										opinion_effect = no
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			else = {
+				attacker = {
+					primary_title = {
+						add_law = {
+							law = cognatic_succession
+							cooldown = no
+							opinion_effect = no
+						}
+					}
+				}
 			}
 		}
 	}
@@ -1725,6 +1912,8 @@ pepin_religious = {
 			NOR = {
 				trait = treasure_fleet_preparation
 				trait = treasure_fleet_voyage
+				trait = penglai_expedition_preparation
+				trait = on_penglai_expedition
 			}
 			
 			NOT = {
@@ -2440,6 +2629,8 @@ depose_impious_pope = {
 			NOR = {
 				trait = treasure_fleet_preparation
 				trait = treasure_fleet_voyage
+				trait = penglai_expedition_preparation
+				trait = on_penglai_expedition
 			}
 		}
 

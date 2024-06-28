@@ -959,32 +959,32 @@ character_event = { # Reapply modifier on succession
 			has_minor_title = title_administrator
 		}
 
-		NOR = {
-			has_character_modifier = employing_jd_administrator_golden_age
+		NOT = {
+			#has_character_modifier = employing_jd_administrator_golden_age
 			has_character_modifier = employing_jd_administrator
 		}
 	}
 
 	immediate = {
-		if = {
-			limit = {
-				any_courtier_or_vassal = {
-					has_minor_title = title_administrator
-					has_character_flag = jd_administrator_golden_age
-				}
-			}
-
-			add_character_modifier = {
-				name = employing_jd_administrator_golden_age
-				duration = -1
-			}
-		}
-		else = {
+		#if = {
+		#	limit = {
+		#		any_courtier_or_vassal = {
+		#			has_minor_title = title_administrator
+		#			has_character_flag = jd_administrator_golden_age
+		#		}
+		#	}
+		#
+		#	add_character_modifier = {
+		#		name = employing_jd_administrator_golden_age
+		#		duration = -1
+		#	}
+		#}
+		#else = {
 			add_character_modifier = {
 				name = employing_jd_administrator
 				duration = -1
 			}
-		}
+		#}
 	}
 }
 #
@@ -1315,20 +1315,89 @@ character_event = {
 
 	immediate = {
 		# Renews the event
-		if = {
-			limit = { has_character_flag = china_master_engineer_golden_age }
-			character_event = { id = JD.20033 years = 4 random = 542 }
-		}
-		else = {
+		#if = {
+		#	limit = { has_character_flag = china_master_engineer_golden_age }
+		#	character_event = { id = JD.20033 years = 4 random = 542 }
+		#}
+		#else = {
 			character_event = { id = JD.20033 years = 8 random = 1095 }
-		}
+		#}
+		
+		if = {
+			limit = {
+				is_inaccessible_or_incapable_trigger = no
+			}
+			
+			# Building
+			liege = {
+				# Saves 3 provinces which are candidates for getting built in
+				capital_scope = {
+					if = {
+						limit = {
+							owned_by = PREV
+							any_province_holding = {
+								OR = {
+									holding_type = castle
+									holding_type = city
+								}
+							}
+							NAND = {
+								has_province_modifier = jd_paper_mill
+								has_province_modifier = jd_fireworks_guild
+								has_province_modifier = jd_administrative_outpost
+								has_province_modifier = jd_blast_furnace
 
-		# Building
-		liege = {
-			# Saves 3 provinces which are candidates for getting built in
-			capital_scope = {
-				if = {
+								trigger_if = {
+									limit = { is_coastal = yes }
+									has_province_modifier = jd_dry_docks
+								}
+							}
+						}
+
+						save_event_target_as = jd_me_capital
+					}
+				}
+				random_demesne_province = {
 					limit = {
+						is_capital = no
+						owned_by = PREV
+						any_province_holding = {
+							OR = {
+								holding_type = castle
+								holding_type = city
+							}
+						}
+
+						NOR = {
+							has_province_modifier = jd_paper_mill
+							has_province_modifier = jd_fireworks_guild
+							has_province_modifier = jd_administrative_outpost
+							has_province_modifier = jd_blast_furnace
+							has_province_modifier = jd_dry_docks
+						}
+					}
+
+					save_event_target_as = jd_empty_province
+				}
+				random_demesne_province = {
+					limit = {
+						is_capital = no
+						owned_by = PREV
+						any_province_holding = {
+							OR = {
+								holding_type = castle
+								holding_type = city
+							}
+						}
+
+						OR = {
+							has_province_modifier = jd_paper_mill
+							has_province_modifier = jd_fireworks_guild
+							has_province_modifier = jd_administrative_outpost
+							has_province_modifier = jd_blast_furnace
+							has_province_modifier = jd_dry_docks
+						}
+
 						NAND = {
 							has_province_modifier = jd_paper_mill
 							has_province_modifier = jd_fireworks_guild
@@ -1342,119 +1411,85 @@ character_event = {
 						}
 					}
 
-					save_event_target_as = jd_me_capital
+					save_event_target_as = jd_built_province
 				}
 			}
-			random_demesne_province = {
-				limit = {
-					is_capital = no
-					owned_by = PREV
+			# Decide which place to build in
+			random_list = {
+				35 = { # Build in capital
+					trigger = { event_target:jd_me_capital = { always = yes } }
 
-					NOR = {
-						has_province_modifier = jd_paper_mill
-						has_province_modifier = jd_fireworks_guild
-						has_province_modifier = jd_administrative_outpost
-						has_province_modifier = jd_blast_furnace
-						has_province_modifier = jd_dry_docks
-					}
+					mult_modifier = { NOT = { event_target:jd_me_capital = { has_province_modifier = jd_paper_mill } } factor = 1.1 }
+					mult_modifier = { NOT = { event_target:jd_me_capital = { has_province_modifier = jd_fireworks_guild } } factor = 1.1 }
+					mult_modifier = { NOT = { event_target:jd_me_capital = { has_province_modifier = jd_dry_docks } } factor = 1.1 }
+					mult_modifier = { NOT = { event_target:jd_me_capital = { has_province_modifier = jd_administrative_outpost } } factor = 1.1 }
+					mult_modifier = { NOT = { event_target:jd_me_capital = { has_province_modifier = jd_blast_furnace } } factor = 1.1 }
+
+					event_target:jd_me_capital = { save_event_target_as = jd_build_province }
 				}
 
-				save_event_target_as = jd_empty_province
-			}
-			random_demesne_province = {
-				limit = {
-					is_capital = no
-					owned_by = PREV
+				40 = { # Build in empty province
+					trigger = { event_target:jd_empty_province = { always = yes } }
 
-					OR = {
-						has_province_modifier = jd_paper_mill
-						has_province_modifier = jd_fireworks_guild
-						has_province_modifier = jd_administrative_outpost
-						has_province_modifier = jd_blast_furnace
-						has_province_modifier = jd_dry_docks
-					}
+					mult_modifier = { NOT = { event_target:jd_built_province = { always = yes } } factor = 1.6 }
 
-					NAND = {
-						has_province_modifier = jd_paper_mill
-						has_province_modifier = jd_fireworks_guild
-						has_province_modifier = jd_administrative_outpost
-						has_province_modifier = jd_blast_furnace
+					event_target:jd_empty_province = { save_event_target_as = jd_build_province }
+				}
 
-						trigger_if = {
-							limit = { is_coastal = yes }
-							has_province_modifier = jd_dry_docks
+				25 = { # Build in a province which already has some stuff
+					trigger = { event_target:jd_built_province = { always = yes } }
+
+					mult_modifier = { NOT = { event_target:jd_built_province = { has_province_modifier = jd_paper_mill } } factor = 1.1 }
+					mult_modifier = { NOT = { event_target:jd_built_province = { has_province_modifier = jd_fireworks_guild } } factor = 1.1 }
+					mult_modifier = { NOT = { event_target:jd_built_province = { has_province_modifier = jd_dry_docks } } factor = 1.1 }
+					mult_modifier = { NOT = { event_target:jd_built_province = { has_province_modifier = jd_administrative_outpost } } factor = 1.1 }
+					mult_modifier = { NOT = { event_target:jd_built_province = { has_province_modifier = jd_blast_furnace } } factor = 1.1 }
+					mult_modifier = { NOT = { event_target:jd_empty_province = { always = yes } } factor = 2.6 }
+
+					event_target:jd_built_province = { save_event_target_as = jd_build_province }
+				}
+				1 = {
+					trigger = {
+						NOR = {
+							event_target:jd_me_capital = { always = yes }
+							event_target:jd_empty_province = { always = yes }
+							event_target:jd_built_province = { always = yes }
 						}
 					}
+					# Nothing; fallback
 				}
-
-				save_event_target_as = jd_built_province
-			}
-		}
-		# Decide which place to build in
-		random_list = {
-			35 = { # Build in capital
-				trigger = { event_target:jd_me_capital = { always = yes } }
-
-				mult_modifier = { NOT = { event_target:jd_me_capital = { has_province_modifier = jd_paper_mill } } factor = 1.1 }
-				mult_modifier = { NOT = { event_target:jd_me_capital = { has_province_modifier = jd_fireworks_guild } } factor = 1.1 }
-				mult_modifier = { NOT = { event_target:jd_me_capital = { has_province_modifier = jd_dry_docks } } factor = 1.1 }
-				mult_modifier = { NOT = { event_target:jd_me_capital = { has_province_modifier = jd_administrative_outpost } } factor = 1.1 }
-				mult_modifier = { NOT = { event_target:jd_me_capital = { has_province_modifier = jd_blast_furnace } } factor = 1.1 }
-
-				event_target:jd_me_capital = { save_event_target_as = jd_build_province }
 			}
 
-			40 = { # Build in empty province
-				trigger = { event_target:jd_empty_province = { always = yes } }
-
-				mult_modifier = { NOT = { event_target:jd_built_province = { always = yes } } factor = 1.6 }
-
-				event_target:jd_empty_province = { save_event_target_as = jd_build_province }
-			}
-
-			25 = { # Build in a province which already has some stuff
-				trigger = { event_target:jd_built_province = { always = yes } }
-
-				mult_modifier = { NOT = { event_target:jd_built_province = { has_province_modifier = jd_paper_mill } } factor = 1.1 }
-				mult_modifier = { NOT = { event_target:jd_built_province = { has_province_modifier = jd_fireworks_guild } } factor = 1.1 }
-				mult_modifier = { NOT = { event_target:jd_built_province = { has_province_modifier = jd_dry_docks } } factor = 1.1 }
-				mult_modifier = { NOT = { event_target:jd_built_province = { has_province_modifier = jd_administrative_outpost } } factor = 1.1 }
-				mult_modifier = { NOT = { event_target:jd_built_province = { has_province_modifier = jd_blast_furnace } } factor = 1.1 }
-				mult_modifier = { NOT = { event_target:jd_empty_province = { always = yes } } factor = 2.6 }
-
-				event_target:jd_built_province = { save_event_target_as = jd_build_province }
-			}
-		}
-
-		event_target:jd_build_province = {
-			random_list = {
-				20 = {
-					trigger = { NOT = { has_province_modifier = jd_paper_mill } }
-					owner = { character_event = { id = JD.20034 } }
-				}
-
-				20 = {
-					trigger = { NOT = { has_province_modifier = jd_fireworks_guild } }
-					owner = { character_event = { id = JD.20035 } }
-				}
-
-				20 = {
-					trigger = {
-						NOT = { has_province_modifier = jd_dry_docks }
-						is_coastal = yes
+			event_target:jd_build_province = {
+				random_list = {
+					20 = {
+						trigger = { NOT = { has_province_modifier = jd_paper_mill } }
+						owner = { character_event = { id = JD.20034 } }
 					}
 
-					owner = { character_event = { id = JD.20036 } }
-				}
+					20 = {
+						trigger = { NOT = { has_province_modifier = jd_fireworks_guild } }
+						owner = { character_event = { id = JD.20035 } }
+					}
 
-				20 = {
-					trigger = { NOT = { has_province_modifier = jd_administrative_outpost } }
-					owner = { character_event = { id = JD.20037 } }
-				}
+					20 = {
+						trigger = {
+							NOT = { has_province_modifier = jd_dry_docks }
+							is_coastal = yes
+						}
 
-				20 = {
-					trigger = { NOT = { has_province_modifier = jd_blast_furnace } }
-					owner = { character_event = { id = JD.20038 } }
+						owner = { character_event = { id = JD.20036 } }
+					}
+
+					20 = {
+						trigger = { NOT = { has_province_modifier = jd_administrative_outpost } }
+						owner = { character_event = { id = JD.20037 } }
+					}
+
+					20 = {
+						trigger = { NOT = { has_province_modifier = jd_blast_furnace } }
+						owner = { character_event = { id = JD.20038 } }
+					}
 				}
 			}
 		}

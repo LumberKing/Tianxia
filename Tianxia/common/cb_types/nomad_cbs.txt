@@ -328,6 +328,8 @@ cb_liberate_nomad_duchy = {
 			NOR = {
 				trait = treasure_fleet_preparation
 				trait = treasure_fleet_voyage
+				trait = penglai_expedition_preparation
+				trait = on_penglai_expedition
 				trait = in_mourning
 			}
 		}
@@ -600,6 +602,17 @@ cb_liberate_nomad_duchy = {
 							holding_type = castle
 							holding_type = city
 						}
+						holder_scope = {
+							OR = {
+								character = ROOT
+								any_liege = {
+									OR = {
+										character = ROOT
+										character = FROM
+									}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -610,6 +623,17 @@ cb_liberate_nomad_duchy = {
 							holding_type = castle
 							holding_type = city
 							holding_type = tribal
+						}
+						holder_scope = {
+							OR = {
+								character = ROOT
+								any_liege = {
+									OR = {
+										character = ROOT
+										character = FROM
+									}
+								}
+							}
 						}
 					}
 				}
@@ -963,6 +987,22 @@ nomad_subjugation = {
 				}
 			}
 		}
+		
+		FROM = {
+			any_realm_province = {
+				location = {
+					any_neighbor_province = {
+						has_owner = yes
+						owner = {
+							OR = {
+								character = ROOT
+								is_liege_or_above = ROOT
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	on_add = {
@@ -1002,15 +1042,22 @@ nomad_subjugation = {
 
 			hidden_effect = {
 				if = {
-					limit = { has_nickname = no }
+					limit = {
+						can_apply_cool_nickname_trigger = yes
+					}
 
 					# Set event targets for dynamic nicknames
 					save_event_target_as = nickname_receiver
 					defender = { save_event_target_as = nickname_target }
 
 					random_list = {
-						2 = { give_nickname = nick_the_eastern_wind }
-						5 = { give_nickname = nick_the_despoiler }
+						2 = {
+							give_nickname = nick_the_eastern_wind
+						}
+						
+						5 = {
+							give_nickname = nick_the_despoiler
+						}
 
 						5 = {
 							give_nickname = nick_the_bane_of_realmname
@@ -1027,14 +1074,20 @@ nomad_subjugation = {
 							give_nickname = nick_the_culture_marauder
 
 							trigger = {
+								can_apply_lame_nickname_trigger = yes
 								event_target:nickname_target = {
 									is_nomadic = no
 									NOT = { culture = ROOT }
 								}
 							}
 						}
-
-						100 = { }
+						
+						100 = {
+							trigger = {
+								has_nickname = yes
+							}
+							# Nothing
+						}
 					}
 				}
 			}
@@ -1385,6 +1438,39 @@ nomad_invasion = {
 		}
 	}
 	
+	can_use_title = {
+		# Only neighbors (and special exceptiosn, i.e. event invasions)
+		OR = {
+			ROOT = {
+				has_character_flag = tribal_invasion_exception
+			}
+			any_direct_de_jure_vassal_title = {
+				any_direct_de_jure_vassal_title = {
+					OR = {
+						holder_scope = {
+							OR = {
+								character = ROOT
+								is_liege_or_above = ROOT
+							}
+						}
+						
+						location = {
+							any_neighbor_province = {
+								has_owner = yes
+								owner = {
+									OR = {
+										character = ROOT
+										is_liege_or_above = ROOT
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	is_valid = {
 		ROOT = {
 			trigger_if = {
@@ -1432,26 +1518,68 @@ nomad_invasion = {
 		attacker = {
 			hidden_effect = {
 				if = {
-					limit = { has_nickname = no }
+					limit = {
+						can_apply_cool_nickname_trigger = yes
+					}
 
 					# Set event targets for dynamic nicknames
 					save_event_target_as = nickname_receiver
 					defender = { save_event_target_as = nickname_target }
 
 					random_list = {
-						5 = { give_nickname = nick_the_great }
-						5 = { give_nickname = nick_the_victorious }
-						5 = { give_nickname = nick_the_conqueror }
-						5 = { give_nickname = nick_the_brave }
-						10 = { give_nickname = nick_the_dragon }
-						10 = { give_nickname = nick_the_terrible }
-						10 = { give_nickname = nick_the_eastern_wind }
-						25 = { give_nickname = nick_the_despoiler }
+						5 = {
+							trigger = {
+								can_apply_average_nickname_trigger = yes
+							}
+							give_nickname = nick_the_great
+						}
+						5 = {
+							trigger = {
+								can_apply_average_nickname_trigger = yes
+							}
+							give_nickname = nick_the_victorious
+						}
+						5 = {
+							trigger = {
+								can_apply_average_nickname_trigger = yes
+							}give_nickname = nick_the_conqueror
+						}
+						5 = {
+							trigger = {
+								can_apply_lame_nickname_trigger = yes
+							}
+							give_nickname = nick_the_brave
+						}
+						10 = {
+							if = {
+								limit = {
+									is_female = no
+								}
+								give_nickname = nick_the_dragon
+							}
+							
+							else = {
+								give_nickname = nick_the_dragoness
+							}
+						}
+						10 = {
+							trigger = {
+								can_apply_lame_nickname_trigger = yes
+							}
+							give_nickname = nick_the_terrible
+						}
+						10 = {
+							give_nickname = nick_the_eastern_wind
+						}
+						25 = {
+							give_nickname = nick_the_despoiler
+						}
 
 						25 = {
 							give_nickname = nick_the_culture_marauder
 
 							trigger = {
+								can_apply_lame_nickname_trigger = yes
 								event_target:nickname_target = {
 									is_nomadic = no
 									NOT = { culture = attacker }
@@ -1474,6 +1602,7 @@ nomad_invasion = {
 							give_nickname = nick_the_slayer_of_culture
 
 							trigger = {
+								can_apply_average_nickname_trigger = yes
 								event_target:nickname_target = {
 									NOT = { culture = attacker }
 								}
@@ -1489,6 +1618,13 @@ nomad_invasion = {
 									NOT = { religion = attacker }
 								}
 							}
+						}
+						
+						100 = {
+							trigger = {
+								has_nickname = yes
+							}
+							# Nothing
 						}
 					}
 				}
@@ -1570,12 +1706,29 @@ nomad_invasion = {
 
 			hidden_effect = {
 				if = {
-					limit = { has_nickname = no }
+					limit = {
+						can_apply_cool_nickname_trigger = yes
+					}
 
 					random_list = {
-						10 = { give_nickname = nick_the_great }
-						10 = { give_nickname = nick_the_hammer }
-						10 = { give_nickname = nick_the_avenger }
+						10 = {
+							trigger = {
+								can_apply_average_nickname_trigger = yes
+							}
+							give_nickname = nick_the_great
+						}
+						10 = {
+							trigger = {
+								can_apply_average_nickname_trigger = yes
+							}
+							give_nickname = nick_the_hammer
+						}
+						10 = {
+							trigger = {
+								can_apply_average_nickname_trigger = yes
+							}
+							give_nickname = nick_the_avenger
+						}
 						10 = {
 							if = {
 								limit = {
@@ -1587,7 +1740,19 @@ nomad_invasion = {
 								give_nickname = nick_the_lioness
 							}
 						}
-						10 = { give_nickname = nick_the_bold }
+						10 = {
+							trigger = {
+								can_apply_average_nickname_trigger = yes
+							}
+							give_nickname = nick_the_bold
+						}
+						
+						100 = {
+							trigger = {
+								has_nickname = yes
+							}
+							# Nothing
+						}
 					}
 				}
 			}
@@ -1638,12 +1803,29 @@ nomad_invasion = {
 
 			hidden_effect = {
 				if = {
-					limit = { has_nickname = no }
+					limit = {
+						can_apply_cool_nickname_trigger = yes
+					}
 
 					random_list = {
-						10 = { give_nickname = nick_the_great }
-						10 = { give_nickname = nick_the_hammer }
-						10 = { give_nickname = nick_the_avenger }
+						10 = {
+							trigger = {
+								can_apply_average_nickname_trigger = yes
+							}
+							give_nickname = nick_the_great
+						}
+						10 = {
+							trigger = {
+								can_apply_average_nickname_trigger = yes
+							}
+							give_nickname = nick_the_hammer
+						}
+						10 = {
+							trigger = {
+								can_apply_average_nickname_trigger = yes
+							}
+							give_nickname = nick_the_avenger
+						}
 						10 = {
 							if = {
 								limit = {
@@ -1655,7 +1837,19 @@ nomad_invasion = {
 								give_nickname = nick_the_lioness
 							}
 						}
-						10 = { give_nickname = nick_the_bold }
+						10 = {
+							trigger = {
+								can_apply_average_nickname_trigger = yes
+							}
+							give_nickname = nick_the_bold
+						}
+						
+						100 = {
+							trigger = {
+								has_nickname = yes
+							}
+							# Nothing
+						}
 					}
 				}
 			}
@@ -2032,20 +2226,28 @@ nomad_expansion = {
 		attacker = {
 			hidden_effect = {
 				if = {
-					limit = { has_nickname = no }
+					limit = {
+						can_apply_cool_nickname_trigger = yes
+					}
 
 					# Set event targets for dynamic nicknames
 					save_event_target_as = nickname_receiver
 					defender = { save_event_target_as = nickname_target }
 
 					random_list = {
-						5 = { give_nickname = nick_the_eastern_wind }
-						5 = { give_nickname = nick_the_despoiler }
+						5 = {
+							give_nickname = nick_the_eastern_wind
+						}
+						
+						5 = {
+							give_nickname = nick_the_despoiler
+						}
 
 						5 = {
 							give_nickname = nick_the_culture_marauder
 
 							trigger = {
+								can_apply_lame_nickname_trigger = yes
 								event_target:nickname_target = {
 									is_nomadic = no
 									NOT = { culture = attacker }
@@ -2068,6 +2270,7 @@ nomad_expansion = {
 							give_nickname = nick_the_slayer_of_culture
 
 							trigger = {
+								can_apply_average_nickname_trigger = yes
 								event_target:nickname_target = {
 									NOT = { culture = attacker }
 								}
@@ -2083,8 +2286,13 @@ nomad_expansion = {
 								}
 							}
 						}
-
-						100 = { }
+						
+						100 = {
+							trigger = {
+								has_nickname = yes
+							}
+							# Nothing
+						}
 					}
 				}
 
