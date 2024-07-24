@@ -761,7 +761,7 @@ character_event = {
 			
 			set_character_flag = preserve_ma_chu
 			
-			character_event = { id = tianxia.1409 }
+			character_event = { id = tianxia.1409 days = 2 }
 		}
 	}
 }
@@ -779,5 +779,2137 @@ character_event = {
 	
 	immediate = {
 		clr_character_flag = preserve_ma_chu
+	}
+}
+
+##### Factions against "elective" titles
+
+# on_yearly_pulse for the AI to consider backing a claimant
+character_event = {
+	id = tianxia.1410
+	hide_window = yes
+	
+	is_triggered_only = yes # on_yearly_pulse
+	
+	only_playable = yes
+	min_age = 16
+	prisoner = no
+	only_capable = yes
+	
+	trigger = {
+		ai = yes
+		independent = no
+		holy_order = no
+		in_seclusion = no
+		NOT = {
+			trait = in_hiding
+		}
+		NOT = {
+			in_faction = faction_claimant
+		}
+		
+		liege = {
+			is_vice_royalty = no
+
+			OR = {
+				is_feudal = yes
+				is_tribal = yes
+				is_nomadic = yes
+			}
+			
+			trigger_if = {
+				limit = {
+					has_landed_title = e_mongol_empire
+					culture = mongol
+				}
+				
+				NAND = {
+					OR = {
+						AND = {
+							religion = ROOT
+							culture = ROOT
+						}
+						dynasty = ROOT
+					}
+					year < 1350
+				}
+			}
+			
+			trigger_else_if = {
+				limit = {
+					has_landed_title = e_aztec_empire
+					culture = nahua
+				}
+				
+				NAND = {
+					religion = ROOT
+					culture = ROOT
+					year < 1350
+				}
+			}
+			
+			trigger_else_if = {
+				limit = {
+					has_landed_title = e_inca_empire
+					culture = quechua
+				}
+				
+				NAND = {
+					religion = ROOT
+					culture = ROOT
+					year < 1350
+				}
+			}
+
+			NOT = {
+				any_demesne_title = {
+					temporary = yes
+				}
+			}
+			
+			any_demesne_title = {
+				OR = {
+					holder_scope = {
+						real_tier = ROOT
+					}
+					tier = king
+				}
+				NOT = {
+					title = k_chrysanthemum_throne
+				}
+					
+				trigger_if = {
+					limit = {
+						holder_scope = {
+							government = chinese_imperial_government
+						}
+					}
+					
+					OR = {
+						claimed_by = ROOT
+						holder_scope = {
+							OR = {
+								has_character_modifier = mandate_of_heaven_2
+								has_character_modifier = mandate_of_heaven_1
+							}
+						}
+						any_claimant = {
+							PREV = {
+								holder_scope = {
+									dynasty = PREVPREV
+								}
+							}
+						}
+					}
+				}
+				
+				OR = {
+					AND = {
+						holder_scope = {
+							NOT = {
+								de_jure_vassal_or_below = ROOT
+							}
+						}
+						is_primary_holder_title = yes
+					}
+					AND = {
+						is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+						de_jure_vassal_or_below = ROOT
+					}
+					claimed_by = ROOT
+				}
+		
+				trigger_if = {
+					limit = {
+						ROOT = {
+							OR = {
+								religion = catholic
+								religion = fraticelli
+							}
+
+							top_liege = {
+								is_liege_of = ROOT
+								religion = ROOT
+
+								# Has an antipope
+								rightful_religious_head_scope = {
+									is_antipope = yes
+								}
+							}
+						}
+					}
+					
+					holder_scope = {
+						NOT = {
+							faction_exists = {
+								faction = faction_antiking
+								title = PREV
+							}
+						}
+					}
+				}
+				
+				trigger_if = {
+					limit = {
+						NOR = {
+							has_law = succ_feudal_elective
+							has_law = succ_hre_elective
+							has_law = succ_byzantine_elective
+							has_law = succ_elective_gavelkind
+							has_law = succ_eldership
+							has_law = succ_tanistry
+							has_law = succ_tenno
+							has_law = succ_ryukyuan_tenno
+							has_law = succ_chinese_imperial_succession
+							#has_law = succ_ma_chu # Can't easily be disinherited here...
+						}
+					}
+					NOT = {
+						current_heir = {
+							character = ROOT
+						}
+					}
+				}
+				
+				any_claimant = {
+					is_valid_claimant_prev_no_leader_trigger = yes
+				}
+			}
+		}
+		
+		trigger_if = {
+			limit = {
+				liege = {
+					OR = {
+						is_the_tenno_trigger = yes
+						is_ryukyuan_tenno_trigger = yes
+					}
+				}
+				could_have_japanese_government_trigger = yes
+			}
+			
+			OR = {
+				is_the_tenno_trigger = yes
+				is_ryukyuan_tenno_trigger = yes
+			}
+		}
+		
+		trigger_if = {
+			limit = { has_dlc = "Conclave" }
+
+			OR = {
+				is_voter = no
+				is_nomadic = yes
+				is_tribal = yes
+
+				liege = {
+					OR = {
+						is_council_content = no
+						NOT = { has_law = war_voting_power_1 }
+						in_seclusion = yes
+						
+						has_character_modifier = mandate_of_heaven_2
+						has_character_modifier = mandate_of_heaven_1
+						
+						AND = {
+							has_religion_feature = religion_feature_ryukyuan_three_mountains
+							ROOT = {
+								has_religion_feature = religion_feature_ryukyuan_three_mountains
+							}
+						}
+						
+						AND = {
+							has_law = grand_chancellor_law_2
+							ROOT = {
+								has_minor_title = title_grand_chancellor
+							}
+						}
+					}
+				}
+			}
+		}
+			
+		trigger_else_if = {
+			limit = {
+				# If affected by a Crown Law title not held by my liege
+				crownlaw_title = {
+					holder_scope = {
+						NOT = { is_liege_of = ROOT }
+					}
+				}
+			}
+
+			crownlaw_title = {
+				# The Crown Law title allows vassal infighting
+				NOR = {
+					has_law = crown_authority_2
+					has_law = crown_authority_3
+					has_law = crown_authority_4
+				}
+			}
+		}
+		
+		trigger_if = {
+			limit = {
+				has_game_rule = {
+					name = non_aggression_pacts_block_factions
+					value = on
+				}
+			}
+			
+			liege = {
+				NOT = {
+					has_non_aggression_pact_with = ROOT
+				}
+			}
+		}
+		
+		preparing_invasion = no
+		NOT = { is_married = liege }
+		opinion = {
+			who = LIEGE
+			value < 25
+		}
+	}
+	
+	immediate = {
+		save_event_target_as = potential_faction_leader
+		
+		set_variable = {
+			which = claimant_score
+			value = 0
+		}
+		
+		if = {
+			limit = {
+				liege = {
+					any_demesne_title = {
+						OR = {
+							holder_scope = {
+								real_tier = ROOT
+							}
+							tier = king
+						}
+						NOT = {
+							title = k_chrysanthemum_throne
+						}
+							
+						trigger_if = {
+							limit = {
+								holder_scope = {
+									government = chinese_imperial_government
+								}
+							}
+							
+							OR = {
+								claimed_by = ROOT
+								holder_scope = {
+									OR = {
+										has_character_modifier = mandate_of_heaven_2
+										has_character_modifier = mandate_of_heaven_1
+									}
+								}
+								any_claimant = {
+									PREV = {
+										holder_scope = {
+											dynasty = PREVPREV
+										}
+									}
+								}
+							}
+						}
+						
+						OR = {
+							AND = {
+								holder_scope = {
+									NOT = {
+										de_jure_vassal_or_below = ROOT
+									}
+								}
+								is_primary_holder_title = yes
+							}
+							AND = {
+								is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+								de_jure_vassal_or_below = ROOT
+							}
+							claimed_by = ROOT
+						}
+						
+						trigger_if = {
+							limit = {
+								ROOT = {
+									OR = {
+										religion = catholic
+										religion = fraticelli
+									}
+
+									top_liege = {
+										is_liege_of = ROOT
+										religion = ROOT
+
+										# Has an antipope
+										rightful_religious_head_scope = {
+											is_antipope = yes
+										}
+									}
+								}
+							}
+							
+							holder_scope = {
+								NOT = {
+									faction_exists = {
+										faction = faction_antiking
+										title = PREV
+									}
+								}
+							}
+						}
+						
+						trigger_if = {
+							limit = {
+								NOR = {
+									has_law = succ_feudal_elective
+									has_law = succ_hre_elective
+									has_law = succ_byzantine_elective
+									has_law = succ_elective_gavelkind
+									has_law = succ_eldership
+									has_law = succ_tanistry
+									has_law = succ_tenno
+									has_law = succ_ryukyuan_tenno
+									has_law = succ_chinese_imperial_succession
+									#has_law = succ_ma_chu # Can't easily be disinherited here...
+								}
+							}
+							NOT = {
+								current_heir = {
+									character = ROOT
+								}
+							}
+						}
+						
+						claimed_by = ROOT
+						ROOT = {
+							is_valid_claimant_prev_trigger = yes
+						}
+					}
+				}
+			}
+			
+			# ROOT is a claimant, and should thus not back someone else
+			if = {
+				limit = {
+					liege = {
+						any_demesne_title = { # TODO: Simplify
+							tier = emperor
+							trigger_if = {
+								limit = {
+									holder_scope = {
+										government = chinese_imperial_government
+									}
+								}
+								
+								OR = {
+									claimed_by = ROOT
+									holder_scope = {
+										OR = {
+											has_character_modifier = mandate_of_heaven_2
+											has_character_modifier = mandate_of_heaven_1
+										}
+									}
+									any_claimant = {
+										PREV = {
+											holder_scope = {
+												dynasty = PREVPREV
+											}
+										}
+									}
+								}
+							}
+							
+							OR = {
+								AND = {
+									holder_scope = {
+										NOT = {
+											de_jure_vassal_or_below = ROOT
+										}
+									}
+									is_primary_holder_title = yes
+								}
+								AND = {
+									is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+									de_jure_vassal_or_below = ROOT
+								}
+								claimed_by = ROOT
+							}
+							
+							trigger_if = {
+								limit = {
+									ROOT = {
+										OR = {
+											religion = catholic
+											religion = fraticelli
+										}
+
+										top_liege = {
+											is_liege_of = ROOT
+											religion = ROOT
+
+											# Has an antipope
+											rightful_religious_head_scope = {
+												is_antipope = yes
+											}
+										}
+									}
+								}
+								
+								holder_scope = {
+									NOT = {
+										faction_exists = {
+											faction = faction_antiking
+											title = PREV
+										}
+									}
+								}
+							}
+							
+							trigger_if = {
+								limit = {
+									NOR = {
+										has_law = succ_feudal_elective
+										has_law = succ_hre_elective
+										has_law = succ_byzantine_elective
+										has_law = succ_elective_gavelkind
+										has_law = succ_eldership
+										has_law = succ_tanistry
+										has_law = succ_tenno
+										has_law = succ_ryukyuan_tenno
+										has_law = succ_chinese_imperial_succession
+										#has_law = succ_ma_chu # Can't easily be disinherited here...
+									}
+								}
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+							
+							claimed_by = ROOT
+							ROOT = {
+								is_valid_claimant_prev_trigger = yes
+							}
+						}
+					}
+				}
+					
+				liege = {
+					random_demesne_title = { # TODO: Simplify
+						limit = {
+							tier = emperor
+							trigger_if = {
+								limit = {
+									holder_scope = {
+										government = chinese_imperial_government
+									}
+								}
+								
+								OR = {
+									claimed_by = ROOT
+									holder_scope = {
+										OR = {
+											has_character_modifier = mandate_of_heaven_2
+											has_character_modifier = mandate_of_heaven_1
+										}
+									}
+									any_claimant = {
+										PREV = {
+											holder_scope = {
+												dynasty = PREVPREV
+											}
+										}
+									}
+								}
+							}
+							
+							OR = {
+								AND = {
+									holder_scope = {
+										NOT = {
+											de_jure_vassal_or_below = ROOT
+										}
+									}
+									is_primary_holder_title = yes
+								}
+								AND = {
+									is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+									de_jure_vassal_or_below = ROOT
+								}
+								claimed_by = ROOT
+							}
+							
+							trigger_if = {
+								limit = {
+									ROOT = {
+										OR = {
+											religion = catholic
+											religion = fraticelli
+										}
+
+										top_liege = {
+											is_liege_of = ROOT
+											religion = ROOT
+
+											# Has an antipope
+											rightful_religious_head_scope = {
+												is_antipope = yes
+											}
+										}
+									}
+								}
+								
+								holder_scope = {
+									NOT = {
+										faction_exists = {
+											faction = faction_antiking
+											title = PREV
+										}
+									}
+								}
+							}
+							
+							trigger_if = {
+								limit = {
+									NOR = {
+										has_law = succ_feudal_elective
+										has_law = succ_hre_elective
+										has_law = succ_byzantine_elective
+										has_law = succ_elective_gavelkind
+										has_law = succ_eldership
+										has_law = succ_tanistry
+										has_law = succ_tenno
+										has_law = succ_ryukyuan_tenno
+										has_law = succ_chinese_imperial_succession
+										#has_law = succ_ma_chu # Can't easily be disinherited here...
+									}
+								}
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+							
+							claimed_by = ROOT
+							ROOT = {
+								is_valid_claimant_prev_trigger = yes
+							}
+						}
+						
+						preferred_limit = {
+							is_primary_holder_title = yes
+							de_jure_vassal_or_below = ROOT
+						}
+						
+						preferred_limit = {
+							de_jure_vassal_or_below = ROOT
+						}
+						
+						preferred_limit = {
+							is_primary_holder_title = yes
+						}
+						
+						save_event_target_as = claimed_title
+						
+						ROOT = {
+							liege = {
+								save_event_target_as = faction_target
+							}
+							
+							save_event_target_as = claimant
+							
+							score_claimant_for_title_effect = yes
+						}
+					}
+				}
+			}
+			
+			else_if = {
+				limit = {
+					liege = {
+						any_demesne_title = { # TODO: Simplify
+							tier = king
+							trigger_if = {
+								limit = {
+									holder_scope = {
+										government = chinese_imperial_government
+									}
+								}
+								
+								OR = {
+									claimed_by = ROOT
+									holder_scope = {
+										OR = {
+											has_character_modifier = mandate_of_heaven_2
+											has_character_modifier = mandate_of_heaven_1
+										}
+									}
+									any_claimant = {
+										PREV = {
+											holder_scope = {
+												dynasty = PREVPREV
+											}
+										}
+									}
+								}
+							}
+							
+							OR = {
+								AND = {
+									holder_scope = {
+										NOT = {
+											de_jure_vassal_or_below = ROOT
+										}
+									}
+									is_primary_holder_title = yes
+								}
+								AND = {
+									is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+									de_jure_vassal_or_below = ROOT
+								}
+								claimed_by = ROOT
+							}
+							
+							trigger_if = {
+								limit = {
+									ROOT = {
+										OR = {
+											religion = catholic
+											religion = fraticelli
+										}
+
+										top_liege = {
+											is_liege_of = ROOT
+											religion = ROOT
+
+											# Has an antipope
+											rightful_religious_head_scope = {
+												is_antipope = yes
+											}
+										}
+									}
+								}
+								
+								holder_scope = {
+									NOT = {
+										faction_exists = {
+											faction = faction_antiking
+											title = PREV
+										}
+									}
+								}
+							}
+							
+							trigger_if = {
+								limit = {
+									NOR = {
+										has_law = succ_feudal_elective
+										has_law = succ_hre_elective
+										has_law = succ_byzantine_elective
+										has_law = succ_elective_gavelkind
+										has_law = succ_eldership
+										has_law = succ_tanistry
+										has_law = succ_tenno
+										has_law = succ_ryukyuan_tenno
+										has_law = succ_chinese_imperial_succession
+										#has_law = succ_ma_chu # Can't easily be disinherited here...
+									}
+								}
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+							
+							claimed_by = ROOT
+							ROOT = {
+								is_valid_claimant_prev_trigger = yes
+							}
+						}
+					}
+				}
+					
+				liege = {
+					random_demesne_title = { # TODO: Simplify
+						limit = {
+							tier = king
+							trigger_if = {
+								limit = {
+									holder_scope = {
+										government = chinese_imperial_government
+									}
+								}
+								
+								OR = {
+									claimed_by = ROOT
+									holder_scope = {
+										OR = {
+											has_character_modifier = mandate_of_heaven_2
+											has_character_modifier = mandate_of_heaven_1
+										}
+									}
+									any_claimant = {
+										PREV = {
+											holder_scope = {
+												dynasty = PREVPREV
+											}
+										}
+									}
+								}
+							}
+							
+							OR = {
+								AND = {
+									holder_scope = {
+										NOT = {
+											de_jure_vassal_or_below = ROOT
+										}
+									}
+									is_primary_holder_title = yes
+								}
+								AND = {
+									is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+									de_jure_vassal_or_below = ROOT
+								}
+								claimed_by = ROOT
+							}
+							
+							trigger_if = {
+								limit = {
+									ROOT = {
+										OR = {
+											religion = catholic
+											religion = fraticelli
+										}
+
+										top_liege = {
+											is_liege_of = ROOT
+											religion = ROOT
+
+											# Has an antipope
+											rightful_religious_head_scope = {
+												is_antipope = yes
+											}
+										}
+									}
+								}
+								
+								holder_scope = {
+									NOT = {
+										faction_exists = {
+											faction = faction_antiking
+											title = PREV
+										}
+									}
+								}
+							}
+							
+							trigger_if = {
+								limit = {
+									NOR = {
+										has_law = succ_feudal_elective
+										has_law = succ_hre_elective
+										has_law = succ_byzantine_elective
+										has_law = succ_elective_gavelkind
+										has_law = succ_eldership
+										has_law = succ_tanistry
+										has_law = succ_tenno
+										has_law = succ_ryukyuan_tenno
+										has_law = succ_chinese_imperial_succession
+										#has_law = succ_ma_chu # Can't easily be disinherited here...
+									}
+								}
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+							
+							claimed_by = ROOT
+							ROOT = {
+								is_valid_claimant_prev_trigger = yes
+							}
+						}
+						
+						preferred_limit = {
+							is_primary_holder_title = yes
+							de_jure_vassal_or_below = ROOT
+						}
+						
+						preferred_limit = {
+							de_jure_vassal_or_below = ROOT
+						}
+						
+						preferred_limit = {
+							is_primary_holder_title = yes
+						}
+						
+						save_event_target_as = claimed_title
+						
+						ROOT = {
+							liege = {
+								save_event_target_as = faction_target
+							}
+							
+							save_event_target_as = claimant
+							
+							score_claimant_for_title_effect = yes
+						}
+					}
+				}
+			}
+			
+			else_if = {
+				limit = {
+					liege = {
+						tier = duke
+						any_demesne_title = { # TODO: Simplify
+							tier = duke
+							trigger_if = {
+								limit = {
+									holder_scope = {
+										government = chinese_imperial_government
+									}
+								}
+								
+								OR = {
+									claimed_by = ROOT
+									holder_scope = {
+										OR = {
+											has_character_modifier = mandate_of_heaven_2
+											has_character_modifier = mandate_of_heaven_1
+										}
+									}
+									any_claimant = {
+										PREV = {
+											holder_scope = {
+												dynasty = PREVPREV
+											}
+										}
+									}
+								}
+							}
+							
+							OR = {
+								AND = {
+									holder_scope = {
+										NOT = {
+											de_jure_vassal_or_below = ROOT
+										}
+									}
+									is_primary_holder_title = yes
+								}
+								AND = {
+									is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+									de_jure_vassal_or_below = ROOT
+								}
+								claimed_by = ROOT
+							}
+							
+							trigger_if = {
+								limit = {
+									ROOT = {
+										OR = {
+											religion = catholic
+											religion = fraticelli
+										}
+
+										top_liege = {
+											is_liege_of = ROOT
+											religion = ROOT
+
+											# Has an antipope
+											rightful_religious_head_scope = {
+												is_antipope = yes
+											}
+										}
+									}
+								}
+								
+								holder_scope = {
+									NOT = {
+										faction_exists = {
+											faction = faction_antiking
+											title = PREV
+										}
+									}
+								}
+							}
+							
+							trigger_if = {
+								limit = {
+									NOR = {
+										has_law = succ_feudal_elective
+										has_law = succ_hre_elective
+										has_law = succ_byzantine_elective
+										has_law = succ_elective_gavelkind
+										has_law = succ_eldership
+										has_law = succ_tanistry
+										has_law = succ_tenno
+										has_law = succ_ryukyuan_tenno
+										has_law = succ_chinese_imperial_succession
+										#has_law = succ_ma_chu # Can't easily be disinherited here...
+									}
+								}
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+							
+							claimed_by = ROOT
+							ROOT = {
+								is_valid_claimant_prev_trigger = yes
+							}
+						}
+					}
+				}
+					
+				liege = {
+					random_demesne_title = { # TODO: Simplify
+						limit = {
+							tier = duke
+							trigger_if = {
+								limit = {
+									holder_scope = {
+										government = chinese_imperial_government
+									}
+								}
+								
+								OR = {
+									claimed_by = ROOT
+									holder_scope = {
+										OR = {
+											has_character_modifier = mandate_of_heaven_2
+											has_character_modifier = mandate_of_heaven_1
+										}
+									}
+									any_claimant = {
+										PREV = {
+											holder_scope = {
+												dynasty = PREVPREV
+											}
+										}
+									}
+								}
+							}
+							
+							OR = {
+								AND = {
+									holder_scope = {
+										NOT = {
+											de_jure_vassal_or_below = ROOT
+										}
+									}
+									is_primary_holder_title = yes
+								}
+								AND = {
+									is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+									de_jure_vassal_or_below = ROOT
+								}
+								claimed_by = ROOT
+							}
+							
+							trigger_if = {
+								limit = {
+									ROOT = {
+										OR = {
+											religion = catholic
+											religion = fraticelli
+										}
+
+										top_liege = {
+											is_liege_of = ROOT
+											religion = ROOT
+
+											# Has an antipope
+											rightful_religious_head_scope = {
+												is_antipope = yes
+											}
+										}
+									}
+								}
+								
+								holder_scope = {
+									NOT = {
+										faction_exists = {
+											faction = faction_antiking
+											title = PREV
+										}
+									}
+								}
+							}
+							
+							trigger_if = {
+								limit = {
+									NOR = {
+										has_law = succ_feudal_elective
+										has_law = succ_hre_elective
+										has_law = succ_byzantine_elective
+										has_law = succ_elective_gavelkind
+										has_law = succ_eldership
+										has_law = succ_tanistry
+										has_law = succ_tenno
+										has_law = succ_ryukyuan_tenno
+										has_law = succ_chinese_imperial_succession
+										#has_law = succ_ma_chu # Can't easily be disinherited here...
+									}
+								}
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+							
+							claimed_by = ROOT
+							ROOT = {
+								is_valid_claimant_prev_trigger = yes
+							}
+						}
+						
+						preferred_limit = {
+							is_primary_holder_title = yes
+							de_jure_vassal_or_below = ROOT
+						}
+						
+						preferred_limit = {
+							de_jure_vassal_or_below = ROOT
+						}
+						
+						preferred_limit = {
+							is_primary_holder_title = yes
+						}
+						
+						save_event_target_as = claimed_title
+						
+						ROOT = {
+							liege = {
+								save_event_target_as = faction_target
+							}
+							
+							save_event_target_as = claimant
+							
+							score_claimant_for_title_effect = yes
+						}
+					}
+				}
+			}
+		}
+		
+		else = {
+			# ROOT is not a claimant
+			if = {
+				limit = {
+					liege = {
+						any_demesne_title = { # TODO: Simplify
+							tier = emperor
+							trigger_if = {
+								limit = {
+									holder_scope = {
+										government = chinese_imperial_government
+									}
+								}
+								
+								OR = {
+									claimed_by = ROOT
+									holder_scope = {
+										OR = {
+											has_character_modifier = mandate_of_heaven_2
+											has_character_modifier = mandate_of_heaven_1
+										}
+									}
+									any_claimant = {
+										PREV = {
+											holder_scope = {
+												dynasty = PREVPREV
+											}
+										}
+									}
+								}
+							}
+							
+							OR = {
+								AND = {
+									holder_scope = {
+										NOT = {
+											de_jure_vassal_or_below = ROOT
+										}
+									}
+									is_primary_holder_title = yes
+								}
+								AND = {
+									is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+									de_jure_vassal_or_below = ROOT
+								}
+								claimed_by = ROOT
+							}
+							
+							trigger_if = {
+								limit = {
+									ROOT = {
+										OR = {
+											religion = catholic
+											religion = fraticelli
+										}
+
+										top_liege = {
+											is_liege_of = ROOT
+											religion = ROOT
+
+											# Has an antipope
+											rightful_religious_head_scope = {
+												is_antipope = yes
+											}
+										}
+									}
+								}
+								
+								holder_scope = {
+									NOT = {
+										faction_exists = {
+											faction = faction_antiking
+											title = PREV
+										}
+									}
+								}
+							}
+							
+							trigger_if = {
+								limit = {
+									NOR = {
+										has_law = succ_feudal_elective
+										has_law = succ_hre_elective
+										has_law = succ_byzantine_elective
+										has_law = succ_elective_gavelkind
+										has_law = succ_eldership
+										has_law = succ_tanistry
+										has_law = succ_tenno
+										has_law = succ_ryukyuan_tenno
+										has_law = succ_chinese_imperial_succession
+										#has_law = succ_ma_chu # Can't easily be disinherited here...
+									}
+								}
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+							
+							any_claimant = {
+								is_valid_claimant_prev_trigger = yes
+							}
+						}
+					}
+				}
+					
+				liege = {
+					random_demesne_title = { # TODO: Simplify
+						limit = {
+							tier = emperor
+							trigger_if = {
+								limit = {
+									holder_scope = {
+										government = chinese_imperial_government
+									}
+								}
+								
+								OR = {
+									claimed_by = ROOT
+									holder_scope = {
+										OR = {
+											has_character_modifier = mandate_of_heaven_2
+											has_character_modifier = mandate_of_heaven_1
+										}
+									}
+									any_claimant = {
+										PREV = {
+											holder_scope = {
+												dynasty = PREVPREV
+											}
+										}
+									}
+								}
+							}
+							
+							OR = {
+								AND = {
+									holder_scope = {
+										NOT = {
+											de_jure_vassal_or_below = ROOT
+										}
+									}
+									is_primary_holder_title = yes
+								}
+								AND = {
+									is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+									de_jure_vassal_or_below = ROOT
+								}
+								claimed_by = ROOT
+							}
+							
+							trigger_if = {
+								limit = {
+									ROOT = {
+										OR = {
+											religion = catholic
+											religion = fraticelli
+										}
+
+										top_liege = {
+											is_liege_of = ROOT
+											religion = ROOT
+
+											# Has an antipope
+											rightful_religious_head_scope = {
+												is_antipope = yes
+											}
+										}
+									}
+								}
+								
+								holder_scope = {
+									NOT = {
+										faction_exists = {
+											faction = faction_antiking
+											title = PREV
+										}
+									}
+								}
+							}
+							
+							trigger_if = {
+								limit = {
+									NOR = {
+										has_law = succ_feudal_elective
+										has_law = succ_hre_elective
+										has_law = succ_byzantine_elective
+										has_law = succ_elective_gavelkind
+										has_law = succ_eldership
+										has_law = succ_tanistry
+										has_law = succ_tenno
+										has_law = succ_ryukyuan_tenno
+										has_law = succ_chinese_imperial_succession
+										#has_law = succ_ma_chu # Can't easily be disinherited here...
+									}
+								}
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+							
+							any_claimant = {
+								is_valid_claimant_prev_trigger = yes
+							}
+						}
+						
+						preferred_limit = {
+							is_primary_holder_title = yes
+							de_jure_vassal_or_below = ROOT
+						}
+						
+						preferred_limit = {
+							de_jure_vassal_or_below = ROOT
+						}
+						
+						preferred_limit = {
+							is_primary_holder_title = yes
+						}
+						
+						save_event_target_as = claimed_title
+						
+						ROOT = {
+							liege = {
+								save_event_target_as = faction_target
+							}
+							
+							event_target:claimed_title = {
+								any_claimant = {
+									limit = {
+										is_valid_claimant_event_target_trigger = yes
+									}
+									
+									score_value = {
+										value = 1
+										claimant_score = yes
+									}
+									
+									save_event_target_as = claimant
+								}
+							}
+							
+							score_claimant_for_title_effect = yes
+						}
+					}
+				}
+			}
+			
+			if = {
+				limit = {
+					check_variable = { # If we didn't find a good or decent candidate for an empire, maybe a secondary kingdom has a better candidate?
+						which = claimant_score
+						value < 0.25
+					}
+					liege = {
+						any_demesne_title = { # TODO: Simplify
+							tier = king
+							trigger_if = {
+								limit = {
+									holder_scope = {
+										government = chinese_imperial_government
+									}
+								}
+								
+								OR = {
+									claimed_by = ROOT
+									holder_scope = {
+										OR = {
+											has_character_modifier = mandate_of_heaven_2
+											has_character_modifier = mandate_of_heaven_1
+										}
+									}
+									any_claimant = {
+										PREV = {
+											holder_scope = {
+												dynasty = PREVPREV
+											}
+										}
+									}
+								}
+							}
+							
+							OR = {
+								AND = {
+									holder_scope = {
+										NOT = {
+											de_jure_vassal_or_below = ROOT
+										}
+									}
+									is_primary_holder_title = yes
+								}
+								AND = {
+									is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+									de_jure_vassal_or_below = ROOT
+								}
+								claimed_by = ROOT
+							}
+							
+							trigger_if = {
+								limit = {
+									ROOT = {
+										OR = {
+											religion = catholic
+											religion = fraticelli
+										}
+
+										top_liege = {
+											is_liege_of = ROOT
+											religion = ROOT
+
+											# Has an antipope
+											rightful_religious_head_scope = {
+												is_antipope = yes
+											}
+										}
+									}
+								}
+								
+								holder_scope = {
+									NOT = {
+										faction_exists = {
+											faction = faction_antiking
+											title = PREV
+										}
+									}
+								}
+							}
+							
+							trigger_if = {
+								limit = {
+									NOR = {
+										has_law = succ_feudal_elective
+										has_law = succ_hre_elective
+										has_law = succ_byzantine_elective
+										has_law = succ_elective_gavelkind
+										has_law = succ_eldership
+										has_law = succ_tanistry
+										has_law = succ_tenno
+										has_law = succ_ryukyuan_tenno
+										has_law = succ_chinese_imperial_succession
+										#has_law = succ_ma_chu # Can't easily be disinherited here...
+									}
+								}
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+							
+							any_claimant = {
+								is_valid_claimant_prev_trigger = yes
+							}
+						}
+					}
+				}
+					
+				liege = {
+					random_demesne_title = { # TODO: Simplify
+						limit = {
+							tier = king
+							trigger_if = {
+								limit = {
+									holder_scope = {
+										government = chinese_imperial_government
+									}
+								}
+								
+								OR = {
+									claimed_by = ROOT
+									holder_scope = {
+										OR = {
+											has_character_modifier = mandate_of_heaven_2
+											has_character_modifier = mandate_of_heaven_1
+										}
+									}
+									any_claimant = {
+										PREV = {
+											holder_scope = {
+												dynasty = PREVPREV
+											}
+										}
+									}
+								}
+							}
+							
+							OR = {
+								AND = {
+									holder_scope = {
+										NOT = {
+											de_jure_vassal_or_below = ROOT
+										}
+									}
+									is_primary_holder_title = yes
+								}
+								AND = {
+									is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+									de_jure_vassal_or_below = ROOT
+								}
+								claimed_by = ROOT
+							}
+							
+							trigger_if = {
+								limit = {
+									ROOT = {
+										OR = {
+											religion = catholic
+											religion = fraticelli
+										}
+
+										top_liege = {
+											is_liege_of = ROOT
+											religion = ROOT
+
+											# Has an antipope
+											rightful_religious_head_scope = {
+												is_antipope = yes
+											}
+										}
+									}
+								}
+								
+								holder_scope = {
+									NOT = {
+										faction_exists = {
+											faction = faction_antiking
+											title = PREV
+										}
+									}
+								}
+							}
+							
+							trigger_if = {
+								limit = {
+									NOR = {
+										has_law = succ_feudal_elective
+										has_law = succ_hre_elective
+										has_law = succ_byzantine_elective
+										has_law = succ_elective_gavelkind
+										has_law = succ_eldership
+										has_law = succ_tanistry
+										has_law = succ_tenno
+										has_law = succ_ryukyuan_tenno
+										has_law = succ_chinese_imperial_succession
+										#has_law = succ_ma_chu # Can't easily be disinherited here...
+									}
+								}
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+							
+							any_claimant = {
+								is_valid_claimant_prev_trigger = yes
+							}
+						}
+						
+						preferred_limit = {
+							is_primary_holder_title = yes
+							de_jure_vassal_or_below = ROOT
+						}
+						
+						preferred_limit = {
+							de_jure_vassal_or_below = ROOT
+						}
+						
+						preferred_limit = {
+							is_primary_holder_title = yes
+						}
+						
+						save_event_target_as = claimed_title
+						
+						ROOT = {
+							liege = {
+								save_event_target_as = faction_target
+							}
+							
+							event_target:claimed_title = {
+								any_claimant = {
+									limit = {
+										is_valid_claimant_event_target_trigger = yes
+									}
+									
+									score_value = {
+										value = 1
+										claimant_score = yes
+									}
+									
+									save_event_target_as = claimant
+								}
+							}
+							
+							score_claimant_for_title_effect = yes
+						}
+					}
+				}
+			}
+			
+			else_if = {
+				limit = {
+					liege = {
+						tier = duke
+						any_demesne_title = { # TODO: Simplify
+							tier = duke
+							trigger_if = {
+								limit = {
+									holder_scope = {
+										government = chinese_imperial_government
+									}
+								}
+								
+								OR = {
+									claimed_by = ROOT
+									holder_scope = {
+										OR = {
+											has_character_modifier = mandate_of_heaven_2
+											has_character_modifier = mandate_of_heaven_1
+										}
+									}
+									any_claimant = {
+										PREV = {
+											holder_scope = {
+												dynasty = PREVPREV
+											}
+										}
+									}
+								}
+							}
+							
+							OR = {
+								AND = {
+									holder_scope = {
+										NOT = {
+											de_jure_vassal_or_below = ROOT
+										}
+									}
+									is_primary_holder_title = yes
+								}
+								AND = {
+									is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+									de_jure_vassal_or_below = ROOT
+								}
+								claimed_by = ROOT
+							}
+							
+							trigger_if = {
+								limit = {
+									ROOT = {
+										OR = {
+											religion = catholic
+											religion = fraticelli
+										}
+
+										top_liege = {
+											is_liege_of = ROOT
+											religion = ROOT
+
+											# Has an antipope
+											rightful_religious_head_scope = {
+												is_antipope = yes
+											}
+										}
+									}
+								}
+								
+								holder_scope = {
+									NOT = {
+										faction_exists = {
+											faction = faction_antiking
+											title = PREV
+										}
+									}
+								}
+							}
+							
+							trigger_if = {
+								limit = {
+									NOR = {
+										has_law = succ_feudal_elective
+										has_law = succ_hre_elective
+										has_law = succ_byzantine_elective
+										has_law = succ_elective_gavelkind
+										has_law = succ_eldership
+										has_law = succ_tanistry
+										has_law = succ_tenno
+										has_law = succ_ryukyuan_tenno
+										has_law = succ_chinese_imperial_succession
+										#has_law = succ_ma_chu # Can't easily be disinherited here...
+									}
+								}
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+							
+							any_claimant = {
+								is_valid_claimant_prev_trigger = yes
+							}
+						}
+					}
+				}
+					
+				liege = {
+					random_demesne_title = { # TODO: Simplify
+						limit = {
+							tier = duke
+							trigger_if = {
+								limit = {
+									holder_scope = {
+										government = chinese_imperial_government
+									}
+								}
+								
+								OR = {
+									claimed_by = ROOT
+									holder_scope = {
+										OR = {
+											has_character_modifier = mandate_of_heaven_2
+											has_character_modifier = mandate_of_heaven_1
+										}
+									}
+									any_claimant = {
+										PREV = {
+											holder_scope = {
+												dynasty = PREVPREV
+											}
+										}
+									}
+								}
+							}
+							
+							OR = {
+								AND = {
+									holder_scope = {
+										NOT = {
+											de_jure_vassal_or_below = ROOT
+										}
+									}
+									is_primary_holder_title = yes
+								}
+								AND = {
+									is_primary_holder_title_tier = yes # Changed from is_primary_holder_title, since secondary titles might matter
+									de_jure_vassal_or_below = ROOT
+								}
+								claimed_by = ROOT
+							}
+							
+							trigger_if = {
+								limit = {
+									ROOT = {
+										OR = {
+											religion = catholic
+											religion = fraticelli
+										}
+
+										top_liege = {
+											is_liege_of = ROOT
+											religion = ROOT
+
+											# Has an antipope
+											rightful_religious_head_scope = {
+												is_antipope = yes
+											}
+										}
+									}
+								}
+								
+								holder_scope = {
+									NOT = {
+										faction_exists = {
+											faction = faction_antiking
+											title = PREV
+										}
+									}
+								}
+							}
+							
+							trigger_if = {
+								limit = {
+									NOR = {
+										has_law = succ_feudal_elective
+										has_law = succ_hre_elective
+										has_law = succ_byzantine_elective
+										has_law = succ_elective_gavelkind
+										has_law = succ_eldership
+										has_law = succ_tanistry
+										has_law = succ_tenno
+										has_law = succ_ryukyuan_tenno
+										has_law = succ_chinese_imperial_succession
+										#has_law = succ_ma_chu # Can't easily be disinherited here...
+									}
+								}
+								NOT = {
+									current_heir = {
+										character = ROOT
+									}
+								}
+							}
+							
+							any_claimant = {
+								is_valid_claimant_prev_trigger = yes
+							}
+						}
+						
+						preferred_limit = {
+							is_primary_holder_title = yes
+							de_jure_vassal_or_below = ROOT
+						}
+						
+						preferred_limit = {
+							de_jure_vassal_or_below = ROOT
+						}
+						
+						preferred_limit = {
+							is_primary_holder_title = yes
+						}
+						
+						ROOT = {
+							liege = {
+								save_event_target_as = faction_target
+							}
+							
+							event_target:claimed_title = {
+								any_claimant = {
+									limit = {
+										is_valid_claimant_event_target_trigger = yes
+									}
+									
+									score_value = {
+										value = 1
+										claimant_score = yes
+									}
+									
+									save_event_target_as = claimant
+								}
+							}
+							
+							score_claimant_for_title_effect = yes
+						}
+					}
+				}
+			}
+		}
+		
+		if = { # TIANXIATODO: Remove logging once the changes to the big NOR ahead of current_heir have been verified
+			limit = {
+				check_variable = {
+					which = claimant_score
+					value >= 0.05 # OBJECTIVE_DISCARD_WEIGHT_THRESHOLD
+				}
+				
+				event_target:claimed_title = {
+					always = yes
+				}
+				
+				event_target:claimant = {
+					always = yes
+				}
+			}
+			
+			log = "[Root.GetBestName] is considering factioning for [claimant.GetBestName]'s claim on [claimed_title.GetName], currently held by [Root.Liege.GetBestName]!"
+			log = "Claimant score is [Root.claimant_score.GetValue]!"
+			
+			if = {
+				limit = {
+					check_variable = {
+						which = claimant_score
+						value >= 1
+					}
+				}
+				
+				start_faction = {
+					faction = faction_claimant
+					title = event_target:claimed_title
+					thirdparty = event_target:claimant
+					can_join_existing = yes
+				}
+			}
+			
+			else_if = {
+				limit = {
+					check_variable = {
+						which = claimant_score
+						value >= 0.9
+					}
+				}
+				
+				random = {
+					chance = 90
+					start_faction = {
+						faction = faction_claimant
+						title = event_target:claimed_title
+						thirdparty = event_target:claimant
+						can_join_existing = yes
+					}
+				}
+			}
+			
+			else_if = {
+				limit = {
+					check_variable = {
+						which = claimant_score
+						value >= 0.8
+					}
+				}
+				
+				random = {
+					chance = 80
+					start_faction = {
+						faction = faction_claimant
+						title = event_target:claimed_title
+						thirdparty = event_target:claimant
+						can_join_existing = yes
+					}
+				}
+			}
+			
+			else_if = {
+				limit = {
+					check_variable = {
+						which = claimant_score
+						value >= 0.7
+					}
+				}
+				
+				random = {
+					chance = 70
+					start_faction = {
+						faction = faction_claimant
+						title = event_target:claimed_title
+						thirdparty = event_target:claimant
+						can_join_existing = yes
+					}
+				}
+			}
+			
+			else_if = {
+				limit = {
+					check_variable = {
+						which = claimant_score
+						value >= 0.6
+					}
+				}
+				
+				random = {
+					chance = 60
+					start_faction = {
+						faction = faction_claimant
+						title = event_target:claimed_title
+						thirdparty = event_target:claimant
+						can_join_existing = yes
+					}
+				}
+			}
+			
+			else_if = {
+				limit = {
+					check_variable = {
+						which = claimant_score
+						value >= 0.5
+					}
+				}
+				
+				random = {
+					chance = 50
+					start_faction = {
+						faction = faction_claimant
+						title = event_target:claimed_title
+						thirdparty = event_target:claimant
+						can_join_existing = yes
+					}
+				}
+			}
+			
+			else_if = {
+				limit = {
+					check_variable = {
+						which = claimant_score
+						value >= 0.4
+					}
+				}
+				
+				random = {
+					chance = 40
+					start_faction = {
+						faction = faction_claimant
+						title = event_target:claimed_title
+						thirdparty = event_target:claimant
+						can_join_existing = yes
+					}
+				}
+			}
+			
+			else_if = {
+				limit = {
+					check_variable = {
+						which = claimant_score
+						value >= 0.3
+					}
+				}
+				
+				random = {
+					chance = 30
+					start_faction = {
+						faction = faction_claimant
+						title = event_target:claimed_title
+						thirdparty = event_target:claimant
+						can_join_existing = yes
+					}
+				}
+			}
+			
+			else_if = {
+				limit = {
+					check_variable = {
+						which = claimant_score
+						value >= 0.2
+					}
+				}
+				
+				random = {
+					chance = 20
+					start_faction = {
+						faction = faction_claimant
+						title = event_target:claimed_title
+						thirdparty = event_target:claimant
+						can_join_existing = yes
+					}
+				}
+			}
+			
+			else_if = {
+				limit = {
+					check_variable = {
+						which = claimant_score
+						value >= 0.1
+					}
+				}
+				
+				random = {
+					chance = 10
+					start_faction = {
+						faction = faction_claimant
+						title = event_target:claimed_title
+						thirdparty = event_target:claimant
+						can_join_existing = yes
+					}
+				}
+			}
+			
+			else = {
+				random = {
+					chance = 5
+					start_faction = {
+						faction = faction_claimant
+						title = event_target:claimed_title
+						thirdparty = event_target:claimant
+						can_join_existing = yes
+					}
+				}
+			}
+			
+			if = {
+				limit = {
+					in_faction = faction_claimant
+				}
+				
+				log = "[Root.GetBestName] started or joined the faction!"
+			}
+		}
+	}
+}
+
+##### Nomadic settling dynamic title avoidance
+
+# Flag titular titles for destruction
+character_event = {
+	id = tianxia.1411
+	hide_window = yes
+	
+	is_triggered_only = yes # on_new_holder
+	
+	has_character_flag = settling_nomad
+	
+	trigger = {
+		FROM = {
+			is_titular = yes
+			higher_tier_than = count # There won't be titular counties, and family palaces should be excluded
+		}
+	}
+	
+	immediate = {
+		FROM = {
+			set_title_flag = settling_nomad_dynamic_title
+		}
+		log = "[Root.GetBestName] is a settling nomad; flagging [From.GetName]"
 	}
 }
