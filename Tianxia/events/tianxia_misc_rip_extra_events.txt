@@ -3217,17 +3217,12 @@ character_event = {
 	desc = EVTDESC_TIANXIA_1756
 	picture = GFX_evt_birth
 	border = GFX_event_normal_frame_religion
+	portrait = event_target:sickly_infant
 	
 	is_triggered_only = yes
 	
 	trigger = {
 		has_minor_title = title_court_physician
-		OR = {
-			vassal_of = event_target:host_target
-			host = {
-				character = event_target:host_target
-			}
-		}
 		event_target:host_target = {
 			is_alive = yes
 		}
@@ -3235,6 +3230,10 @@ character_event = {
 			is_alive = yes
 		}
 	}
+	
+	#immediate = {
+	#	log = "[This.GetBestName] is the Court Physician meant to treat [From.GetBestName]!"
+	#}
 	
 	option = {
 		name = EVTOPTA_TIANXIA_1756 # I will offer to help!
@@ -3560,6 +3559,7 @@ character_event = {
 	desc = EVTDESC_TIANXIA_1757
 	picture = GFX_evt_birth
 	border = GFX_event_normal_frame_religion
+	portrait = event_target:sickly_infant
 	
 	is_triggered_only = yes
 	
@@ -3574,6 +3574,7 @@ character_event = {
 	desc = EVTDESC_TIANXIA_1758
 	picture = GFX_evt_birth
 	border = GFX_event_normal_frame_religion
+	portrait = event_target:sickly_infant
 	
 	is_triggered_only = yes
 	
@@ -3588,6 +3589,7 @@ character_event = {
 	desc = EVTDESC_TIANXIA_1759
 	picture = GFX_evt_birth
 	border = GFX_event_normal_frame_religion
+	portrait = event_target:sickly_infant
 	
 	is_triggered_only = yes
 	
@@ -3620,6 +3622,7 @@ character_event = {
 	desc = EVTDESC_TIANXIA_1760
 	picture = GFX_evt_birth
 	border = GFX_event_normal_frame_religion
+	portrait = event_target:sickly_infant
 	
 	is_triggered_only = yes
 	
@@ -3652,6 +3655,7 @@ character_event = {
 	desc = EVTDESC_TIANXIA_1761
 	picture = GFX_evt_birth
 	border = GFX_event_normal_frame_religion
+	portrait = event_target:sickly_infant
 	
 	is_triggered_only = yes
 	
@@ -3699,6 +3703,7 @@ character_event = {
 							is_actually_incapable_trigger = no
 							prisoner = no
 							in_seclusion = yes
+							character = FROM
 						}
 					}
 				}
@@ -5452,6 +5457,8 @@ character_event = {
 	desc = EVTDESC_TIANXIA_1764
 	picture = GFX_evt_court_physician
 	border = GFX_event_normal_frame_religion
+	
+	show_from_from = yes
 	
 	is_triggered_only = yes
 	
@@ -12035,17 +12042,41 @@ character_event = {
 	
 	trigger = {
 		character_disease_trigger = yes # Still sick
-		any_courtier_or_vassal = { # With an appropriate Court Physician
-			has_minor_title = title_court_physician
-			OR = { # We are still expected to treat the character
-				is_inaccessible_or_incapable_trigger = no
-				AND = {
-					is_actually_incapable_trigger = no
-					prisoner = no
-					in_seclusion = yes
-					host = {
-						character = ROOT
-						in_seclusion = yes
+		OR = {
+			AND = {
+				is_landed = yes
+				any_courtier_or_vassal = { # With an appropriate Court Physician
+					has_minor_title = title_court_physician
+					OR = { # We are still expected to treat the character
+						is_inaccessible_or_incapable_trigger = no
+						AND = {
+							is_actually_incapable_trigger = no
+							prisoner = no
+							in_seclusion = yes
+							employer = {
+								character = ROOT
+								in_seclusion = yes
+							}
+						}
+					}
+				}
+			}
+			AND = {
+				is_landed = no
+				employer = {
+					any_courtier_or_vassal = { # With an appropriate Court Physician
+						has_minor_title = title_court_physician
+						OR = { # We are still expected to treat the character
+							is_inaccessible_or_incapable_trigger = no
+							AND = {
+								is_actually_incapable_trigger = no
+								prisoner = no
+								in_seclusion = yes
+								employer = {
+									in_seclusion = yes
+								}
+							}
+						}
 					}
 				}
 			}
@@ -12054,20 +12085,33 @@ character_event = {
 	
 	immediate = {
 		# Make sure the Court Physician is the correct character, in case they were changed mid-chain
-		random_courtier_or_vassal = {
+		if = {
 			limit = {
-				has_minor_title = title_court_physician
-				OR = {
-					vassal_of = PREV
-					host = {
-						character = PREV
+				is_landed = yes
+			}
+			random_courtier_or_vassal = {
+				limit = {
+					has_minor_title = title_court_physician
+				}
+
+				save_event_target_as = court_physician
+				
+				character_event = { id = tianxia.1767 } # Decide on approach
+			}
+		}
+		
+		else = {
+			employer = {
+				random_courtier_or_vassal = {
+					limit = {
+						has_minor_title = title_court_physician
 					}
+
+					save_event_target_as = court_physician
+					
+					character_event = { id = tianxia.1767 } # Decide on approach
 				}
 			}
-
-			save_event_target_as = court_physician
-			
-			character_event = { id = tianxia.1767 } # Decide on approach
 		}
 	}
 }
@@ -12266,20 +12310,19 @@ character_event = {
 		character_disease_trigger = yes # Still sick
 		event_target:court_physician = { # With an appropriate Court Physician
 			has_minor_title = title_court_physician
-			OR = {
-				vassal_of = ROOT
-				host = {
-					character = ROOT
-				}
-			}
 			OR = { # We are still expected to treat the character
 				is_inaccessible_or_incapable_trigger = no
 				AND = {
 					is_actually_incapable_trigger = no
 					prisoner = no
 					in_seclusion = yes
-					host = {
-						character = ROOT
+					employer = {
+						OR = {
+							character = ROOT
+							any_courtier = {
+								character = ROOT
+							}
+						}
 						in_seclusion = yes
 					}
 				}
