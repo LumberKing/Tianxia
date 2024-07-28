@@ -76,6 +76,7 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		wealth >= 20
 		NOT = { has_artifact = finger_of_st_john }
 		religions_are_standard_trigger = yes
@@ -122,6 +123,7 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		NOT = { has_artifact = finger_of_st_john }
 		religions_are_standard_trigger = yes
 	}
@@ -299,6 +301,7 @@ character_event = {
 		trait = ill
 		has_artifact = finger_of_st_john
 		religions_are_standard_trigger = yes
+		is_inaccessible_trigger = no
 	}
 
 	option = {
@@ -348,6 +351,7 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		has_artifact = finger_of_st_john
 		religions_are_standard_trigger = yes
 	}
@@ -443,6 +447,7 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		has_artifact = finger_of_st_john
 		religions_are_standard_trigger = yes
 	}
@@ -488,6 +493,7 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		is_catholic_branch = yes
 		NOR = {
 			has_character_modifier = defied_church
@@ -558,6 +564,7 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		has_artifact = finger_of_st_john
 		religions_are_standard_trigger = yes
 	}
@@ -677,6 +684,7 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		religions_are_standard_trigger = yes
 		location = {
 			OR = {
@@ -729,6 +737,7 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		religions_are_standard_trigger = yes
 		location = {
 			OR = {
@@ -782,6 +791,7 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		religions_are_standard_trigger = yes
 		trait = ill
 		piety >= 1
@@ -822,6 +832,7 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		religions_are_standard_trigger = yes
 		NOT = { trait = blinded }
 	}
@@ -857,6 +868,7 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		religions_are_standard_trigger = yes
 		NOT = { trait = blinded }
 	}
@@ -897,8 +909,8 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		religions_are_standard_trigger = yes
-		in_seclusion = no
 	}
 
 	option = {
@@ -929,7 +941,7 @@ character_event = {
 	is_triggered_only = yes # on_bi_yearly_pulse, random_events, monk_flavour
 
 	ai = no
-	religion_group = christian
+	#religion_group = christian
 	has_dlc = "Sons of Abraham"
 	min_age = 16
 	#only_capable = yes
@@ -937,16 +949,28 @@ character_event = {
 	in_command = no
 
 	trigger = {
-		is_actually_incapable_trigger = no
+		is_inaccessible_or_incapable_trigger = no
+		OR = {
+			religion_group = christian
+			has_dharmic_religion_trigger = yes
+			religion = manichaean
+			religion = taoist
+			religion = shugendo
+			religion = koshin
+		}
+		
 		any_child = {
 			is_ruler = no
 			age >= 13
 			is_adult = no
 			is_ascetic_trigger = no
+			has_secret_religion = no
+			is_inaccessible_or_incapable_trigger = no
 
 			NOR = {
 				trait = cynical
 				has_character_flag = is_child_of_destiny
+				has_character_flag = demon_child_non_pagan
 			}
 		}
 	}
@@ -958,10 +982,13 @@ character_event = {
 				age >= 13
 				is_adult = no
 				is_ascetic_trigger = no
+				has_secret_religion = no
+				is_inaccessible_or_incapable_trigger = no
 
 				NOR = {
 					trait = cynical
 					has_character_flag = is_child_of_destiny
+					has_character_flag = demon_child_non_pagan
 				}
 			}
 
@@ -975,12 +1002,226 @@ character_event = {
 		event_target:target_child = {
 			show_scope_change = no
 
+			# The vows mean no marriage
 			if = {
-				limit = { is_female = yes }
-				add_trait = nun
+				limit = { is_married = yes }
+
+				any_spouse = {
+					show_scope_change = no
+
+					remove_spouse = PREV
+				}
 			}
-			else = {
-				add_trait = monk
+
+			# No betrothal
+			if = {
+				limit = { is_betrothed = yes }
+
+				break_betrothal = yes
+			}
+
+			# And no consorts
+			if = {
+				limit = {
+					any_consort = {
+						always = yes
+					}
+				}
+				#limit = { is_senior_consort_party = yes }
+				any_consort = {
+					show_scope_change = no
+
+					remove_consort = PREV
+				}
+			}
+
+			# Monks and Mystics actually join societies
+			if = {
+				limit = {
+					has_dlc = "Mystics"
+					is_in_society = no
+					is_heretic = no
+				}
+
+				if = {
+					limit = { is_catholic_branch = yes }
+
+					custom_tooltip = {
+						text = tooltip_vows_monk_joins_society
+
+						random_list = {
+							50 = {
+								trigger = { religion = catholic }
+								join_society = monastic_order_benedictine
+							}
+							50 = { join_society = monastic_order_dominican }
+						}
+					}
+				}
+				else_if = {
+					limit = { is_orthodox_branch = yes }
+
+					custom_tooltip = {
+						text = tooltip_vows_monk_joins_society
+						join_society = monastic_order_orthodox
+					}
+				}
+				else_if = {
+					limit = { is_nestorian_branch = yes }
+
+					custom_tooltip = {
+						text = tooltip_vows_monk_joins_society
+						join_society = monastic_order_nestorian
+					}
+				}
+				else_if = {
+					limit = { is_miaphysite_branch = yes }
+
+					custom_tooltip = {
+						text = tooltip_vows_monk_joins_society
+						join_society = monastic_order_monophysite
+					}
+				}
+				else_if = {
+					limit = { religion = hindu }
+
+					custom_tooltip = {
+						text = tooltip_vows_monk_joins_society
+						join_society = monastic_order_hindu
+					}
+				}
+				else_if = {
+					limit = { religion = buddhist }
+
+					custom_tooltip = {
+						text = tooltip_vows_monk_joins_society
+						if = {
+							limit = {
+								could_have_chinese_government_trigger = yes
+							}
+							join_society = monastic_order_shaolin
+							if = {
+								limit = {
+									is_female = no
+									d_shaolin_monks = {
+										has_holder = yes
+									}
+									OR = {
+										has_education_martial_trigger = yes
+										has_lifestyle_martial_trigger = yes
+									}
+								}
+								d_shaolin_monks = {
+									holder_scope = {
+										ROOT = {
+											add_trait = celibate # Joining holy order
+											move_character = PREV
+										}
+									}
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								culture_group = japonic
+							}
+							join_society = monastic_order_japanese
+							if = {
+								limit = {
+									is_female = no
+									d_sohei = {
+										has_holder = yes
+									}
+									OR = {
+										has_education_martial_trigger = yes
+										has_lifestyle_martial_trigger = yes
+									}
+								}
+								d_sohei = {
+									holder_scope = {
+										ROOT = {
+											add_trait = celibate # Joining holy order
+											move_character = PREV
+										}
+									}
+								}
+							}
+						}
+						else = {
+							join_society = monastic_order_buddhist
+						}
+					}
+				}
+				else_if = {
+					limit = { religion = jain }
+
+					custom_tooltip = {
+						text = tooltip_vows_monk_joins_society
+						join_society = monastic_order_jain
+					}
+				}
+				else_if = {
+					limit = {
+						religion = bon_pagan_reformed
+						has_global_flag = bon_monastic_order_founded
+					}
+
+					custom_tooltip = {
+						text = tooltip_vows_monk_joins_society
+						join_society = monastic_order_bon
+					}
+				}
+			}
+
+			# Moves to Theocracy
+			if = {
+				limit = {
+					any_realm_lord = {
+						is_theocracy = yes
+						religion = PREV
+					}
+					host = {
+						character = ROOT # Not if we moved already
+					}
+				}
+
+				custom_tooltip = {
+					text = tooltip_vows_monk_goes_to_theocracy
+
+					random_realm_lord = {
+						limit = {
+							is_theocracy = yes
+							religion = PREV
+						}
+
+						preferred_limit = {
+							reverse_opinion = {
+								who = ROOT
+								value >= 20
+							}
+							vassal_of = ROOT
+							# The one they just joined
+							same_society_as = PREV
+						}
+
+						preferred_limit = {
+							vassal_of = ROOT
+							# The one they just joined
+							same_society_as = PREV
+						}
+
+						preferred_limit = {
+							# The one they just joined
+							same_society_as = PREV
+						}
+
+						preferred_limit = {
+							vassal_of = ROOT
+						}
+
+						PREV = { move_character = PREV }
+					}
+				}
 			}
 
 			opinion = {
@@ -992,7 +1233,7 @@ character_event = {
 
 		custom_tooltip = { text = EVTTOOLTIPA_SOA_5218 }
 
-		ai_chance = { factor = 0 }
+		ai_chance = { factor = 0 } # TIANXIATODO: Really? Sigh...
 	}
 
 	option = {
@@ -1032,6 +1273,7 @@ character_event = {
 
 	trigger = {
 		is_actually_incapable_trigger = no
+		is_inaccessible_trigger = no
 		religions_are_standard_trigger = yes
 		scaled_wealth = 0.1
 	}
