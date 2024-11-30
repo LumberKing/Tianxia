@@ -2246,11 +2246,12 @@ tribal_invasion = {
 			}
 			any_direct_de_jure_vassal_title = {
 				any_direct_de_jure_vassal_title = {
+				# The attacker needs at least one county in the target kingdom, or a border, or be only two sea zones away from one of your counties if you have founded a Child of Destiny/TF invader bloodline
 					OR = {
-						holder_scope = {
+						holder_scope = { # part of attacker's realm
 							OR = {
 								character = ROOT
-								is_liege_or_above = ROOT
+								is_vassal_or_below_of = ROOT
 							}
 						}
 						
@@ -2258,16 +2259,100 @@ tribal_invasion = {
 							holder_scope = {
 								OR = {
 									character = FROM
-									is_liege_or_above = FROM
+									is_vassal_or_below_of = FROM
 								}
 							}
 							location = {
-								any_neighbor_province = {
-									has_owner = yes
-									owner = {
-										OR = {
-											character = ROOT
-											is_liege_or_above = ROOT
+								any_neighbor_province = { # bordering province
+									trigger_if = {
+										limit = { has_owner = yes }
+
+										owner = { # part of attacker's realm
+											OR = {
+												character = ROOT
+												is_vassal_or_below_of = ROOT
+											}
+										}
+									}
+									
+									trigger_else = {
+										is_land = no # first sea zone
+									
+										trigger_if = {
+											limit = {
+												has_game_rule = {
+													name = holy_war_distance
+													value = technology
+												}
+											}
+											
+											ROOT = {
+												OR = {
+													custom_tooltip = {
+														text = child_of_destiny_bloodline_founded
+														any_owned_bloodline = {
+															has_bloodline_flag = child_of_destiny
+															founder = {
+																character = ROOT
+															}
+														}
+													}
+													custom_tooltip = {
+														text = tf_invasion_bloodline_founded
+														any_owned_bloodline = {
+															has_bloodline_flag = tf_invader
+															founder = {
+																character = ROOT
+															}
+														}
+													}
+												}
+												capital_scope = {
+													TECH_RECRUITMENT >= 2
+													TECH_NAVAL >= 2
+												}
+											}
+										}
+
+										any_neighbor_province = {
+											trigger_if = {
+												limit = { has_owner = yes }
+
+												owner = { # part of attacker's realm
+													OR = {
+														character = ROOT
+														is_vassal_or_below_of = ROOT
+													}
+												}
+											}
+											trigger_else = {
+												is_land = no # second sea zone
+									
+												trigger_if = {
+													limit = {
+														has_game_rule = {
+															name = holy_war_distance
+															value = technology
+														}
+													}
+													
+													ROOT = {
+														capital_scope = {
+															TECH_RECRUITMENT >= 2
+															TECH_NAVAL >= 2
+														}
+													}
+												}
+
+												any_neighbor_province = {
+													owner = { # part of attacker's realm
+														OR = {
+															character = ROOT
+															is_vassal_or_below_of = ROOT
+														}
+													}
+												}
+											}
 										}
 									}
 								}
