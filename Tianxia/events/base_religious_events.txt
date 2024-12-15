@@ -1563,8 +1563,9 @@ narrative_event = {
 				is_heretic = no
 				rightful_religious_head_scope = {
 					OR = {
-						has_landed_title = d_fraticelli
 						has_landed_title = k_papacy
+						has_landed_title = d_fraticelli
+						has_landed_title = d_guglielmite
 					}
 				}
 			}
@@ -3403,7 +3404,7 @@ character_event = {
 				remove_trait = master_seducer
 				remove_trait = master_seductress
 
-				add_trait = celibate
+				add_trait_fully_celibate_effect = yes
 
 				save_event_target_as = new_bishop
 				
@@ -6119,6 +6120,19 @@ narrative_event = {
 			is_heretic = no
 		}
 		
+		trigger_else_if = { # Let the Guglielmite Pope do this if they're viewed as legitimate
+			limit = {
+				d_guglielmite = {
+					has_holder = yes
+					holder_scope = {
+						is_heretic = no
+					}
+				}
+			}
+			
+			is_heretic = no
+		}
+		
 		year >= 1090
 
 		NOR = {
@@ -6186,6 +6200,19 @@ narrative_event = {
 		trigger_if = { # Let the Fraticelli Pope do this if they're viewed as legitimate
 			limit = {
 				d_fraticelli = {
+					has_holder = yes
+					holder_scope = {
+						is_heretic = no
+					}
+				}
+			}
+			
+			is_heretic = no
+		}
+		
+		trigger_else_if = { # Let the Guglielmite Pope do this if they're viewed as legitimate
+			limit = {
+				d_guglielmite = {
 					has_holder = yes
 					holder_scope = {
 						is_heretic = no
@@ -6307,6 +6334,19 @@ narrative_event = {
 			is_heretic = no
 		}
 		
+		trigger_else_if = { # Let the Guglielmite Pope do this if they're viewed as legitimate
+			limit = {
+				d_guglielmite = {
+					has_holder = yes
+					holder_scope = {
+						is_heretic = no
+					}
+				}
+			}
+			
+			is_heretic = no
+		}
+		
 		year >= 900
 
 		NOR = {
@@ -6377,6 +6417,19 @@ narrative_event = {
 		trigger_if = { # Let the Fraticelli Pope do this if they're viewed as legitimate
 			limit = {
 				d_fraticelli = {
+					has_holder = yes
+					holder_scope = {
+						is_heretic = no
+					}
+				}
+			}
+			
+			is_heretic = no
+		}
+		
+		trigger_else_if = { # Let the Guglielmite Pope do this if they're viewed as legitimate
+			limit = {
+				d_guglielmite = {
 					has_holder = yes
 					holder_scope = {
 						is_heretic = no
@@ -7124,7 +7177,7 @@ character_event = {
 	}
 }
 
-# Fraticelli antipope immediately loses claim if he or liege is no longer Fraticelli
+# Fraticelli or Guglielmite antipope immediately loses claim if (s)he or liege is no longer Fraticelli/Guglielmite
 character_event = {
 	id = 39702
 
@@ -7134,12 +7187,23 @@ character_event = {
 	only_playable = yes
 
 	trigger = {
-		OR = {
-			has_claim = d_fraticelli
+		OR = {	
+			AND = {
+				has_claim = d_fraticelli
 
-			d_fraticelli = {
-				any_claimant = {
-					is_vassal_or_below_of = ROOT
+				d_fraticelli = {
+					any_claimant = {
+						is_vassal_or_below_of = ROOT
+					}
+				}
+			}
+			AND = {
+				has_claim = d_guglielmite
+
+				d_guglielmite = {
+					any_claimant = {
+						is_vassal_or_below_of = ROOT
+					}
 				}
 			}
 		}
@@ -7157,10 +7221,21 @@ character_event = {
 				remove_claim = d_fraticelli
 			}
 		}
+		d_guglielmite = {
+			any_claimant = {
+				limit = {
+					NAND = {
+						religion = guglielmite
+						liege = { religion = guglielmite }
+					}
+				}
+				remove_claim = d_guglielmite
+			}
+		}
 	}
 }
 
-# Establishing the Fraticelli Papacy
+# Establishing the Fraticelli/Guglielmite Papacy
 character_event = {
 	id = 39703
 	picture = GFX_evt_bishop
@@ -7168,17 +7243,39 @@ character_event = {
 
 	desc = {
 		text = evt_CK2_39703_desc_a
-		trigger = { character = FROM }
+		trigger = {
+			character = FROM
+			religion = fraticelli
+		}
 	}
 	desc = {
 		text = evt_CK2_39703_desc_b
 		trigger = {
 			NOT = { character = FROM }
+			FROM = {
+				religion = fraticelli
+			}
+		}
+	}
+	desc = {
+		text = evt_CK2_39703_desc_c
+		trigger = {
+			character = FROM
+			religion = guglielmite
+		}
+	}
+	desc = {
+		text = evt_CK2_39703_desc_d
+		trigger = {
+			NOT = { character = FROM }
+			FROM = {
+				religion = guglielmite
+			}
 		}
 	}
 
 	major = yes
-	is_triggered_only = yes # create_fraticelli_papacy, religious_decisions.txt
+	is_triggered_only = yes # create_fraticelli_papacy, religious_decisions.txt and create_guglielmite_papacy, tianxia_religion_decisions.txt
 
 	only_playable = yes
 
@@ -7190,18 +7287,28 @@ character_event = {
 	option = {
 		name = {
 			text = EVTOPTA_SOA_4200
-			trigger = { religion = fraticelli }
+			trigger = { religion = FROM }
 		}
 		name = {
 			text = EVTOPTB_SOA_4200
-			trigger = { religion = catholic }
+			trigger = {
+				OR = {
+					religion = catholic
+					religion = fraticelli
+					religion = guglielmite
+				}
+				NOT = {
+					religion = FROM
+				}
+			}
 		}
 		name = {
 			text = EVTOPTC_SOA_4200
 			trigger = {
 				NOR = {
-					religion = fraticelli
 					religion = catholic
+					religion = fraticelli
+					religion = guglielmite
 				}
 			}
 		}
@@ -7280,6 +7387,23 @@ character_event = {
 		}
 	}
 	desc = {
+		text = evt_CK2_39705_desc_c
+		trigger = {
+			character = FROM
+			religion = guglielmite
+		}
+	}
+	desc = {
+		text = evt_CK2_39705_desc_d
+		trigger = {
+			NOT = { character = FROM }
+
+			event_target:restored_pope = {
+				religion = guglielmite
+			}
+		}
+	}
+	desc = {
 		text = EVTDESC39705C
 		trigger = {
 			character = FROM
@@ -7310,7 +7434,7 @@ character_event = {
 	option = {
 		name = {
 			text = EVTOPTA_SOA_4200
-			trigger = { religion = fraticelli }
+			trigger = { religion = FROM }
 		}
 		name = {
 			text = EVTOPTB_SOA_4200
@@ -7320,8 +7444,9 @@ character_event = {
 			text = EVTOPTC_SOA_4200
 			trigger = {
 				NOR = {
-					religion = fraticelli
 					religion = catholic
+					religion = fraticelli
+					religion = guglielmite
 				}
 			}
 		}

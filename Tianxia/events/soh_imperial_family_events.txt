@@ -155,6 +155,196 @@ narrative_event = {
 	
 	is_triggered_only = yes
 	
+	immediate = {
+		# Secret communities might vanish
+		any_province = {
+			limit = {
+				has_province_modifier = secret_shinto_community
+			}
+			
+			random_list = {
+				75 = {
+					remove_province_modifier = secret_shinto_community
+				}
+				25 = {
+					# Community endures
+				}
+			}
+		}
+		
+		# Open communities might go secret
+		any_province = {
+			limit = {
+				OR = {
+					has_province_modifier = minority_shinto_community
+					has_province_modifier = silk_road_shinto_community
+				}
+			}
+			
+			random_list = {
+				75 = {
+					remove_province_modifier = minority_shinto_community
+					remove_province_modifier = silk_road_shinto_community
+					
+					add_province_modifier = {
+						modifier = secret_shinto_community
+						years = 50
+					}
+				}
+				25 = {
+					# Community endures
+				}
+			}
+		}
+		
+		# Finally, Shinto provinces flip
+		any_province = {
+			limit = {
+				religion = shinto
+			}
+			
+			random_list = {
+				25 = {
+					trigger = {
+						culture_group = japonic
+					}
+					
+					mult_modifier = {
+						factor = 2
+						OR = {
+							has_province_modifier = minority_buddhist_community
+							has_province_modifier = silk_road_buddhist_community
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						has_province_modifier = secret_buddhist_community
+					}
+					
+					religion = buddhist
+				}
+				
+				25 = {
+					trigger = {
+						culture = ryukyuan
+					}
+					
+					mult_modifier = {
+						factor = 2
+						OR = {
+							has_province_modifier = minority_ryukyuan_pagan_reformed_community
+							has_province_modifier = silk_road_ryukyuan_pagan_reformed_community
+							has_province_modifier = minority_ryukyuan_pagan_community
+							has_province_modifier = silk_road_ryukyuan_pagan_community
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						OR = {
+							has_province_modifier = secret_ryukyuan_pagan_community
+							has_province_modifier = secret_ryukyuan_pagan_reformed_community
+						}
+					}
+					
+					if = {
+						limit = {
+							ryukyuan_pagan = {
+								has_flag = has_been_reformed
+							}
+						}
+						
+						religion = ryukyuan_pagan_reformed
+					}
+					
+					else = {
+						religion = ryukyuan_pagan
+					}
+				}
+				
+				25 = {
+					mult_modifier = {
+						factor = 2
+						OR = {
+							has_province_modifier = minority_shugendo_community
+							has_province_modifier = silk_road_shugendo_community
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						has_province_modifier = secret_shugendo_community
+					}
+					
+					religion = shugendo
+				}
+				
+				25 = {
+					mult_modifier = {
+						factor = 2
+						OR = {
+							has_province_modifier = minority_koshin_community
+							has_province_modifier = silk_road_koshin_community
+						}
+					}
+					
+					mult_modifier = {
+						factor = 1.5
+						has_province_modifier = secret_koshin_community
+					}
+					
+					religion = koshin
+				}
+				
+				25 = {
+					# Still Shinto
+				}
+			}
+			
+			if = {
+				limit = {
+					NOT = {
+						religion = shinto
+					}
+				}
+				
+				remove_matching_public_silk_road_religious_community_on_conversion_effect = yes
+				remove_matching_minority_community_on_conversion_effect = yes
+				remove_matching_secret_religious_community_effect = yes
+				
+				random_list = {
+					75 = {
+						if = {
+							limit = {
+								trade_route = silk_road
+							}
+							
+							add_province_modifier = {
+								modifier = silk_road_shinto_community
+								years = 50
+							}
+						}
+						
+						else = {
+							add_province_modifier = {
+								modifier = minority_shinto_community
+								years = 50
+							}
+						}
+					}
+					
+					25 = {
+						add_province_modifier = {
+							modifier = secret_shinto_community
+							years = 50
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	option = {
 		trigger = {
 			can_have_japanese_bureaucracy_and_feudal_trigger = yes
@@ -169,7 +359,8 @@ narrative_event = {
 	
 	option = {
 		trigger = {
-			true_religion = shinto
+			religion = shinto
+			has_secret_religion = no
 			NOT = {
 				trait = zealous
 			}
@@ -210,7 +401,8 @@ narrative_event = {
 	
 	option = {
 		trigger = {
-			true_religion = shinto
+			religion = shinto
+			has_secret_religion = no
 			NOT = {
 				trait = zealous
 			}
@@ -248,7 +440,8 @@ narrative_event = {
 	
 	option = {
 		trigger = {
-			true_religion = shinto
+			religion = shinto
+			has_secret_religion = no
 			NOT = {
 				trait = zealous
 			}
@@ -351,6 +544,62 @@ narrative_event = {
 		}
 		
 		name = EVTOPTD_SOH_7002 # So much for those "Ten thousand years"!
+	}
+	
+	option = {
+		trigger = {
+			true_religion = shinto
+			NOR = {
+				religion = shinto
+				trait = zealous
+				trait = proud
+				trait = stubborn
+				any_owned_bloodline = {
+					has_bloodline_flag = imperial_family
+					bloodline_is_active_for = PREV
+				}
+			}
+			ai = yes
+		}
+		
+		name = EVTOPTF_SOH_7002 # I was a fool to ever believe in Amaterasu!
+		
+		clear_secret_religion = yes
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 10
+				trait = cynical
+			}
+			
+			mult_modifier = {
+				factor = 10
+				OR = {
+					AND = {
+						religion_group = christian
+						trait = sympathy_christendom
+					}
+					AND = {
+						religion_group = muslim
+						trait = sympathy_islam
+					}
+					AND = {
+						religion_group = jewish_group
+						trait = sympathy_judaism
+					}
+					AND = {
+						religion_group = pagan_group
+						trait = sympathy_pagans
+					}
+					AND = {
+						religion_group = zoroastrian_group
+						trait = sympathy_zoroastrianism
+					}
+				}
+			}
+		}
 	}
 }
 
