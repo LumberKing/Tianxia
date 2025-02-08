@@ -775,7 +775,7 @@ character_event = {
 
 	only_playable = yes
 	religion_group = christian
-	only_men = yes
+	#only_men = yes
 	min_age = 16
 	#only_capable = yes
 	prisoner = no
@@ -785,6 +785,8 @@ character_event = {
 	trigger = {
 		is_inaccessible_or_incapable_trigger = no
 		trait = chaste
+		trait = sex_interest_female
+		trait = sex_attraction_female
 
 		any_courtier = {
 			is_female = yes
@@ -795,10 +797,14 @@ character_event = {
 			is_pregnant = no
 			is_inaccessible_or_incapable_trigger = no
 
-			NOR = {
+			NOT = {
 				trait = celibate
-				trait = homosexual
-				is_close_relative = ROOT
+				#trait = homosexual
+				#is_close_relative = ROOT
+			}
+			valid_sexual_match_ROOT_trigger = yes
+			ROOT = {
+				valid_sexual_match_PREV_trigger = yes
 			}
 		}
 	}
@@ -838,10 +844,14 @@ character_event = {
 				is_pregnant = no
 				is_inaccessible_or_incapable_trigger = no
 
-				NOR = {
+				NOT = {
 					trait = celibate
-					trait = homosexual
-					is_close_relative = ROOT
+					#trait = homosexual
+					#is_close_relative = ROOT
+				}
+				valid_sexual_match_ROOT_trigger = yes
+				ROOT = {
+					valid_sexual_match_PREV_trigger = yes
 				}
 			}
 
@@ -889,6 +899,7 @@ character_event = {
 	in_command = no
 
 	trigger = {
+		always = no # Let's not endorse a certain atrocious double standard!
 		is_inaccessible_or_incapable_trigger = no
 		trait = chaste
 		fertility >= 0.40
@@ -1073,6 +1084,7 @@ character_event = {
 	in_command = no
 
 	trigger = {
+		always = no # Not a good event!
 		is_inaccessible_or_incapable_trigger = no
 		trait = chaste
 
@@ -4428,6 +4440,7 @@ character_event = {
 		is_inaccessible_or_incapable_trigger = no
 		trait = envious
 		has_children = no
+		trait = sex_interest_male
 
 		any_courtier = {
 			is_female = yes
@@ -4447,11 +4460,14 @@ character_event = {
 			NOT = { is_older_than = ROOT }
 			is_ruler = no
 			is_inaccessible_or_incapable_trigger = no
+			NOT = {
+				trait = malnourished
+			}
 		}
 		
-		NOR = {
+		NOT = {
 			trait = celibate
-			trait = homosexual
+			#trait = homosexual
 		}
 	}
 
@@ -4484,6 +4500,9 @@ character_event = {
 
 				NOT = { is_older_than = ROOT }
 				is_inaccessible_or_incapable_trigger = no
+				NOT = {
+					trait = malnourished
+				}
 			}
 
 			save_event_target_as = young_mother
@@ -12699,9 +12718,10 @@ character_event = {
 			trait = chaste
 			trait = humble
 		}
-		NOT = {
-			trait = homosexual
-		}
+		#NOT = {
+		#	trait = homosexual
+		#}
+		opposite_sex_sex_interest_trait_trigger = yes
 
 		any_spouse = {
 			has_lover = no
@@ -12709,22 +12729,14 @@ character_event = {
 			is_pregnant = no
 			is_abroad = no
 			is_inaccessible_or_incapable_trigger = no
-			NOT = {
-				trait = homosexual
-			}
+			#NOT = {
+			#	trait = homosexual
+			#}
+			opposite_sex_sex_interest_trait_trigger = yes
 
-			trigger_if = {
-				limit = {
-					OR = {
-						trait = chaste
-						trait = celibate
-					}
-				}
-
-				OR = {
-					trait = lustful
-					trait = hedonist
-				}
+			NOR = {
+				trait = chaste
+				trait = celibate
 			}
 		}
 	}
@@ -12751,17 +12763,18 @@ character_event = {
 				is_pregnant = no
 				is_abroad = no
 				is_inaccessible_or_incapable_trigger = no
-				NOT = {
-					trait = homosexual
+				#NOT = {
+				#	trait = homosexual
+				#}
+				opposite_sex_sex_interest_trait_trigger = yes
+				NOR = {
+					trait = chaste
+					trait = celibate
 				}
-				OR = {
-					NOR = {
-						trait = chaste
-						trait = celibate
-					}
-					trait = lustful
-					trait = hedonist
-				}
+			}
+			
+			preferred_limit = {
+				trait = lustful
 			}
 			save_event_target_as = sex_partner
 		}
@@ -21533,8 +21546,14 @@ character_event = {
 		any_courtier = {
 			age >= 20
 			is_inaccessible_or_incapable_trigger = no
+			is_married = no
+			is_consort = no
 			has_lover = no
 			NOT = { trait = poet }
+			OR = {
+				trait = romance_attraction_female
+				trait = romance_attraction_male
+			}
 		}
 	}
 
@@ -21549,8 +21568,14 @@ character_event = {
 			limit = {
 				age >= 20
 				is_inaccessible_or_incapable_trigger = no
+				is_married = no
+				is_consort = no
 				has_lover = no
 				NOT = { trait = poet }
+				OR = {
+					trait = romance_attraction_female
+					trait = romance_attraction_male
+				}
 			}
 
 			save_event_target_as = poem_customer
@@ -21594,26 +21619,26 @@ character_event = {
 			}
 		}
 
-		if = {
-			limit = {
-				is_married = yes
-				is_female = no
-
-				event_target:poem_customer = {
-					is_female = yes
-					practical_age < 30
-
-					NOR = {
-						trait = homosexual
-						trait = celibate
-					}
-				}
-			}
-
-			spouse = {
-				character_event = { id = 3676 }
-			}
-		}
+		#if = { # Tianxia: Can get very weird since there's no easy way to check if a courtier without a lover has a "sweetheart", so disabled
+		#	limit = {
+		#		is_married = yes
+		#		is_female = no
+		#
+		#		event_target:poem_customer = {
+		#			is_female = yes
+		#			practical_age < 30
+		#
+		#			NOR = {
+		#				trait = homosexual
+		#				trait = celibate
+		#			}
+		#		}
+		#	}
+		#
+		#	spouse = {
+		#		character_event = { id = 3676 }
+		#	}
+		#}
 	}
 
 	option = {

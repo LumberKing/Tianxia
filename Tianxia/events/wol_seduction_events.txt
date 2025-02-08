@@ -989,7 +989,7 @@ character_event = {
 		}
 	}
 
-	after = {
+	after = { # TIANXIATODO: Fix!
 		if = {
 			limit = { is_lover = event_target:seduced }
 			remove_lover = event_target:seduced
@@ -1683,20 +1683,24 @@ character_event = {
 
 	desc = {
 		text = EVTDESC_WOL_81_HOMO
-		trigger = { trait = homosexual }
+		trigger = {
+			same_sex_sex_interest_trait_trigger = yes
+		}
 	}
 	desc = {
 		text = EVTDESC_WOL_81_F
 		trigger = {
 			is_female = yes
-			NOT = { trait = homosexual }
+			#NOT = { trait = homosexual }
+			trait = sex_interest_male
 		}
 	}
 	desc = {
 		text = EVTDESC_WOL_81_M
 		trigger = {
 			is_female = no
-			NOT = { trait = homosexual }
+			#NOT = { trait = homosexual }
+			trait = sex_interest_female
 		}
 	}
 
@@ -8599,9 +8603,13 @@ character_event = {
 
 			trigger_if = {
 				limit = { same_sex = event_target:seducer }
-				trait = homosexual
+				#trait = homosexual
 				event_target:seducer = {
-					trait = homosexual
+					#trait = homosexual
+					valid_sexual_match_ROOT_trigger = yes
+					ROOT = {
+						valid_sexual_match_PREV_trigger = yes
+					}
 				}
 			}
 		}
@@ -8924,7 +8932,10 @@ character_event = {
 
 		any_realm_character = {
 			is_priest = yes
-			is_valid_romance_target = ROOT
+			valid_sexual_match_ROOT_trigger = yes
+			ROOT = {
+				valid_sexual_match_PREV_trigger = yes
+			}
 			religion = ROOT
 			prisoner = no
 			has_actual_regency_trigger = no
@@ -9035,7 +9046,7 @@ character_event = {
 		}
 	}
 
-	option = {
+	option = { # TIANXIATODO: The event doesn't check if the priest would go for it? Vanilla sure is bad at this...
 		name = EVTOPTA_WOL_500 # Go for it
 
 		event_target:target_priest = {
@@ -9076,11 +9087,13 @@ character_event = {
 				}
 
 				NOR = {
-					trait = homosexual
+					#trait = homosexual # Could be same sex...
 					trait = arbitrary
 					trait = lustful
 					trait = hedonist
 				}
+				
+				is_opposite_sex = event_target:target_priest
 			}
 		}
 	}
@@ -9111,18 +9124,19 @@ character_event = {
 			limit = { is_female = yes }
 
 			practical_age < 65
-			NOT = { trait = homosexual }
+			#NOT = { trait = homosexual }
 		}
-		trigger_else = {
-			trait = homosexual
-		}
+		#trigger_else = {
+		#	trait = homosexual
+		#}
 
 		NOT = { has_character_modifier = hidden_seduced_bodyguard }
 		
-		NOR = {
+		NOR = { # TIANXIATODO: Fix!
 			has_religion_feature = religion_matriarchal
 			has_religion_feature = religion_feature_minangkabau
 		}
+		trait = sex_interest_male # TIANXIATODO: Fix as part of above!
 	}
 
 	weight_multiplier = {
@@ -9140,7 +9154,7 @@ character_event = {
 			}
 
 			NOR = {
-				trait = homosexual
+				#trait = homosexual # What? They can't get this, even in vanilla!
 				trait = arbitrary
 				trait = lustful
 				trait = hedonist
@@ -9318,11 +9332,12 @@ character_event = {
 			limit = { is_female = yes }
 
 			practical_age < 65
-			trait = homosexual
+			#trait = homosexual
 		}
-		trigger_else = {
-			NOT = { trait = homosexual }
-		}
+		#trigger_else = {
+		#	NOT = { trait = homosexual }
+		#}
+		trait = sex_interest_female
 
 		NOT = { has_character_modifier = hidden_seduced_maid }
 	}
@@ -9382,7 +9397,7 @@ character_event = {
 			add_trait = cynical
 		}
 
-		hidden_effect = {
+		hidden_effect = { # TIANXIATODO: Fix; this is a mess!
 			new_character = {
 				add_lover = ROOT
 
@@ -9470,11 +9485,14 @@ character_event = {
 
 		trigger_if = {
 			limit = { is_female = yes }
-			trait = homosexual
+
+			practical_age < 65
+			#trait = homosexual
 		}
-		trigger_else = {
-			NOT = { trait = homosexual }
-		}
+		#trigger_else = {
+		#	NOT = { trait = homosexual }
+		#}
+		trait = sex_interest_female
 
 		NOR = {
 			trait = infirm
@@ -9561,8 +9579,7 @@ character_event = {
 
 				character_event = {
 					id = WoL.562 # A baby is found in the garden!
-					days = 240
-					random = 20
+					days = 269
 				}
 			}
 		}
@@ -9600,28 +9617,54 @@ character_event = {
 					create_character = {
 						dynasty = none
 						religion = hellenic_pagan
-						culture = irish
+						culture = greek # TIANXIATODO: Dryad
+						race = irish
 						female = yes
 						dna = "gppniiosfag"
 						age = 20
+						trait = attractive # For inheritance
+						trait = lustful
 					}
+					
+					save_event_target_as = getting_lover
 
 					new_character = {
+						randomize_event_target_sexuality_effect = yes
+						
 						ROOT = {
-							create_character = {
-								dynasty = none
-								religion = ROOT
-								culture = ROOT
-								race = PREV
-								genetic_mother = PREV
-								genetic_father = ROOT
-								female = 50
-								age = 0
-								add_trait = bastard
-								add_trait = attractive
+							random_list = {
+								50 = {
+									create_character = {
+										dynasty = none
+										religion = ROOT
+										culture = ROOT # TIANXIATODO: culture = PREV; will affect the name!
+										race = PREV
+										genetic_mother = PREV
+										genetic_father = ROOT
+										female = yes # Dryads are female!
+										age = 0
+										add_trait = bastard
+										add_trait = attractive
+									}
+								}
+								50 = {
+									create_character = {
+										dynasty = none
+										religion = ROOT
+										culture = ROOT
+										race = ROOT
+										genetic_mother = PREV
+										genetic_father = ROOT
+										female = no # Not a dryad!
+										age = 0
+										add_trait = bastard
+										add_trait = attractive
+									}
+								}
 							}
 
 							new_character = {
+								culture = ROOT
 								save_event_target_as = target_baby
 							}
 						}
@@ -9738,11 +9781,14 @@ character_event = {
 
 		trigger_if = {
 			limit = { is_female = yes }
-			NOT = { trait = homosexual }
+
+			practical_age < 65
+			#trait = homosexual
 		}
-		trigger_else = {
-			trait = homosexual
-		}
+		#trigger_else = {
+		#	NOT = { trait = homosexual }
+		#}
+		trait = sex_interest_male
 
 		NOR = {
 			trait = eunuch
@@ -9881,8 +9927,9 @@ character_event = {
 			trait = imbecile
 			has_character_modifier = the_oubliette
 			has_character_modifier = hidden_seduced_gaoler
-			trait = homosexual # Presumably not good at -- or the kind of person to contemplate -- seducing male guards
+			#trait = homosexual # Presumably not good at -- or the kind of person to contemplate -- seducing male guards
 		}
+		trait = sex_interest_male
 		host = {
 			NOR = {
 				has_religion_feature = religion_matriarchal # Guards are presumably female...
