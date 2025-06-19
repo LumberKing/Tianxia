@@ -1,12 +1,15 @@
 # inheritance_sanity_check_effect
 # inheritance_sanity_cleanup_effect
 # inheritance_sanity_setup_effect
+# add_proper_caste_trait_effect
 
 inheritance_sanity_check_effect = { # Handles potential cases where traits/bloodlines don't respect (perceived) parents... and Jimmu's bloodline accidentally being universal due to vanilla stupidity...
 	event_target:inheritance_sanity_check_character = {
 		inheritance_sanity_cleanup_effect = yes
 		
 		inheritance_sanity_setup_effect = yes
+		
+		add_proper_caste_trait_effect = yes
 	}
 }
 
@@ -333,5 +336,136 @@ inheritance_sanity_setup_effect = {
 				}
 			}
 		}
+	}
+}
+
+add_proper_caste_trait_effect = {
+	hidden_tooltip = {
+		save_event_target_as = caste_change
+		# First remove the caste traits, if applicable
+		if = {
+			limit = {
+				OR = {
+					trait = brahmin
+					trait = kshatriya
+					trait = vaishya
+				}
+			}
+			remove_trait = brahmin
+			remove_trait = kshatriya
+			remove_trait = vaishya
+		}
+		
+		# Then make sure our current caste is correct
+		if = {
+			limit = {
+				mother_even_if_dead = {
+					always = yes
+				}
+			}
+			
+			# If there is a father, do a comparison
+			if = {
+				limit = {
+					father_even_if_dead = {
+						always = yes
+					}
+				}
+				
+				if = {
+					limit = {
+						mother_even_if_dead = {
+							trait = brahmin
+						}
+					}
+					# Father's caste is same or lower
+					father_even_if_dead = {
+						trigger_switch = {
+							on_trigger = trait
+							
+							brahmin = { event_target:caste_change = { add_trait = brahmin } }
+							kshatriya = { event_target:caste_change = { add_trait = kshatriya } }
+							vaishya = { event_target:caste_change = { add_trait = vaishya } }
+							fallback = {} # Casteless
+						}
+					}
+				}
+				
+				else_if = {
+					limit = {
+						mother_even_if_dead = {
+							trait = kshatriya
+						}
+					}
+					# Cannot be Brahmin
+					father_even_if_dead = {
+						trigger_switch = {
+							on_trigger = trait
+							
+							brahmin = { event_target:caste_change = { add_trait = kshatriya } }
+							kshatriya = { event_target:caste_change = { add_trait = kshatriya } }
+							vaishya = { event_target:caste_change = { add_trait = vaishya } }
+							fallback = {} # Casteless
+						}
+					}
+				}
+				
+				else_if = {
+					limit = {
+						mother_even_if_dead = {
+							trait = vaishya
+						}
+					}
+					# Cannot be Brahmin or Kshatriya
+					father_even_if_dead = {
+						trigger_switch = {
+							on_trigger = trait
+							
+							kshatriya = { event_target:caste_change = { add_trait = vaishya } }
+							kshatriya = { event_target:caste_change = { add_trait = vaishya } }
+							vaishya = { event_target:caste_change = { add_trait = vaishya } }
+							fallback = {} # Casteless
+						}
+					}
+				}
+				# Casteless otherwise
+			}
+			
+			else = {
+				# Match mother's caste
+				mother_even_if_dead = {
+					trigger_switch = {
+						on_trigger = trait
+						
+						brahmin = { event_target:caste_change = { add_trait = brahmin } }
+						kshatriya = { event_target:caste_change = { add_trait = kshatriya } }
+						vaishya = { event_target:caste_change = { add_trait = vaishya } }
+						fallback = {} # Casteless
+					}
+				}
+			}
+		}
+		
+		else_if = {
+			limit = {
+				father_even_if_dead = {
+					always = yes
+				}
+			}
+			
+			# Match father's caste
+			father_even_if_dead = {
+				trigger_switch = {
+					on_trigger = trait
+					
+					brahmin = { event_target:caste_change = { add_trait = brahmin } }
+					kshatriya = { event_target:caste_change = { add_trait = kshatriya } }
+					vaishya = { event_target:caste_change = { add_trait = vaishya } }
+					fallback = {} # Casteless
+				}
+			}
+		}
+		
+		# Fallback: Casteless
 	}
 }

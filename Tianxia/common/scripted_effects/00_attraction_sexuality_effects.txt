@@ -1,5 +1,6 @@
 # set_up_sexuality_romance_effect
 # set_up_sexuality_romance_child_effect
+# figured_things_out_check_effect
 # remove_sexuality_romance_effect
 # on_birth_sexuality_romance_randomization_effect
 # randomize_sexuality_romance_effect
@@ -414,7 +415,7 @@ set_up_sexuality_romance_effect = {
 			randomize_sexuality_romance_effect = yes
 		}
 		
-		# TIANXIATODO: Check if the character has aged past the attraction cutoff
+		attraction_cutoff_roll_effect = yes
 	}	
 	add_all_relevant_attraction_giving_traits_effect = yes
 	add_all_relevant_attraction_giving_modifiers_effect = yes
@@ -447,7 +448,7 @@ set_up_sexuality_romance_child_effect = {
 		
 		else_if = {
 			limit = {
-				NAND = {
+				NAND = { # TIANXIATODO: Review this one; something is weird
 					has_character_flag = aro_ace
 					OR = {
 						has_any_sex_interest_trait_trigger = yes
@@ -753,14 +754,1425 @@ set_up_sexuality_romance_child_effect = {
 		}
 	}
 	
-	# Only for adults
 	remove_trait = sex_attraction_female
 	remove_trait = sex_attraction_male
 	remove_trait = romance_attraction_female
 	remove_trait = romance_attraction_male
 	
 	# If there's no sexuality trait, add the appropriate placeholder trait
-	add_trait = figuring_things_out
+	if = {
+		limit = {
+			has_any_sexuality_trait_trigger = no
+		}
+		add_trait = figuring_things_out
+	}
+	else = {
+		if = {
+			limit = {
+				trait = asexual
+			}
+			set_character_flag = no_sex_attraction_female_known
+			set_character_flag = no_sex_attraction_male_known
+		}
+		else_if = {
+			limit = {
+				trait = homosexual
+			}
+			if = {
+				limit = {
+					is_female = yes
+				}
+				set_character_flag = no_sex_attraction_male_known
+				set_character_flag = no_sex_interest_male_known
+			}
+			else = {
+				set_character_flag = no_sex_attraction_female_known
+				set_character_flag = no_sex_interest_female_known
+			}
+		}
+		else_if = {
+			limit = {
+				trait = heterosexual
+			}
+			if = {
+				limit = {
+					is_female = yes
+				}
+				set_character_flag = no_sex_attraction_female_known
+				set_character_flag = no_sex_interest_female_known
+			}
+			else = {
+				set_character_flag = no_sex_attraction_male_known
+				set_character_flag = no_sex_interest_male_known
+			}
+		}
+	}
+	
+	# Maybe reveal some things if the child is older
+	if = {
+		limit = {
+			age >= 6
+			age < 10
+		}
+		if = {
+			limit = {
+				is_female = yes
+			}
+			if = {
+				limit = {
+					OR = {
+						trait = heterosexual
+						has_character_flag = is_heterosexual
+					}
+				}
+				random = {
+					chance = 25
+					set_character_flag = sex_attraction_male_known
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_romance_women
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						trait = homosexual
+						has_character_flag = is_homosexual
+					}
+				}
+				random = {
+					chance = 25
+					set_character_flag = sex_attraction_female_known
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_sex_attraction_male_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_romance_men
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						trait = bisexual
+						has_character_flag = is_bisexual
+					}
+				}
+				random = {
+					chance = 25
+					set_character_flag = sex_attraction_male_known
+				}
+				random = {
+					chance = 25
+					set_character_flag = sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				else = {
+					random = {
+						chance = 25
+						set_character_flag = no_romance_men
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				else = {
+					random = {
+						chance = 25
+						set_character_flag = no_romance_women
+					}
+				}
+			}
+			else = {
+				random = {
+					chance = 25
+					set_character_flag = no_sex_attraction_male_known
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				else = {
+					random = {
+						chance = 25
+						set_character_flag = no_romance_men
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				else = {
+					random = {
+						chance = 25
+						set_character_flag = no_romance_women
+					}
+				}
+			}
+		}
+		else = {
+			if = {
+				limit = {
+					OR = {
+						trait = heterosexual
+						has_character_flag = is_heterosexual
+					}
+				}
+				random = {
+					chance = 25
+					set_character_flag = sex_attraction_female_known
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_sex_attraction_male_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_romance_men
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						trait = homosexual
+						has_character_flag = is_homosexual
+					}
+				}
+				random = {
+					chance = 25
+					set_character_flag = sex_attraction_male_known
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_romance_women
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						trait = bisexual
+						has_character_flag = is_bisexual
+					}
+				}
+				random = {
+					chance = 25
+					set_character_flag = sex_attraction_male_known
+				}
+				random = {
+					chance = 25
+					set_character_flag = sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				else = {
+					random = {
+						chance = 25
+						set_character_flag = no_romance_men
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				else = {
+					random = {
+						chance = 25
+						set_character_flag = no_romance_women
+					}
+				}
+			}
+			else = {
+				random = {
+					chance = 25
+					set_character_flag = no_sex_attraction_male_known
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				else = {
+					random = {
+						chance = 25
+						set_character_flag = no_romance_men
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				else = {
+					random = {
+						chance = 25
+						set_character_flag = no_romance_women
+					}
+				}
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			age >= 10
+			age < 14
+		}
+		if = {
+			limit = {
+				is_female = yes
+			}
+			if = {
+				limit = {
+					OR = {
+						trait = heterosexual
+						has_character_flag = is_heterosexual
+					}
+				}
+				random = {
+					chance = 50
+					set_character_flag = sex_attraction_male_known
+				}
+				random = {
+					chance = 50
+					set_character_flag = no_sex_attraction_female_known
+				}
+				random = {
+					chance = 25
+					add_trait = sex_interest_male
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 50
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				random = {
+					chance = 50
+					set_character_flag = no_romance_women
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						trait = homosexual
+						has_character_flag = is_homosexual
+					}
+				}
+				random = {
+					chance = 50
+					set_character_flag = sex_attraction_female_known
+				}
+				random = {
+					chance = 50
+					set_character_flag = no_sex_attraction_male_known
+				}
+				random = {
+					chance = 25
+					add_trait = sex_interest_female
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_sex_attraction_male_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 50
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				random = {
+					chance = 50
+					set_character_flag = no_romance_men
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						trait = bisexual
+						has_character_flag = is_bisexual
+					}
+				}
+				random = {
+					chance = 50
+					set_character_flag = sex_attraction_male_known
+				}
+				random = {
+					chance = 50
+					set_character_flag = sex_attraction_female_known
+				}
+				random = {
+					chance = 25
+					add_trait = sex_interest_male
+				}
+				random = {
+					chance = 25
+					add_trait = sex_interest_female
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				else = {
+					random = {
+						chance = 50
+						set_character_flag = no_romance_men
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 50
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				else = {
+					random = {
+						chance = 50
+						set_character_flag = no_romance_women
+					}
+				}
+			}
+			else = {
+				random = {
+					chance = 50
+					set_character_flag = no_sex_attraction_male_known
+				}
+				random = {
+					chance = 50
+					set_character_flag = no_sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = asexual_both
+					}
+					random = {
+						chance = 25
+						add_trait = sex_interest_male
+					}
+					random = {
+						chance = 25
+						add_trait = sex_interest_female
+					}
+				}
+				else_if = {
+					limit = {
+						has_character_flag = asexual_opposite
+					}
+					random = {
+						chance = 25
+						add_trait = sex_interest_male
+					}
+					random = {
+						chance = 25
+						set_character_flag = no_sex_interest_female_known
+					}
+				}
+				else_if = {
+					limit = {
+						has_character_flag = asexual_same
+					}
+					random = {
+						chance = 25
+						add_trait = sex_interest_female
+					}
+					random = {
+						chance = 25
+						set_character_flag = no_sex_interest_male_known
+					}
+				}
+				else = {
+					random = {
+						chance = 25
+						set_character_flag = no_sex_interest_female_known
+					}
+					random = {
+						chance = 25
+						set_character_flag = no_sex_interest_male_known
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 50
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				else = {
+					random = {
+						chance = 50
+						set_character_flag = no_romance_men
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 50
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				else = {
+					random = {
+						chance = 50
+						set_character_flag = no_romance_women
+					}
+				}
+			}
+		}
+		else = {
+			if = {
+				limit = {
+					OR = {
+						trait = heterosexual
+						has_character_flag = is_heterosexual
+					}
+				}
+				random = {
+					chance = 50
+					set_character_flag = sex_attraction_female_known
+				}
+				random = {
+					chance = 50
+					set_character_flag = no_sex_attraction_male_known
+				}
+				random = {
+					chance = 25
+					add_trait = sex_interest_female
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_sex_attraction_male_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 50
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				random = {
+					chance = 50
+					set_character_flag = no_romance_men
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						trait = homosexual
+						has_character_flag = is_homosexual
+					}
+				}
+				random = {
+					chance = 50
+					set_character_flag = sex_attraction_male_known
+				}
+				random = {
+					chance = 50
+					set_character_flag = no_sex_attraction_female_known
+				}
+				random = {
+					chance = 25
+					add_trait = sex_interest_male
+				}
+				random = {
+					chance = 25
+					set_character_flag = no_sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 50
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				random = {
+					chance = 50
+					set_character_flag = no_romance_women
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						trait = bisexual
+						has_character_flag = is_bisexual
+					}
+				}
+				random = {
+					chance = 50
+					set_character_flag = sex_attraction_male_known
+				}
+				random = {
+					chance = 50
+					set_character_flag = sex_attraction_female_known
+				}
+				random = {
+					chance = 25
+					add_trait = sex_interest_male
+				}
+				random = {
+					chance = 25
+					add_trait = sex_interest_female
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 25
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				else = {
+					random = {
+						chance = 50
+						set_character_flag = no_romance_men
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 50
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				else = {
+					random = {
+						chance = 50
+						set_character_flag = no_romance_women
+					}
+				}
+			}
+			else = {
+				random = {
+					chance = 50
+					set_character_flag = no_sex_attraction_male_known
+				}
+				random = {
+					chance = 50
+					set_character_flag = no_sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = asexual_both
+					}
+					random = {
+						chance = 25
+						add_trait = sex_interest_male
+					}
+					random = {
+						chance = 25
+						add_trait = sex_interest_female
+					}
+				}
+				else_if = {
+					limit = {
+						has_character_flag = asexual_opposite
+					}
+					random = {
+						chance = 25
+						add_trait = sex_interest_female
+					}
+					random = {
+						chance = 25
+						set_character_flag = no_sex_interest_male_known
+					}
+				}
+				else_if = {
+					limit = {
+						has_character_flag = asexual_same
+					}
+					random = {
+						chance = 25
+						add_trait = sex_interest_male
+					}
+					random = {
+						chance = 25
+						set_character_flag = no_sex_interest_female_known
+					}
+				}
+				else = {
+					random = {
+						chance = 25
+						set_character_flag = no_sex_interest_female_known
+					}
+					random = {
+						chance = 25
+						set_character_flag = no_sex_interest_male_known
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 50
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				else = {
+					random = {
+						chance = 50
+						set_character_flag = no_romance_men
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 50
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				else = {
+					random = {
+						chance = 50
+						set_character_flag = no_romance_women
+					}
+				}
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			age >= 14
+		}
+		if = {
+			limit = {
+				is_female = yes
+			}
+			if = {
+				limit = {
+					OR = {
+						trait = heterosexual
+						has_character_flag = is_heterosexual
+					}
+				}
+				random = {
+					chance = 75
+					set_character_flag = sex_attraction_male_known
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_sex_attraction_female_known
+				}
+				random = {
+					chance = 75
+					add_trait = sex_interest_male
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 75
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_romance_women
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						trait = homosexual
+						has_character_flag = is_homosexual
+					}
+				}
+				random = {
+					chance = 75
+					set_character_flag = sex_attraction_female_known
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_sex_attraction_male_known
+				}
+				random = {
+					chance = 75
+					add_trait = sex_interest_female
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_sex_attraction_male_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 75
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_romance_men
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						trait = bisexual
+						has_character_flag = is_bisexual
+					}
+				}
+				random = {
+					chance = 75
+					set_character_flag = sex_attraction_male_known
+				}
+				random = {
+					chance = 75
+					set_character_flag = sex_attraction_female_known
+				}
+				random = {
+					chance = 75
+					add_trait = sex_interest_male
+				}
+				random = {
+					chance = 75
+					add_trait = sex_interest_female
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 75
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				else = {
+					random = {
+						chance = 75
+						set_character_flag = no_romance_men
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 75
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				else = {
+					random = {
+						chance = 75
+						set_character_flag = no_romance_women
+					}
+				}
+			}
+			else = {
+				random = {
+					chance = 75
+					set_character_flag = no_sex_attraction_male_known
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = asexual_both
+					}
+					random = {
+						chance = 50
+						add_trait = sex_interest_male
+					}
+					random = {
+						chance = 50
+						add_trait = sex_interest_female
+					}
+				}
+				else_if = {
+					limit = {
+						has_character_flag = asexual_opposite
+					}
+					random = {
+						chance = 50
+						add_trait = sex_interest_male
+					}
+					random = {
+						chance = 75
+						set_character_flag = no_sex_interest_female_known
+					}
+				}
+				else_if = {
+					limit = {
+						has_character_flag = asexual_same
+					}
+					random = {
+						chance = 50
+						add_trait = sex_interest_female
+					}
+					random = {
+						chance = 75
+						set_character_flag = no_sex_interest_male_known
+					}
+				}
+				else = {
+					random = {
+						chance = 75
+						set_character_flag = no_sex_interest_female_known
+					}
+					random = {
+						chance = 75
+						set_character_flag = no_sex_interest_male_known
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 75
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				else = {
+					random = {
+						chance = 75
+						set_character_flag = no_romance_men
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 75
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				else = {
+					random = {
+						chance = 75
+						set_character_flag = no_romance_women
+					}
+				}
+			}
+		}
+		else = {
+			if = {
+				limit = {
+					OR = {
+						trait = heterosexual
+						has_character_flag = is_heterosexual
+					}
+				}
+				random = {
+					chance = 75
+					set_character_flag = sex_attraction_female_known
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_sex_attraction_male_known
+				}
+				random = {
+					chance = 75
+					add_trait = sex_interest_female
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_sex_attraction_male_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 75
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_romance_men
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						trait = homosexual
+						has_character_flag = is_homosexual
+					}
+				}
+				random = {
+					chance = 75
+					set_character_flag = sex_attraction_male_known
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_sex_attraction_female_known
+				}
+				random = {
+					chance = 75
+					add_trait = sex_interest_male
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 75
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				random = {
+					chance = 50
+					set_character_flag = no_romance_women
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						trait = bisexual
+						has_character_flag = is_bisexual
+					}
+				}
+				random = {
+					chance = 75
+					set_character_flag = sex_attraction_male_known
+				}
+				random = {
+					chance = 75
+					set_character_flag = sex_attraction_female_known
+				}
+				random = {
+					chance = 75
+					add_trait = sex_interest_male
+				}
+				random = {
+					chance = 75
+					add_trait = sex_interest_female
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 75
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				else = {
+					random = {
+						chance = 75
+						set_character_flag = no_romance_men
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 75
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				else = {
+					random = {
+						chance = 75
+						set_character_flag = no_romance_women
+					}
+				}
+			}
+			else = {
+				random = {
+					chance = 75
+					set_character_flag = no_sex_attraction_male_known
+				}
+				random = {
+					chance = 75
+					set_character_flag = no_sex_attraction_female_known
+				}
+				if = {
+					limit = {
+						has_character_flag = asexual_both
+					}
+					random = {
+						chance = 50
+						add_trait = sex_interest_male
+					}
+					random = {
+						chance = 50
+						add_trait = sex_interest_female
+					}
+				}
+				else_if = {
+					limit = {
+						has_character_flag = asexual_opposite
+					}
+					random = {
+						chance = 50
+						add_trait = sex_interest_female
+					}
+					random = {
+						chance = 75
+						set_character_flag = no_sex_interest_male_known
+					}
+				}
+				else_if = {
+					limit = {
+						has_character_flag = asexual_same
+					}
+					random = {
+						chance = 50
+						add_trait = sex_interest_male
+					}
+					random = {
+						chance = 75
+						set_character_flag = no_sex_interest_female_known
+					}
+				}
+				else = {
+					random = {
+						chance = 75
+						set_character_flag = no_sex_interest_female_known
+					}
+					random = {
+						chance = 75
+						set_character_flag = no_sex_interest_male_known
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_men
+					}
+					random = {
+						chance = 75
+						clr_character_flag = romance_men
+						add_trait = romance_interest_male
+					}
+				}
+				else = {
+					random = {
+						chance = 75
+						set_character_flag = no_romance_men
+					}
+				}
+				if = {
+					limit = {
+						has_character_flag = romance_women
+					}
+					random = {
+						chance = 75
+						clr_character_flag = romance_women
+						add_trait = romance_interest_female
+					}
+				}
+				else = {
+					random = {
+						chance = 75
+						set_character_flag = no_romance_women
+					}
+				}
+			}
+		}
+	}
+	
+	figured_things_out_check_effect = yes
+}
+
+figured_things_out_check_effect = {
+	# If the child has completely figured things out, apply the appropriate traits and clean up at least some flags
+	if = {
+		limit = {
+			has_character_flag = is_heterosexual
+			OR = {
+				AND = {
+					is_female = yes
+					trait = sex_interest_male
+					has_character_flag = no_sex_interest_female_known
+					has_character_flag = sex_attraction_male_known
+					has_character_flag = no_sex_attraction_female_known
+					OR = {
+						trait = romance_interest_male
+						has_character_flag = no_romance_men
+					}
+					has_character_flag = no_romance_women
+				}
+				AND = {
+					is_female = no
+					trait = sex_interest_female
+					has_character_flag = no_sex_interest_male_known
+					has_character_flag = sex_attraction_female_known
+					has_character_flag = no_sex_attraction_male_known
+					OR = {
+						trait = romance_interest_female
+						has_character_flag = no_romance_women
+					}
+					has_character_flag = no_romance_men
+				}
+			}
+		}
+		add_trait = heterosexual
+		clr_character_flag = is_heterosexual
+		clear_flags_with_prefix = no_sex_attraction_
+		clear_flags_with_prefix = no_sex_interest_
+		clear_flags_with_prefix = sex_attraction_
+		remove_trait = figuring_things_out
+		# TIANXIATODO: Notification
+	}
+	else_if = {
+		limit = {
+			has_character_flag = is_homosexual
+			OR = {
+				AND = {
+					is_female = yes
+					trait = sex_interest_female
+					has_character_flag = no_sex_interest_male_known
+					has_character_flag = sex_attraction_female_known
+					has_character_flag = no_sex_attraction_male_known
+					OR = {
+						trait = romance_interest_female
+						has_character_flag = no_romance_women
+					}
+					has_character_flag = no_romance_men
+				}
+				AND = {
+					is_female = no
+					trait = sex_interest_male
+					has_character_flag = no_sex_interest_female_known
+					has_character_flag = sex_attraction_male_known
+					has_character_flag = no_sex_attraction_female_known
+					OR = {
+						trait = romance_interest_male
+						has_character_flag = no_romance_men
+					}
+					has_character_flag = no_romance_women
+				}
+			}
+		}
+		add_trait = homosexual
+		clr_character_flag = is_homosexual
+		clear_flags_with_prefix = no_sex_attraction_
+		clear_flags_with_prefix = no_sex_interest_
+		clear_flags_with_prefix = sex_attraction_
+		remove_trait = figuring_things_out
+		# TIANXIATODO: Notification
+	}
+	else_if = {
+		limit = {
+			has_character_flag = is_bisexual
+			trait = sex_interest_female
+			trait = sex_interest_male
+			has_character_flag = sex_attraction_female_known
+			has_character_flag = sex_attraction_male_known
+			OR = {
+				trait = romance_interest_female
+				has_character_flag = no_romance_women
+			}
+			OR = {
+				trait = romance_interest_male
+				has_character_flag = no_romance_men
+			}
+		}
+		add_trait = bisexual
+		clr_character_flag = is_bisexual
+		clear_flags_with_prefix = sex_attraction_
+		remove_trait = figuring_things_out
+		# TIANXIATODO: Notification
+	}
+	else_if = {
+		limit = {
+			has_character_flag = is_asexual
+			OR = {
+				trait = sex_interest_female
+				has_character_flag = no_sex_interest_female_known
+			}
+			OR = {
+				trait = sex_interest_male
+				has_character_flag = no_sex_interest_male_known
+			}
+			has_character_flag = no_sex_attraction_female_known
+			has_character_flag = no_sex_attraction_male_known
+			OR = {
+				trait = romance_interest_female
+				has_character_flag = no_romance_women
+			}
+			OR = {
+				trait = romance_interest_male
+				has_character_flag = no_romance_men
+			}
+		}
+		add_trait = asexual
+		clr_character_flag = is_asexual
+		clear_flags_with_prefix = sex_attraction_
+		clear_flags_with_prefix = no_sex_attraction_
+		clear_flags_with_prefix = no_sex_interest_
+		remove_trait = figuring_things_out
+		# TIANXIATODO: Notification
+	}
 }
 
 remove_sexuality_romance_effect = { # Used to clear out all relevant traits prior to compatibility with getting_lover/getting_romance
@@ -1150,6 +2562,12 @@ randomize_valid_sexuality_effect = {
 					add_trait = bisexual
 				}
 				5 = {
+					trigger = {
+						NOR = {
+							trait = sex_attraction_female
+							trait = sex_attraction_male
+						}
+					}
 					add_trait = asexual
 				}
 			}
@@ -1197,6 +2615,12 @@ randomize_valid_sexuality_effect = {
 					add_trait = bisexual
 				}
 				5 = {
+					trigger = {
+						NOR = {
+							trait = sex_attraction_female
+							trait = sex_attraction_male
+						}
+					}
 					add_trait = asexual
 				}
 			}
@@ -1546,6 +2970,12 @@ randomize_valid_romance_effect = {
 					}
 				}
 				25 = {
+					trigger = {
+						NOR = {
+							trait = romance_attraction_female
+							trait = romance_attraction_male
+						}
+					}
 					mult_modifier = {
 						factor = 7
 						OR = {
@@ -1626,6 +3056,12 @@ randomize_valid_romance_effect = {
 					}
 				}
 				25 = {
+					trigger = {
+						NOR = {
+							trait = romance_attraction_female
+							trait = romance_attraction_male
+						}
+					}
 					mult_modifier = {
 						factor = 7
 						OR = {
@@ -1648,87 +3084,101 @@ on_adulthood_sexuality_romance_effect = {
 		trigger_switch = {
 			on_trigger = has_character_flag
 			
-			is_heterosexual = { add_trait = heterosexual }
-			is_homosexual = { add_trait = homosexual }
-			is_bisexual = { add_trait = bisexual }
-			is_asexual = { add_trait = asexual }
+			is_heterosexual = {
+				add_trait = heterosexual
+				clr_character_flag = is_heterosexual
+			}
+			is_homosexual = {
+				add_trait = homosexual
+				clr_character_flag = is_homosexual
+			}
+			is_bisexual = {
+				add_trait = bisexual
+				clr_character_flag = is_bisexual
+			}
+			is_asexual = {
+				add_trait = asexual
+				clr_character_flag = is_asexual
+			}
+		}
+		set_character_flag = reveal_sexuality_on_adulthood
+	}
+	if = {
+		limit = {
+			trait = heterosexual
 		}
 		
 		if = {
 			limit = {
-				trait = heterosexual
+				is_female = yes
 			}
-			
-			if = {
-				limit = {
-					is_female = yes
-				}
-				add_trait = sex_interest_male
-			}
-			else = {
-				add_trait = sex_interest_female
-			}
-		}
-		
-		else_if = {
-			limit = {
-				trait = homosexual
-			}
-			
-			if = {
-				limit = {
-					is_female = yes
-				}
-				add_trait = sex_interest_female
-			}
-			else = {
-				add_trait = sex_interest_male
-			}
-		}
-		
-		else_if = {
-			limit = {
-				trait = bisexual
-			}
-			
-			add_trait = sex_interest_female
 			add_trait = sex_interest_male
 		}
-		
 		else = {
-			trigger_switch = {
-				on_trigger = has_character_flag
-				
-				asexual_opposite = {
-					if = {
-						limit = {
-							is_female = yes
-						}
-						add_trait = sex_interest_male
+			add_trait = sex_interest_female
+		}
+	}
+	
+	else_if = {
+		limit = {
+			trait = homosexual
+		}
+		
+		if = {
+			limit = {
+				is_female = yes
+			}
+			add_trait = sex_interest_female
+		}
+		else = {
+			add_trait = sex_interest_male
+		}
+	}
+	
+	else_if = {
+		limit = {
+			trait = bisexual
+		}
+		
+		add_trait = sex_interest_female
+		add_trait = sex_interest_male
+	}
+	
+	else = {
+		trigger_switch = {
+			on_trigger = has_character_flag
+			
+			asexual_opposite = {
+				if = {
+					limit = {
+						is_female = yes
 					}
-					else = {
-						add_trait = sex_interest_female
-					}
+					add_trait = sex_interest_male
 				}
-				
-				asexual_same = {
-					if = {
-						limit = {
-							is_female = yes
-						}
-						add_trait = sex_interest_female
-					}
-					else = {
-						add_trait = sex_interest_male
-					}
-				}
-				
-				asexual_both = {
+				else = {
 					add_trait = sex_interest_female
+				}
+			}
+			
+			asexual_same = {
+				if = {
+					limit = {
+						is_female = yes
+					}
+					add_trait = sex_interest_female
+				}
+				else = {
 					add_trait = sex_interest_male
 				}
 			}
+			
+			asexual_both = {
+				add_trait = sex_interest_female
+				add_trait = sex_interest_male
+			}
 		}
+		
+		clear_flags_with_prefix = asexual_
 	}
 	
 	if = {
@@ -1757,6 +3207,7 @@ on_adulthood_sexuality_romance_effect = {
 		}
 		
 		add_trait = romance_interest_female
+		clr_character_flag = romance_women
 	}
 	
 	if = {
@@ -1765,6 +3216,7 @@ on_adulthood_sexuality_romance_effect = {
 		}
 		
 		add_trait = romance_interest_male
+		clr_character_flag = romance_men
 	}
 	
 	if = {
@@ -1783,6 +3235,22 @@ on_adulthood_sexuality_romance_effect = {
 	
 	add_all_relevant_attraction_giving_traits_effect = yes
 	add_all_relevant_attraction_giving_modifiers_effect = yes
+	
+	clear_flags_with_prefix = no_romance_
+	clear_flags_with_prefix = no_sex_interest_
+	clear_flags_with_prefix = no_sex_attraction_
+	clear_flags_with_prefix = sex_attraction_
+	
+	if = {
+		limit = {
+			has_character_flag = reveal_sexuality_on_adulthood
+		}
+		clr_character_flag = reveal_sexuality_on_adulthood
+		
+		# TIANXIATODO: Fire an event
+	}
+	
+	remove_trait = figuring_things_out
 }
 
 attraction_cutoff_roll_effect = {
@@ -1840,6 +3308,7 @@ attraction_cutoff_roll_effect = {
 					mult_modifier = {
 						factor = 2
 						has_fair_trait_trigger = yes
+						is_unattractive_trigger = no # Not if maimed/sick/etc.
 					}
 					
 					mult_modifier = {
