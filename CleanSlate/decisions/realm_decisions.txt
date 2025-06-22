@@ -11,7 +11,7 @@ decisions = {
 			independent = yes
 			higher_real_tier_than = DUKE
 			is_nomadic = no
-			owns = location
+			#owns = location
 
 			OR = {
 				religion_group = christian
@@ -330,9 +330,11 @@ decisions = {
 
 		potential = {
 			independent = yes
-			religion_group = muslim
 			higher_real_tier_than = DUKE
-			owns = location
+			is_nomadic = no
+			#owns = location
+
+			religion_group = muslim
 
 			trigger_if = {
 				limit = { is_female = yes }
@@ -353,12 +355,6 @@ decisions = {
 			in_command = no
 			prisoner = no
 			is_inaccessible_trigger = no
-
-			custom_tooltip = {
-				text = is_not_busy_trigger_tooltip
-
-				NOT = { has_character_flag = do_not_disturb }
-			}
 		}
 
 		effect = {
@@ -484,7 +480,7 @@ decisions = {
 				}
 			}
 
-			NOT = {
+			NOR = {
 				has_global_flag = schism_mended
 
 				has_alternate_start_parameter = {
@@ -850,11 +846,9 @@ decisions = {
 			any_playable_ruler = {
 				religion = norse_pagan
 
-				capital_scope = {
-					distance = {
-						where = c_constantinopolis
-						value >= 400 # Not too far away
-					}
+				distance = {
+					where = c_constantinopolis
+					value >= 400 # Not too far away
 				}
 			}
 		}
@@ -961,7 +955,7 @@ decisions = {
 			set_government_type = feudal_government
 
 			spawn_unit = {
-				province = 522 # Pest
+				province = c_pest
 				owner = ROOT
 				attrition = 0.5
 
@@ -974,7 +968,7 @@ decisions = {
 			}
 
 			spawn_unit = {
-				province = 522 # Pest
+				province = c_pest
 				owner = ROOT
 				attrition = 0.5
 
@@ -987,7 +981,7 @@ decisions = {
 			}
 
 			spawn_unit = {
-				province = 522 # Pest
+				province = c_pest
 				owner = ROOT
 				attrition = 0.5
 
@@ -1102,22 +1096,18 @@ decisions = {
 					limit = { is_female = yes }
 
 					create_bloodline = {
-						type = saoshyant_female
+						type = saoshyant_bloodline
+						inheritance = matrilineal
 					}
 
-					new_bloodline = {
-						set_description = bloodline_desc_saoshyant
-					}
 				}
 				else = {
 					create_bloodline = {
-						type = saoshyant_male
+						type = saoshyant_bloodline
 					}
 
-					new_bloodline = {
-						set_description = bloodline_desc_saoshyant
-					}
 				}
+				
 			}
 
 			narrative_event = { id = TOG.6000 }
@@ -1399,23 +1389,19 @@ decisions = {
 					limit = { is_female = yes }
 
 					create_bloodline = {
-						type = israel_female
+						type = israel_bloodline
+						inheritance = matrilineal
 					}
 
-					new_bloodline = {
-						set_description = bloodline_desc_israel
-					}
 				}
 
 				else = {
 					create_bloodline = {
-						type = israel_male
+						type = israel_bloodline
 					}
 
-					new_bloodline = {
-						set_description = bloodline_desc_israel
-					}
 				}
+				
 			}
 		}
 
@@ -1700,7 +1686,6 @@ decisions = {
 		}
 
 		allow = {
-			independent = yes
 			is_adult = yes
 			prisoner = no
 			is_incapable = no
@@ -1816,22 +1801,18 @@ decisions = {
 					limit = { is_female = yes }
 
 					create_bloodline = {
-						type = samrat_chakravartin_female
-					}
-
-					new_bloodline = {
-						set_description = bloodline_desc_samrat_chakravartin
+						type = samrat_chakravartin_bloodline
+						inheritance = matrilineal
 					}
 				}
+				
 				else = {
 					create_bloodline = {
-						type = samrat_chakravartin_male
+						type = samrat_chakravartin_bloodline
 					}
 
-					new_bloodline = {
-						set_description = bloodline_desc_samrat_chakravartin
-					}
 				}
+				
 			}
 
 			chronicle = {
@@ -1983,6 +1964,9 @@ decisions = {
 		only_independent = yes
 
 		potential = {
+			independent = yes
+			is_random_world = no
+
 			OR = {
 				religion = catholic
 				religion = fraticelli
@@ -1993,8 +1977,39 @@ decisions = {
 			}
 
 			trigger_if = {
-				limit = { is_alternate_start = no }
+				limit = { is_shattered_world = yes }
 
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = historical
+				}
+
+				has_alternate_start_parameter = {
+					key = culture_names
+					value = historical
+				}
+
+				has_alternate_start_setting = {
+					setting = title_names
+					option = historical
+				}
+
+				has_alternate_start_parameter = {
+					key = religion_features
+					value = historical
+				}
+
+				has_alternate_start_parameter = {
+					key = culture
+					value = historical
+				}
+
+				has_alternate_start_parameter = {
+					key = religion
+					value = historical
+				}
+			}
+			trigger_else = {
 				NOR = {
 					has_global_flag = charlemagne_hre
 					is_title_active = e_hre
@@ -2004,11 +2019,6 @@ decisions = {
 			NOR = {
 				has_global_flag = rome_restored
 				has_landed_title = e_byzantium
-
-				has_alternate_start_parameter = {
-					key = religion_names
-					value = random
-				}
 			}
 		}
 
@@ -2020,7 +2030,7 @@ decisions = {
 			is_incapable = no
 
 			trigger_if = {
-				limit = { is_alternate_start = no }
+				limit = { is_shattered_world = no }
 
 				custom_tooltip = {
 					text = form_the_hre_early_tooltip_1
@@ -2268,7 +2278,11 @@ decisions = {
 				narrative_event = { id = CM.1500 } # Charlemagne coronation
 			}
 			else = {
-				add_artifact = crown_hre
+				# Charlemagne already has the crown
+				if = {
+					limit = { NOT = { has_artifact = crown_hre } }
+					add_artifact = crown_hre
+				}
 				narrative_event = { id = CM.510 } # Spread the news
 			}
 
@@ -2365,8 +2379,6 @@ decisions = {
 
 				create_title = {
 					tier = KING
-					landless = no
-					temporary = no
 					custom_created = yes
 					culture = ROOT
 					holder = ROOT
@@ -2609,8 +2621,6 @@ decisions = {
 			primary_title = {
 				create_title = {
 					tier = EMPEROR
-					landless = no
-					temporary = no
 					custom_created = yes
 					culture = ROOT
 					holder = ROOT
@@ -2847,9 +2857,9 @@ decisions = {
 			}
 
 			if = {
-				limit = { is_government_potential = muslim_government}
+				limit = { is_government_potential = muslim_feudal_government }
 
-				set_government_type = muslim_government
+				set_government_type = muslim_feudal_government
 
 				if = {
 					limit = { ai = no }
@@ -2861,9 +2871,9 @@ decisions = {
 				}
 			}
 			else_if = {
-				limit = { is_government_potential = theocratic_feudal_government }
+				limit = { is_government_potential = monastic_feudal_government }
 
-				set_government_type = theocratic_feudal_government
+				set_government_type = monastic_feudal_government
 
 
 				if = {
@@ -3034,9 +3044,9 @@ decisions = {
 			}
 
 			if = {
-				limit = { is_government_potential = muslim_government}
+				limit = { is_government_potential = muslim_feudal_government }
 
-				set_government_type = muslim_government
+				set_government_type = muslim_feudal_government
 
 				if = {
 					limit = { ai = no }
@@ -3048,9 +3058,9 @@ decisions = {
 				}
 			}
 			else_if = {
-				limit = { is_government_potential = theocratic_feudal_government }
+				limit = { is_government_potential = monastic_feudal_government }
 
-				set_government_type = theocratic_feudal_government
+				set_government_type = monastic_feudal_government
 
 
 				if = {

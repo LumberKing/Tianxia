@@ -693,369 +693,7 @@ pagan_subjugation = {
 	}
 }
 
-pagan_holy_war = {
-	name = CB_NAME_RELIGIOUS
-	war_name = WAR_NAME_RELIGIOUS
-	sprite = 9
-	truce_days = 1825
-	sort_priority = 800
-
-	is_permanent = yes
-	is_holy_war = yes
-	check_de_jure_tier = DUKE # this scans all dejure duchies for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
-	allowed_to_target_tributaries = no
-
-	can_use_gui = {
-		# Attacker
-		ROOT = {
-			piety >= 100
-		}
-	}
-
-	can_use = {
-		# Attacker
-		ROOT = {
-			religion_group = pagan_group
-
-			trigger_if = {
-				limit = { is_reformed_religion = no }
-				religion = aztec_pagan
-			}
-
-			religion = top_liege
-
-			NOR = {
-				religion = FROM
-				same_realm = FROM
-				has_religion_feature = religion_peaceful
-			}
-
-			mercenary = no
-		}
-	}
-
-	can_use_title = {
-		# The attacker needs at least one county in the target kingdom, or a border, or be only two sea zones away from one of your counties
-		any_direct_de_jure_vassal_title = {
-			OR = {
-				holder_scope = { # part of attacker's realm
-					OR = {
-						character = ROOT
-						is_vassal_or_below_of = ROOT
-					}
-				}
-
-				location = {
-					any_neighbor_province = { # bordering province
-						trigger_if = {
-							limit = { has_owner = yes }
-
-							owner = { # part of attacker's realm
-								OR = {
-									character = ROOT
-									is_vassal_or_below_of = ROOT
-								}
-							}
-						}
-						trigger_else = {
-							is_land = no # first sea zone
-
-							any_neighbor_province = {
-								trigger_if = {
-									limit = { has_owner = yes }
-
-									owner = { # part of attacker's realm
-										OR = {
-											character = ROOT
-											is_vassal_or_below_of = ROOT
-										}
-									}
-								}
-								trigger_else = {
-									is_land = no # second sea zone
-
-									any_neighbor_province = {
-										owner = { # part of attacker's realm
-											OR = {
-												character = ROOT
-												is_vassal_or_below_of = ROOT
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	is_valid = {
-		# Attacker
-		ROOT = {
-			is_reformed_religion = yes
-
-			NOR = {
-				same_realm = FROM
-				religion = FROM
-				top_liege = { religion = FROM }
-			}
-		}
-	}
-
-	on_add = {
-		attacker = {
-			show_scope_change = no
-			piety = -100
-		}
-
-		fire_haruspicy_event_effect = yes
-		anger_china_effect = yes
-	}
-
-	on_success = {
-		attacker = {
-			show_scope_change = no
-
-			participation_scaled_piety = 100
-			participation_scaled_prestige = 50
-
-			religion_authority = {
-				name = won_holy_war
-				years = 20
-			}
-
-			hidden_effect = {
-				if = {
-					limit = { has_ambition = obj_strengthen_religion }
-
-					change_variable = {
-						which = strengthen_religion
-						value = 1
-					}
-				}
-
-				if = {
-					limit = {
-						trigger_if = {
-							limit = { has_nickname = yes }
-							this_has_lame_nickname_trigger = yes
-						}
-					}
-
-					random_list = {
-						10 = { give_nickname = nick_the_dragon }
-						10 = { give_nickname = nick_the_holy }
-						10 = { give_nickname = nick_bloodaxe }
-						10 = { give_nickname = nick_the_great }
-						40 = { give_nickname = nick_the_sword_of_god }
-					}
-				}
-			}
-		}
-
-		any_attacker = {
-			limit = { NOT = { character = attacker } }
-
-			hidden_effect = {
-				participation_scaled_piety = 100
-				participation_scaled_prestige = 50
-
-				if = {
-					limit = { has_ambition = obj_strengthen_religion }
-
-					change_variable = {
-						which = strengthen_religion
-						value = 1
-					}
-				}
-			}
-		}
-
-		defender = {
-			show_scope_change = no
-
-			prestige = -50
-			piety = -100
-
-			religion_authority = {
-				name = lost_holy_war
-				years = 20
-			}
-		}
-	}
-
-	on_success_title = {
-		custom_tooltip = {
-			text = religious_cb_succ_tip
-
-			attacker = {
-				vassalize_or_take_under_title = {
-					title = PREV
-					enemy = defender
-					same_religion = yes # Only vassalize rulers of my religion
-					is_religious = yes
-					type = holy_war
-				}
-			}
-		}
-	}
-
-	on_fail = {
-		attacker = {
-			show_scope_change = no
-
-			piety = -50
-			prestige = -100
-		}
-	}
-
-	on_reverse_demand = {
-		attacker = {
-			show_scope_change = no
-
-			transfer_scaled_wealth = {
-				to = defender
-				value = 4.0
-			}
-
-			religion_authority = {
-				name = lost_holy_war
-				years = 20
-			}
-		}
-
-		defender = {
-			show_scope_change = no
-
-			participation_scaled_piety = 200
-			participation_scaled_prestige = 100
-
-			religion_authority = {
-				name = won_holy_war
-				years = 20
-			}
-
-			hidden_effect = {
-				if = {
-					limit = { has_ambition = obj_strengthen_religion }
-
-					change_variable = {
-						which = strengthen_religion
-						value = 1
-					}
-				}
-			}
-		}
-
-		any_defender = {
-			limit = { NOT = { character = defender } }
-
-			hidden_effect = {
-				participation_scaled_piety = 200
-				participation_scaled_prestige = 100
-
-				if = {
-					limit = { has_ambition = obj_strengthen_religion }
-
-					change_variable = {
-						which = strengthen_religion
-						value = 1
-					}
-				}
-			}
-		}
-	}
-
-	attacker_ai_victory_worth = {
-		factor = -1 # always accept
-	}
-
-	attacker_ai_defeat_worth = {
-		factor = 100
-	}
-
-	defender_ai_victory_worth = {
-		factor = -1 # always accept
-	}
-
-	defender_ai_defeat_worth = {
-		factor = 100
-	}
-
-	ai_will_do = {
-		factor = 0.9 # Prefer using CB's without on_add costs
-
-		trigger = {
-			trigger_if = {
-				limit = {
-					ROOT = {
-						is_tribal = yes
-					}
-
-					FROM = {
-						is_nomadic = yes
-					}
-				}
-
-				any_direct_de_jure_vassal_title = {
-					any_direct_de_jure_vassal_title = {
-						OR = {
-							holding_type = castle
-							holding_type = city
-							holding_type = tribal
-						}
-					}
-				}
-			}
-			trigger_else_if = {
-				limit = {
-					ROOT = {
-						is_nomadic = no
-						is_tribal = no
-					}
-
-					FROM = {
-						is_nomadic = yes
-					}
-
-				}
-
-				any_direct_de_jure_vassal_title = {
-					any_direct_de_jure_vassal_title = {
-						OR = {
-							holding_type = castle
-							holding_type = city
-						}
-					}
-				}
-			}
-		}
-
-		mult_modifier = {
-			factor = 0.1
-
-			ROOT = {
-				culture = hungarian
-
-				primary_title = {
-					OR = {
-						title = k_hungary
-						title = e_carpathia
-					}
-				}
-			}
-
-			empire = {
-				OR = {
-					title = e_tartaria
-					title = e_rus
-				}
-			}
-		}
-	}
-}
+# pagan_holy_war removed and combined with standard holy war
 
 # The Prepared Invasion CB of Norse Heathens
 viking_invasion = {
@@ -1324,66 +962,62 @@ tribal_invasion = {
 			}
 
 			OR = {
-				AND = {
-					independent = yes
-					higher_real_tier_than = COUNT
-
-					OR = {
-						culture_group = altaic
-						culture_group = magyar
-						culture_group = mesoamerican
+				trigger_if = {
+					limit = {
+						independent = yes
+						higher_real_tier_than = COUNT
 					}
 
 					OR = {
-						is_tribal = yes
-						has_law = succ_elective_gavelkind
-
-						trigger_if = {
-							limit = { has_dlc = "Horse Lords" }
+						AND = {
+							OR = {
+								culture_group = altaic
+								culture_group = magyar
+								culture_group = mesoamerican
+							}
 
 							OR = {
-								has_landed_title = e_mongol_empire
-								has_landed_title = e_aztec_empire
+								is_tribal = yes
+								has_law = succ_elective_gavelkind
+
+								trigger_if = {
+									limit = { has_dlc = "Horse Lords" }
+
+									OR = {
+										has_landed_title = e_mongol_empire
+										has_landed_title = e_aztec_empire
+									}
+								}
+							}
+
+							trigger_if = {
+								limit = { has_horde_culture = yes }
+								NOT = { religion_group = christian }
+							}
+							trigger_else = {
+								religion_group = pagan_group
+								NOT = { religion_group = FROM } # Should subjugate these instead
+							}
+						}
+
+						AND = {
+							has_character_flag = horde_invader
+
+							trigger_if = {
+								limit = { NOT = { has_dlc = "Horse Lords" } }
+								NOT = { religion_group = christian }
 							}
 						}
 					}
-
-					trigger_if = {
-						limit = { has_horde_culture = yes }
-
-						NOT = { religion_group = christian }
-					}
-					trigger_else = {
-						religion_group = pagan_group
-
-						# Should subjugate these instead
-						FROM = {
-							NOT = { religion_group = pagan_group }
-						}
-					}
 				}
 
-				AND = {
-					independent = yes
-					higher_real_tier_than = COUNT
-					has_character_flag = horde_invader
-
-					trigger_if = {
-						limit = {
-							NOT = { has_dlc = "Horse Lords" }
-						}
-
-						NOT = { religion_group = christian }
-					}
-				}
-
-				AND = {
-					mercenary = yes
+				trigger_if = {
+					limit = { mercenary = yes }
 					num_of_titles < 2
 				}
 
-				AND = {
-					has_character_flag = is_child_of_destiny
+				trigger_if = {
+					limit = { has_character_flag = is_child_of_destiny }
 
 					any_owned_bloodline = {
 						has_bloodline_flag = founder_invasions
@@ -1391,13 +1025,15 @@ tribal_invasion = {
 					}
 				}
 
-				AND = {
-					NOT = { has_character_flag = flag_declared_bloodline_invasion }
-
-					any_owned_bloodline = {
-						has_bloodline_flag = bloodline_great_conquerors
-						bloodline_is_active_for = PREV
+				trigger_if = {
+					limit = {
+						any_owned_bloodline = {
+							has_bloodline_flag = bloodline_great_conquerors
+							bloodline_is_active_for = PREV
+						}
 					}
+
+					NOT = { has_character_flag = flag_declared_bloodline_invasion }
 				}
 			}
 		}
@@ -1486,8 +1122,8 @@ tribal_invasion = {
 			if = {
 				limit = {
 					OR = {
-						character = c_159136 # Árpád
-						character = c_159137 # Álmos
+						character = c_159136 # ÃrpÃ¡d
+						character = c_159137 # Ãlmos
 					}
 
 					has_dlc = "Holy Fury"
@@ -2247,7 +1883,7 @@ matriarchal_deposition_war = {
 		}
 		any_attacker = {
 			limit = {
-				NOT = { character = attacker}
+				NOT = { character = attacker }
 				uses_decadence = yes
 			}
 

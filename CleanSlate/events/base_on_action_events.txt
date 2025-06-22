@@ -1692,6 +1692,7 @@ narrative_event = {
 	id = 200
 	title = EVTNAME200
 	border = GFX_event_narrative_frame_war
+	portrait = event_target:target_ruler
 
 	picture = {
 		picture = GFX_evt_crusaders
@@ -1718,7 +1719,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = christian }
 
-			new_character = {
+			event_target:target_ruler = {
 				religion_group = muslim
 			}
 		}
@@ -1728,7 +1729,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = christian }
 
-			new_character = {
+			event_target:target_ruler = {
 				religion_group = christian
 			}
 		}
@@ -1738,7 +1739,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = christian }
 
-			new_character = {
+			event_target:target_ruler = {
 				NOR = {
 					religion_group = muslim
 					religion_group = christian
@@ -1751,7 +1752,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = muslim }
 
-			new_character = {
+			event_target:target_ruler = {
 				religion_group = christian
 			}
 		}
@@ -1761,7 +1762,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = muslim }
 
-			new_character = {
+			event_target:target_ruler = {
 				religion_group = muslim
 			}
 		}
@@ -1771,7 +1772,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = muslim }
 
-			new_character = {
+			event_target:target_ruler = {
 				NOR = {
 					religion_group = muslim
 					religion_group = christian
@@ -1784,7 +1785,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = pagan_group }
 
-			new_character = {
+			event_target:target_ruler = {
 				religion_group = christian
 			}
 		}
@@ -1794,7 +1795,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = pagan_group }
 
-			new_character = {
+			event_target:target_ruler = {
 				religion_group = muslim
 			}
 		}
@@ -1804,7 +1805,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = pagan_group }
 
-			new_character = {
+			event_target:target_ruler = {
 				NOR = {
 					religion_group = muslim
 					religion_group = christian
@@ -1817,7 +1818,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = zoroastrian_group }
 
-			new_character = {
+			event_target:target_ruler = {
 				religion_group = christian
 			}
 
@@ -1834,7 +1835,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = zoroastrian_group }
 
-			new_character = {
+			event_target:target_ruler = {
 				religion_group = muslim
 			}
 
@@ -1852,7 +1853,7 @@ narrative_event = {
 			ROOT = { religion_group = zoroastrian_group }
 
 			OR = {
-				new_character = {
+				event_target:target_ruler = {
 					NOR = {
 						religion_group = christian
 						religion_group = muslim
@@ -1871,7 +1872,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = jewish_group }
 
-			new_character = {
+			event_target:target_ruler = {
 				religion_group = christian
 			}
 		}
@@ -1881,7 +1882,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = jewish_group }
 
-			new_character = {
+			event_target:target_ruler = {
 				religion_group = muslim
 			}
 		}
@@ -1891,7 +1892,7 @@ narrative_event = {
 		trigger = {
 			ROOT = { religion_group = jewish_group }
 
-			new_character = {
+			event_target:target_ruler = {
 				NOR = {
 					religion_group = christian
 					religion_group = muslim
@@ -1905,13 +1906,34 @@ narrative_event = {
 	show_root = yes
 	hide_new = yes
 
+	immediate = {
+		if = {
+			limit = { event_target:crusade_character = { always = yes } }
+			event_target:crusade_character = { save_event_target_as = target_ruler }
+		}
+		else = {
+			new_character = { save_event_target_as = target_ruler }
+			FROM = { save_event_target_as = crusade_title }
+		}
+	}
+
 	trigger = {
 		can_call_crusade = yes
-		uses_new_crusade = no # New Crusade has different announcement event
+
+		# New crusades are announced when the war starts, not when the planning starts
+		trigger_if = {
+			limit = { uses_new_crusade = yes }
+			any_war = { using_cb = new_crusade }
+		}
 	}
 
 	major_trigger = {
 		ai = no
+
+		trigger_if = {
+			limit = { ROOT = { uses_new_crusade = yes } }
+			NOT = { religion = ROOT } # New Crusade has different announcement event
+		}
 	}
 
 	option = {
@@ -1967,8 +1989,7 @@ narrative_event = {
 		trigger = {
 			NOR = {
 				religion = ROOT
-				religion = new_character
-				religion = event_target:crusade_character
+				religion = event_target:target_ruler
 			}
 		}
 	}
@@ -1976,27 +1997,15 @@ narrative_event = {
 	option = {
 		name = EVTOPTD200 # To Arms!
 
-		trigger = {
-			OR = {
-				character = new_character
-				character = event_target:crusade_character
-			}
-		}
+		trigger = { character = event_target:target_ruler }
 	}
 
 	option = {
 		name = EVTOPTE200 # Terrible News!
 
 		trigger = {
-			OR = {
-				religion = new_character
-				religion = event_target:crusade_character
-			}
-
-			NOR = {
-				character = new_character
-				character = event_target:crusade_character
-			}
+			religion = event_target:target_ruler
+			NOT = { character = event_target:target_ruler }
 		}
 	}
 }
@@ -3001,50 +3010,72 @@ diploresponse_event = {
 # new_character is the other spouse.
 character_event = {
 	id = 500
-	desc = EVTDESC500
-	picture = GFX_evt_marriage
 
-	is_triggered_only = yes # on_marriage
-
-	trigger = {
-		OR = {
-			character = FROM
-
-			AND = {
-				FROM = {
-					is_primary_heir = ROOT
-					dynasty = ROOT
-				}
-
-				NOT = { character = new_character }
+	desc = {
+		text = EVTDESCA500
+		picture = GFX_evt_marriage
+		trigger = {
+			NAND = {
+				FROM = { is_close_relative = new_character }
+				religion_has_incest = yes
 			}
 		}
-
-		trigger_if = {
-			limit = {
-				new_character = {
-					is_close_relative = FROM
-				}
-			}
-
-			religion_has_incest = no
+	}
+	desc = {
+		text = EVTDESCB500
+		picture = GFX_evt_marriage_zoroastrian_group
+		trigger = {
+			FROM = { is_close_relative = new_character }
+			religion = zoroastrian
 		}
-
-		NOR = {
-			religion_group = muslim
-			has_character_flag = recieved_royal_marriage_aid_duty
+	}
+	desc = {
+		text = EVTDESCC500
+		picture = GFX_evt_marriage
+		trigger = {
+			FROM = { is_close_relative = new_character }
+			religion = messalian
 		}
-
-		new_character = {
-			NOR = {
-				has_character_modifier = jd_prince
-				has_character_modifier = jd_princess
+	}
+	desc = {
+		text = EVTDESCD500
+		picture = GFX_evt_marriage_zoroastrian_group
+		trigger = {
+			FROM = { is_close_relative = new_character }
+			OR = {
+				has_religion_feature = religion_feature_zun
+				has_religion_feature = religion_holy_family
 			}
 		}
 	}
 
-	immediate = {
-		set_character_flag = recieved_royal_marriage_aid_duty
+	is_triggered_only = yes # on_marriage
+
+ 	trigger = {
+ 		OR = {
+ 			character = FROM # I'm getting married
+
+ 			player_heir = { # or my heir is getting married
+ 				character = FROM
+ 				NOT = { character = new_character } # but not to me
+ 			}
+ 		}
+
+ 		NOR = {
+ 			religion_group = muslim
+ 			has_character_flag = recieved_royal_marriage_aid_duty
+ 		}
+
+ 		new_character = {
+ 			NOR = {
+ 				has_character_modifier = jd_prince
+ 				has_character_modifier = jd_princess
+ 			}
+ 		}
+ 	}
+
+ 	immediate = {
+ 		set_character_flag = recieved_royal_marriage_aid_duty
 	}
 
 	option = {
@@ -3085,188 +3116,20 @@ character_event = {
 			}
 		}
 	}
-}
 
-# On-action event: Zoroastrian Xwedodah marriage
-# Sent to employers of both spouses
-# ROOT is employer
-# FROM is employers "employee"
-# new_character is the other spouse.
-character_event = {
-	id = 501
-	desc = EVTDESC501
-	picture = GFX_evt_marriage_zoroastrian_group
-
-	is_triggered_only = yes # on_marriage
-
-	religion = zoroastrian
-
-	trigger = {
-		new_character = {
-			is_close_relative = FROM
-		}
-
-		OR = {
-			character = FROM
-
-			AND = {
-				FROM = {
-					is_primary_heir = ROOT
-					dynasty = ROOT
-				}
-
-				NOT = { character = new_character }
-			}
-		}
-	}
-
-	option = {
-		name = EVTOPTA500
-
-		scaled_wealth = {
-			value = 0.5
-			min = 10
-		}
-
-		trigger_switch = {
-			on_trigger = real_tier
-
-			BARON   = { piety =  25 }
-			COUNT   = { piety =  50 }
-			DUKE    = { piety = 100 }
-			KING    = { piety = 200 }
-			EMPEROR = { piety = 300 }
-		}
-	}
-
-	option = {
-		name = EVTOPTB500
-
+	after = {
 		if = {
-			limit = { yearly_income < 50 }
+			limit = { religion_has_incest = yes }
 
 			trigger_switch = {
 				on_trigger = real_tier
 
-				BARON   = { prestige =   6 }
-				COUNT   = { prestige =  13 }
-				DUKE    = { prestige =  25 }
-				KING    = { prestige =  50 }
-				EMPEROR = { prestige = 150 }
+				EMPEROR = { piety = 300 }
+				KING    = { piety = 200 }
+				DUKE    = { piety = 100 }
+				COUNT   = { piety =  50 }
+				BARON   = { piety =  25 }
 			}
-		}
-		else = {
-			trigger_switch = {
-				on_trigger = real_tier
-
-				BARON   = { prestige =  25 }
-				COUNT   = { prestige =  50 }
-				DUKE    = { prestige = 100 }
-				KING    = { prestige = 200 }
-				EMPEROR = { prestige = 300 }
-			}
-		}
-
-		trigger_switch = {
-			on_trigger = real_tier
-
-			BARON   = { piety =  25 }
-			COUNT   = { piety =  50 }
-			DUKE    = { piety = 100 }
-			KING    = { piety = 200 }
-			EMPEROR = { piety = 300 }
-		}
-	}
-}
-
-# On-action event: Messalian close kin marriage
-# Sent to employers of both spouses
-# ROOT is employer
-# FROM is employers "employee"
-# new_character is the other spouse.
-character_event = {
-	id = 502
-	desc = EVTDESC502
-	picture = GFX_evt_marriage
-
-	is_triggered_only = yes # on_marriage
-
-	religion = messalian
-
-	trigger = {
-		new_character = {
-			is_close_relative = FROM
-		}
-
-		OR = {
-			character = FROM
-
-			AND = {
-				FROM = {
-					dynasty = ROOT
-					is_primary_heir = ROOT
-				}
-
-				NOT = { character = new_character }
-			}
-		}
-	}
-
-	option = {
-		name = EVTOPTA500
-
-		scaled_wealth = {
-			value = 0.5
-			min = 10
-		}
-
-		trigger_switch = {
-			on_trigger = real_tier
-
-			BARON   = { piety =  25 }
-			COUNT   = { piety =  50 }
-			DUKE    = { piety = 100 }
-			KING    = { piety = 200 }
-			EMPEROR = { piety = 300 }
-		}
-	}
-
-	option = {
-		name = EVTOPTB500
-
-		if = {
-			limit = { yearly_income < 50 }
-
-			trigger_switch = {
-				on_trigger = real_tier
-
-				BARON   = { prestige =   6 }
-				COUNT   = { prestige =  13 }
-				DUKE    = { prestige =  25 }
-				KING    = { prestige =  50 }
-				EMPEROR = { prestige = 150 }
-			}
-		}
-		else = {
-			trigger_switch = {
-				on_trigger = real_tier
-
-				BARON   = { prestige =  25 }
-				COUNT   = { prestige =  50 }
-				DUKE    = { prestige = 100 }
-				KING    = { prestige = 200 }
-				EMPEROR = { prestige = 300 }
-			}
-		}
-
-		trigger_switch = {
-			on_trigger = real_tier
-
-			BARON   = { piety =  25 }
-			COUNT   = { piety =  50 }
-			DUKE    = { piety = 100 }
-			KING    = { piety = 200 }
-			EMPEROR = { piety = 300 }
 		}
 	}
 }
@@ -3829,17 +3692,17 @@ character_event = {
 	is_triggered_only = yes
 	hide_window = yes
 
-	immediate = {
-		if = {
-			limit = {
-				leads_faction = yes
-				diplomatic_immunity = yes
-			}
+	only_playable = yes
 
-			any_faction_backer = {
-				limit = { diplomatic_immunity = yes }
-				diplomatic_immunity = no
-			}
+	trigger = {
+		leads_faction = yes
+		diplomatic_immunity = yes
+	}
+
+	immediate = {
+		any_faction_backer = {
+			limit = { diplomatic_immunity = yes }
+			diplomatic_immunity = no
 		}
 	}
 }
@@ -4063,10 +3926,15 @@ narrative_event = {
 				OR = {
 					has_religion_feature = religion_theocratic_head
 					has_religion_feature = religion_autocephaly
+					AND = {
+						is_reformed_religion = yes
+						has_religion_features = no
+						NOT = { religion = norse_pagan_reformed }
+					}
 				}
 			}
 
-			trigger_switch  = {
+			trigger_switch = {
 				on_trigger = religion
 
 				norse_pagan_reformed        = { d_norse_pagan_reformed = { save_event_target_as = religious_head_title } }
@@ -4151,7 +4019,7 @@ narrative_event = {
 					on_trigger = religion
 
 					aztec_pagan_reformed        = { set_high_god_name = GOD_CIHUACOATL }
-					baltic_pagan_reformed       = { set_high_god_name = GOD_GABIJA}
+					baltic_pagan_reformed       = { set_high_god_name = GOD_GABIJA }
 					bon_pagan_reformed          = {}
 					finnish_pagan_reformed      = { set_high_god_name = GOD_KUU }
 					hellenic_pagan_reformed     = {
@@ -4643,7 +4511,7 @@ narrative_event = {
 				employer = { character = ROOT }
 			}
 
-			# Workaround for automatic usurption of theocratic characters
+			# Workaround for automatic usurpation of theocratic characters
 			set_character_flag = convert_abandon_heresy
 			convert_religion_failsafe_effect = yes
 		}
@@ -4655,7 +4523,7 @@ narrative_event = {
 				is_playable = no
 			}
 
-			# Workaround for automatic usurption of theocratic characters
+			# Workaround for automatic usurpation of theocratic characters
 			set_character_flag = convert_abandon_heresy
 			convert_religion_failsafe_effect = yes
 		}
@@ -4667,7 +4535,7 @@ narrative_event = {
 				is_playable = no
 			}
 
-			# Workaround for automatic usurption of theocratic characters
+			# Workaround for automatic usurpation of theocratic characters
 			set_character_flag = convert_abandon_heresy
 			convert_religion_failsafe_effect = yes
 		}
@@ -4721,6 +4589,7 @@ narrative_event = {
 				hellenic_pagan_reformed     = { add_artifact = scepter_hellenic_fylkir }
 				norse_pagan_reformed        = { add_artifact = crown_fylkir }
 				slavic_pagan_reformed       = { add_artifact = crown_slavic_fylkir }
+				tengri_pagan_reformed       = { add_artifact = crown_tengri_fylkir }
 				west_african_pagan_reformed = { add_artifact = crown_west_african_fylkir }
 				zun_pagan_reformed          = { add_artifact = crown_zun_fylkir }
 			}
@@ -4955,7 +4824,7 @@ narrative_event = {
 
 		trigger = { is_heresy_of = ROOT } # The old religion has become a heresy of the Reformed one
 
-		# Workaround for automatic usurption of theocratic characters
+		# Workaround for automatic usurpation of theocratic characters
 		ROOT = {
 			religion_scope = {
 				save_event_target_as = target_religion
@@ -5122,7 +4991,7 @@ narrative_event = {
 					employer = { character = PREV }
 				}
 
-				# Workaround for automatic usurption of theocratic characters
+				# Workaround for automatic usurpation of theocratic characters
 				set_character_flag = convert_abandon_heresy
 				convert_religion_failsafe_effect = yes
 			}
@@ -5134,7 +5003,7 @@ narrative_event = {
 					is_playable = no
 				}
 
-				# Workaround for automatic usurption of theocratic characters
+				# Workaround for automatic usurpation of theocratic characters
 				set_character_flag = convert_abandon_heresy
 				convert_religion_failsafe_effect = yes
 			}
@@ -5146,7 +5015,7 @@ narrative_event = {
 					is_heresy_of = ROOT
 				}
 
-				# Workaround for automatic usurption of theocratic characters
+				# Workaround for automatic usurpation of theocratic characters
 				set_character_flag = convert_abandon_heresy
 				convert_religion_failsafe_effect = yes
 			}
@@ -5448,16 +5317,17 @@ character_event = {
 	hide_window = yes
 	is_triggered_only = yes # on_yearly_pulse
 
-	immediate = {
-		if = {
-			limit = {
-				had_character_flag = {
-					flag = do_not_disturb
-					years >= 5
-				}
-			}
-			clr_character_flag = do_not_disturb
+	has_character_flag = do_not_disturb
+
+	trigger = {
+		had_character_flag = {
+			flag = do_not_disturb
+			years >= 5
 		}
+	}
+
+	immediate = {
+		clr_character_flag = do_not_disturb
 	}
 }
 
@@ -5833,16 +5703,15 @@ narrative_event = {
 	}
 
 	immediate = {
-		if = {
-			limit = {
-				has_global_flag = 4th_crusade_official
-
-				FROM = {
+		FROM = {
+			if = {
+				limit = {
+					has_global_flag = 4th_crusade_official
 					religion_group = christian
 				}
-			}
 
-			character_event = { id = HFP.41199 }
+				character_event = { id = HFP.41199 }
+			}
 		}
 	}
 
@@ -6141,6 +6010,106 @@ character_event = {
 			else_if = {
 				limit = { has_law = succ_feudal_elective }
 				elective_voting_rules = feudal_elective
+			}
+		}
+	}
+}
+
+# Reformed religion head title setup
+character_event = {
+	id = CK2.690
+
+	hide_window = yes
+
+	is_triggered_only = yes # on_startup
+
+	trigger = {
+		is_save_game = yes
+		controls_religion = yes
+		OR = {
+			has_religion_feature = religion_theocratic_head
+			has_religion_feature = religion_autocephaly
+			AND = {
+				is_reformed_religion = yes
+				has_religion_features = no
+				NOT = { religion = norse_pagan_reformed }
+			}
+		}
+	}
+
+	immediate = {
+		trigger_switch = {
+			on_trigger = religion
+
+			norse_pagan_reformed        = { d_norse_pagan_reformed = { save_event_target_as = religious_head_title } }
+			tengri_pagan_reformed       = { d_tengri_pagan_reformed = { save_event_target_as = religious_head_title } }
+			baltic_pagan_reformed       = { d_baltic_pagan_reformed = { save_event_target_as = religious_head_title } }
+			finnish_pagan_reformed      = { d_finnish_pagan_reformed = { save_event_target_as = religious_head_title } }
+			aztec_pagan_reformed        = { d_aztec_pagan_reformed = { save_event_target_as = religious_head_title } }
+			slavic_pagan_reformed       = { d_slavic_pagan_reformed = { save_event_target_as = religious_head_title } }
+			west_african_pagan_reformed = { d_west_african_pagan_reformed = { save_event_target_as = religious_head_title } }
+			zun_pagan_reformed          = { d_zun_pagan_reformed = { save_event_target_as = religious_head_title } }
+			bon_pagan_reformed          = { d_bon_pagan_reformed = { save_event_target_as = religious_head_title } }
+			hellenic_pagan_reformed     = { k_hellenic_pagan_reformed = { save_event_target_as = religious_head_title } }
+		}
+
+		set_title_landless = {
+			title = event_target:religious_head_title
+			status = yes
+		}
+	}
+}
+
+# Switch succession laws for viceroyalties who convert religion
+# Doesn't happen automatically and cannot be done manually due to hardcoding around viceroyalties
+character_event = {
+	id = CK2.691
+
+	is_triggered_only = yes # on_character_convert_religion
+	hide_window = yes
+
+	only_rulers = yes
+
+	trigger = {
+		any_demesne_title = {
+			is_vice_royalty = yes
+			title = succ_law_title
+
+			trigger_if = {
+				limit = { has_law = succ_primogeniture }
+				NOT = { is_law_potential = succ_primogeniture }
+			}
+			trigger_else = {
+				has_law = succ_turkish_succession
+				NOT = { is_law_potential = succ_turkish_succession }
+			}
+		}
+	}
+
+	immediate = {
+		any_demesne_title = {
+			limit = {
+				is_vice_royalty = yes
+				title = succ_law_title
+			}
+
+			if = {
+				limit = {
+					has_law = succ_primogeniture
+					NOT = { is_law_potential = succ_primogeniture }
+				}
+
+				add_law = succ_turkish_succession
+				log = "[This.GetID] - [This.GetFullBaseName] was changed from Primogeniture to Open because [Root.GetBestName] converted from [From.GetName] to [Root.Religion.GetName]"
+			}
+			else_if = {
+				limit = {
+					has_law = succ_turkish_succession
+					NOT = { is_law_potential = succ_turkish_succession }
+				}
+
+				add_law = succ_primogeniture
+				log = "[This.GetID] - [This.GetFullBaseName] was changed from Open to Primogeniture because [Root.GetBestName] converted from [From.GetName] to [Root.Religion.GetName]"
 			}
 		}
 	}
