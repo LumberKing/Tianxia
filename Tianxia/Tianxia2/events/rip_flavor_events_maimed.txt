@@ -1,0 +1,1923 @@
+namespace = RIP
+
+### MAIMED FLAVOUR EVENTS ###
+
+# Disfigured events
+character_event = {
+	id = RIP.29100
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+	hide_window = yes
+
+	only_playable = yes
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_inaccessible_or_incapable_trigger = no
+		trait = disfigured
+		NOT = { trait = severely_injured }
+	}
+
+	immediate = {
+		random_list = {
+			# Golden mask
+			10 = {
+				trigger = {
+					has_lover = no
+					is_ascetic_trigger = no
+					NOR = {
+						has_character_modifier = golden_mask
+						trait = celibate
+						trait = chaste
+					}
+				}
+
+				character_event = { id = RIP.29101 }
+			}
+
+			# Scaring the children
+			10 = {
+				trigger = {
+					any_spouse = {
+						is_alive = yes
+						is_inaccessible_or_incapable_trigger = no
+						any_child = {
+							is_inaccessible_or_incapable_trigger = no
+							is_alive = yes
+							is_child_of = ROOT
+							age >= 2
+							age < 13
+
+							NOR = {
+								trait = brave
+								trait = willful
+								trait = rowdy
+							}
+						}
+					}
+				}
+
+				character_event = { id = RIP.29103 }
+			}
+
+			# Phantom pain
+			10 = {
+				trigger = {
+					#has_assigned_minor_title = title_court_physician
+					any_courtier_or_vassal = {
+						has_minor_title = title_court_physician
+					}
+					NOT = { has_character_modifier = phantom_pain }
+				}
+
+				character_event = { id = RIP.29500 }
+			}
+
+			# Masquerade
+			10 = {
+				trigger = {
+					NOT = {
+						any_courtier = {
+							OR = {
+								has_character_modifier = forced_mask
+								has_character_modifier = attending_masquerade
+							}
+						}
+					}
+				}
+
+				character_event = { id = RIP.29104 }
+			}
+		}
+	}
+}
+
+# Golden mask
+character_event = {
+	id = RIP.29101
+	desc = EVTDSC_RIP_29101_A
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29101_A
+
+		custom_tooltip = { text = EVTOPTA_RIP_29101_TOOLTIP }
+
+		scaled_wealth = {
+			value = -0.2
+			min = -25
+		}
+
+		add_golden_mask_modifier_effect = yes
+
+		# CleanSlate: To trigger portrait update?
+		hidden_effect = {
+			remove_trait_disfigured_effect = yes
+			add_trait_disfigured_effect = yes
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = humble
+					trait = greedy
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.01
+				trait = greedy
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RIP_29101
+
+		custom_tooltip = { text = EVTOPTB_RIP_29101_TOOLTIP }
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = proud
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = humble
+			}
+		}
+	}
+}
+
+# Scaring the children
+character_event = {
+	id = RIP.29103
+	desc = EVTDSC_RIP_29103
+	picture = GFX_evt_child_play
+	border = GFX_event_normal_frame_diplomacy
+	portrait = event_target:rip_spouse
+
+	is_triggered_only = yes
+
+	immediate = {
+		random_spouse = {
+			limit = {
+				is_alive = yes
+				is_inaccessible_or_incapable_trigger = no
+				any_child = {
+					is_alive = yes
+					is_child_of = ROOT
+					age = 2
+					age < 13
+
+					NOR = {
+						trait = brave
+						trait = willful
+						trait = rowdy
+					}
+				}
+			}
+
+			save_event_target_as = rip_spouse
+
+			random_child = {
+				limit = {
+					is_inaccessible_or_incapable_trigger = no
+					is_alive = yes
+					is_child_of = ROOT
+					age = 2
+					age < 13
+
+					NOR = {
+						trait = brave
+						trait = willful
+						trait = rowdy
+					}
+				}
+
+				save_event_target_as = rip_scared_child
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTA_RIP_29103
+
+		custom_tooltip = { text = EVTOPTA_RIP_29103_TOOLTIP }
+
+		reverse_opinion = {
+			name = opinion_did_not_take_my_advice
+			who = event_target:rip_spouse
+		}
+
+		random = {
+			chance = 50
+
+			event_target:rip_scared_child = {
+				show_scope_change = no
+
+				opinion = {
+					name = opinion_repulsed_deformity
+					who = ROOT
+				}
+
+				if = {
+					limit = {
+						has_dlc = "Conclave"
+						age < 12
+					}
+
+					if = {
+						limit = {
+							NOT = { trait = timid }
+						}
+
+						add_trait = timid
+					}
+				}
+				else_if = {
+					limit = {
+						NOR = {
+							trait = craven
+							trait = berserker
+						}
+					}
+					
+					if = {
+						limit = {
+							trait = timid
+						}
+						
+						set_character_flag = was_timid
+						
+						remove_trait = timid
+					}
+
+					add_trait_partially_craven_effect = yes
+				}
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = shy
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = kind
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RIP_29103
+
+		custom_tooltip = { text = EVTOPTB_RIP_29103_TOOLTIP }
+
+		random = {
+			chance = 50
+			add_trait_depressed_effect = yes
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = stubborn
+			}
+		}
+	}
+}
+
+# Masquerade
+character_event = {
+	id = RIP.29104
+	desc = EVTDSC_RIP_29104
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	option = {
+		trigger = {
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = penglai_expedition_preparation
+				trait = in_mourning
+			}
+		}
+		
+		name = EVTOPTA_RIP_29104
+
+		custom_tooltip = {
+			text = EVTOPTA_RIP_29104_TOOLTIP
+
+			set_character_flag = do_not_disturb
+
+			# Invitations
+			any_courtier_or_vassal = {
+				limit = {
+					war = no
+					block_general_event_trigger = no
+					NOT = { has_character_modifier = holding_large_feast }
+					NOR = {
+						trait = treasure_fleet_preparation
+						trait = penglai_expedition_preparation
+						trait = in_mourning
+					}
+				}
+				character_event = {
+					id = RIP.29112
+					days = 3
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						trait = lunatic
+						trait = envious
+					}
+				}
+
+				character_event = {
+					id = RIP.29105
+					days = 20
+				}
+			}
+			else = {
+				character_event = {
+					id = RIP.29110
+					days = 20
+				}
+			}
+		}
+
+		scaled_wealth = {
+			value = -0.25
+			min = -25
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = greedy
+					trait = shy
+					trait = temperate
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = greedy
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = shy
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = temperate
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RIP_29104
+
+		custom_tooltip = { text = EVTOPTB_RIP_29104_TOOLTIP }
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = gregarious
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = gluttonous
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = drunkard
+			}
+		}
+	}
+}
+
+# Notice of masquerade ball starting
+character_event = {
+	id = RIP.29112
+	desc = EVTDSC_RIP_29112
+	picture = GFX_evt_dancing
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	# Attend
+	option = {
+		trigger = {
+			war = no
+			block_general_event_trigger = no
+			NOT = { has_character_modifier = holding_large_feast }
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = penglai_expedition_preparation
+				trait = in_mourning
+			}
+		}
+		
+		name = EVTOPTA_RIP_29112
+
+		add_character_modifier = {
+			name = attending_masquerade
+			duration = -1
+		}
+
+		set_character_flag = do_not_disturb
+
+		character_event = {
+			id = RIP.29114 # Clean-up
+			days = 100
+		}
+
+		ai_chance = {
+			factor = 30
+
+			mult_modifier = {
+				factor = 2
+
+				OR = {
+					trait = gregarious
+					trait = disfigured
+					trait = hedonist
+					trait = gluttonous
+					trait = socializer
+				}
+			}
+		}
+	}
+
+	# Decline
+	option = {
+		name = EVTOPTB_RIP_29112
+
+		reverse_opinion = {
+			name = opinion_declined_party
+			who = FROM
+			years = 10
+		}
+
+		hidden_effect = {
+			remove_character_modifier = attending_masquerade
+		}
+
+		ai_chance = {
+			factor = 1
+
+			mult_modifier = {
+				factor = 20
+
+				OR = {
+					trait = shy
+					trait = paranoid
+				}
+			}
+		}
+	}
+}
+
+# Masquerade for crazy people
+character_event = {
+	id = RIP.29105
+	desc = EVTDSC_RIP_29105
+	picture = GFX_evt_dancing
+	border = GFX_event_normal_frame_intrigue
+	
+	hide_from = yes
+
+	is_triggered_only = yes
+
+	# YES (lunatic)
+	option = {
+		name = EVTOPTA_RIP_29105
+		tooltip_info = lunatic
+
+		trigger = { trait = lunatic }
+
+		character_event = {
+			id = RIP.29106
+			tooltip = EVTOPTA_RIP_29105_TOOLTIP
+		}
+		
+		ai_chance = {
+			factor = 100
+		}
+	}
+
+	# YES (envious)
+	option = {
+		name = EVTOPTA_RIP_29105
+		tooltip_info = envious
+
+		trigger = {
+			trait = envious
+			NOT = { trait = lunatic }
+		}
+
+		random = {
+			chance = 50
+			add_trait_lunatic_effect = yes
+		}
+
+		character_event = {
+			id = RIP.29106
+			tooltip = EVTOPTA_RIP_29105_TOOLTIP
+		}
+		
+		ai_chance = {
+			factor = 100
+		}
+	}
+
+	# Nah
+	option = {
+		name = EVTOPTB_RIP_29105
+
+		custom_tooltip = {
+			text = EVTOPTB_RIP_29105_TOOLTIP
+
+			hidden_effect = {
+				any_realm_character = {
+					limit = { has_character_modifier = attending_masquerade }
+
+					opinion = {
+						name = opinion_great_masquerade
+						who = ROOT
+						years = 10
+					}
+
+					character_event = { id = RIP.29113 }
+
+					remove_character_modifier = attending_masquerade
+				}
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = lunatic
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = envious
+			}
+		}
+	}
+}
+
+# Reactions to crazy (ruler)
+character_event = {
+	id = RIP.29106
+	desc = EVTDSC_RIP_29106
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_intrigue
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29106
+
+		custom_tooltip = {
+			text = EVTOPTA_RIP_29106_TOOLTIP
+
+			hidden_effect = {
+				clr_character_flag = do_not_disturb
+				set_character_flag = crazy_masked_ruler
+				save_event_target_as = rip_masked_ruler
+
+				any_courtier_or_vassal = {
+					limit = { has_character_modifier = attending_masquerade }
+					character_event = { id = RIP.29107 }
+				}
+			}
+		}
+	}
+}
+
+# Reactions to crazy ruler (everyone else)
+character_event = {
+	id = RIP.29107
+	desc = EVTDSC_RIP_29107
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_intrigue
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29107
+
+		custom_tooltip = {
+			text = EVTOPTA_RIP_29107_TOOLTIP
+
+			clr_character_flag = do_not_disturb
+			remove_character_modifier = attending_masquerade
+
+			character_event = {
+				id = RIP.29108
+				days = 100
+			}
+		}
+
+		opinion = {
+			name = opinion_insane_ruler
+			who = FROM
+			years = 100
+		}
+
+		opinion = {
+			name = opinion_forced_mask
+			who = FROM
+			years = 1000
+		}
+
+		add_forced_mask_modifier_effect = yes
+	}
+}
+
+# Checking crazy ruler
+character_event = {
+	id = RIP.29108
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		liege = {
+			has_character_flag = crazy_masked_ruler
+		}
+	}
+
+	fail_trigger_effect = {
+		character_event = { id = RIP.29109 }
+	}
+
+	immediate = {
+		repeat_event = {
+			id = RIP.29108
+			days = 100
+		}
+	}
+}
+
+# Rejoice we can take mask off
+character_event = {
+	id = RIP.29109
+	picture = GFX_evt_feast
+	border = GFX_event_normal_frame_diplomacy
+
+	desc = {
+		text = EVTDSC_RIP_29109_A
+		trigger = { event_target:rip_masked_ruler = { is_alive = no } }
+	}
+
+	desc = {
+		text = EVTDSC_RIP_29109_B
+		trigger = { event_target:rip_masked_ruler = { is_alive = yes } }
+	}
+
+	is_triggered_only = yes
+
+	immediate = {
+		remove_forced_mask_modifier_effect = yes
+	}
+
+	option = {
+		name = EVTOPTA_RIP_29109
+
+		custom_tooltip = { text = EVTOPTA_RIP_29109_TOOLTIP }
+
+		tooltip = {
+			remove_character_modifier = forced_mask
+		}
+	}
+}
+
+# Nice masquerade
+character_event = {
+	id = RIP.29110
+	desc = EVTDSC_RIP_29110
+	picture = GFX_evt_dancing
+	border = GFX_event_normal_frame_diplomacy
+	
+	hide_from = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29110
+
+		custom_tooltip = {
+			text = EVTOPTA_RIP_29110_TOOLTIP
+
+			clr_character_flag = do_not_disturb
+
+			any_courtier_or_vassal = {
+				limit = { has_character_modifier = attending_masquerade }
+
+				opinion = {
+					name = opinion_great_masquerade
+					who = ROOT
+					years = 10
+				}
+
+				remove_character_modifier = attending_masquerade
+				clr_character_flag = do_not_disturb
+				character_event = { id = RIP.29113 }
+			}
+		}
+
+		add_great_dancer_modifier_effect = yes
+	}
+}
+
+# Notice of masquerade ball ending well
+character_event = {
+	id = RIP.29113
+	desc = EVTDSC_RIP_29113
+	picture = GFX_evt_dancing
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_RIP_29113
+
+		tooltip = {
+			opinion = {
+				name = opinion_great_masquerade
+				who = FROM
+				years = 10
+			}
+		}
+	}
+}
+
+# Cleanup event attending_masquerade
+character_event = {
+	id = RIP.29114
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		clr_character_flag = do_not_disturb
+
+		if = {
+			limit = { has_character_modifier = attending_masquerade }
+			remove_character_modifier = attending_masquerade
+		}
+	}
+}
+
+# One-eyed events
+character_event = {
+	id = RIP.29200
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+	hide_window = yes
+
+	only_playable = yes
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_inaccessible_or_incapable_trigger = no
+		trait = one_eyed
+		NOR = {
+			trait = severely_injured
+			has_character_modifier = evil_eye
+		}
+	}
+
+	immediate = {
+		random_list = {
+			# Rock thrown at you
+			10 = {
+				trigger = {
+					is_adult = no
+					age >= 4
+					is_inaccessible_or_incapable_trigger = no
+					
+					NOR = {
+						trait = kind
+						trait = timid
+						trait = conscientious
+						trait = craven
+					}
+					
+					OR = {
+						trait = rowdy
+						trait = playful
+						trait = cruel
+						trait = wroth
+						trait = brave
+					}
+				}
+
+				character_event = { id = RIP.29201 }
+			}
+
+			# Glass eye
+			10 = {
+				trigger = {
+					NOT = { has_character_modifier = glass_eye }
+				}
+
+				character_event = { id = RIP.29205 }
+			}
+
+			# Phantom pain
+			10 = {
+				trigger = {
+					#has_assigned_minor_title = title_court_physician
+					any_courtier_or_vassal = {
+						has_minor_title = title_court_physician
+					}
+					NOT = { has_character_modifier = phantom_pain }
+				}
+
+				character_event = { id = RIP.29500 }
+			}
+		}
+	}
+}
+
+# Rock thrown at you
+character_event = {
+	id = RIP.29201
+	desc = EVTDSC_RIP_29201
+	picture = GFX_evt_child_bully
+	border = GFX_event_normal_frame_war
+	portrait = event_target:rip_throwing_child
+
+	is_triggered_only = yes
+
+	immediate = {
+		random_courtier = {
+			limit = {
+				is_adult = no
+				age >= 4
+				is_inaccessible_or_incapable_trigger = no
+				
+				NOR = {
+					trait = kind
+					trait = timid
+					trait = conscientious
+					trait = craven
+				}
+				
+				OR = {
+					trait = rowdy
+					trait = playful
+					trait = cruel
+					trait = wroth
+					trait = brave
+				}
+			}
+
+			preferred_limit = {
+				is_child_of = ROOT
+			}
+
+			save_event_target_as = rip_throwing_child
+		}
+	}
+
+	# Catch
+	option = {
+		name = EVTOPTA_RIP_29201
+
+		random_list = {
+			# Success
+			60 = {
+				character_event = {
+					id = RIP.29202
+					tooltip = EVTOPTA_RIP_29201_SUCCESS
+				}
+			}
+
+			# Fail
+			40 = {
+				character_event = {
+					id = RIP.29203
+					tooltip = EVTOPTA_RIP_29201_FAILURE
+				}
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = craven
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				trait = brave
+			}
+		}
+	}
+
+	# Throw yourself at ground
+	option = {
+		name = EVTOPTB_RIP_29201
+
+		custom_tooltip = { text = EVTOPTB_RIP_29201_TOOLTIP }
+
+		if = {
+			limit = {
+				NOR = {
+					trait = craven
+					trait = berserker
+				}
+			}
+
+			random = {
+				chance = 20
+				add_trait_partially_craven_effect = yes
+				if = {
+					limit = {	
+						trait = craven
+					}
+					set_character_flag = became_craven
+				}
+			}
+		}
+
+		character_event = { id = RIP.29204 }
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				is_dumb_trigger = yes
+			}
+		}
+	}
+}
+
+# Successful catch
+character_event = {
+	id = RIP.29202
+	desc = EVTDSC_RIP_29202
+	border = GFX_event_normal_frame_war
+	picture = GFX_evt_guardian
+	portrait = event_target:rip_throwing_child
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29202
+
+		prestige = 25
+		change_martial = 1
+
+		reverse_opinion = {
+			name = opinion_impressed
+			who = event_target:rip_throwing_child
+			years = 5
+		}
+	}
+}
+
+# Failed catch
+character_event = {
+	id = RIP.29203
+	desc = EVTDSC_RIP_29203
+	picture = GFX_evt_doctor_tending_to_sick
+	border = GFX_event_normal_frame_war
+	portrait = event_target:rip_throwing_child
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29203
+
+		hidden_effect = {
+			remove_trait = one_eyed
+		}
+		add_trait_blinded_effect = yes
+		
+		opinion = {
+			name = opinion_took_my_eye
+			who = event_target:rip_throwing_child
+			years = 10
+		}
+
+		reverse_opinion = {
+			name = opinion_afraid
+			who = event_target:rip_throwing_child
+			years = 10
+		}
+	}
+}
+
+# Throwing yourself on the ground
+character_event = {
+	id = RIP.29204
+	desc = EVTDSC_RIP_29204
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_war
+	portrait = event_target:rip_throwing_child
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29204
+
+		prestige = -25
+
+		if = {
+			limit = { has_character_flag = became_craven }
+
+			clr_character_flag = became_craven
+			tooltip = { add_trait = craven }
+		}
+
+		reverse_opinion = {
+			name = opinion_scolded
+			who = event_target:rip_throwing_child
+		}
+	}
+}
+
+# Fake eye
+character_event = {
+	id = RIP.29205
+	desc = EVTDSC_RIP_29205_A
+	picture = GFX_evt_courtiers_talking
+	border = GFX_event_normal_frame_diplomacy
+
+	is_triggered_only = yes
+
+	# Get eye made
+	option = {
+		name = EVTOPTA_RIP_29205
+
+		custom_tooltip = { text = EVTOPTA_RIP_29205_TOOLTIP }
+
+		scaled_wealth = {
+			value = -0.1
+			min = -15
+		}
+
+		add_glass_eye_modifier_effect = yes
+
+		hidden_effect = { # Tianxia: To trigger portrait update?
+			remove_trait = one_eyed
+			add_trait = one_eyed
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = greedy
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+		}
+	}
+
+	# Don't get eye made
+	option = {
+		name = EVTOPTB_RIP_29101
+
+		custom_tooltip = { text = EVTOPTB_RIP_29101_TOOLTIP }
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = envious
+			}
+		}
+	}
+}
+
+# One-handed events
+character_event = {
+	id = RIP.29300
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+	hide_window = yes
+
+	only_playable = yes
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_inaccessible_or_incapable_trigger = no
+		trait = one_handed
+		NOT = { trait = severely_injured }
+	}
+
+	immediate = {
+		random_list = {
+			# Becoming ambidextrous
+			10 = {
+				trigger = {
+					OR = {
+						has_education_martial_trigger = yes
+						has_lifestyle_martial_trigger = yes
+						can_be_commander_no_fromfrom_trigger = yes
+						is_member_of_any_warrior_lodge_trigger = yes
+						society_member_of = warriors_of_the_rising_sun
+					}
+					NOR = {
+						has_character_modifier = martially_ambidextrous
+						has_artifact = prosthetic_hand_metal
+						trait = blinded
+					}
+				}
+				
+				set_character_flag = martially_ambidextrous
+
+				character_event = { id = RIP.29301 }
+			}
+
+			# Getting a prosthetic hand
+			10 = {
+				trigger = {
+					NOR = {
+						has_artifact = prosthetic_hand_gold
+						has_artifact = prosthetic_hand_metal
+					}
+				}
+
+				character_event = { id = RIP.29305 }
+			}
+
+			# Phantom pain
+			10 = {
+				trigger = {
+					#has_assigned_minor_title = title_court_physician
+					any_courtier_or_vassal = {
+						has_minor_title = title_court_physician
+					}
+					NOT = { has_character_modifier = phantom_pain }
+				}
+
+				character_event = { id = RIP.29500 }
+			}
+		}
+	}
+}
+
+# Becoming ambidextrous
+character_event = {
+	id = RIP.29301
+	desc = EVTDSC_RIP_29301
+	picture = GFX_evt_melee
+	border = GFX_event_normal_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29301
+
+		custom_tooltip = { text = EVTOPTA_RIP_29301_TOOLTIP }
+
+		random_list = {
+			# Success
+			33 = {
+				mult_modifier = {
+					factor = 1.2
+					martial >= 9
+				}
+
+				mult_modifier = {
+					factor = 1.2
+					martial >= 12
+				}
+
+				mult_modifier = {
+					factor = 1.2
+					martial >= 15
+				}
+
+				mult_modifier = {
+					factor = 1.2
+					martial >= 18
+				}
+
+				mult_modifier = {
+					factor = 1.2
+					martial >= 21
+				}
+
+				character_event = {
+					id = RIP.29302
+					months = 2
+					random = 60
+					tooltip = EVTOPTA_RIP_29301_SUCCESS
+				}
+			}
+
+			# Nothing
+			33 = {
+				character_event = {
+					id = RIP.29303
+					months = 2
+					random = 60
+					tooltip = EVTOPTA_RIP_29301_FAILURE
+				}
+			}
+
+			33 = {
+				character_event = {
+					id = RIP.29304
+					months = 2
+					random = 60
+					tooltip = EVTOPTA_RIP_29301_INJURY
+				}
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					has_lifestyle_learning_trigger = yes
+					has_education_learning_trigger = yes
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				has_lifestyle_martial_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 10
+				has_education_martial_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = slothful
+			}
+		}
+	}
+
+	option = {
+		name = EVTOPTB_RIP_29301
+
+		custom_tooltip = { text = EVTOPTB_RIP_29301_TOOLTIP }
+				
+		set_character_flag = martially_ambidextrous # Otherwise you can get the +1 to Learning multiple times
+
+		change_learning = 1
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					has_lifestyle_martial_trigger = yes
+					has_education_martial_trigger = yes
+				}
+			}
+			
+			mult_modifier = {
+				factor = 10
+				has_lifestyle_learning_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 10
+				has_education_learning_trigger = yes
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = diligent
+			}
+		}
+	}
+}
+
+# Ambidextrous success
+character_event = {
+	id = RIP.29302
+	desc = EVTDSC_RIP_29302
+	picture = GFX_evt_melee
+	border = GFX_event_normal_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29302
+
+		add_character_modifier = {
+			name = martially_ambidextrous
+			duration = -1
+		}
+	}
+}
+
+# Ambidextrous failure
+character_event = {
+	id = RIP.29303
+	desc = EVTDSC_RIP_29303
+	picture = GFX_evt_melee
+	border = GFX_event_normal_frame_war
+
+	is_triggered_only = yes
+
+	ai = no
+
+	option = {
+		name = EVTOPTA_RIP_29303
+	}
+}
+
+# Ambidextrous injury
+character_event = {
+	id = RIP.29304
+	desc = EVTDSC_RIP_29304
+	picture = GFX_evt_doctor_tending_to_sick
+	border = GFX_event_normal_frame_war
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29304
+
+		random_list = {
+			# One-legged
+			20 = {
+				trigger = {
+					NOT = { trait = one_legged }
+				}
+
+				add_trait_one_legged_effect = yes
+			}
+
+			# One-eyed
+			10 = {
+				trigger = {
+					NOT = { trait = blinded }
+				}
+				
+				if = {
+					limit = {
+						NOT = {
+							trait = one_eyed
+						}
+					}
+					add_trait_one_eyed_effect = yes
+				}
+				else = {
+					add_trait_blinded_effect = yes
+				}
+				
+				#character_event = { id = RIP.11501 } # Notify one-eyed
+			}
+
+			# Disfigured
+			10 = {
+				trigger = {
+					NOT = { trait = disfigured }
+				}
+
+				add_trait_disfigured_effect = yes
+				#character_event = { id = RIP.11504 } # Notify disfigured
+			}
+
+			# Mangled
+			10 = {
+				trigger = {
+					NOT = { trait = mangled }
+				}
+
+				add_trait_mangled_effect = yes
+				#character_event = { id = RIP.11505 } # Notify mangled
+			}
+
+			fallback = {
+				add_trait_wounded_effect = yes
+			}
+		}
+	}
+}
+
+# Get fake hand
+character_event = {
+	id = RIP.29305
+	desc = EVTDSC_RIP_29305
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+
+	is_triggered_only = yes
+
+	# Golden hand
+	option = {
+		name = EVTOPTA_RIP_29305
+
+		custom_tooltip = { text = EVTOPTA_RIP_29305_TOOLTIP }
+
+		scaled_wealth = {
+			value = -0.75
+			min = -100
+		}
+
+		add_artifact = prosthetic_hand_gold
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = greedy
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+		}
+	}
+
+	# Iron hand
+	option = {
+		name = EVTOPTB_RIP_29305
+
+		custom_tooltip = {
+			text = EVTOPTB_RIP_29305_TOOLTIP
+
+			random = {
+				chance = 50
+				give_nickname = nick_iron_hand
+			}
+		}
+
+		scaled_wealth = {
+			value = -0.50
+			min = -50
+		}
+
+		add_artifact = prosthetic_hand_metal
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = greedy
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+		}
+	}
+
+	# No prosthetic hand
+	option = {
+		name = EVTOPTC_RIP_29305
+
+		custom_tooltip = { text = EVTOPTC_RIP_29305_TOOLTIP }
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = envious
+			}
+		}
+	}
+}
+
+# One-legged events
+character_event = {
+	id = RIP.29400
+
+	is_triggered_only = yes # on_yearly_pulse, random_events
+	hide_window = yes
+
+	only_playable = yes
+	min_age = 16
+	#only_capable = yes
+	prisoner = no
+
+	trigger = {
+		is_inaccessible_or_incapable_trigger = no
+		trait = one_legged
+		NOT = { trait = severely_injured }
+	}
+
+	immediate = {
+		random_list = {
+			# Dancing
+			10 = {
+				trigger = {
+					is_ascetic_trigger = no
+					NOR = {
+						trait = chaste
+						trait = celibate
+					}
+					any_courtier = {
+						root_attraction_trigger = yes
+						block_general_event_trigger = no
+						NOT = { is_lover = ROOT }
+						attracted_to_root_trigger = yes
+						is_ascetic_trigger = no
+						NOR = {
+							trait = chaste
+							trait = celibate
+							is_married = ROOT
+							is_consort = ROOT
+						}
+
+						trigger_if = {
+							limit = { is_close_relative = ROOT }
+
+							religion_has_incest = yes
+							ROOT = { religion_has_incest = yes }
+						}
+					}
+				}
+
+				character_event = { id = RIP.29401 }
+			}
+
+			# Prosthesis
+			10 = {
+				trigger = {
+					NOR = {
+						has_artifact = prosthetic_leg_artifact
+						has_character_modifier = peg_leg
+					}
+				}
+
+				character_event = { id = RIP.29404 }
+			}
+
+			# Phantom pain
+			10 = {
+				trigger = {
+					#has_assigned_minor_title = title_court_physician
+					any_courtier_or_vassal = {
+						has_minor_title = title_court_physician
+					}
+					NOT = { has_character_modifier = phantom_pain }
+				}
+
+				character_event = { id = RIP.29500 }
+			}
+		}
+	}
+}
+
+# Dance with love interest?
+character_event = {
+	id = RIP.29401 # TIANXIATODO: Review
+	desc = EVTDSC_RIP_29401
+	picture = GFX_evt_dancing
+	border = GFX_event_normal_frame_diplomacy
+	portrait = event_target:rip_love_interest
+
+	immediate = {
+		random_courtier = {
+			limit = {
+				is_adult = yes
+				root_attraction_trigger = yes
+				attracted_to_root_trigger = yes
+				block_general_event_trigger = no
+				NOT = { is_lover = ROOT }
+				is_ascetic_trigger = no
+				NOR = {
+					trait = chaste
+					trait = celibate
+					is_married = ROOT
+					is_consort = ROOT
+				}
+
+				trigger_if = {
+					limit = { is_close_relative = ROOT }
+
+					religion_has_incest = yes
+					ROOT = { religion_has_incest = yes }
+				}
+			}
+
+			save_event_target_as = rip_love_interest
+		}
+	}
+
+	is_triggered_only = yes
+
+	# Try to dance
+	option = {
+		name = EVTOPTA_RIP_29401
+
+		random_list = {
+			60 = {
+				event_target:rip_love_interest = {
+					character_event = { id = tianxia.1719 } # Inform other character
+				}
+				
+				character_event = {
+					id = RIP.29402
+					tooltip = EVTOPTA_RIP_29401_SUCCESS
+				}
+			}
+			
+			40 = {
+				event_target:rip_love_interest = {
+					character_event = { id = tianxia.1720 } # Inform other character
+				}
+				
+				character_event = {
+					id = RIP.29403
+					tooltip = EVTOPTA_RIP_29401_FAILURE
+				}
+			}
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = shy
+					trait = content
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = shy
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = content
+			}
+		}
+	}
+
+	# Avoid
+	option = {
+		name = EVTOPTB_RIP_29401
+
+		custom_tooltip = { text = EVTOPTB_RIP_29401_TOOLTIP }
+
+		random = {
+			chance = 33
+			add_trait_depressed_effect = yes
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NAND = {
+					trait = gregarious
+					trait = ambitious
+					trait = lustful
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = lustful
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = ambitious
+			}
+		}
+	}
+}
+
+# Dance success
+character_event = {
+	id = RIP.29402
+	desc = EVTDSC_RIP_29402
+	picture = GFX_evt_dancing
+	border = GFX_event_normal_frame_diplomacy
+	portrait = event_target:rip_love_interest
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29402
+
+		#add_lover = event_target:rip_love_interest
+
+		reverse_opinion = {
+			name = opinion_skilled_dancer
+			who = event_target:rip_love_interest
+		}
+	}
+}
+
+# Dance fail
+character_event = {
+	id = RIP.29403
+	desc = EVTDSC_RIP_29403
+	picture = GFX_evt_scandal
+	border = GFX_event_normal_frame_diplomacy
+	portrait = event_target:rip_love_interest
+
+	is_triggered_only = yes
+
+	option = {
+		name = EVTOPTA_RIP_29403
+
+		reverse_opinion = {
+			name = opinion_inept_dancer
+			who = event_target:rip_love_interest
+		}
+	}
+}
+
+# Prosthetic leg
+character_event = {
+	id = RIP.29404
+	picture = GFX_evt_court_physician
+	border = GFX_event_normal_frame_religion
+
+	desc = {
+		text = EVTDSC_RIP_29404_A
+		trigger = {
+			#NOT = { has_assigned_minor_title = title_court_jester }
+			NOT = {
+				any_courtier_or_vassal = {
+					has_minor_title = title_court_jester
+				}
+			}
+		}
+	}
+	desc = {
+		text = EVTDSC_RIP_29404_B
+		trigger = { has_assigned_minor_title = title_court_jester }
+	}
+
+	is_triggered_only = yes
+
+	immediate = {
+		random_courtier_or_vassal = {
+			limit = { has_minor_title = title_court_jester }
+			save_event_target_as = jester
+		}
+	}
+
+	# Fake leg
+	option = {
+		name = EVTOPTA_RIP_29404
+
+		custom_tooltip = { text = EVTOPTA_RIP_29404_TOOLTIP }
+
+		scaled_wealth = {
+			value = -0.35
+			min = -35
+		}
+
+		add_artifact = prosthetic_leg_artifact
+		
+		ai_chance = {
+			factor = 100
+			
+			trigger = {
+				NOT = {
+					trait = greedy
+				}
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+		}
+	}
+
+	# Peg leg
+	option = {
+		name = EVTOPTB_RIP_29404
+
+		custom_tooltip = {
+			text = EVTOPTB_RIP_29404_TOOLTIP
+
+			random = {
+				chance = 50
+				give_nickname = nick_peg_leg
+			}
+		}
+
+		scaled_wealth = {
+			value = -0.20
+			min = -20
+		}
+
+		add_character_modifier = {
+			name = peg_leg
+			duration = -1
+		}
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = greedy
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = humble
+			}
+		}
+	}
+
+	# No prosthetic leg
+	option = {
+		name = EVTOPTC_RIP_29404
+
+		custom_tooltip = { text = EVTOPTC_RIP_29404_TOOLTIP }
+		
+		ai_chance = {
+			factor = 100
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = proud
+			}
+			
+			mult_modifier = {
+				factor = 0.1
+				trait = envious
+			}
+		}
+	}
+}
