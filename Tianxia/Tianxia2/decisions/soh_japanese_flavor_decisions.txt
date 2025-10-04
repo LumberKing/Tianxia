@@ -1,0 +1,777 @@
+decisions = {
+	celebrate_hanami = {
+		only_playable = yes
+		ai_check_interval = 12
+		
+		potential = {
+			OR = {
+				is_feudal = yes
+				is_tribal = yes
+				is_republic = yes
+			}
+			
+			OR = { # TIANXIATODO: See if any of the below should get their own celebration
+				has_japanese_religion_trigger = yes
+				AND = {
+					culture_group = japonic
+					religion = buddhist
+				}
+			}
+			
+			NOT = {
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+			}
+
+			num_of_vassals >= 1
+			prisoner = no
+			
+			NOT = {
+				has_character_modifier = hanami_in_progress
+			}
+			
+			OR = {
+				NOT = {
+					has_character_flag = recent_hanami
+				}
+				had_character_flag = { flag = recent_hanami days = 365 }
+			}
+			
+			NOT = {
+				liege = {
+					has_character_modifier = hanami_in_progress
+				}
+			}
+		}
+		
+		allow = {
+			war = no
+			prisoner = no
+			is_inaccessible_or_incapable_trigger = no
+			
+			month >= 2 # During or after March
+			month < 5 # Before June
+
+			trigger_if = {
+				limit = {
+					NOT = {
+						any_demesne_title = {
+							lower_real_tier_than = DUKE
+							is_occupied = no
+						}
+					}
+				}
+
+				custom_tooltip = {
+					text = UNOCCUPIED_DEMESNE_TITLE
+					always = no
+				}
+			}
+			
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = penglai_expedition_preparation
+			}
+		}
+		
+		effect = {
+			wealth = -25
+			
+			add_character_modifier = {
+				name = hanami_in_progress
+				duration = -1
+			}
+			
+			set_character_flag = recent_minor_decision
+			set_character_flag = do_not_disturb
+			
+			hidden_tooltip = {
+				character_event = { id = soh.3901 }
+			}
+			if = {
+				limit = {
+					has_dlc = "Reapers"
+				}
+				custom_tooltip = {
+					text = capital_prospers_custom_tooltip
+					hidden_tooltip = {
+						capital_scope = {
+							change_variable = { which = prosperity_value value = 8 }
+						}
+					}
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+
+			trigger = {
+				wealth > 200
+				diplomacy >= 10
+				NOT = { trait = shy }
+
+				trigger_if = {
+					limit = { has_character_flag = recent_minor_decision }
+
+					had_character_flag = {
+						flag = recent_minor_decision
+						years >= 2
+					}
+				}
+			}
+		}
+	}
+	
+	japanese_pilgrimage = {
+		only_playable = yes
+		ai_check_interval = 120
+		
+		potential = {
+			has_dlc = "Mystics"
+			
+			OR = {
+				NOT = { has_dlc = "Way of Life" }
+				has_focus = focus_theology
+				has_quest = quest_indian_monastic_order_pilgrimage
+			}
+			
+			OR = {
+				has_japanese_religion_trigger = yes
+				AND = {
+					religion = buddhist
+					culture_group = japonic
+				}
+			}
+
+			NOR = {
+				trait = indian_pilgrim
+
+				has_alternate_start_parameter = {
+					key = religion_names
+					value = random
+				}
+				
+				religion = shugendo # Currently no pilgrimage
+				religion = koshin # Currently no pilgrimage
+			}
+		}
+
+		allow = {
+			scaled_wealth = 0.2
+			is_adult = yes
+			war = no
+			in_command = no
+			prisoner = no
+			is_inaccessible_trigger = no
+			is_healthy_for_travel_trigger = yes
+
+			trigger_if = {
+				limit = {
+					NOT = {
+						any_demesne_title = {
+							lower_real_tier_than = DUKE
+							is_occupied = no
+						}
+					}
+				}
+
+				custom_tooltip = {
+					text = UNOCCUPIED_DEMESNE_TITLE
+					always = no
+				}
+			}
+			
+			NOR = {
+				trait = treasure_fleet_preparation
+				trait = penglai_expedition_preparation
+			}
+		}
+
+		effect = {
+			scaled_wealth = -0.2
+			set_character_flag = activated_pilgrimage
+			set_character_flag = do_not_disturb
+			character_event = { id = soh.3601 }
+		}
+
+		ai_will_do = {
+			factor = 0.1 # Only a small minority ever go on a pilgrimage
+
+			trigger = {
+				age >= 30
+				wealth >= 200
+			}
+
+		#	mult_modifier = {
+		#		factor = 100
+		#		has_quest = quest_indian_monastic_order_pilgrimage
+		#	}
+
+			mult_modifier = {
+				factor = 3
+				trait = zealous
+			}
+		}
+	}
+	
+	summon_warrior_band = {
+		only_playable = yes
+		is_mercenary = yes
+		
+		ai_check_interval = 12 # Check only once every 12 months.
+		
+		is_high_prio = yes
+		
+		potential = {
+			any_owned_bloodline = {
+				has_bloodline_flag = warrior_bands_bloodline
+				bloodline_is_active_for = PREV
+			}
+		}
+		
+		allow = {
+			is_adult = yes
+			
+			OR = {
+				is_primary_war_attacker = yes
+				is_primary_war_defender = yes
+			}
+			
+			has_actual_regency_trigger = no
+			
+			custom_tooltip = { 
+				text = tooltip_has_not_already_raised_warrior_band
+				hidden_tooltip = { NOT = { has_character_modifier = raised_warrior_band } } 
+			}
+			
+			OR = {
+				independent = yes
+				prestige >= 250
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					independent = no
+				}
+				prestige = -250
+			}
+			
+			capital_scope = {
+				PREV = {
+					if = {
+						limit = {
+							ROOT = {
+								higher_real_tier_than = duke
+							}
+						}
+						
+						spawn_unit = {
+							owner = ROOT
+							province = PREV
+							home = PREV
+							troops = {
+								light_cavalry = { 400 400 }
+								horse_archers = { 400 400 }
+								heavy_infantry = { 200 200 }
+								pikemen = { 1000 1000 }
+								archers = { 1000 1000 }
+							}
+							
+							earmark = warrior_bands_bloodline_forces
+							maintenance_multiplier = 0.25
+						}
+						
+						spawn_unit = {
+							owner = ROOT
+							province = PREV
+							home = PREV
+							troops = {
+								light_cavalry = { 400 400 }
+								horse_archers = { 400 400 }
+								heavy_infantry = { 200 200 }
+								pikemen = { 1000 1000 }
+								archers = { 1000 1000 }
+							}
+							
+							earmark = warrior_bands_bloodline_forces
+							maintenance_multiplier = 0.25
+						}
+					}
+					
+					else_if = {
+						limit = {
+							ROOT = {
+								tier = duke
+							}
+						}
+						
+						spawn_unit = {
+							owner = ROOT
+							province = PREV
+							home = PREV
+							troops = {
+								light_cavalry = { 400 400 }
+								horse_archers = { 400 400 }
+								heavy_infantry = { 200 200 }
+								pikemen = { 1000 1000 }
+								archers = { 1000 1000 }
+							}
+							
+							earmark = warrior_bands_bloodline_forces
+							maintenance_multiplier = 0.25
+						}
+					}
+					
+					else = {
+						spawn_unit = {
+							owner = ROOT
+							province = PREV
+							home = PREV
+							troops = {
+								light_cavalry = { 200 200 }
+								horse_archers = { 200 200 }
+								heavy_infantry = { 100 100 }
+								pikemen = { 500 500 }
+								archers = { 500 500 }
+							}
+							
+							earmark = warrior_bands_bloodline_forces
+							maintenance_multiplier = 0.25
+						}
+					}
+				}
+			}
+			
+			hidden_tooltip = { 
+				add_character_modifier = { 
+					modifier = raised_warrior_band 
+					duration = -1 #Removed on_action when player is back at peace
+					hidden = yes
+				} 
+			}
+		}
+		
+		ai_will_do = {
+			factor = 1
+		}
+	}
+}
+
+targeted_decisions = {
+	become_minamoto = { # TIANXIATODO: Loc
+		only_playable = yes
+		filter = self
+		ai_target_filter = self
+		ai_check_interval = 60
+		
+		potential = {
+			dynasty = 1000027000 # Imperial Family
+			is_the_tenno_trigger = no
+			is_ryukyuan_tenno_trigger = no
+			has_global_flag = minamoto_exist
+			NOT = {
+				has_global_flag = no_more_minamotos
+			}
+		}
+		
+		allow = {
+			trigger_if = {
+				limit = {
+					religion = shinto
+				}
+				piety >= 500
+			}
+			trigger_else = {
+				prestige >= 500
+			}
+			
+			any_dynasty_member = {
+				count = 10
+				religion = shinto
+				is_possible_tenno_trigger = yes
+				NOT = {
+					is_descendant_of = FROM
+				}
+			}
+			
+			war = no
+			has_actual_regency_trigger = no
+			NOR = {
+				tier = emperor
+				AND = {
+					independent = yes
+					tier = king
+				}
+			}
+			
+			OR = {
+				religion_openly_ryukyuan_or_reformed_trigger = yes
+				has_japanese_religion_trigger = yes
+				AND = {
+					culture_group = japonic
+					religion = buddhist
+				}
+			}
+			
+			k_chrysanthemum_throne = {
+				custom_tooltip = {
+					text = not_previous_holder_holder_heir_or_close_relative_or_ancestor
+					NOR = {
+						any_previous_holder = {
+							OR = {
+								character = FROM
+								is_close_relative = FROM
+								is_descendant_of = FROM
+							}
+						}
+						holder_scope = {
+							OR = {
+								is_close_relative = FROM
+								is_descendant_of = FROM
+							}
+						}
+						current_heir = {
+							OR = {
+								character = FROM
+								is_close_relative = FROM
+								is_descendant_of = FROM
+							}
+						}
+					}
+				}
+			}
+			trigger_if = {
+				limit = {
+					d_ryukyuan_pagan_reformed = {
+						holder_scope = {
+							is_ryukyuan_tenno_trigger = yes
+						}
+					}
+				}
+				d_ryukyuan_pagan_reformed = {
+					custom_tooltip = {
+						text = not_previous_holder_holder_heir_or_close_relative_or_ancestor
+						NOR = {
+							any_previous_holder = {
+								OR = {
+									character = FROM
+									is_close_relative = FROM
+									is_descendant_of = FROM
+								}
+							}
+							holder_scope = {
+								OR = {
+									is_close_relative = FROM
+									is_descendant_of = FROM
+								}
+							}
+							current_heir = {
+								OR = {
+									character = FROM
+									is_close_relative = FROM
+									is_descendant_of = FROM
+								}
+							}
+						}
+					}
+				}
+			}
+			trigger_if = {
+				limit = {
+					b_ise = {
+						holder_scope = {
+							trait = imperial_priestess
+						}
+					}
+				}
+				b_ise = {
+					holder_scope = {
+						NOR = {
+							character = FROM
+							is_close_relative = FROM
+							is_descendant_of = FROM
+						}
+					}
+				}
+			}
+			trigger_if = {
+				limit = {
+					b_kamo = {
+						holder_scope = {
+							trait = imperial_priestess
+						}
+					}
+				}
+				b_kamo = {
+					holder_scope = {
+						NOR = {
+							character = FROM
+							is_close_relative = FROM
+							is_descendant_of = FROM
+						}
+					}
+				}
+			}
+			
+			NOT = {
+				has_landed_title = c_yamashiro # Handles the Northern Court
+			}
+		}
+		
+		effect = {
+			prestige = -500
+			
+			if = {
+				limit = {
+					religion = shinto
+				}
+				
+				piety = -500
+			}
+			
+			FROM = {
+				any_dynasty_member_even_if_dead = {
+					limit = {
+						is_descendant_of = FROM
+					}
+					
+					dynasty = 1000027002 # Minamoto
+				}
+			}
+			
+			dynasty = 1000027002 # Minamoto
+			
+			set_character_flag = got_surname
+			
+			# TIANXIATODO: Notification for the Tenno and others that might care
+		}
+		
+		ai_will_do = {
+			factor = 0.01 # TIANXIATODO: Add weights
+			trigger = {
+				NOR = {
+					AND = {
+						religion = shinto
+						government = japanese_monastic_feudal_government
+					}
+					AND = {
+						religion = shinto
+						is_possible_tenno_trigger = yes
+						in_faction = faction_imperial_claimant
+					}
+				}
+			}
+		}
+	}
+	
+	become_taira = { # TIANXIATODO: Loc
+		only_playable = yes
+		filter = self
+		ai_target_filter = self
+		ai_check_interval = 60
+		
+		potential = {
+			dynasty = 1000027000 # Imperial Family
+			is_the_tenno_trigger = no
+			is_ryukyuan_tenno_trigger = no
+			has_global_flag = taira_exist
+			NOT = {
+				has_global_flag = no_more_tairas
+			}
+		}
+		
+		allow = {
+			trigger_if = {
+				limit = {
+					religion = shinto
+				}
+				piety >= 500
+			}
+			trigger_else = {
+				prestige >= 500
+			}
+			
+			any_dynasty_member = {
+				count = 10
+				religion = shinto
+				is_possible_tenno_trigger = yes
+				NOT = {
+					is_descendant_of = FROM
+				}
+			}
+			
+			war = no
+			has_actual_regency_trigger = no
+			NOR = {
+				tier = emperor
+				AND = {
+					independent = yes
+					tier = king
+				}
+			}
+			
+			OR = {
+				religion_openly_ryukyuan_or_reformed_trigger = yes
+				has_japanese_religion_trigger = yes
+				AND = {
+					culture_group = japonic
+					religion = buddhist
+				}
+			}
+			
+			k_chrysanthemum_throne = {
+				custom_tooltip = {
+					text = not_previous_holder_holder_heir_or_close_relative_or_ancestor
+					NOR = {
+						any_previous_holder = {
+							OR = {
+								character = FROM
+								is_close_relative = FROM
+								is_descendant_of = FROM
+							}
+						}
+						holder_scope = {
+							OR = {
+								is_close_relative = FROM
+								is_descendant_of = FROM
+							}
+						}
+						current_heir = {
+							OR = {
+								character = FROM
+								is_close_relative = FROM
+								is_descendant_of = FROM
+							}
+						}
+					}
+				}
+			}
+			trigger_if = {
+				limit = {
+					d_ryukyuan_pagan_reformed = {
+						holder_scope = {
+							is_ryukyuan_tenno_trigger = yes
+						}
+					}
+				}
+				d_ryukyuan_pagan_reformed = {
+					custom_tooltip = {
+						text = not_previous_holder_holder_heir_or_close_relative_or_ancestor
+						NOR = {
+							any_previous_holder = {
+								OR = {
+									character = FROM
+									is_close_relative = FROM
+									is_descendant_of = FROM
+								}
+							}
+							holder_scope = {
+								OR = {
+									is_close_relative = FROM
+									is_descendant_of = FROM
+								}
+							}
+							current_heir = {
+								OR = {
+									character = FROM
+									is_close_relative = FROM
+									is_descendant_of = FROM
+								}
+							}
+						}
+					}
+				}
+			}
+			trigger_if = {
+				limit = {
+					b_ise = {
+						holder_scope = {
+							trait = imperial_priestess
+						}
+					}
+				}
+				b_ise = {
+					holder_scope = {
+						NOR = {
+							character = FROM
+							is_close_relative = FROM
+							is_descendant_of = FROM
+						}
+					}
+				}
+			}
+			trigger_if = {
+				limit = {
+					b_kamo = {
+						holder_scope = {
+							trait = imperial_priestess
+						}
+					}
+				}
+				b_kamo = {
+					holder_scope = {
+						NOR = {
+							character = FROM
+							is_close_relative = FROM
+							is_descendant_of = FROM
+						}
+					}
+				}
+			}
+			
+			NOT = {
+				has_landed_title = c_yamashiro # Handles the Northern Court
+			}
+		}
+		
+		effect = {
+			prestige = -500
+			
+			if = {
+				limit = {
+					religion = shinto
+				}
+				
+				piety = -500
+			}
+			
+			FROM = {
+				any_dynasty_member_even_if_dead = {
+					limit = {
+						is_descendant_of = FROM
+					}
+					
+					dynasty = 1000027003 # Taira
+				}
+			}
+			
+			dynasty = 1000027003 # Taira
+			
+			set_character_flag = got_surname
+			
+			# TIANXIATODO: Notification for the Tenno and others that might care
+		}
+		
+		ai_will_do = {
+			factor = 0.01 # TIANXIATODO: Add weights
+			trigger = {
+				NOR = {
+					AND = {
+						religion = shinto
+						government = japanese_monastic_feudal_government
+					}
+					AND = {
+						religion = shinto
+						is_possible_tenno_trigger = yes
+						in_faction = faction_imperial_claimant
+					}
+				}
+			}
+		}
+	}
+}

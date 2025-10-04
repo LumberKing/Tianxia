@@ -1,0 +1,302 @@
+ma_chu_succession = { # Succession by oldest eligible living sibling of the preferred gender
+	elector_vote_strength = {
+		days = 1 # Every elector starts with at least 1 vote
+	}
+	
+	elector_selection = {
+		days = -5 		# If below 0, ROOT is not valid to be an Elector. Any character above 0 will be an elector.
+
+		trigger = {
+			# The title must currently exist
+			FROMFROM = {
+				has_holder = yes
+			}
+		}
+		
+		additive_modifier = {
+			value = 10
+			FROMFROM = {
+				holder_scope = {
+					character = PREVPREV # The title holder
+				}
+			}
+		}
+		additive_modifier = {
+			value = 10
+			FROMFROM = {
+				holder_scope = {
+					any_voter = {
+						character = PREVPREVPREV # The title holder's voters (to prevent the player from having de facto primo)
+					}
+				}
+			}
+		}
+	}
+	
+	# ROOT is current title holder
+	# FROM is candidate
+	# FROMFROM is title
+	# FROMFROMFROM is null
+	candidate_trigger = {
+		FROMFROM = {
+			has_holder = yes
+		}
+
+		FROM = {
+			# Either the candidate is in the realm, or is landless, or the title is independent, or the realm of the title does NOT have protected inheritance
+			OR = {
+				same_realm = ROOT
+				is_ruler = no
+
+				ROOT_FROMFROM = {
+					OR = {
+						holder_scope = {
+							independent = yes
+						}
+
+						NOR = {
+							has_law = out_of_realm_inheritance_law_1
+							has_law = crown_authority_3
+							has_law = crown_authority_4
+						}
+					}
+				}
+			}
+		}
+		
+		FROM = {
+			dynasty = ROOT
+			any_sibling = {
+				character = ROOT # If no sibling exists, default to Primogeniture!
+			}
+			trigger_if = {
+				limit = {
+					any_sibling = {
+						# Default eligibility conditions
+						dynasty = ROOT
+						NOT = {
+							character = ROOT
+						}
+						is_older_than = PREV
+						is_alive = yes
+						# Candidate should not be a landless Courtier who is about to inherit a Theocracy or Republic
+						trigger_if = {
+							limit = {
+								any_heir_title = {
+									OR = {
+										is_republic = yes
+										is_theocracy = yes
+									}
+								}
+							}
+
+							is_landed = yes
+							is_republic = no
+							is_theocracy = no
+						}
+						OR = { #If the title controls the religion, candidates must be of the same religion.
+							ROOT = { 
+								NOT = { 
+									controls_religion = yes
+								}
+							}
+							religion = ROOT
+						}
+						NOR = {
+							trait = cat
+							trait = disinherited
+							trait = horse
+							trait = eunuch
+							trait = bastard
+							trait = crusader_king
+							trait = crusader_queen
+							character = ROOT # Not the current ruler
+							trait = bear
+							trait = dragon_bride_unmarried
+							trait = dragon_bride_married
+							trait = sent_to_china
+						}
+					}
+				}
+				NOT = {
+					any_sibling = {
+						dynasty = ROOT
+						NOT = {
+							character = ROOT
+						}
+						# Candidate should not be a landless Courtier who is about to inherit a Theocracy or Republic
+						trigger_if = {
+							limit = {
+								any_heir_title = {
+									OR = {
+										is_republic = yes
+										is_theocracy = yes
+									}
+								}
+							}
+
+							is_landed = yes
+							is_republic = no
+							is_theocracy = no
+						}
+						OR = { #If the title controls the religion, candidates must be of the same religion.
+							ROOT = { 
+								NOT = { 
+									controls_religion = yes
+								}
+							}
+							religion = ROOT
+						}
+						NOR = {
+							trait = cat
+							trait = disinherited
+							trait = horse
+							trait = eunuch
+							trait = bastard
+							trait = crusader_king
+							trait = crusader_queen
+							character = ROOT # Not the current ruler
+							trait = bear
+							trait = dragon_bride_unmarried
+							trait = dragon_bride_married
+							trait = sent_to_china
+						}
+						
+						# Gender law check
+						trigger_if = {
+							limit = {
+								ROOT_FROMFROM = {
+									has_law = agnatic_succession
+								}
+							}
+							is_female = no
+							father_even_if_dead = {
+								dynasty = ROOT
+								any_child = {
+									character = ROOT
+								}
+							}
+						}
+						trigger_else_if = {
+							limit = {
+								ROOT_FROMFROM = {
+									has_law = cognatic_succession
+								}
+							}
+							OR = {
+								is_female = no
+								AND = {
+									is_female = yes
+									ROOT_FROM = {
+										is_female = yes
+									}
+								}
+							}
+							father_even_if_dead = {
+								dynasty = ROOT
+								any_child = {
+									character = ROOT
+								}
+							}
+						}
+						trigger_else_if = {
+							limit = {
+								ROOT_FROMFROM = {
+									has_law = enatic_succession
+								}
+							}
+							is_female = yes
+							mother_even_if_dead = {
+								dynasty = ROOT
+								any_child = {
+									character = ROOT
+								}
+							}
+						}
+						trigger_else_if = {
+							limit = {
+								ROOT_FROMFROM = {
+									has_law = enatic_cognatic_succession
+								}
+							}
+							OR = {
+								is_female = yes
+								AND = {
+									is_female = no
+									ROOT_FROM = {
+										is_female = no
+									}
+								}
+							}
+							mother_even_if_dead = {
+								dynasty = ROOT
+								any_child = {
+									character = ROOT
+								}
+							}
+						}
+						trigger_else = {
+							OR = {
+								father_even_if_dead = {
+									dynasty = ROOT
+									any_child = {
+										character = ROOT
+									}
+								}
+								mother_even_if_dead = {
+									dynasty = ROOT
+									any_child = {
+										character = ROOT
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		FROM = {
+			# Candidate should not be a landless Courtier who is about to inherit a Theocracy or Republic
+			trigger_if = {
+				limit = {
+					any_heir_title = {
+						OR = {
+							is_republic = yes
+							is_theocracy = yes
+						}
+					}
+				}
+
+				is_landed = yes
+				is_republic = no
+				is_theocracy = no
+			}
+			OR = { #If the title controls the religion, candidates must be of the same religion.
+				ROOT = { 
+					NOT = { 
+						controls_religion = yes
+					}
+				}
+				religion = ROOT
+			}
+			NOR = {
+				trait = cat
+				trait = disinherited
+				trait = horse
+				trait = eunuch
+				trait = bastard
+				trait = crusader_king
+				trait = crusader_queen
+				character = ROOT # Not the current ruler
+				trait = bear
+				trait = dragon_bride_unmarried
+				trait = dragon_bride_married
+				trait = sent_to_china
+			}
+		}
+	}
+	
+	candidate_vote_score = {
+		days = 1
+	}
+}

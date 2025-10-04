@@ -1,0 +1,239 @@
+# wars_of_the_diadochi
+
+# Warlord CB
+wars_of_the_diadochi = { # To the strongest!
+	name = CB_NAME_DIADOCHI
+	war_name = WAR_NAME_DIADOCHI
+	sprite = 30
+	truce_days = 365
+	
+	is_permanent = yes
+	check_de_jure_tier = DUKE # this scans all dejure duchies for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
+	allowed_to_target_tributaries = no
+	
+	can_use_gui = {
+		ROOT = {
+			prisoner = no
+			is_actually_incapable_trigger = no
+			pacifist = no
+		}
+	}
+	
+	can_use = {
+		ROOT = {
+			trait = diadochos
+			independent = yes
+			
+			mercenary = no
+			holy_order = no
+			controls_religion = no
+		}
+		
+		FROM = {
+			trait = diadochos
+			independent = yes
+			
+			mercenary = no
+			holy_order = no
+			controls_religion = no
+		}
+	}
+
+	can_use_title = {
+		any_direct_de_jure_vassal_title = { # Title must be inside holy war range
+			OR = {
+				holder_scope = {
+					OR = {
+						character = ROOT
+						is_liege_or_above = ROOT
+					}
+				}
+				
+				AND = {
+					holder_scope = {
+						OR = {
+							character = FROM
+							is_liege_or_above = FROM
+						}
+					}
+					location = {
+						any_neighbor_province = {
+							OR = {
+								AND = {
+									has_owner = yes
+									owner = {
+										OR = {
+											character = ROOT
+											is_liege_or_above = ROOT
+										}
+									}
+								}
+								
+								AND = {
+									is_land = no
+									any_neighbor_province = {
+										OR = {
+											AND = {
+												has_owner = yes
+												owner = {
+													OR = {
+														character = ROOT
+														is_liege_or_above = ROOT
+													}
+												}
+											}
+											
+											AND = {
+												is_land = no
+												any_neighbor_province = {
+													owner = {
+														OR = {
+															character = ROOT
+															is_liege_or_above = ROOT
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	on_add = {
+		fire_haruspicy_event_effect = yes
+	}
+	
+	is_valid = {
+		ROOT = {
+			independent = yes
+			
+			mercenary = no
+			holy_order = no
+			controls_religion = no
+			prisoner = no
+			is_actually_incapable_trigger = no
+			pacifist = no
+		}
+		FROM = {
+			mercenary = no
+			holy_order = no
+			controls_religion = no
+		}
+	}
+	
+	on_success = {
+		attacker = {
+			participation_scaled_prestige = 100
+		}
+		
+		any_attacker = {
+			limit = { NOT = { character = attacker } }
+			
+			hidden_tooltip = { 
+				participation_scaled_prestige = 100
+			}
+		}
+		
+		defender = {
+			prestige = -100
+		}
+	}
+
+	on_success_title = {
+		custom_tooltip = { 
+			text = other_invasion_succ_tip
+			
+			hidden_tooltip = {
+				attacker = {
+					vassalize_or_take_under_title = {
+						title = PREV
+						enemy = defender
+						type = invasion
+					}
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				holder_scope = {
+					character = defender
+				}
+			}
+			
+			usurp_title_only = {
+				target = attacker
+				type = invasion
+			}
+		}
+	}
+
+	on_fail = {
+		attacker = {
+			prestige = -150
+		}
+	}
+
+	on_reverse_demand = {
+		attacker = {
+			transfer_scaled_wealth = {
+				to = FROM
+				value = 4.0
+			}
+			
+			prestige = -200
+		}
+		
+		defender = {
+			participation_scaled_prestige = 100
+			
+			if = {
+				limit = {
+					uses_decadence = yes
+				}
+				participation_scaled_decadence = -10
+			}
+		}
+		
+		any_defender = {
+			limit = { NOT = { character = defender } }
+			
+			hidden_tooltip = { 
+				participation_scaled_prestige = 100
+				
+				if = {
+					limit = {
+						uses_decadence = yes
+					}
+					participation_scaled_decadence = -10
+				}
+			}
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+	
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+	
+	ai_will_do = {
+		factor = 10
+	}
+}
