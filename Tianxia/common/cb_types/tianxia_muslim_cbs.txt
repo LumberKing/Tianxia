@@ -1,0 +1,2122 @@
+# free_caliph_cb
+# free_caliph_cb_vassalization
+# vassalize_caliph_cb
+# end_pretender_caliphate_cb
+# seize_caliphate_cb
+# muslim_law_school_dispute_cb
+
+# TIANXIATODO: Decadence effects
+# TIANXIATODO: MA effects
+
+free_caliph_cb = {
+	name = CB_NAME_FREE_CALIPH
+	war_name = WAR_NAME_FREE_CALIPH
+	sprite = 10
+	truce_days = 3650
+	battle_warscore_mult = 0.5
+	sort_priority = 1000
+	
+	is_permanent = yes
+	can_ask_to_join_war = yes
+	allowed_to_target_tributaries = no
+	
+	can_use_gui = {
+		ROOT = {
+			piety >= 500
+			
+			china_forbids_war_trigger = no
+		}
+	}
+	
+	can_use = {
+		ROOT = {
+			religion_group = muslim
+			NOT = {
+				religion = yazidi
+			}
+			has_claimed_appropriate_caliphate_trigger = no
+			rightful_religious_head_scope = {
+				NOR = {
+					character = FROM
+					AND = {
+						dynasty = FROM
+						religion = FROM
+					}
+				}
+				any_liege = {
+					character = FROM
+				}
+			}
+		}
+			
+		FROM = {
+			independent = yes
+			NOT = {
+				same_realm = ROOT
+			}
+		}
+	}
+	
+	is_valid = {
+		ROOT = {
+			independent = yes
+			religion_group = muslim
+			NOR = {
+				religion = yazidi
+			}
+			has_claimed_appropriate_caliphate_trigger = no
+		}
+			
+		FROM = {
+			independent = yes
+			any_realm_lord = {
+				controls_religion = yes
+				religion = ROOT
+			}
+		}
+	}
+	
+	on_add = {
+		attacker = {
+			show_scope_change = no
+			
+			piety = -500
+		}
+
+		fire_haruspicy_event_effect = yes
+		anger_china_effect = yes
+	}
+	
+	on_success = {
+		attacker = {
+			piety = 500
+		}
+		defender = {
+			if = {
+				limit = {
+					religion_group = muslim
+					NOT = {
+						religion = yazidi
+					}
+				}
+				piety = -500
+			}
+			else = {
+				prestige = -1000
+			}
+			any_realm_lord = {
+				limit = {
+					controls_religion = yes
+					religion = ROOT
+				}
+				set_defacto_liege = THIS
+				any_demesne_title = {
+					limit = {
+						controls_religion = yes
+						claimed_by = FROM
+					}
+					remove_claim = FROM
+				}
+			}
+		}
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_massive_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+	}
+	
+	on_fail = {
+		attacker = {
+			piety = -250
+		}
+		defender = {
+			if = {
+				limit = {
+					religion_group = muslim
+					NOT = {
+						religion = yazidi
+					}
+				}
+				piety = 250
+			}
+			else = {
+				prestige = 500
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_large_effect = yes
+			}
+		}
+		
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_large_effect = yes
+			}
+		}
+	}
+	
+	on_reverse_demand = {
+		attacker = {
+			piety = -500
+
+			transfer_scaled_wealth = {
+				to = defender
+				value = 4.0
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					religion_group = muslim
+					NOT = {
+						religion = yazidi
+					}
+				}
+				piety = 500
+			}
+			else = {
+				prestige = 1000
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+		
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+
+	ai_will_do = {
+		factor = 0.9 # Prefer using CB's without on_add costs
+		
+		trigger = { # Focus on your claims!
+			FROM = {
+				NOT = {
+					any_demesne_title = {
+						higher_tier_than = duke
+						claimed_by = ROOT
+					}
+				}
+			}
+		}
+	}
+}
+
+free_caliph_cb_vassalization = {
+	name = CB_NAME_SEIZE_CALIPH
+	war_name = WAR_NAME_SEIZE_CALIPH
+	sprite = 10
+	truce_days = 3650
+	battle_warscore_mult = 0.5
+	sort_priority = 1000
+	
+	is_permanent = yes
+	can_ask_to_join_war = yes
+	allowed_to_target_tributaries = no
+	
+	can_use_gui = {
+		ROOT = {
+			piety >= 1000
+			government = ghazi_government
+			
+			china_forbids_war_trigger = no
+			
+			rightful_religious_head_scope = {
+				any_realm_province = {
+					holder_scope = {
+						OR = {
+							character = PREVPREV
+							is_vassal_or_below = PREVPREV
+						}
+					}
+					location = {
+						any_neighbor_province = {
+							trigger_if = {
+								limit = { has_owner = yes } # not wasteland or sea zone
+
+								owner = {
+									OR = {
+										character = ROOT
+										is_vassal_or_below_of = ROOT
+									}
+								}
+							}
+
+							trigger_else = {
+								is_land = no # first sea zone
+
+								any_neighbor_province = { # county one sea zone away
+									trigger_if = {
+										limit = { has_owner = yes } # not wasteland or sea zone
+
+										owner = {
+											OR = {
+												character = ROOT
+												is_vassal_or_below_of = ROOT
+											}
+										}
+									}
+
+									trigger_else = {
+										is_land = no # second seazone
+
+										any_neighbor_province = { # county two sea zones away
+											owner = {
+												OR = {
+													character = ROOT
+													is_vassal_or_below_of = ROOT
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	can_use = {
+		ROOT = {
+			independent = yes
+			religion_group = muslim
+			NOT = {
+				religion = yazidi
+			}
+			has_claimed_appropriate_caliphate_trigger = no
+			rightful_religious_head_scope = {
+				NOR = {
+					character = FROM
+					AND = {
+						dynasty = FROM
+						religion = FROM
+					}
+				}
+				any_liege = {
+					character = FROM
+				}
+			}
+		}
+		FROM = {
+			independent = yes
+			NOT = {
+				same_realm = ROOT
+			}
+		}
+	}
+	
+	is_valid = {
+		ROOT = {
+			independent = yes
+			religion_group = muslim
+			NOR = {
+				religion = yazidi
+			}
+			has_claimed_appropriate_caliphate_trigger = no
+		}
+			
+		FROM = {
+			independent = yes
+			any_realm_lord = {
+				controls_religion = yes
+				religion = ROOT
+			}
+		}
+	}
+	
+	on_add = {
+		attacker = {
+			show_scope_change = no
+			
+			piety = -1000
+		}
+
+		fire_haruspicy_event_effect = yes
+		anger_china_effect = yes
+	}
+	
+	on_success = {
+		attacker = {
+			piety = 100
+		}
+		defender = {
+			if = {
+				limit = {
+					religion_group = muslim
+					NOT = {
+						religion = yazidi
+					}
+				}
+				piety = -500
+			}
+			else = {
+				prestige = -1000
+			}
+			any_realm_lord = {
+				limit = {
+					controls_religion = yes
+					religion = ROOT
+				}
+				set_defacto_liege = attacker
+				any_demesne_title = {
+					limit = {
+						controls_religion = yes
+						claimed_by = FROM
+					}
+					remove_claim = FROM
+				}
+			}
+		}
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_massive_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+	}
+	
+	on_fail = {
+		attacker = {
+			piety = -500
+		}
+		defender = {
+			if = {
+				limit = {
+					religion_group = muslim
+					NOT = {
+						religion = yazidi
+					}
+				}
+				piety = 250
+			}
+			else = {
+				prestige = 500
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_large_effect = yes
+			}
+		}
+		
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_large_effect = yes
+			}
+		}
+	}
+	
+	on_reverse_demand = {
+		attacker = {
+			piety = -1000
+
+			transfer_scaled_wealth = {
+				to = defender
+				value = 4.0
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					religion_group = muslim
+					NOT = {
+						religion = yazidi
+					}
+				}
+				piety = 500
+			}
+			else = {
+				prestige = 1000
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+		
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+
+	ai_will_do = {
+		factor = 0.9 # Prefer using CB's without on_add costs
+		
+		trigger = { # Focus on your claims!
+			FROM = {
+				NOT = {
+					any_demesne_title = {
+						higher_tier_than = duke
+						claimed_by = ROOT
+					}
+				}
+			}
+		}
+	}
+}
+
+vassalize_caliph_cb = {
+	name = CB_NAME_VASSALIZE_CALIPH
+	war_name = WAR_NAME_VASSALIZE_CALIPH
+	sprite = 10
+	truce_days = 3650
+	sort_priority = 1000
+	
+	is_permanent = yes
+	can_ask_to_join_war = yes
+	allowed_to_target_tributaries = no
+	
+	can_use_gui = {
+		ROOT = {
+			piety >= 1000
+			government = ghazi_government
+			
+			china_forbids_war_trigger = no
+		}
+		FROM = {
+			any_realm_province = {
+				location = {
+					any_neighbor_province = {
+						trigger_if = {
+							limit = { has_owner = yes } # not wasteland or sea zone
+
+							owner = {
+								OR = {
+									character = ROOT
+									is_vassal_or_below_of = ROOT
+								}
+							}
+						}
+
+						trigger_else = {
+							is_land = no # first sea zone
+
+							any_neighbor_province = { # county one sea zone away
+								trigger_if = {
+									limit = { has_owner = yes } # not wasteland or sea zone
+
+									owner = {
+										OR = {
+											character = ROOT
+											is_vassal_or_below_of = ROOT
+										}
+									}
+								}
+
+								trigger_else = {
+									is_land = no # second seazone
+
+									any_neighbor_province = { # county two sea zones away
+										owner = {
+											OR = {
+												character = ROOT
+												is_vassal_or_below_of = ROOT
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	can_use = {
+		ROOT = {
+			independent = yes
+			religion_group = muslim
+			NOT = {
+				religion = yazidi
+			}
+			has_claimed_appropriate_caliphate_trigger = no
+		}
+		FROM = {
+			controls_religion = yes
+			religion = ROOT
+			independent = yes
+			real_tier = duke
+		}
+	}
+	
+	is_valid = {
+		ROOT = {
+			independent = yes
+			religion_group = muslim
+			NOT = {
+				religion = yazidi
+			}
+			has_claimed_appropriate_caliphate_trigger = no
+		}
+		FROM = {
+			controls_religion = yes
+			religion = ROOT
+			independent = yes
+			lower_real_tier_than = ROOT
+		}
+	}
+	
+	on_add = {
+		attacker = {
+			show_scope_change = no
+			
+			piety = -1000
+		}
+
+		fire_haruspicy_event_effect = yes
+		anger_china_effect = yes
+	}
+	
+	on_success = {
+		attacker = {
+			piety = 100
+		}
+		defender = {
+			piety = -500
+			set_defacto_liege = attacker
+		}
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_massive_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+	}
+	
+	on_fail = {
+		attacker = {
+			piety = -500
+		}
+		defender = {
+			piety = 250
+		}
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_large_effect = yes
+			}
+		}
+		
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_large_effect = yes
+			}
+		}
+	}
+	
+	on_reverse_demand = {
+		attacker = {
+			piety = -1000
+
+			transfer_scaled_wealth = {
+				to = defender
+				value = 4.0
+			}
+			
+			imprison = defender
+		}
+		defender = {
+			piety = 500
+		}
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+		
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+
+	ai_will_do = {
+		factor = 0.9 # Prefer using CB's without on_add costs
+	}
+}
+
+end_pretender_caliphate_cb = {
+	name = CB_NAME_END_PRETENDER_CALIPHATE
+	war_name = WAR_NAME_END_PRETENDER_CALIPHATE
+	sprite = 26
+	truce_days = 3650
+	battle_warscore_mult = 0.5
+	sort_priority = 1000
+	
+	is_permanent = yes
+	can_ask_to_join_war = yes
+	allowed_to_target_tributaries = no
+	
+	can_use_gui = {
+		ROOT = {
+			china_forbids_war_trigger = no
+			
+			OR = {
+				government = ghazi_government
+				government = caliphal_government
+			}
+			
+			trigger_if = {
+				limit = {
+					controls_religion = yes
+				}
+				trigger_if = {
+					limit = {
+						FROM = {
+							real_tier = emperor
+						}
+					}
+					piety >= 2500
+				}
+				trigger_else_if = {
+					limit = {
+						FROM = {
+							real_tier = king
+						}
+					}
+					piety >= 1250
+				}
+				trigger_else = {
+					piety >= 500
+				}
+			}
+			trigger_else = {
+				trigger_if = {
+					limit = {
+						FROM = {
+							real_tier = emperor
+						}
+					}
+					piety >= 5000
+				}
+				trigger_else_if = {
+					limit = {
+						FROM = {
+							real_tier = king
+						}
+					}
+					piety >= 2500
+				}
+				trigger_else = {
+					piety >= 1000
+				}
+			}
+		}
+	}
+	
+	can_use = {
+		ROOT = {
+			religion_group = muslim
+			NOT = {
+				religion = yazidi
+			}
+			OR = {
+				independent = yes
+				real_tier = king
+				controls_religion = yes
+			}
+		}
+		FROM = {
+			religion = ROOT
+			government = caliphal_government
+			controls_religion = no
+			any_realm_province = {
+				location = {
+					any_neighbor_province = {
+						trigger_if = {
+							limit = { has_owner = yes } # not wasteland or sea zone
+
+							owner = {
+								OR = {
+									character = ROOT
+									is_vassal_or_below_of = ROOT
+								}
+							}
+						}
+
+						trigger_else = {
+							is_land = no # first sea zone
+
+							any_neighbor_province = { # county one sea zone away
+								trigger_if = {
+									limit = { has_owner = yes } # not wasteland or sea zone
+
+									owner = {
+										OR = {
+											character = ROOT
+											is_vassal_or_below_of = ROOT
+										}
+									}
+								}
+
+								trigger_else = {
+									is_land = no # second seazone
+
+									any_neighbor_province = { # county two sea zones away
+										owner = {
+											OR = {
+												character = ROOT
+												is_vassal_or_below_of = ROOT
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	is_valid = {
+		FROM = {
+			religion = ROOT
+			government = caliphal_government
+			controls_religion = no
+		}
+	}
+	
+	on_add = {
+		attacker = {
+			show_scope_change = no
+			
+			if = {
+				limit = {
+					controls_religion = yes
+				}
+				if = {
+					limit = {
+						defender = {
+							real_tier = emperor
+						}
+					}
+					piety = -2500
+				}
+				else_if = {
+					limit = {
+						defender = {
+							real_tier = king
+						}
+					}
+					piety = -1250
+				}
+				else = {
+					piety = -500
+				}
+			}
+			else = {
+				if = {
+					limit = {
+						defender = {
+							real_tier = emperor
+						}
+					}
+					piety = -5000
+				}
+				else_if = {
+					limit = {
+						defender = {
+							real_tier = king
+						}
+					}
+					piety = -2500
+				}
+				else = {
+					piety = -1000
+				}
+			}
+		}
+
+		fire_haruspicy_event_effect = yes
+		anger_china_effect = yes
+	}
+	
+	on_success = {
+		attacker = {
+			if = {
+				limit = {
+					defender = {
+						real_tier = emperor
+					}
+				}
+				piety = 2500
+			}
+			else_if = {
+				limit = {
+					defender = {
+						real_tier = king
+					}
+				}
+				piety = 1250
+			}
+			else = {
+				piety = 500
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					real_tier = emperor
+				}
+				piety = -5000
+			}
+			else_if = {
+				limit = {
+					real_tier = king
+				}
+				piety = -2500
+			}
+			else = {
+				piety = -1000
+			}
+			
+			remove_trait = caliph_trait
+			
+			imprison = attacker
+			
+			any_demesne_title = {
+				limit = {
+					higher_real_tier_than = count
+				}
+				unsafe_destroy_landed_title = THIS
+				add_pressed_claim = PREV
+			}
+		}
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_massive_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+	}
+	
+	on_fail = {
+		attacker = {
+			if = {
+				limit = {
+					defender = {
+						real_tier = emperor
+					}
+				}
+				piety = -1000
+			}
+			else_if = {
+				limit = {
+					defender = {
+						real_tier = king
+					}
+				}
+				piety = -500
+			}
+			else = {
+				piety = -250
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					real_tier = emperor
+				}
+				piety = 1000
+			}
+			else_if = {
+				limit = {
+					real_tier = king
+				}
+				piety = 500
+			}
+			else = {
+				piety = 250
+			}
+		}
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_large_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_large_effect = yes
+			}
+		}
+	}
+	
+	on_reverse_demand = {
+		attacker = {
+			if = {
+				limit = {
+					defender = {
+						real_tier = emperor
+					}
+				}
+				piety = -2500
+			}
+			else_if = {
+				limit = {
+					defender = {
+						real_tier = king
+					}
+				}
+				piety = -1250
+			}
+			else = {
+				piety = -500
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					real_tier = emperor
+				}
+				piety = 2500
+			}
+			else_if = {
+				limit = {
+					real_tier = king
+				}
+				piety = 1250
+			}
+			else = {
+				piety = 500
+			}
+		}
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_massive_effect = yes
+			}
+		}
+		
+		attacker = {
+			imprison = defender
+			
+			if = {
+				limit = {
+					government = caliphal_government
+				}
+				
+				if = {
+					limit = {
+						controls_religion = no
+					}
+					
+					remove_trait = caliph_trait
+				}
+			
+				any_demesne_title = {
+					limit = {
+						higher_real_tier_than = count
+						controls_religion = no
+					}
+					unsafe_destroy_landed_title = THIS
+					add_pressed_claim = PREV
+				}
+			}
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+	
+	ai_will_do = {
+		factor = 0.9 # Prefer using CB's without on_add costs
+		
+		trigger = { # Focus on your claims!
+			FROM = {
+				NOT = {
+					any_demesne_title = {
+						OR = {
+							higher_tier_than = duke
+							tier = ROOT
+						}
+						claimed_by = ROOT
+					}
+				}
+			}
+			ROOT = {
+				NAND = {
+					dynasty = FROM
+					any_dynasty_member = {
+						religion = ROOT
+						controls_religion = yes
+					}
+				}
+			}
+		}
+		
+		mult_modifier = {
+			factor = 2
+			ROOT = {
+				controls_religion = yes
+			}
+		}
+		
+		mult_modifier = {
+			factor = 5
+			ROOT = {
+				government = caliphal_government
+			}
+		}
+	}
+}
+
+seize_caliphate_cb = {
+	name = CB_NAME_SEIZE_CALIPHATE
+	war_name = WAR_NAME_SEIZE_CALIPHATE
+	sprite = 11
+	truce_days = 3650
+	battle_warscore_mult = 0.5
+	sort_priority = 1000
+	
+	is_permanent = yes
+	can_ask_to_join_war = yes
+	allowed_to_target_tributaries = no
+	
+	can_use_gui = {
+		ROOT = {
+			china_forbids_war_trigger = no
+			
+			trigger_if = {
+				limit = {
+					FROM = {
+						real_tier = emperor
+					}
+				}
+				piety >= 5000
+			}
+			trigger_else_if = {
+				limit = {
+					FROM = {
+						real_tier = king
+					}
+				}
+				piety >= 2500
+			}
+			trigger_else = {
+				piety >= 1000
+			}
+		}
+	}
+	
+	can_use = {
+		ROOT = {
+			religion_group = muslim
+			NOT = {
+				religion = yazidi
+			}
+			government = caliphal_government
+			independent = yes
+		}
+		FROM = {
+			religion = ROOT
+			controls_religion = yes
+			independent = yes
+			any_realm_province = {
+				location = {
+					any_neighbor_province = {
+						trigger_if = {
+							limit = { has_owner = yes } # not wasteland or sea zone
+
+							owner = {
+								OR = {
+									character = ROOT
+									is_vassal_or_below_of = ROOT
+								}
+							}
+						}
+
+						trigger_else = {
+							is_land = no # first sea zone
+
+							any_neighbor_province = { # county one sea zone away
+								trigger_if = {
+									limit = { has_owner = yes } # not wasteland or sea zone
+
+									owner = {
+										OR = {
+											character = ROOT
+											is_vassal_or_below_of = ROOT
+										}
+									}
+								}
+
+								trigger_else = {
+									is_land = no # second seazone
+
+									any_neighbor_province = { # county two sea zones away
+										owner = {
+											OR = {
+												character = ROOT
+												is_vassal_or_below_of = ROOT
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	is_valid = {
+		ROOT = {
+			government = caliphal_government
+		}
+		FROM = {
+			religion = ROOT
+			controls_religion = yes
+		}
+	}
+	
+	on_add = {
+		attacker = {
+			show_scope_change = no
+			
+			if = {
+				limit = {
+					defender = {
+						real_tier = emperor
+					}
+				}
+				piety = -5000
+			}
+			else_if = {
+				limit = {
+					defender = {
+						FROM = {
+							real_tier = king
+						}
+					}
+				}
+				piety = -2500
+			}
+			else = {
+				piety = -1000
+			}
+		}
+
+		fire_haruspicy_event_effect = yes
+		anger_china_effect = yes
+	}
+	
+	on_success = {
+		attacker = {
+			if = {
+				limit = {
+					defender = {
+						real_tier = emperor
+					}
+				}
+				piety = 2500
+			}
+			else_if = {
+				limit = {
+					defender = {
+						real_tier = king
+					}
+				}
+				piety = 1250
+			}
+			else = {
+				piety = 500
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					real_tier = emperor
+				}
+				piety = -5000
+			}
+			else_if = {
+				limit = {
+					real_tier = king
+				}
+				piety = -2500
+			}
+			else = {
+				piety = -1000
+			}
+			
+			remove_trait = caliph_trait
+			
+			imprison = attacker
+			
+			any_demesne_title = {
+				limit = {
+					controls_religion = yes
+				}
+				gain_title = {
+					target = attacker
+					type = claim
+				}
+			}
+		}
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_massive_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+	}
+	
+	on_fail = {
+		attacker = {
+			if = {
+				limit = {
+					defender = {
+						real_tier = emperor
+					}
+				}
+				piety = -1000
+			}
+			else_if = {
+				limit = {
+					defender = {
+						real_tier = king
+					}
+				}
+				piety = -500
+			}
+			else = {
+				piety = -250
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					real_tier = emperor
+				}
+				piety = 1000
+			}
+			else_if = {
+				limit = {
+					real_tier = king
+				}
+				piety = 500
+			}
+			else = {
+				piety = 250
+			}
+		}
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_large_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_large_effect = yes
+			}
+		}
+	}
+	
+	on_reverse_demand = {
+		attacker = {
+			if = {
+				limit = {
+					defender = {
+						real_tier = emperor
+					}
+				}
+				piety = -2500
+			}
+			else_if = {
+				limit = {
+					defender = {
+						real_tier = king
+					}
+				}
+				piety = -1250
+			}
+			else = {
+				piety = -500
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					real_tier = emperor
+				}
+				piety = 2500
+			}
+			else_if = {
+				limit = {
+					real_tier = king
+				}
+				piety = 1250
+			}
+			else = {
+				piety = 500
+			}
+		}
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_massive_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_massive_effect = yes
+			}
+		}
+		
+		attacker = {
+			imprison = defender
+			
+			remove_trait = caliph_trait
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+	
+	ai_will_do = {
+		factor = 1
+		
+		trigger = { # Focus on your claims!
+			FROM = {
+				NOT = {
+					any_demesne_title = {
+						controls_religion = yes
+						claimed_by = ROOT
+					}
+				}
+			}
+		}
+	}
+}
+
+muslim_law_school_dispute_cb = {
+	name = CB_NAME_MUSLIM_LAW_DISPUTE
+	war_name = WAR_NAME_MUSLIM_LAW_DISPUTE
+	sprite = 9
+	truce_days = 3650
+	battle_warscore_mult = 0.5
+	sort_priority = 1000
+	
+	is_permanent = yes
+	can_ask_to_join_war = yes
+	allowed_to_target_tributaries = no
+	
+	can_use_gui = {
+		ROOT = {
+			china_forbids_war_trigger = no
+			
+			is_feudal = yes
+			NOT = {
+				government = ghazi_government
+			}
+			
+			trigger_if = {
+				limit = {
+					trait = faqih
+				}
+				trigger_if = {
+					limit = {
+						FROM = {
+							real_tier = emperor
+						}
+					}
+					piety >= 500
+					prestige >= 500
+				}
+				trigger_else_if = {
+					limit = {
+						FROM = {
+							real_tier = king
+						}
+					}
+					piety >= 250
+					prestige >= 250
+				}
+				trigger_else = {
+					piety >= 100
+					prestige >= 100
+				}
+			}
+			trigger_else = {
+				trigger_if = {
+					limit = {
+						FROM = {
+							real_tier = emperor
+						}
+					}
+					piety >= 1000
+					prestige >= 1000
+				}
+				trigger_else_if = {
+					limit = {
+						FROM = {
+							real_tier = king
+						}
+					}
+					piety >= 500
+					prestige >= 500
+				}
+				trigger_else = {
+					piety >= 200
+					prestige >= 200
+				}
+			}
+		}
+		
+		FROM = {
+			NOT = {
+				any_war = {
+					defender = {
+						character = FROM
+					}
+					OR = {
+						using_cb = muslim_law_school_dispute_cb
+						using_cb = increase_council_power_war
+					}
+				}
+			}
+		}
+	}
+	
+	can_use = {
+		ROOT = {
+			has_dlc = "Conclave"
+			OR = {
+				AND = {
+					religion = shiite
+					FROM_has_opposite_shiite_legal_branch_trigger = yes
+				}
+				AND = {
+					religion = sunni
+					FROM_has_opposite_sunni_legal_branch_trigger = yes
+				}
+			}
+		}
+		FROM = {
+			religion = ROOT
+			NOT = {
+				government = caliphal_government
+			}
+			OR = {
+				higher_real_tier_than = duke
+				ROOT = {
+					lower_real_tier_than = king
+				}
+			}
+			OR = {
+				AND = {
+					independent = yes
+					NOT = {
+						same_realm = ROOT
+					}
+				}
+				AND = {
+					independent = no
+					ROOT = {
+						independent = no
+						same_realm = FROM
+					}
+				}
+			}
+			custom_tooltip = {
+				text = ruler_has_power
+				
+				primary_title = {
+					OR = { # TIANXIATODO: Expand with new laws
+						has_law = law_voting_power_0
+						has_law = war_voting_power_0
+						has_law = grant_title_voting_power_0
+						has_law = revoke_title_voting_power_0
+						has_law = imprison_voting_power_0
+						has_law = banish_voting_power_0
+						has_law = execution_voting_power_0
+						has_law = vassal_wars_law_2
+						has_law = vassal_wars_law_1
+					}
+				}
+			}
+				
+			any_realm_province = {
+				location = {
+					any_neighbor_province = {
+						trigger_if = {
+							limit = { has_owner = yes } # not wasteland or sea zone
+
+							owner = {
+								OR = {
+									character = ROOT
+									is_vassal_or_below_of = ROOT
+								}
+							}
+						}
+
+						trigger_else = {
+							is_land = no # first sea zone
+
+							any_neighbor_province = { # county one sea zone away
+								trigger_if = {
+									limit = { has_owner = yes } # not wasteland or sea zone
+
+									owner = {
+										OR = {
+											character = ROOT
+											is_vassal_or_below_of = ROOT
+										}
+									}
+								}
+
+								trigger_else = {
+									is_land = no # second seazone
+
+									any_neighbor_province = { # county two sea zones away
+										owner = {
+											OR = {
+												character = ROOT
+												is_vassal_or_below_of = ROOT
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	is_valid = {
+		ROOT = {
+			OR = {
+				AND = {
+					religion = shiite
+					FROM_has_opposite_shiite_legal_branch_trigger = yes
+				}
+				AND = {
+					religion = sunni
+					FROM_has_opposite_sunni_legal_branch_trigger = yes
+				}
+			}
+		}
+	}
+	
+	# TIANXIATODO: On invalidation, refund some of the piety + add extra if the defender changed their school
+	
+	on_add = {
+		attacker = {
+			show_scope_change = no
+			
+			if = {
+				limit = {
+					trait = faqih
+				}
+				if = {
+					limit = {
+						defender = {
+							real_tier = emperor
+						}
+					}
+					piety = -500
+					prestige = -500
+				}
+				else_if = {
+					limit = {
+						defender = {
+							real_tier = king
+						}
+					}
+					piety = -250
+					prestige = -250
+				}
+				else = {
+					piety = -100
+					prestige = -100
+				}
+			}
+			else = {
+				if = {
+					limit = {
+						defender = {
+							real_tier = emperor
+						}
+					}
+					piety = -1000
+					prestige = -1000
+				}
+				else_if = {
+					limit = {
+						defender = {
+							real_tier = king
+						}
+					}
+					piety = -500
+					prestige = -500
+				}
+				else = {
+					piety = -200
+					prestige = -200
+				}
+			}
+		}
+
+		fire_haruspicy_event_effect = yes
+		anger_china_effect = yes
+	}
+	
+	on_success = {
+		attacker = {
+			if = {
+				limit = {
+					defender = {
+						real_tier = emperor
+					}
+				}
+				piety = 250
+				prestige = 250
+			}
+			else_if = {
+				limit = {
+					defender = {
+						real_tier = king
+					}
+				}
+				piety = 125
+				prestige = 125
+			}
+			else = {
+				piety = 50
+				prestige = 50
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					real_tier = emperor
+				}
+				piety = -500
+				prestige = -500
+			}
+			else_if = {
+				limit = {
+					real_tier = king
+				}
+				piety = -250
+				prestige = -250
+			}
+			else = {
+				piety = -100
+				prestige = -100
+			}
+			
+			primary_title = {
+				increase_council_power_effect = yes
+				increase_vassal_freedom_effect = yes
+			}
+			
+			# TIANXIATODO: Vassal opinion boost towards attacker
+		}
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_large_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_large_effect = yes
+			}
+		}
+	}
+	
+	on_fail = {
+		attacker = {
+			if = {
+				limit = {
+					defender = {
+						real_tier = emperor
+					}
+				}
+				piety = -250
+				prestige = -250
+			}
+			else_if = {
+				limit = {
+					defender = {
+						real_tier = king
+					}
+				}
+				piety = -125
+				prestige = -125
+			}
+			else = {
+				piety = -50
+				prestige = -50
+			}
+		}
+		defender = {
+			if = {
+				limit = {
+					real_tier = emperor
+				}
+				piety = 250
+				prestige = 250
+			}
+			else_if = {
+				limit = {
+					real_tier = king
+				}
+				piety = 125
+				prestige = 125
+			}
+			else = {
+				piety = 50
+				prestige = 50
+			}
+		}
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_medium_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_medium_effect = yes
+			}
+		}
+	}
+	
+	on_reverse_demand = {
+		attacker = {
+			if = {
+				limit = {
+					defender = {
+						real_tier = emperor
+					}
+				}
+				piety = -500
+				prestige = -500
+			}
+			else_if = {
+				limit = {
+					defender = {
+						real_tier = king
+					}
+				}
+				piety = -250
+				prestige = -250
+			}
+			else = {
+				piety = -100
+				prestige = -100
+			}
+
+			transfer_scaled_wealth = {
+				to = defender
+				value = 4.0
+			}
+			
+			primary_title = {
+				increase_council_power_effect = yes
+				increase_vassal_freedom_effect = yes
+			}
+			
+			# TIANXIATODO: Vassal opinion boost towards defender
+		}
+		defender = {
+			if = {
+				limit = {
+					real_tier = emperor
+				}
+				piety = 500
+				prestige = 500
+			}
+			else_if = {
+				limit = {
+					real_tier = king
+				}
+				piety = 250
+				prestige = 250
+			}
+			else = {
+				piety = 100
+				prestige = 100
+			}
+		}
+		attacker = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_penalty_large_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					claims_the_mandate_trigger = yes
+				}
+				mandate_boost_large_effect = yes
+			}
+		}
+	}
+
+	attacker_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+
+	attacker_ai_defeat_worth = {
+		factor = 100
+	}
+
+	defender_ai_victory_worth = {
+		factor = -1 # always accept
+	}
+
+	defender_ai_defeat_worth = {
+		factor = 100
+	}
+	
+	ai_will_do = {
+		factor = 0.9 # Prefer using CB's without on_add costs
+		
+		trigger = { # Focus on your claims!
+			FROM = {
+				NOT = {
+					any_demesne_title = {
+						OR = {
+							higher_tier_than = duke
+							tier = ROOT
+						}
+						claimed_by = ROOT
+					}
+				}
+			}
+		}
+	}
+}
