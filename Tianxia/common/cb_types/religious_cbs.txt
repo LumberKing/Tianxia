@@ -12,7 +12,7 @@ crusade = {
 	max_defender_occupation_score = 85
 	sort_priority = 3000
 
-	hostile_against_others = yes
+	hostile_against_others = yes							 
 	is_permanent = yes
 	is_holy_war = yes
 	check_de_jure_tier = KING # this scans all de jure kingdoms for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
@@ -26,6 +26,8 @@ crusade = {
 			has_called_crusade = no
 			religion_authority >= 0.05
 			mercenary = no
+			
+			piety >= 1000 # TIANXIATODO: Make this cheaper if the target did something really bad
 
 			trigger_if = {
 				limit = {
@@ -51,10 +53,9 @@ crusade = {
 
 					trigger_if = {
 						limit = { religion_group = pagan_group }
-						
+
 						pagan_ghws_unlocked_for_root_trigger = yes
 					}
-					
 					trigger_else_if = {
 						limit = { religion_group = christian }
 
@@ -63,7 +64,6 @@ crusade = {
 							has_global_flag = christian_crusades_unlocked
 						}
 					}
-					
 					trigger_else_if = {
 						limit = { religion_group = muslim }
 
@@ -81,7 +81,6 @@ crusade = {
 						NOT = {
 							religion = ROOT
 						}
-						controls_religion = yes
 					}
 				}
 				
@@ -90,30 +89,55 @@ crusade = {
 						NOT = {
 							religion = ROOT
 						}
-						controls_religion = yes
 					}
 				}
 			}
-		}
-		
-		ROOT = {
+			
+			trigger_if = {
+				limit = {
+					any_liege = {
+						government = successor_state_government
+					}
+				}
+				
+				NOT = {
+					any_liege = {
+						government = successor_state_government
+					}
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					religion_group = muslim
+					NOT = {
+						religion = yazidi
+					}
+					any_playable_ruler = {
+						religion = ROOT
+						trait = caliph_trait
+						NOT = {
+							character = ROOT
+						}
+					}
+				}
+				
+				custom_tooltip = {
+					text = not_if_pretender_exists
+					
+					NOT = {
+						any_playable_ruler = {
+							religion = ROOT
+							trait = caliph_trait
+							NOT = {
+								character = ROOT
+							}
+						}
+					}
+				}
+			}	
+			
 			china_forbids_war_trigger = no
-			
-			NOT = {
-				any_liege = {
-					OR = {
-						could_have_chinese_government_trigger = yes
-						could_have_japanese_government_trigger = yes
-					}
-				}
-			}
-			
-			NOR = {
-				trait = treasure_fleet_preparation
-				trait = treasure_fleet_voyage
-				trait = penglai_expedition_preparation
-				trait = on_penglai_expedition
-			}
 		}
 	}
 
@@ -135,6 +159,26 @@ crusade = {
 					limit = { religion_group = pagan_group }
 					NOT = { religion = FROM }
 				}
+
+				trigger_if = { # TIANXIATODO: Assuming we stop treating e.g. Manichaean as a heresy
+					limit = { religion_group = zoroastrian_group }
+					NOT = { religion = FROM }
+				}
+
+				trigger_if = { # PDS silliness
+					limit = { religion_group = muslim }
+					NOT = { religion = FROM }
+					OR = {
+						religion = yazidi
+						religion = druze
+						FROM = {
+							OR = {
+								religion = yazidi
+								religion = druze
+							}
+						}
+					}
+				}
 			}
 
 			# Not if the Schism has been mended
@@ -147,9 +191,6 @@ crusade = {
 					religion = guglielmite
 				}
 			}
-			
-			could_have_chinese_government_trigger = no
-			could_have_japanese_government_trigger = no
 		}
 
 		# Defender
@@ -165,6 +206,62 @@ crusade = {
 			num_of_realm_counties = {
 				value >= 6
 				title = PREV
+			}
+		}
+		
+		trigger_if = { # Defensive means Defensive!
+			limit = {
+				ROOT = {
+					has_religion_feature = religion_defensive
+				}
+			}
+			OR = {
+				holder_scope = {
+					OR = {
+						religion = ROOT
+						is_heresy_of = ROOT
+					}
+				}
+				any_previous_holder = {
+					OR = {
+						religion = ROOT
+						is_heresy_of = ROOT
+					}
+				}
+				any_direct_de_jure_vassal_title = {
+					any_direct_de_jure_vassal_title = {
+						holder_scope = {
+							OR = {
+								character = FROM
+								any_liege = { character = FROM }
+							}
+						}
+						OR = {
+							holder_scope = {
+								OR = {
+									religion = ROOT
+									is_heresy_of = ROOT
+								}
+							}
+							any_previous_holder = {
+								OR = {
+									religion = ROOT
+									is_heresy_of = ROOT
+								}
+							}
+							location = {
+								OR = {
+									religion = ROOT
+									is_heresy_of = ROOT
+								}
+							}
+							is_holy_site = ROOT
+							any_direct_de_jure_vassal_title = {
+								is_holy_site = ROOT
+							}
+						}
+					}
+				}			
 			}
 		}
 	}
@@ -186,15 +283,42 @@ crusade = {
 					limit = { religion_group = pagan_group }
 					NOT = { religion = FROM }
 				}
+
+				trigger_if = { # TIANXIATODO: Assuming we stop treating e.g. Manichaean as a heresy
+					limit = { religion_group = zoroastrian_group }
+					NOT = { religion = FROM }
+				}
+
+				trigger_if = { # PDS silliness
+					limit = { religion_group = muslim }
+					NOT = { religion = FROM }
+					OR = {
+						religion = yazidi
+						religion = druze
+						FROM = {
+							OR = {
+								religion = yazidi
+								religion = druze
+							}
+						}
+					}
+				}
 			}
 			
-			NOR = {
-				could_have_chinese_government_trigger = yes
-				could_have_japanese_government_trigger = yes
-				any_liege = {
-					OR = {
-						could_have_chinese_government_trigger = yes
-						could_have_japanese_government_trigger = yes
+			trigger_if = {
+				limit = {
+					any_liege = {
+						NOT = {
+							religion = ROOT
+						}
+					}
+				}
+				
+				NOT = {
+					any_liege = {
+						NOT = {
+							religion = ROOT
+						}
 					}
 				}
 			}
@@ -214,18 +338,13 @@ crusade = {
 	on_add = {
 		fire_haruspicy_event_effect = yes
 		anger_china_effect = yes
+		
+		attacker = {
+			piety = -1000
+		}
 	}
 	
 	on_success = {
-		attacker = {
-			if = {
-				limit = {
-					government = chinese_imperial_government
-				}
-				mandate_boost_massive_effect = yes
-			}
-		}
-		
 		defender = {
 			if = {
 				limit = {
@@ -237,8 +356,8 @@ crusade = {
 	}
 
 	on_success_title = {
-		#log = "[Root.GetBestName] (ID: [Root.GetID]) succeeded with [Root.GetHerHis] crusade for the [This.GetFullName] against [From.GetBestName] (ID: [From.GetID])"
-		
+		log = "[Root.GetBestName] (ID: [Root.GetID]) succeeded with [Root.GetHerHis] crusade for the [This.GetFullName] against [From.GetBestName] (ID: [From.GetID])"
+
 		if = {
 			limit = {
 				NOT = {
@@ -466,6 +585,7 @@ crusade = {
 				}
 			}
 		}
+		
 		else = {
 			# Should we give the seized land to its current king?
 			if = {
@@ -867,15 +987,6 @@ crusade = {
 				mandate_boost_large_effect = yes
 			}
 		}
-		
-		attacker = {
-			if = {
-				limit = {
-					government = chinese_imperial_government
-				}
-				mandate_penalty_large_effect = yes
-			}
-		}
 	}
 
 	on_reverse_demand = {
@@ -1040,15 +1151,6 @@ crusade = {
 				mandate_boost_massive_effect = yes
 			}
 		}
-		
-		attacker = {
-			if = {
-				limit = {
-					government = chinese_imperial_government
-				}
-				mandate_penalty_massive_effect = yes
-			}
-		}
 	}
 
 	attacker_ai_victory_worth = {
@@ -1078,7 +1180,6 @@ new_crusade = {
 	max_defender_occupation_score = 85
 	sort_priority = 3000
 
-	hostile_against_others = yes
 	is_permanent = yes
 	is_holy_war = yes
 	check_de_jure_tier = KING # this scans all de jure kingdoms for the counties which are held by or vassals(or below) of selected character. Only valid if is_permanent = yes
@@ -1127,7 +1228,6 @@ new_crusade = {
 						NOT = {
 							religion = ROOT
 						}
-						controls_religion = yes
 					}
 				}
 				
@@ -1136,30 +1236,11 @@ new_crusade = {
 						NOT = {
 							religion = ROOT
 						}
-						controls_religion = yes
 					}
 				}
 			}
-		}
-		
-		ROOT = {
+			
 			china_forbids_war_trigger = no
-			
-			NOT = {
-				any_liege = {
-					OR = {
-						could_have_chinese_government_trigger = yes
-						could_have_japanese_government_trigger = yes
-					}
-				}
-			}
-			
-			NOR = {
-				trait = treasure_fleet_preparation
-				trait = treasure_fleet_voyage
-				trait = penglai_expedition_preparation
-				trait = on_penglai_expedition
-			}
 		}
 	}
 
@@ -1179,7 +1260,7 @@ new_crusade = {
 
 			OR = {
 				NOT = { religion_group = ROOT }
-				religion_group = pagan_group
+				#religion_group = pagan_group
 
 				# One is a heretic of the other
 				is_heresy_of = ROOT
@@ -1214,21 +1295,20 @@ new_crusade = {
 		FROM = {
 			trigger_if = {
 				limit = {
-					NOT = {
-						num_of_realm_counties = {
-							value >= 6
-							title = PREV
-						}
-					}
+					has_landed_title = e_byzantium
+					religion_group = christian
 				}
 
 				PREV = { title = k_thrace }
 
-				has_landed_title = e_byzantium
-				religion_group = christian
-
 				num_of_realm_counties = {
 					value >= 1
+					title = PREV
+				}
+			}
+			trigger_else = {
+				num_of_realm_counties = {
+					value >= 6
 					title = PREV
 				}
 			}
@@ -1239,6 +1319,24 @@ new_crusade = {
 		# Attacker
 		ROOT = {
 			can_call_crusade = yes
+			
+			trigger_if = {
+				limit = {
+					any_liege = {
+						NOT = {
+							religion = ROOT
+						}
+					}
+				}
+				
+				NOT = {
+					any_liege = {
+						NOT = {
+							religion = ROOT
+						}
+					}
+				}
+			}
 		}
 
 		# Defender
@@ -1253,7 +1351,7 @@ new_crusade = {
 				is_heresy_of = ROOT
 				is_parent_religion = ROOT
 
-				religion_group = pagan_group
+				#religion_group = pagan_group
 
 				trigger_if = {
 					limit = { has_global_flag = 4th_crusade_official }
@@ -1263,19 +1361,6 @@ new_crusade = {
 				trigger_else_if = {
 					limit = { has_character_flag = fourth_crusade_target }
 					NOT = { has_character_flag = fourth_crusade_recipient }
-				}
-			}
-		}
-		
-		ROOT = {
-			NOR = {
-				could_have_chinese_government_trigger = yes
-				could_have_japanese_government_trigger = yes
-				any_liege = {
-					OR = {
-						could_have_chinese_government_trigger = yes
-						could_have_japanese_government_trigger = yes
-					}
 				}
 			}
 		}
@@ -1294,28 +1379,9 @@ new_crusade = {
 	on_add = {
 		fire_haruspicy_event_effect = yes
 		anger_china_effect = yes
-		
-		if = {
-			limit = {
-				NOT = {
-					has_global_flag = first_crusade_started
-				}
-			}
-			
-			set_global_flag = first_crusade_started
-		}
 	}
 	
 	on_success = {
-		attacker = {
-			if = {
-				limit = {
-					government = chinese_imperial_government
-				}
-				mandate_boost_massive_effect = yes
-			}
-		}
-		
 		defender = {
 			if = {
 				limit = {
@@ -1326,8 +1392,18 @@ new_crusade = {
 		}
 	}
 
-	on_success_title = {
-		#log = "[Root.GetBestName] (ID: [Root.GetID]) succeeded with [Root.GetHerHis] Holy Fury crusade for the [This.GetFullName] against [From.GetBestName] (ID: [From.GetID])"
+	on_success_title = { # TIANXIATODO: Cosmopolitan setup, should we end up supporting Random World silliness...
+		log = "[Root.GetBestName] (ID: [Root.GetID]) succeeded with [Root.GetHerHis] Holy Fury crusade for the [This.GetFullName] against [From.GetBestName] (ID: [From.GetID])"
+		
+		save_event_target_as = crusader_kingdom
+		
+		most_participating_crusader = {
+			save_event_target_as = new_crusade_most_participating_member
+			
+			primary_title = {
+				save_event_target_as = gender_law_title
+			}
+		}
 
 		custom_tooltip = {
 			text = new_crusade_win_TT
@@ -1344,26 +1420,6 @@ new_crusade = {
 				name = won_crusade
 				years = 20
 			}
-
-			crusade_target_title = {
-				save_event_target_as = new_crusade_title
-			}
-
-			official_crusade_recipient = {
-				save_event_target_as = new_crusade_recipient
-			}
-
-			crusade_target_char = {
-				save_event_target_as = new_crusade_target_char
-			}
-		}
-
-		most_participating_crusader = {
-			save_event_target_as = new_crusade_most_participating_member
-			
-			primary_title = {
-				save_event_target_as = gender_law_title
-			}
 		}
 
 		# Religion Authority and Prestige/Piety loss for the loser (Target of Crusade)
@@ -1379,73 +1435,76 @@ new_crusade = {
 		}
 
 		hidden_effect = {
-			#if = { # Achievement
+			# Achievement
+			#any_attacker = {
 			#	limit = {
-			#		event_target:new_crusade_target_char = {
-			#			has_landed_title = e_byzantium
-			#			religion_group = defender
-			#		}
+			#		ai = no
+			#		is_ironman = yes
 			#	}
 			#
-			#	any_attacker = {
+			#	if = {
 			#		limit = {
-			#			ai = no
-			#			is_ironman = yes
+			#			NOT = { has_character_flag = achievement_crusader }
 			#		}
+			#		set_character_flag = achievement_crusader
+			#	}
 			#
+			#	if = {
+			#		limit = {
+			#			crusade_target_char = {
+			#				has_landed_title = e_byzantium
+			#				religion_group = attacker
+			#			}
+			#		}
 			#		set_character_flag = achievement_venetian_guile
 			#	}
 			#}
 
-			any_attacker = {
-				if = {
-					limit = {
-						ai = yes
+			# Find a backup beneficiary for AI Crusaders, if they don't have one already selected
+			any_attacker = { # TIANXIATODO: Try to avoid Agnatic attackers from having a female beneficiary if AI, etc.
+				limit = {
+					ai = yes
 
-						NOT = {
-							crusade_beneficiary = {
-								always = yes
+					NOT = {
+						crusade_beneficiary = {
+							is_alive = yes
+							is_ruler = no
+							religion = attacker
+
+							NOT = {
+								any_heir_title = {
+									always = yes
+								}
 							}
 						}
 					}
-
-					character_event = { id = HFP.41007 } # Beneficiary event - AI only
 				}
+
+				# save_event_target_as = crusade_attacker
+				character_event = { id = HFP.41007 } # Beneficiary event - AI only
 			}
 
-			# Should we give the seized land to the Official Crusade Recipient?
+			# A selfish main contributor of the Crusade seizes the land for him/herself or his/her Beneficiary
 			if = {
 				limit = {
 					most_participating_crusader = {
-						official_crusade_recipient = {
-							is_alive = yes
-							religion = attacker
-						}
-
-						NOR = {
-							has_character_flag = crusade_selfish_stance
-							has_character_flag = crusade_beneficiary_stance
-						}
-					}
-				}
-
-				most_participating_crusader = {
-					official_crusade_recipient = {
-						set_crusader_king = THIS
-					}
-				}
-			}
-
-			# Give the seized land to the main contributor of the Crusade or his/her Beneficiary
-			else_if = {
-				limit = {
-					most_participating_crusader = {
 						trigger_if = {
-							limit = { ai = yes }
+							limit = { has_character_flag = crusade_beneficiary_stance }
 
 							crusade_beneficiary = {
 								is_alive = yes
+								is_ruler = no
+								religion = attacker
+
+								NOT = {
+									any_heir_title = {
+										always = yes
+									}
+								}
 							}
+						}
+						trigger_else = {
+							has_character_flag = crusade_selfish_stance
 						}
 
 						holy_order = no
@@ -1462,23 +1521,7 @@ new_crusade = {
 				most_participating_crusader = {
 					# Give the title to your Beneficiary
 					if = {
-						limit = {
-							crusade_beneficiary = {
-								is_alive = yes
-								is_ruler = no
-
-								NOT = {
-									any_heir_title = {
-										always = yes
-									}
-								}
-
-								mercenary = no
-								holy_order = no
-							}
-
-							NOT = { has_character_flag = crusade_selfish_stance }
-						}
+						limit = { has_character_flag = crusade_beneficiary_stance }
 
 						crusade_beneficiary = {
 							set_crusader_king = THIS
@@ -1486,146 +1529,28 @@ new_crusade = {
 						}
 					}
 
-					# Find an appropriate replacement Beneficiary if there is none selected, or the currently selected one is improper in one way or another
-					else_if = {
-						limit = {
-							ai = yes
-							NOT = { has_character_flag = crusade_selfish_stance }
-
-							any_dynasty_member = {
-								is_adult = yes
-								religion = PREV
-								is_ruler = no
-								is_incapable = no
-								prisoner = no
-
-								NOT = {
-									any_heir_title = {
-										always = yes
-									}
-								}
-								
-								trigger_if = {
-									limit = { is_female = yes }
-									practical_age < 40
-									PREV = {
-										primary_title = {
-											NOT = {
-												has_law = agnatic_succession
-											}
-										}
-									}
-
-									NOT = {
-										any_child = { is_ruler = yes }
-									}
-								}
-								
-								trigger_else = {
-									PREV = {
-										primary_title = {
-											NOT = {
-												has_law = enatic_succession
-											}
-										}
-									}
-								}
-
-								mercenary = no
-								holy_order = no
-							}
-						}
-
-						any_dynasty_member = {
-							limit = {
-								is_adult = yes
-								religion = PREV
-								is_ruler = no
-								is_incapable = no
-								prisoner = no
-
-								NOT = {
-									any_heir_title = {
-										always = yes
-									}
-								}
-								
-								trigger_if = {
-									limit = { is_female = yes }
-									practical_age < 40
-									PREV = {
-										primary_title = {
-											NOT = {
-												has_law = agnatic_succession
-											}
-										}
-									}
-
-									NOT = {
-										any_child = { is_ruler = yes }
-									}
-								}
-								
-								trigger_else = {
-									PREV = {
-										primary_title = {
-											NOT = {
-												has_law = enatic_succession
-											}
-										}
-									}
-								}
-							}
-
-							score_value = {
-								value = 1
-
-								additive_modifier = {
-									value = 1000
-									preferred_gender_based_on_laws_trigger = yes
-								}
-
-								additive_modifier = {
-									value = 500
-									is_child_of = PREV
-								}
-
-								additive_modifier = {
-									value = 250
-									is_vassal_or_below_of = PREV
-								}
-
-								additive_modifier = {
-									value = 125
-									practical_age < 45
-								}
-
-								additive_modifier = {
-									value = 62
-									culture = PREV
-								}
-							}
-
-							set_crusader_king = THIS
-							set_character_flag = crusader_king_flag
-						}
-					}
-
 					# Take the titles yourself
 					else = {
-						if = {
-							limit = {
-								any_owned_bloodline = {
-									has_bloodline_flag = grand_crusader_bloodline
-									bloodline_is_active_for = PREV
-								}
-							}
-							set_crusade_pot_multiplier = 0.2
-						}
-						else = {
-							set_crusade_pot_multiplier = 0
-						}
+						set_crusader_king = THIS
+						set_character_flag = crusader_king_flag
+					}
+				}
+			}
 
+			# Should we give the seized land to the Official Crusade Recipient?
+			else_if = {
+				limit = {
+					attacker = {
+						# This scope is stored on the religion scope, so it's accessed from a character with that religion
+						official_crusade_recipient = {
+							is_alive = yes
+							religion = attacker
+						}
+					}
+				}
+
+				attacker = {
+					official_crusade_recipient = {
 						set_crusader_king = THIS
 						set_character_flag = crusader_king_flag
 					}
@@ -1637,103 +1562,221 @@ new_crusade = {
 				# Find a random Beneficiary within certain limits
 				if = {
 					limit = {
-						most_participating_crusader = {
-							any_crusade_participant = {
+						any_crusade_participant = {
+							is_alive = yes
+							is_landed = yes
+							religion = attacker
+							holy_order = no
+							mercenary = no
+
+							crusade_beneficiary = {
 								is_alive = yes
-								is_landed = yes
-								holy_order = no
-								mercenary = no
+								religion = attacker
+								is_dying = no
+								is_ruler = no
+								age >= 12
 
-								crusade_beneficiary = {
-									is_alive = yes
-									is_ruler = no
-									age >= 12
-									is_incapable = no
-									prisoner = no
-
-									NOT = {
-										any_heir_title = {
-											always = yes
-										}
-									}
-									
-									trigger_if = {
-										limit = { is_female = yes }
-										practical_age < 40
-										PREV = {
-											primary_title = {
-												NOT = {
-													has_law = agnatic_succession
-												}
-											}
-										}
-
-										NOT = {
-											any_child = { is_ruler = yes }
-										}
-									}
-									
-									trigger_else = {
-										PREV = {
-											primary_title = {
-												NOT = {
-													has_law = enatic_succession
-												}
-											}
-										}
+								NOT = {
+									any_heir_title = {
+										always = yes
 									}
 								}
 							}
 						}
 					}
 
-					most_participating_crusader = {
-						random_crusade_participant = {
-							limit = {
+					random_crusade_participant = {
+						limit = {
+							is_alive = yes
+							is_landed = yes
+							religion = attacker
+							holy_order = no
+							mercenary = no
+
+							crusade_beneficiary = {
 								is_alive = yes
-								is_landed = yes
-								holy_order = no
-								mercenary = no
+								is_dying = no
+								religion = attacker
+								is_ruler = no
+								age >= 12
 
-								crusade_beneficiary = {
+								NOT = {
+									any_heir_title = {
+										always = yes
+									}
+								}
+							}
+						}
+
+						preferred_limit = {
+							real_tier = EMPEROR
+						}
+
+						preferred_limit = {
+							real_tier = KING
+						}
+
+						crusade_beneficiary = {
+							set_crusader_king = THIS
+							set_character_flag = crusader_king_flag
+						}
+					}
+				}
+
+				# Find any random Beneficiary, if possible
+				else_if = {
+					limit = {
+						any_crusade_participant = {
+							crusade_beneficiary = {
+								is_alive = yes
+								is_ruler = no
+								religion = attacker
+
+								NOT = {
+									any_heir_title = {
+										always = yes
+									}
+								}
+							}
+						}
+					}
+
+					random_crusade_participant = {
+						limit = {
+							crusade_beneficiary = {
+								is_alive = yes
+								is_ruler = no
+								religion = attacker
+
+								NOT = {
+									any_heir_title = {
+										always = yes
+									}
+								}
+							}
+						}
+
+						crusade_beneficiary = {
+							set_crusader_king = THIS
+							set_character_flag = crusader_king_flag
+						}
+					}
+				}
+
+				# Find a logical "Beneficiary" from any playable Catholic/Fraticelli/Guglielmite ruler, if all else fails
+				else = {
+					# Try to find a Catholic/Fraticelli/Guglielmite ruler
+					if = {
+						limit = {
+							any_playable_ruler = {
+								religion = attacker
+
+								any_dynasty_member = {
 									is_alive = yes
-									age >= 12
+									is_dying = no
 									is_ruler = no
-									is_incapable = no
-									prisoner = no
+									age >= 12
+									religion = attacker
 
-									NOT = {
+									NOR = {
 										any_heir_title = {
 											always = yes
 										}
+										any_child = { is_ruler = yes }
 									}
 									
-									trigger_if = {
-										limit = { is_female = yes }
-										practical_age < 40
+									OR = {
 										PREV = {
-											primary_title = {
-												NOT = {
-													has_law = agnatic_succession
+											gender_equality_trigger = yes
+										}
+										AND = {
+											religions_are_standard_trigger = yes
+											OR = {
+												attacker = {
+													religion = guglielmite
 												}
+												is_female = no
 											}
 										}
-
-										NOT = {
-											any_child = { is_ruler = yes }
-										}
-									}
-									
-									trigger_else = {
-										PREV = {
-											primary_title = {
-												NOT = {
-													has_law = enatic_succession
+										AND = {
+											attacker = {
+												NOR = {
+													has_religion_feature = religion_patriarchal
+													has_religion_feature = religion_male_preference
 												}
 											}
+											is_female = yes
+										}
+										AND = {
+											attacker = {
+												NOR = {
+													has_religion_feature = religion_matriarchal
+													has_religion_feature = religion_female_preference
+												}
+											}
+											is_female = yes
 										}
 									}
 								}
+							}
+						}
+
+						random_playable_ruler = {
+							limit = {
+								religion = attacker
+
+								any_dynasty_member = {
+									is_alive = yes
+									is_dying = no
+									is_ruler = no
+									age >= 12
+									religion = attacker
+
+									NOR = {
+										any_heir_title = {
+											always = yes
+										}
+										any_child = { is_ruler = yes }
+									}
+									
+									OR = {
+										PREV = {
+											gender_equality_trigger = yes
+										}
+										AND = {
+											religions_are_standard_trigger = yes
+											OR = {
+												attacker = {
+													religion = guglielmite
+												}
+												is_female = no
+											}
+										}
+										AND = {
+											attacker = {
+												NOR = {
+													has_religion_feature = religion_patriarchal
+													has_religion_feature = religion_male_preference
+												}
+											}
+											is_female = yes
+										}
+										AND = {
+											attacker = {
+												NOR = {
+													has_religion_feature = religion_matriarchal
+													has_religion_feature = religion_female_preference
+												}
+											}
+											is_female = yes
+										}
+									}
+								}
+							}
+
+							preferred_limit = {
+								real_tier = EMPEROR
+								culture = PREV
 							}
 
 							preferred_limit = {
@@ -1742,371 +1785,147 @@ new_crusade = {
 
 							preferred_limit = {
 								real_tier = KING
+								culture = PREV
 							}
 
-							crusade_beneficiary = {
-								set_crusader_king = THIS
-								set_character_flag = crusader_king_flag
-							}
-						}
-					}
-				}
-
-				# Find any random Beneficiary, if possible
-				else_if = {
-					limit = {
-						most_participating_crusader = {
-							any_crusade_participant = {
-								crusade_beneficiary = {
-									is_alive = yes
-									is_ruler = no
-									holy_order = no
-									is_incapable = no
-									prisoner = no
-
-									NOT = {
-										any_heir_title = {
-											always = yes
-										}
-									}
-									
-									trigger_if = {
-										limit = { is_female = yes }
-										practical_age < 40
-										PREV = {
-											primary_title = {
-												NOT = {
-													has_law = agnatic_succession
-												}
-											}
-										}
-
-										NOT = {
-											any_child = { is_ruler = yes }
-										}
-									}
-									
-									trigger_else = {
-										PREV = {
-											primary_title = {
-												NOT = {
-													has_law = enatic_succession
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-
-					most_participating_crusader = {
-						random_crusade_participant = {
-							limit = {
-								crusade_beneficiary = {
-									is_alive = yes
-									is_ruler = no
-									holy_order = no
-									is_incapable = no
-									prisoner = no
-
-									NOT = {
-										any_heir_title = {
-											always = yes
-										}
-									}
-									
-									trigger_if = {
-										limit = { is_female = yes }
-										practical_age < 40
-										PREV = {
-											primary_title = {
-												NOT = {
-													has_law = agnatic_succession
-												}
-											}
-										}
-
-										NOT = {
-											any_child = { is_ruler = yes }
-										}
-									}
-									
-									trigger_else = {
-										PREV = {
-											primary_title = {
-												NOT = {
-													has_law = enatic_succession
-												}
-											}
-										}
-									}
-								}
+							preferred_limit = {
+								real_tier = KING
 							}
 
-							crusade_beneficiary = {
-								set_crusader_king = THIS
-								set_character_flag = crusader_king_flag
-							}
-						}
-					}
-				}
-				# Find a logical "Beneficiary" from any playable Catholic/Fraticelli/Guglielmite ruler, if all else fails
-				else = {
-					most_participating_crusader = {
-						# Try to find a Catholic/Fraticelli/Guglielmite ruler
-						if = {
-							limit = {
-								any_playable_ruler = {
-									religion = PREV
-
-									any_dynasty_member = {
-										is_alive = yes
-										is_dying = no
-										mercenary = no
-										holy_order = no
-										age >= 12
-										is_incapable = no
-										prisoner = no
-
-										NOT = {
-											any_heir_title = {
-												always = yes
-											}
-										}
-										
-										trigger_if = {
-											limit = { is_female = yes }
-											practical_age < 40
-											PREV = {
-												primary_title = {
-													NOT = {
-														has_law = agnatic_succession
-													}
-												}
-											}
-
-											NOT = {
-												any_child = { is_ruler = yes }
-											}
-										}
-										
-										trigger_else = {
-											PREV = {
-												primary_title = {
-													NOT = {
-														has_law = enatic_succession
-													}
-												}
-											}
-										}
-									}
-								}
+							preferred_limit = {
+								real_tier = DUKE
+								culture = PREV
 							}
 
-							random_playable_ruler = {
+							preferred_limit = {
+								real_tier = DUKE
+							}
+
+							preferred_limit = {
+								culture = PREV
+							}
+
+							any_dynasty_member = {
 								limit = {
-									religion = PREV
+									is_alive = yes
+									is_dying = no
+									is_ruler = no
+									age >= 12
+									religion = attacker
 
-									any_dynasty_member = {
-										is_alive = yes
-										age >= 12
-										is_dying = no
-										mercenary = no
-										holy_order = no
-										is_incapable = no
-										prisoner = no
-
-										NOT = {
-											any_heir_title = {
-												always = yes
+									NOR = {
+										any_heir_title = {
+											always = yes
+										}
+										any_child = { is_ruler = yes }
+									}
+									
+									OR = {
+										PREV = {
+											gender_equality_trigger = yes
+										}
+										AND = {
+											religions_are_standard_trigger = yes
+											OR = {
+												attacker = {
+													religion = guglielmite
+												}
+												is_female = no
 											}
 										}
-										
-										trigger_if = {
-											limit = { is_female = yes }
-											practical_age < 40
-											PREV = {
-												primary_title = {
-													NOT = {
-														has_law = agnatic_succession
-													}
+										AND = {
+											attacker = {
+												NOR = {
+													has_religion_feature = religion_patriarchal
+													has_religion_feature = religion_male_preference
 												}
 											}
-
-											NOT = {
-												any_child = { is_ruler = yes }
-											}
+											is_female = yes
 										}
-										
-										trigger_else = {
-											PREV = {
-												primary_title = {
-													NOT = {
-														has_law = enatic_succession
-													}
+										AND = {
+											attacker = {
+												NOR = {
+													has_religion_feature = religion_matriarchal
+													has_religion_feature = religion_female_preference
 												}
 											}
+											is_female = yes
 										}
 									}
 								}
 
-								preferred_limit = {
-									real_tier = EMPEROR
-									culture = PREV
-								}
+								score_value = {
+									value = 1
 
-								preferred_limit = {
-									real_tier = EMPEROR
-								}
-
-								preferred_limit = {
-									real_tier = KING
-									culture = PREV
-								}
-
-								preferred_limit = {
-									real_tier = KING
-								}
-
-								preferred_limit = {
-									real_tier = DUKE
-									culture = PREV
-								}
-
-								preferred_limit = {
-									real_tier = DUKE
-								}
-
-								preferred_limit = {
-									culture = PREV
-								}
-
-								random_dynasty_member = {
-									limit = {
-										religion = PREV
-										is_alive = yes
-										is_dying = no
-										mercenary = no
-										holy_order = no
-										age >= 12
-										is_incapable = no
-										prisoner = no	
-
-										NOT = {
-											any_heir_title = {
-												always = yes
-											}
-										}
-										
-										trigger_if = {
-											limit = { is_female = yes }
-											practical_age < 40
-											PREV = {
-												primary_title = {
-													NOT = {
-														has_law = agnatic_succession
-													}
-												}
-											}
-
-											NOT = {
-												any_child = { is_ruler = yes }
-											}
-										}
-										
-										trigger_else = {
-											PREV = {
-												primary_title = {
-													NOT = {
-														has_law = enatic_succession
-													}
-												}
-											}
-										}
+									additive_modifier = {
+										value = 1000
+										preferred_gender_based_on_laws_trigger = yes
 									}
 
-									set_crusader_king = THIS
+									additive_modifier = {
+										value = 500
+										is_child_of = PREV
+									}
+
+									additive_modifier = {
+										value = 250
+										is_vassal_or_below_of = PREV
+									}
+
+									additive_modifier = {
+										value = 125
+										practical_age < 45
+									}
+
+									additive_modifier = {
+										value = 62
+										culture = PREV
+									}
 								}
+
+								set_crusader_king = THIS
+								set_character_flag = crusader_king_flag
 							}
 						}
+					}
 
-						# If every other option fails, make the Holy Order Grandmaster the Crusader King
-						else = {
+					# If every other option fails, make the Holy Order Grandmaster the Crusader King
+					else = {
+						most_participating_crusader = {
 							set_crusader_king = THIS
 						}
 					}
 				}
 			}
 
-			# Find a backup beneficiary for the other Crusaders, if they don't have one already selected
-			any_attacker = {
-				limit = {
-					most_participating_crusader = {
-						NOT = { character = PREV }
-					}
+			most_participating_crusader = {
+				save_event_target_as = new_crusade_most_participating_member
 
-					ai = yes
-
-					OR = {
-						crusade_beneficiary = {
-							OR = {
-								is_alive = no
-								is_landed = yes
-								is_incapable = yes
-								prisoner = yes
-
-								any_heir_title = {
-									always = yes
-								}
-								
-								trigger_if = {
-									limit = { is_female = yes }
-									practical_age < 40
-									PREV = {
-										primary_title = {
-											NOT = {
-												has_law = agnatic_succession
-											}
-										}
-									}
-
-									NOT = {
-										any_child = { is_ruler = yes }
-									}
-								}
-								
-								trigger_else = {
-									PREV = {
-										primary_title = {
-											NOT = {
-												has_law = enatic_succession
-											}
-										}
-									}
-								}
-
-								mercenary = yes
-								holy_order = yes
-							}
-						}
-
-						NOT = {
-							crusade_beneficiary = {
-								always = yes
-							}
-						}
-					}
+				# These two are stored on the religion scope, so they are accessed from a character with that religion
+				crusade_target_title = {
+					save_event_target_as = new_crusade_title
 				}
 
-				# save_event_target_as = crusade_attacker
-				character_event = { id = HFP.41007 } # Beneficiary event - AI only
+				crusade_target_char = {
+					save_event_target_as = new_crusade_target_char
+				}
 			}
 
 			# Make sure selfish Crusaders get as little as possible (reduce the pot for Selfish Crusaders)
 			any_attacker = {
 				limit = { has_character_flag = crusade_selfish_stance }
-				set_crusade_pot_multiplier = 0
+				if = {
+					limit = {
+						any_owned_bloodline = {
+							has_bloodline_flag = grand_crusader_bloodline
+							bloodline_is_active_for = PREV
+						}
+					}
+					set_crusade_pot_multiplier = 0.2
+				}
+				else = {
+					set_crusade_pot_multiplier = 0
+				}
 			}
 
 			# Distribute the Pot and Titles
@@ -2118,7 +1937,7 @@ new_crusade = {
 						ai = no
 
 						most_participating_crusader = {
-							NOT = {	character = PREV }
+							NOT = { character = PREV }
 						}
 					}
 
@@ -2173,60 +1992,106 @@ new_crusade = {
 							title = k_thrace
 						}
 
+						crusade_target_char = {
+							has_landed_title = e_byzantium
+						}
+
 						defender = {
 							religion_group = attacker
 							NOT = { religion = attacker }
 						}
-
-						crusade_target_char = {
-							has_landed_title = e_byzantium
-						}
 					}
 
-					# Find a King for Trebizond
-					e_byzantium = {
-						holder_scope = {
-							if = {
-								limit = {
-									k_trebizond = {
-										has_holder = no
-									}
-								}
+					distribute_crusade_target_title = yes
 
-								random_vassal = {
-									limit = {
-										OR = {
-											has_landed_title = d_trebizond
-											has_landed_title = d_armeniacon
+					# The Crusader King becomes an Emperor and gets a bloodline
+					crusader_king = {
+						grant_title_no_opinion = e_latin_empire
+					}
+
+					# Crete is taken by a Merchant Lord
+					if = {
+						limit = {
+							c_kaneia = {
+								holder_scope = {
+									ai = yes
+
+									OR = {
+										any_war = {
+											using_cb = new_crusade
+											any_defender = { character = PREVPREV }
+										}
+
+										any_liege = {
+											any_war = {
+												using_cb = new_crusade
+												any_defender = { character = PREVPREV }
+											}
 										}
 									}
-
-									preferred_limit = {
-										has_landed_title = d_trebizond
-									}
-
-									grant_title_no_opinion = k_trebizond
 								}
 							}
 
-						}
-					}
-
-					# Set vassals for Trebizond
-					k_trebizond = {
-						holder_scope = {
-							e_byzantium = {
+							c_chandax = {
 								holder_scope = {
-									any_vassal = {
-										limit = { de_jure_liege = k_trebizond }
-										set_defacto_liege = PREVPREVPREV
+									ai = yes
+
+									OR = {
+										any_war = {
+											using_cb = new_crusade
+											any_defender = { character = PREVPREV }
+										}
+
+										any_liege = {
+											any_war = {
+												using_cb = new_crusade
+												any_defender = { character = PREVPREV }
+											}
+										}
 									}
 								}
+							}
+
+							any_crusade_participant = {
+								is_patrician = yes
+								higher_real_tier_than = COUNT
+							}
+						}
+
+						random_crusade_participant = { # TIANXIATODO: It should preferably be the one that caused the mess...
+							limit = {
+								is_patrician = yes
+								higher_real_tier_than = COUNT
+							}
+
+							preferred_limit = {
+								has_landed_title = k_venice
+							}
+
+							preferred_limit = {
+								has_landed_title = d_venice
+							}
+
+							preferred_limit = {
+								real_tier = EMPEROR
+							}
+
+							preferred_limit = {
+								real_tier = KING
+							}
+
+							grant_title_no_opinion = k_candia
+							grant_title_no_opinion = d_krete
+							grant_title_no_opinion = c_kaneia
+							grant_title_no_opinion = c_chandax
+							
+							d_krete = {
+								de_jure_liege = k_candia
 							}
 						}
 					}
 
-					# Find a Catholic/Fraticelli/Guglielmite lord for Cyprus
+					# Find a Catholic/Fraticelli lord for Cyprus
 					if = {
 						limit = {
 							c_famagusta = {
@@ -2276,14 +2141,46 @@ new_crusade = {
 							k_cyprus = {
 								has_holder = no
 							}
+
+							any_crusade_participant = {
+								crusade_beneficiary = {
+									is_alive = yes
+									is_ruler = no
+									religion = attacker
+
+									NOR = {
+										any_heir_title = {
+											always = yes
+										}
+										any_child = {
+											is_landed = yes
+										}
+									}
+								}
+							}
 						}
 
-						any_crusade_participant = {
+						random_crusade_participant = {
 							limit = {
-								ai = yes
-
 								most_participating_crusader = {
 									NOT = { character = PREV }
+								}
+
+								ai = yes
+
+								crusade_beneficiary = {
+									is_alive = yes
+									is_ruler = no
+									religion = attacker
+
+									NOR = {
+										any_heir_title = {
+											always = yes
+										}
+										any_child = {
+											is_landed = yes
+										}
+									}
 								}
 							}
 
@@ -2321,11 +2218,75 @@ new_crusade = {
 						}
 					}
 
-					distribute_crusade_target_title = yes # TIANXIATODO: Deal with custom title nonsense
+					# Existing kings only keep their de jure vassals
+					e_byzantium = {
+						holder_scope = {
+							any_vassal = {
+								limit = {
+									real_tier = KING
+									ai = yes
+								}
 
-					# The Crusader King becomes an Emperor and gets a bloodline
-					crusader_king = {
-						grant_title_no_opinion = e_latin_empire
+								any_vassal = {
+									limit = {
+										NOT = {
+											primary_title = {
+												any_de_jure_liege_title = {
+													holder = PREVPREVPREV
+												}
+											}
+										}
+									}
+
+									set_defacto_liege = PREVPREV
+								}
+							}
+						}
+					}
+
+					# Find a King for Trebizond
+					e_byzantium = {
+						holder_scope = {
+							if = {
+								limit = {
+									k_trebizond = {
+										has_holder = no
+									}
+								}
+
+								random_vassal = {
+									limit = {
+										is_feudal = yes
+										OR = {
+											has_landed_title = d_trebizond
+											has_landed_title = d_armeniacon
+										}
+									}
+
+									preferred_limit = {
+										has_landed_title = d_trebizond
+									}
+
+									grant_title_no_opinion = e_trebizond
+									grant_title_no_opinion = k_trebizond
+								}
+							}
+
+						}
+					}
+
+					# Set vassals for Trebizond
+					e_trebizond = {
+						holder_scope = {
+							e_byzantium = {
+								holder_scope = {
+									any_vassal = {
+										limit = { primary_title = { de_jure_liege_or_above = k_trebizond } }
+										set_defacto_liege = PREVPREVPREV
+									}
+								}
+							}
+						}
 					}
 
 					# Find random vassal and make a king out of them
@@ -2333,68 +2294,43 @@ new_crusade = {
 						holder_scope = {
 							random_vassal = {
 								limit = {
+									is_feudal = yes
 									real_tier = DUKE
 									ai = yes
-								}
-
-								preferred_limit = {
-									de_jure_liege = k_greece
-								}
-
-								preferred_limit = {
-									de_jure_liege = k_anatolia
-								}
-
-								preferred_limit = {
-									de_jure_liege = k_sicily
-								}
-								
-								if = {
-									limit = {
-										de_jure_liege = k_greece
-										k_greece = {
+									capital_scope = {
+										kingdom = {
 											has_holder = no
 										}
 									}
-									
-									grant_title = k_greece
 								}
-								
-								else_if = {
-									limit = {
-										de_jure_liege = k_anatolia
-										k_anatolia = {
-											has_holder = no
-										}
-									}
-									
-									grant_title = k_anatolia
+
+								preferred_limit = {
+									primary_title = { de_jure_liege = k_greece }
 								}
-								
-								else_if = {
-									limit = {
-										de_jure_liege = k_sicily
-										k_sicily = {
-											has_holder = no
-										}
-									}
-									
-									grant_title = k_sicily
+
+								preferred_limit = {
+									primary_title = { de_jure_liege = k_anatolia }
 								}
+
+								preferred_limit = {
+									primary_title = { de_jure_liege = k_sicily }
+								}
+
+								#primary_title = {
+								#	create_title = {
+								#		tier = KING
+								#		name = fourth_crusade_greek_kingdom_name
+								#		holder = PREV
+								#		culture = PREV
+								#		custom_created = yes
+								#		base_title = THIS
+								#		copy_title_laws = yes
+								#	}
+								#}
 								
-								else = {
-									primary_title = {
-										create_title = {
-											tier = KING
-											landless = no
-											temporary = no
-											name = fourth_crusade_greek_kingdom_name
-											holder = PREV
-											culture = PREV
-											custom_created = yes
-											base_title = THIS
-											copy_title_laws = yes
-										}
+								capital_scope = {
+									kingdom = {
+										grant_title_no_opinion = PREVPREV
 									}
 								}
 							}
@@ -2425,6 +2361,33 @@ new_crusade = {
 								}
 
 								set_defacto_liege = THIS
+							}
+
+							if = {
+								limit = {
+									primary_title = {
+										title = e_byzantium
+									}
+
+									has_landed_title = c_nikaea
+								}
+
+								grant_title = e_nicaea
+
+								e_nicaea = {
+									copy_title_laws = e_byzantium
+									copy_title_history = e_byzantium
+									make_primary_title = yes
+								}
+
+								any_demesne_title = {
+									limit = {
+										real_tier = EMPEROR
+										NOT = { title = e_nicaea }
+									}
+
+									destroy_landed_title = THIS
+								}
 							}
 
 							if = {
@@ -2488,105 +2451,39 @@ new_crusade = {
 									}
 								}
 
-								capital_scope = {
-									create_title = {
-										tier = EMPEROR
-										landless = no
-										temporary = no
-										name = fourth_crusade_greek_empire_name
-										holder = PREV
-										culture = PREV
-										custom_created = yes
-										base_title = THIS
-									}
+								#capital_scope = { # No custom titles!
+								#	create_title = {
+								#		tier = EMPEROR
+								#		name = fourth_crusade_greek_empire_name
+								#		holder = PREV
+								#		culture = PREV
+								#		custom_created = yes
+								#		base_title = THIS
+								#	}
+								#}
+								
+								activate_title = {
+									title = e_roman_remnant
+									status = yes
+								}
+								
+								grant_title = e_roman_remnant
+
+								e_roman_remnant = {
+									copy_title_laws = e_byzantium
+									copy_title_history = e_byzantium
+									make_primary_title = yes
 								}
 
 								any_demesne_title = {
 									limit = {
 										real_tier = EMPEROR
-										is_titular = no
+										NOT = { title = e_roman_remnant }
 									}
 
 									destroy_landed_title = THIS
 								}
 							}
-						}
-					}
-
-					# Crete is taken by a Merchant Lord
-					if = {
-						limit = {
-							c_kaneia = {
-								holder_scope = {
-									ai = yes
-
-									OR = {
-										any_war = {
-											using_cb = new_crusade
-											any_defender = { character = PREVPREV }
-										}
-
-										any_liege = {
-											any_war = {
-												using_cb = new_crusade
-												any_defender = { character = PREVPREV }
-											}
-										}
-									}
-								}
-							}
-
-							c_chandax = {
-								holder_scope = {
-									ai = yes
-
-									OR = {
-										any_war = {
-											using_cb = new_crusade
-											any_defender = { character = PREVPREV }
-										}
-
-										any_liege = {
-											any_war = {
-												using_cb = new_crusade
-												any_defender = { character = PREVPREV }
-											}
-										}
-									}
-								}
-							}
-
-							any_crusade_participant = {
-								is_patrician = yes
-								higher_real_tier_than = COUNT
-							}
-						}
-
-						random_crusade_participant = {
-							limit = {
-								is_patrician = yes
-								higher_real_tier_than = COUNT
-							}
-
-							preferred_limit = {
-								has_landed_title = k_venice
-							}
-
-							preferred_limit = {
-								has_landed_title = d_venice
-							}
-
-							preferred_limit = {
-								real_tier = EMPEROR
-							}
-
-							preferred_limit = {
-								real_tier = KING
-							}
-
-							grant_title_no_opinion = d_krete
-							grant_title_no_opinion = c_kaneia
-							grant_title_no_opinion = c_chandax
 						}
 					}
 
@@ -2615,9 +2512,7 @@ new_crusade = {
 					}
 
 					# Making sure the Byzantine Empire is destroyed
-					e_byzantium = {
-						unsafe_destroy_landed_title = THIS
-					}
+					destroy_landed_title = e_byzantium
 				}
 
 				# Otherwise
@@ -2625,16 +2520,16 @@ new_crusade = {
 					defender = {
 						any_player = {
 							limit = {
+								higher_real_tier_than = BARON
 								is_vassal_or_below_of = PREV
 								religion = attacker
-								higher_real_tier_than = BARON
 							}
 
 							set_defacto_liege = THIS
 						}
 					}
 
-					distribute_crusade_target_title = yes # TIANXIATODO: Deal with custom title nonsense
+					distribute_crusade_target_title = yes
 
 					crusader_king = {
 						save_event_target_as = crusade_king_recipient
@@ -2655,7 +2550,7 @@ new_crusade = {
 						add_dynasty_modifier = ruling_in_crusader_kingdom
 					}
 
-					any_realm_character = {
+					any_realm_lord = {
 						limit = {
 							has_character_flag = beneficiary_who_received_titles
 							NOT = { has_dynasty_modifier = ruling_in_crusader_kingdom }
@@ -2668,6 +2563,14 @@ new_crusade = {
 				clr_global_flag = distributing_crusade
 			}
 
+			# Release the CK if they are in jail
+			crusader_king = {
+				imprison = no
+				save_event_target_as = new_crusader_king
+			}
+			
+			save_event_target_as = crusade_title
+
 			# If the CK has too much gold
 			crusader_king = {
 				if = {
@@ -2675,6 +2578,13 @@ new_crusade = {
 						wealth >= 2000
 						ai = yes
 						num_of_vassals >= 1
+						NOT = { # Holds other land and is therefore not an unlanded beneficiary
+							any_demesne_title = {
+								NOT = {
+									de_jure_liege_or_above = event_target:crusader_kingdom
+								}
+							}
+						}
 					}
 
 					while = {
@@ -2693,17 +2603,6 @@ new_crusade = {
 						}
 					}
 				}
-			}
-
-			# Achievement
-			any_attacker = {
-				limit = {
-					ai = no
-					is_ironman = yes
-					NOT = { has_character_flag = achievement_crusader }
-				}
-
-				set_character_flag = achievement_crusader
 			}
 
 			# Nickname for the most participating Crusader
@@ -2876,14 +2775,14 @@ new_crusade = {
 							limit = { is_female = yes }
 
 							create_bloodline = {
-								type = crusade_lord
+								type = crusade_lord_bloodline
 								religion = THIS
 								inheritance = matrilineal
 							}
 						}
 						else = {
 							create_bloodline = {
-								type = crusade_lord
+								type = crusade_lord_bloodline
 								religion = THIS
 								inheritance = patrilineal
 							}
@@ -3106,92 +3005,27 @@ new_crusade = {
 			hidden_effect = {
 				if = {
 					limit = {
-						can_apply_cool_nickname_trigger = yes
+						trigger_if = {
+							limit = { has_nickname = yes }
+							this_has_lame_nickname_trigger = yes
+						}
 					}
 
 					random_list = {
-						10 = {
-							trigger = {
-								can_apply_average_nickname_trigger = yes
-								religion_group = christian
-							}
-							give_nickname = nick_the_crusader
-						}
+						10 = { give_nickname = nick_the_holy }
+						10 = { give_nickname = nick_the_glorious }
+						10 = { give_nickname = nick_the_lionheart }
+						10 = { give_nickname = nick_the_great }
+						10 = { give_nickname = nick_the_hammer }
 
-						10 = {
-							trigger = {
-								can_apply_average_nickname_trigger = yes
-							}
-							give_nickname = nick_the_holy
-						}
-						
-						10 = {
-							give_nickname = nick_the_glorious
-						}
-						
-						10 = {
-							trigger = {
-								OR = {
-									any_realm_province = {
-										region = world_africa
-									}
-									religion_group = christian
-								}
-							}
-							give_nickname = nick_the_lionheart
-						}
-						
-						10 = {
-							trigger = {
-								can_apply_average_nickname_trigger = yes
-							}
-							give_nickname = nick_the_great
-						}
-						
-						10 = {
-							give_nickname = nick_the_hammer
-						}
-						
-						10 = {
-							trigger = {
-								can_apply_lame_nickname_trigger = yes
-							}
-							give_nickname = nick_the_pilgrim
-						}
-
-						40 = {
+						20 = {
 							trigger = { NOT = { religion_group = christian } }
 							give_nickname = nick_the_sword_of_god
-						}
-						
-						100 = {
-							trigger = {
-								has_nickname = yes
-							}
-							# Nothing
 						}
 					}
 				}
 
 				roman_victory_triumph_effect = yes
-			}
-		}
-		
-		defender = {
-			if = {
-				limit = {
-					government = chinese_imperial_government
-				}
-				mandate_boost_large_effect = yes
-			}
-		}
-		
-		attacker = {
-			if = {
-				limit = {
-					government = chinese_imperial_government
-				}
-				mandate_penalty_large_effect = yes
 			}
 		}
 	}
@@ -3267,69 +3101,22 @@ new_crusade = {
 			hidden_effect = {
 				if = {
 					limit = {
-						can_apply_cool_nickname_trigger = yes
+						trigger_if = {
+							limit = { has_nickname = yes }
+							this_has_lame_nickname_trigger = yes
+						}
 					}
 
 					random_list = {
-						10 = {
-							trigger = {
-								can_apply_average_nickname_trigger = yes
-								religion_group = christian
-							}
-							give_nickname = nick_the_crusader
-						}
+						10 = { give_nickname = nick_the_holy }
+						10 = { give_nickname = nick_the_glorious }
+						10 = { give_nickname = nick_the_lionheart }
+						10 = { give_nickname = nick_the_great }
+						10 = { give_nickname = nick_the_hammer }
 
-						10 = {
-							trigger = {
-								can_apply_average_nickname_trigger = yes
-							}
-							give_nickname = nick_the_holy
-						}
-						
-						10 = {
-							give_nickname = nick_the_glorious
-						}
-						
-						10 = {
-							trigger = {
-								OR = {
-									any_realm_province = {
-										region = world_africa
-									}
-									religion_group = christian
-								}
-							}
-							give_nickname = nick_the_lionheart
-						}
-						
-						10 = {
-							trigger = {
-								can_apply_average_nickname_trigger = yes
-							}
-							give_nickname = nick_the_great
-						}
-						
-						10 = {
-							give_nickname = nick_the_hammer
-						}
-						
-						10 = {
-							trigger = {
-								can_apply_lame_nickname_trigger = yes
-							}
-							give_nickname = nick_the_pilgrim
-						}
-
-						40 = {
+						20 = {
 							trigger = { NOT = { religion_group = christian } }
 							give_nickname = nick_the_sword_of_god
-						}
-						
-						100 = {
-							trigger = {
-								has_nickname = yes
-							}
-							# Nothing
 						}
 					}
 				}
@@ -3361,15 +3148,15 @@ new_crusade = {
 			set_global_flag = first_crusade_complete
 		}
 
-		#any_defender = {
-		#	limit = {
-		#		ai = no
-		#		religion_group = pagan_group
-		#		is_ironman = yes
-		#	}
-		#
-		#	set_character_flag = achievement_pagan_fury
-		#}
+		any_defender = {
+			limit = {
+				ai = no
+				religion_group = pagan_group
+				is_ironman = yes
+			}
+
+			set_character_flag = achievement_pagan_fury
+		}
 
 		# Chance to start a Shepherd's Crusade
 		attacker = {
@@ -3393,7 +3180,6 @@ new_crusade = {
 
 						catholic = { set_global_flag = catholic_shepherds_crusade }
 						fraticelli = { set_global_flag = fraticelli_shepherds_crusade }
-						guglielmite = { set_global_flag = guglielmite_shepherds_crusade }
 					}
 				}
 
@@ -3401,24 +3187,6 @@ new_crusade = {
 					id = HFP.42300 # Start of event chain
 					days = 3
 				}
-			}
-		}
-		
-		defender = {
-			if = {
-				limit = {
-					government = chinese_imperial_government
-				}
-				mandate_boost_massive_effect = yes
-			}
-		}
-		
-		attacker = {
-			if = {
-				limit = {
-					government = chinese_imperial_government
-				}
-				mandate_penalty_massive_effect = yes
 			}
 		}
 	}
@@ -3455,7 +3223,9 @@ religious = {
 
 	can_use_gui = {
 		# Attacker
-		ROOT = {
+		ROOT = { # TIANXIATODO: Further cost adjustments based on religion/Nature/etc.
+			china_forbids_war_trigger = no
+			
 			trigger_if = {
 				limit = {
 					OR = {
@@ -3463,27 +3233,92 @@ religious = {
 						religion = kejawen
 					}
 				}
-				piety >= 250
+				piety >= 100 # Lowered due to removal of county-tier holy wars for Buddhists
 			}
-		}
-		
-		ROOT = {
-			china_forbids_war_trigger = no
+			trigger_else_if = {
+				limit = { religion_group = pagan_group }
+				piety >= 100
+			}
 			
 			NOT = {
 				any_liege = {
 					OR = {
-						could_have_chinese_government_trigger = yes
-						could_have_japanese_government_trigger = yes
+						is_heresy_of = ROOT
+						is_parent_religion = ROOT
+						AND = {
+							controls_religion = yes
+							NOT = {
+								religion = ROOT
+							}
+						}
+						gets_chinese_governments_trigger = yes
+						gets_japanese_governments_trigger = yes
+						government = successor_state_government
+						AND = {
+							has_landed_title = e_aztec_empire
+							religion = aztec_pagan
+							ROOT = {
+								NOT = {
+									religion = aztec_pagan
+								}
+							}
+						}
+						AND = {
+							has_landed_title = e_inca_empire
+							religion = inca_pagan
+							ROOT = {
+								NOT = {
+									religion = inca_pagan
+								}
+							}
+						}
+						AND = {
+							OR = {
+								gets_dharmic_feudal_trigger = yes
+								gets_mandala_government_trigger = yes
+							}
+							FROM = {
+								OR = {
+									gets_dharmic_feudal_trigger = yes
+									gets_mandala_government_trigger = yes
+								}
+							}
+						}
+						AND = {
+							religions_are_standard_trigger = yes
+							OR = {
+								religion = buddhist
+								religion = bon_pagan
+								AND = {
+									religion = bon_pagan_reformed
+									OR = {
+										has_religion_feature = religion_cosmopolitan
+										has_religion_feature = religion_tolerant
+										has_religion_feature = religion_peaceful
+									}
+								}
+							}
+							FROM = {
+								OR = {
+									gets_chinese_governments_trigger = yes
+									gets_japanese_governments_trigger = yes
+									gets_dharmic_feudal_trigger = yes
+									gets_mandala_government_trigger = yes
+									religion = buddhist
+									religion = bon_pagan
+									AND = {
+										religion = bon_pagan_reformed
+										OR = {
+											has_religion_feature = religion_cosmopolitan
+											has_religion_feature = religion_tolerant
+											has_religion_feature = religion_peaceful
+										}
+									}
+								}
+							}
+						}
 					}
 				}
-			}
-			
-			NOR = {
-				trait = treasure_fleet_preparation
-				trait = treasure_fleet_voyage
-				trait = penglai_expedition_preparation
-				trait = on_penglai_expedition
 			}
 		}
 	}
@@ -3491,15 +3326,167 @@ religious = {
 	can_use = {
 		# Attacker
 		ROOT = {
-			# General requirements
-			is_nomadic = no
+			# General Requirements
+			has_nomadic_tribal_government_trigger = no
 			pacifist = no
 			mercenary = no
+			NOT = { same_realm = FROM }
+			gets_chinese_governments_trigger = no
+			gets_japanese_governments_trigger = no
+			
+			NOT = {
+				has_religion_feature = religion_tolerant
+			}
+			
+			trigger_if = {
+				limit = { religion_group = pagan_group }
 
-			NOR = {
-				religion_group = pagan_group
-				religion = taoist
-				same_realm = FROM
+				OR = {
+					is_reformed_religion = yes
+					religion = aztec_pagan
+					religion = inca_pagan
+				}
+			}
+
+			# Requirements for Holy War in the same religion group
+			trigger_if = {
+				limit = { religion_group = FROM }
+
+				OR = {
+					# One is a heretic of the other
+					is_heresy_of = FROM
+					is_parent_religion = FROM
+					has_religion_feature = religion_dogmatic # Random Worlds
+
+					# Can holy war known demon worshippers in he same religion group
+					trigger_if = {
+						limit = {
+							NOT = { has_character_modifier = known_satanist }
+						}
+						FROM = { has_character_modifier = known_satanist }
+					}
+
+					# Muslims fight amongst themselves
+					trigger_else_if = {
+						limit = {
+							religion_group = muslim
+						}
+						
+						FROM = {
+							NOT = {
+								religion = ROOT
+							}
+						}
+						
+						OR = {
+							NOR = {
+								religion = ibadi
+								religion = kharijite
+								religion = shiite
+								religion = hurufi
+								religion = qarmatian
+								religion = sunni
+								religion = zikri
+							}
+							FROM = {
+								NOR = {
+									religion = ibadi
+									religion = kharijite
+									religion = shiite
+									religion = hurufi
+									religion = qarmatian
+									religion = sunni
+									religion = zikri
+								}
+							}
+							FROM = {
+								NOT = {
+									any_current_enemy = {
+										NOR = {
+											religion = ibadi
+											religion = kharijite
+											religion = shiite
+											religion = hurufi
+											religion = qarmatian
+											religion = sunni
+											religion = zikri
+										}
+									}
+								}
+							}
+						}
+					}
+
+					# Pagans also fight amongst themselves
+					trigger_else_if = {
+						limit = { religion_group = pagan_group }
+						NOT = { religion = FROM }
+					}
+
+					# Mazdans also fight amongst themselves
+					trigger_else_if = {
+						limit = { religion_group = zoroastrian_group }
+						NOT = { religion = FROM }
+					}
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					religions_are_standard_trigger = yes
+					OR = {
+						religion = buddhist
+						religion = bon_pagan
+						AND = {
+							religion = bon_pagan_reformed
+							has_religion_feature = religion_cosmopolitan
+						}
+					}
+				}
+				
+				FROM = {
+					NOR = {
+						religion = buddhist
+						religion = bon_pagan
+						AND = {
+							religion = bon_pagan_reformed
+							OR = {
+								has_religion_feature = religion_cosmopolitan
+								has_religion_feature = religion_tolerant
+								has_religion_feature = religion_peaceful
+							}
+						}
+						gets_chinese_governments_trigger = yes
+						gets_japanese_governments_trigger = yes
+						gets_dharmic_feudal_trigger = yes
+						gets_mandala_government_trigger = yes
+					}
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					OR = {
+						gets_dharmic_feudal_trigger = yes
+						gets_mandala_government_trigger = yes
+					}
+				}
+				FROM = {
+					NOR = {
+						gets_dharmic_feudal_trigger = yes
+						gets_mandala_government_trigger = yes
+						religion = buddhist
+						religion = bon_pagan
+						AND = {
+							religion = bon_pagan_reformed
+							OR = {
+								has_religion_feature = religion_cosmopolitan
+								has_religion_feature = religion_tolerant
+								has_religion_feature = religion_peaceful
+							}
+						}
+					}
+				}
 			}
 
 			# Northern Crusade
@@ -3516,124 +3503,138 @@ religious = {
 			reconquista_check_trigger = no
 			NOT = { has_character_flag = currently_reconquering_iberia }
 
-			# Hindu check
 			trigger_if = {
-				limit = {
-					religion = hindu
-					FROM = { has_dharmic_religion_trigger = yes }
-				}
+				limit = { independent = no }
 
-				FROM = { has_character_modifier = known_satanist }
-				NOT = { has_character_modifier = known_satanist }
-			}
+				top_liege = {
+					religion_group = ROOT
 
-			# Requirements for holy war in same religion group
-			trigger_if = {
-				limit = {
-					religion_group = FROM
-					NOT = {
-						religion_group = muslim
-					}
-				}
-
-				OR = {
-					# One is a heretic of the other
-					is_heresy_of = FROM
-					is_parent_religion = FROM
-
+					# Religion must match, or neither is a heretic
 					trigger_if = {
-						limit = { has_dharmic_religion_trigger = yes }
-						FROM = { has_dharmic_religion_trigger = no }
+						limit = {
+							NOT = { religion = ROOT }
+						}
+
+						NOR = {
+							religion_group = pagan_group
+							is_heretic = yes
+							ROOT = { is_heretic = yes }
+						}
 					}
 
-					# Can holy war known demon worshippers in he same religion group
+					# Can holy war known devil worshippers of top liege's religion
 					trigger_if = {
-						limit = { FROM = { has_character_modifier = known_satanist } }
+						limit = { religion = FROM }
+
+						FROM = { has_character_modifier = known_satanist }
 						NOT = { has_character_modifier = known_satanist }
-					}
-				}
-			}
 
-			# Requirements for Muslims
-			trigger_else_if = {
-				limit = { religion_group = muslim }
-
-				NOT = { religion = FROM }
-
-				FROM = {
-					NOT = { # Not fighting religious enemies
-						any_current_enemy = {
-							NOT = { religion_group = muslim }
+						ROOT = {
+							NOT = { has_character_modifier = known_satanist }
 						}
 					}
 				}
 			}
-
-			top_liege = {
-				religion_group = ROOT
-
-				# Can holy war known devil worshippers of top liege's religion
-				trigger_if = {
-					limit = { religion = FROM }
-
-					FROM = { has_character_modifier = known_satanist }
-					NOT = { has_character_modifier = known_satanist }
-
-					ROOT = {
-						NOT = { has_character_modifier = known_satanist }
-					}
-				}
-
-				# Religion must match, or neither is a heretic
-				OR = {
-					religion = ROOT
-
-					AND = {
-						is_heretic = no
-						ROOT = { is_heretic = no }
-					}
-				}
-			}
-			
-			could_have_chinese_government_trigger = no
-			could_have_japanese_government_trigger = no
 		}
 	}
 
 	can_use_title = {
 		# The attacker needs at least one county in the target duchy, or a border, or be only two sea zones away from one of your counties
 		any_direct_de_jure_vassal_title = {
-			OR = {
-				holder_scope = { # attacker owns a county in target duchy
-					OR = {
-						character = ROOT
-						is_vassal_or_below_of = ROOT
-					}
-				}
-				
-				AND = {
+			trigger_if = {
+				limit = {
 					holder_scope = {
-						OR = {
-							character = FROM
-							is_vassal_or_below_of = FROM
+						NOR = { # part of attacker's realm
+							character = ROOT
+							is_vassal_or_below_of = ROOT
 						}
 					}
-					location = {
+				}
+
+				holder_scope = {
+					OR = { # Actually part of Defender's realm, not a random title in the same de jure duchy
+						character = FROM
+						is_vassal_or_below_of = FROM
+					}
+				}
+			}
+
+			location = {
+				NOT = {
+					has_province_modifier = nomadic_land # No silly holy wars into the steppes!
+				}
+				any_neighbor_province = { # bordering province
+					trigger_if = {
+						limit = { has_owner = yes }
+
+						owner = { # part of attacker's realm
+							OR = {
+								character = ROOT
+								is_vassal_or_below_of = ROOT
+							}
+						}
+					}
+					trigger_else = {
+						is_land = no # first sea zone
+					
+						trigger_if = {
+							limit = {
+								has_game_rule = {
+									name = holy_war_distance
+									value = technology
+								}
+							}
+							
+							ROOT = {
+								capital_scope = {
+									TECH_RECRUITMENT >= 2
+									TECH_NAVAL >= 2
+								}
+							}
+						}
+						
+						trigger_else_if = {
+							limit = {
+								has_game_rule = {
+									name = holy_war_distance
+									value = default
+								}
+							}
+								
+							OR = { # religion requirements for attack across sea zones
+								ROOT = { religion_group = muslim }
+								FROM = { religion_group = muslim }
+
+								trigger_if = {
+									limit = { ROOT = { religion_group = pagan_group } }
+									#has_global_flag = pagan_ghws_unlocked
+									pagan_ghws_unlocked_for_root_trigger = yes
+								}
+								trigger_else_if = {
+									limit = { ROOT = { religion_group = christian } }
+									has_global_flag = christian_crusades_unlocked
+								}
+								trigger_else = {
+									ROOT = { religion_group = muslim }
+									has_global_flag = muslim_jihads_unlocked
+								}
+							}
+						}
+
 						any_neighbor_province = {
 							trigger_if = {
-								limit = { has_owner = yes } # not wasteland or sea zone
+								limit = { has_owner = yes }
 
-								owner = {
+								owner = { # part of attacker's realm
 									OR = {
 										character = ROOT
 										is_vassal_or_below_of = ROOT
 									}
 								}
 							}
-
 							trigger_else = {
-								is_land = no # first sea zone
-							
+								is_land = no # second sea zone
+								
 								trigger_if = {
 									limit = {
 										has_game_rule = {
@@ -3644,78 +3645,17 @@ religious = {
 									
 									ROOT = {
 										capital_scope = {
-											TECH_RECRUITMENT >= 2
-											TECH_NAVAL >= 2
-										}
-									}
-								}
-								
-								trigger_else_if = {
-									limit = {
-										has_game_rule = {
-											name = holy_war_distance
-											value = default
-										}
-									}
-										
-									OR = { # religion requirements for attack across sea zones
-										ROOT = { religion_group = muslim }
-										FROM = { religion_group = muslim }
-
-										trigger_if = {
-											limit = { ROOT = { religion_group = pagan_group } }
-											#has_global_flag = pagan_ghws_unlocked
-											pagan_ghws_unlocked_for_root_trigger = yes
-										}
-										trigger_else_if = {
-											limit = { ROOT = { religion_group = christian } }
-											has_global_flag = christian_crusades_unlocked
-										}
-										trigger_else = {
-											ROOT = { religion_group = muslim }
-											has_global_flag = muslim_jihads_unlocked
+											TECH_RECRUITMENT >= 4
+											TECH_NAVAL >= 4
 										}
 									}
 								}
 
-								any_neighbor_province = { # county one sea zone away
-									trigger_if = {
-										limit = { has_owner = yes } # not wasteland or sea zone
-
-										owner = {
-											OR = {
-												character = ROOT
-												is_vassal_or_below_of = ROOT
-											}
-										}
-									}
-
-									trigger_else = {
-										is_land = no # second seazone
-							
-										trigger_if = {
-											limit = {
-												has_game_rule = {
-													name = holy_war_distance
-													value = technology
-												}
-											}
-											
-											ROOT = {
-												capital_scope = {
-													TECH_RECRUITMENT >= 4
-													TECH_NAVAL >= 4
-												}
-											}
-										}
-
-										any_neighbor_province = { # county two sea zones away
-											owner = {
-												OR = {
-													character = ROOT
-													is_vassal_or_below_of = ROOT
-												}
-											}
+								any_neighbor_province = {
+									owner = { # part of attacker's realm
+										OR = {
+											character = ROOT
+											is_vassal_or_below_of = ROOT
 										}
 									}
 								}
@@ -3730,60 +3670,327 @@ religious = {
 	is_valid = {
 		# Attacker
 		ROOT = {
-			NOR = {
-				religion_group = pagan_group
-				same_realm = FROM
+			# General Requirements
+			has_nomadic_tribal_government_trigger = no
+			pacifist = no
+			mercenary = no
+			NOT = { same_realm = FROM }
+			gets_chinese_governments_trigger = no
+			gets_japanese_governments_trigger = no
+			
+			NOT = {
+				has_religion_feature = religion_tolerant
+			}
+			
+			trigger_if = {
+				limit = { religion_group = pagan_group }
+
+				OR = {
+					is_reformed_religion = yes
+					religion = aztec_pagan
+					religion = inca_pagan
+				}
 			}
 
-			pacifist = no
-
-			# Requirements for holy war in same religion group
+			# Requirements for Holy War in the same religion group
 			trigger_if = {
 				limit = { religion_group = FROM }
+
 				OR = {
 					# One is a heretic of the other
 					is_heresy_of = FROM
 					is_parent_religion = FROM
+					has_religion_feature = religion_dogmatic # Random Worlds
 
+					# Can holy war known demon worshippers in he same religion group
 					trigger_if = {
-						limit = { has_dharmic_religion_trigger = yes }
-						FROM = { has_dharmic_religion_trigger = no }
-					}
-
-					# Can holy war known demon worshippers in the same religion group
-					AND = {
+						limit = {
+							NOT = { has_character_modifier = known_satanist }
+						}
 						FROM = { has_character_modifier = known_satanist }
-						NOT = { has_character_modifier = known_satanist }
 					}
-				}
-			}
 
-			# Requirements for Muslims
-			trigger_else_if = {
-				limit = { religion_group = muslim }
-				NOT = { religion = FROM }
-			}
+					# Muslims fight amongst themselves
+					trigger_else_if = {
+						limit = {
+							religion_group = muslim
+						}
+						
+						FROM = {
+							NOT = {
+								religion = ROOT
+							}
+						}
+						
+						OR = {
+							NOR = {
+								religion = ibadi
+								religion = kharijite
+								religion = shiite
+								religion = hurufi
+								religion = qarmatian
+								religion = sunni
+								religion = zikri
+							}
+							FROM = {
+								NOR = {
+									religion = ibadi
+									religion = kharijite
+									religion = shiite
+									religion = hurufi
+									religion = qarmatian
+									religion = sunni
+									religion = zikri
+								}
+							}
+							FROM = {
+								NOT = {
+									any_current_enemy = {
+										NOR = {
+											religion = ibadi
+											religion = kharijite
+											religion = shiite
+											religion = hurufi
+											religion = qarmatian
+											religion = sunni
+											religion = zikri
+										}
+									}
+								}
+							}
+						}
+					}
 
-			top_liege = {
-				trigger_if = {
-					limit = { religion = FROM }
+					# Pagans also fight amongst themselves
+					trigger_else_if = {
+						limit = { religion_group = pagan_group }
+						NOT = { religion = FROM }
+					}
 
-					FROM = { has_character_modifier = known_satanist }
-					NOT = { has_character_modifier = known_satanist }
-
-					ROOT = {
-						NOT = { has_character_modifier = known_satanist }
+					# Mazdans also fight amongst themselves
+					trigger_else_if = {
+						limit = { religion_group = zoroastrian_group }
+						NOT = { religion = FROM }
 					}
 				}
 			}
 			
-			NOR = {
-				could_have_chinese_government_trigger = yes
-				could_have_japanese_government_trigger = yes
+			trigger_if = {
+				limit = {
+					religions_are_standard_trigger = yes
+					OR = {
+						religion = buddhist
+						religion = bon_pagan
+						AND = {
+							religion = bon_pagan_reformed
+							has_religion_feature = religion_cosmopolitan
+						}
+					}
+				}
+				
+				FROM = {
+					NOR = {
+						religion = buddhist
+						religion = bon_pagan
+						AND = {
+							religion = bon_pagan_reformed
+							OR = {
+								has_religion_feature = religion_cosmopolitan
+								has_religion_feature = religion_tolerant
+								has_religion_feature = religion_peaceful
+							}
+						}
+						gets_chinese_governments_trigger = yes
+						gets_japanese_governments_trigger = yes
+						gets_dharmic_feudal_trigger = yes
+						gets_mandala_government_trigger = yes
+					}
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					OR = {
+						gets_dharmic_feudal_trigger = yes
+						gets_mandala_government_trigger = yes
+					}
+				}
+				FROM = {
+					NOR = {
+						gets_dharmic_feudal_trigger = yes
+						gets_mandala_government_trigger = yes
+						religion = buddhist
+						religion = bon_pagan
+						AND = {
+							religion = bon_pagan_reformed
+							OR = {
+								has_religion_feature = religion_cosmopolitan
+								has_religion_feature = religion_tolerant
+								has_religion_feature = religion_peaceful
+							}
+						}
+					}
+				}
+			}
+		
+			
+			NOT = {
 				any_liege = {
 					OR = {
-						could_have_chinese_government_trigger = yes
-						could_have_japanese_government_trigger = yes
+						is_heresy_of = ROOT
+						is_parent_religion = ROOT
+						AND = {
+							controls_religion = yes
+							NOT = {
+								religion = ROOT
+							}
+						}
+						gets_chinese_governments_trigger = yes
+						gets_japanese_governments_trigger = yes
+						government = successor_state_government
+						AND = {
+							has_landed_title = e_aztec_empire
+							religion = aztec_pagan
+							ROOT = {
+								NOT = {
+									religion = aztec_pagan
+								}
+							}
+						}
+						AND = {
+							has_landed_title = e_inca_empire
+							religion = inca_pagan
+							ROOT = {
+								NOT = {
+									religion = inca_pagan
+								}
+							}
+						}
+						AND = {
+							OR = {
+								gets_dharmic_feudal_trigger = yes
+								gets_mandala_government_trigger = yes
+							}
+							FROM = {
+								OR = {
+									gets_dharmic_feudal_trigger = yes
+									gets_mandala_government_trigger = yes
+								}
+							}
+						}
+						AND = {
+							religions_are_standard_trigger = yes
+							OR = {
+								religion = buddhist
+								religion = bon_pagan
+								AND = {
+									religion = bon_pagan_reformed
+									OR = {
+										has_religion_feature = religion_cosmopolitan
+										has_religion_feature = religion_tolerant
+										has_religion_feature = religion_peaceful
+									}
+								}
+							}
+							FROM = {
+								OR = {
+									gets_chinese_governments_trigger = yes
+									gets_japanese_governments_trigger = yes
+									gets_dharmic_feudal_trigger = yes
+									gets_mandala_government_trigger = yes
+									religion = buddhist
+									religion = bon_pagan
+									AND = {
+										religion = bon_pagan_reformed
+										OR = {
+											has_religion_feature = religion_cosmopolitan
+											has_religion_feature = religion_tolerant
+											has_religion_feature = religion_peaceful
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			NOT = {
+				any_liege = {
+					OR = {
+						is_heresy_of = ROOT
+						is_parent_religion = ROOT
+						AND = {
+							controls_religion = yes
+							NOT = {
+								religion = ROOT
+							}
+						}
+						gets_chinese_governments_trigger = yes
+						gets_japanese_governments_trigger = yes
+						AND = {
+							has_landed_title = e_aztec_empire
+							religion = aztec_pagan
+							ROOT = {
+								NOT = {
+									religion = aztec_pagan
+								}
+							}
+						}
+						AND = {
+							has_landed_title = e_inca_empire
+							religion = inca_pagan
+							ROOT = {
+								NOT = {
+									religion = inca_pagan
+								}
+							}
+						}
+						AND = {
+							OR = {
+								gets_dharmic_feudal_trigger = yes
+								gets_mandala_government_trigger = yes
+							}
+							FROM = {
+								OR = {
+									gets_dharmic_feudal_trigger = yes
+									gets_mandala_government_trigger = yes
+								}
+							}
+						}
+						AND = {
+							religions_are_standard_trigger = yes
+							OR = {
+								religion = buddhist
+								religion = bon_pagan
+								AND = {
+									religion = bon_pagan_reformed
+									OR = {
+										has_religion_feature = religion_cosmopolitan
+										has_religion_feature = religion_tolerant
+										has_religion_feature = religion_peaceful
+									}
+								}
+							}
+							FROM = {
+								OR = {
+									gets_chinese_governments_trigger = yes
+									gets_japanese_governments_trigger = yes
+									gets_dharmic_feudal_trigger = yes
+									gets_mandala_government_trigger = yes
+									religion = buddhist
+									religion = bon_pagan
+									AND = {
+										religion = bon_pagan_reformed
+										OR = {
+											has_religion_feature = religion_cosmopolitan
+											has_religion_feature = religion_tolerant
+											has_religion_feature = religion_peaceful
+										}
+									}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -3794,14 +4001,18 @@ religious = {
 		attacker = {
 			show_scope_change = no
 
-			if = {
+			if = { # TIANXIATODO:
 				limit = {
 					OR = {
 						religion = buddhist
 						religion = kejawen
 					}
 				}
-				piety = -250
+				piety = -100
+			}
+			else_if = {
+				limit = { religion_group = pagan_group }
+				piety = -100
 			}
 		}
 
@@ -3833,6 +4044,64 @@ religious = {
 					change_variable = {
 						which = strengthen_religion
 						value = 1
+					}
+				}
+
+				if = {
+					limit = {
+						religion_group = pagan_group # Originally only in pagan_holy_war
+						trigger_if = {
+							limit = { has_nickname = yes }
+						}
+					}
+
+					if = {
+						limit = {
+							can_apply_cool_nickname_trigger = yes
+						}
+
+						random_list = {
+							10 = {
+								if = {
+									limit = {
+										is_female = no
+									}
+									give_nickname = nick_the_dragon
+								}
+								
+								else = {
+									give_nickname = nick_the_dragoness
+								}
+							}
+							10 = {
+								trigger = {
+									can_apply_average_nickname_trigger = yes
+								}
+								give_nickname = nick_the_holy 
+							}
+							10 = {
+								trigger = {
+									can_apply_average_nickname_trigger = yes
+								}
+								give_nickname = nick_bloodaxe
+							}
+							10 = {
+								trigger = {
+									can_apply_average_nickname_trigger = yes
+								}
+								give_nickname = nick_the_great
+							}
+							40 = {
+								give_nickname = nick_the_sword_of_god
+							}
+							
+							100 = {
+								trigger = {
+									has_nickname = yes
+								}
+								# Nothing
+							}
+						}
 					}
 				}
 			}
@@ -3899,14 +4168,40 @@ religious = {
 	}
 
 	on_success_title = {
+		save_event_target_as = target_title
+		
 		attacker = {
 			show_scope_change = no
-
+			
 			if = { # Standard Holy War behaviour for Non-Muslims and Muslims fighting other Muslims
 				limit = {
+					religions_are_standard_trigger = yes
 					trigger_if = {
-						limit = { religion_group = muslim }
-						religion_group = defender
+						limit = {
+							OR = {
+								religion = ibadi
+								religion = kharijite
+								religion = shiite
+								religion = hurufi
+								religion = qarmatian
+								religion = sunni
+								religion = zikri
+							}
+						}
+						defender = {
+							OR = {
+								religion = ibadi
+								religion = kharijite
+								religion = shiite
+								religion = hurufi
+								religion = qarmatian
+								religion = sunni
+								religion = zikri
+							}
+						}
+					}
+					NOT = {
+						has_religion_feature = religion_cosmopolitan
 					}
 				}
 
@@ -3923,7 +4218,7 @@ religious = {
 				}
 			}
 
-			else = { # Muslims fighting Non-Muslims preserve vassals
+			else = { # Preserve vassals
 				custom_tooltip = {
 					text = religious_cb_succ_muslim_tip
 
@@ -3942,6 +4237,24 @@ religious = {
 
 			defender = {
 				landless_pope_effect = yes
+			}
+		}
+		
+		attacker = {
+			if = {
+				limit = {
+					government = chinese_imperial_government
+				}
+				mandate_boost_medium_effect = yes
+			}
+		}
+		
+		defender = {
+			if = {
+				limit = {
+					government = chinese_imperial_government
+				}
+				mandate_penalty_medium_effect = yes
 			}
 		}
 	}
@@ -4096,81 +4409,38 @@ religious = {
 	ai_will_do = {
 		factor = 1
 
-		trigger = {
-			trigger_if = {
-				limit = {
-					ROOT = {
-						is_tribal = yes
-					}
-
-					FROM = {
-						is_nomadic = yes
-					}
+		coronation_factor = yes
+		
+		# Rome wants Roman land above random land!
+		mult_modifier = {
+			factor = 0.1
+			ROOT = {
+				OR = {
+					religion_group = christian
+					religion_openly_hellenic_or_reformed_trigger = yes
 				}
-
-				any_direct_de_jure_vassal_title = {
-					any_direct_de_jure_vassal_title = {
-						OR = {
-							holding_type = castle
-							holding_type = city
-							holding_type = tribal
-						}
-						holder_scope = {
-							OR = {
-								character = ROOT
-								any_liege = {
-									OR = {
-										character = ROOT
-										character = FROM
-									}
-								}
-							}
-						}
+				OR = {
+					government = roman_imperial_government
+					top_liege = {
+						government = roman_imperial_government
 					}
 				}
 			}
-			trigger_else_if = {
-				limit = {
-					ROOT = {
-						is_nomadic = no
-						is_tribal = no
-					}
-
-					FROM = {
-						is_nomadic = yes
-					}
-
-				}
-
-				any_direct_de_jure_vassal_title = {
+			NAND = {
+				has_global_flag = trajans_borders_possible
+				NOT = {
 					any_direct_de_jure_vassal_title = {
-						OR = {
-							holding_type = castle
-							holding_type = city
-						}
-						holder_scope = {
-							OR = {
-								character = ROOT
-								any_liege = {
-									OR = {
-										character = ROOT
-										character = FROM
-									}
-								}
-							}
-						}
+						region = trajans_borders
 					}
 				}
 			}
 		}
 
-		coronation_factor = yes
-
 		# Try to guide the Hordes in the right direction
 		mult_modifier = {
 			factor = 0.1
 
-			attacker = {
+			ROOT = {
 				OR = {
 					dynasty = 613 # Seljuks
 					dynasty = 800 # Timurids
@@ -4180,25 +4450,21 @@ religious = {
 					}
 				}
 			}
-
+			
 			OR = {
-				empire = {
-					NOR = {
-						title = e_persia
-						title = e_byzantium
-						title = e_arabia
+				NOT = {
+					any_direct_de_jure_vassal_title = {
+						location = {
+							region = world_middle_east
+						}
 					}
 				}
 
-				defender = {
-					OR = {
-						primary_title = {
-							title = e_golden_horde
-						}
-						primary_title = {
-							title = e_chagatai
-						}
+				FROM = {
+					primary_title = {
+						title = e_golden_horde
 					}
+					dynasty = ROOT
 
 					year < 1300
 				}
@@ -4208,30 +4474,29 @@ religious = {
 		mult_modifier = {
 			factor = 0.1
 
-			attacker = {
+			ROOT = {
 				primary_title = {
 					title = e_golden_horde
 				}
 			}
 
 			OR = {
-				empire = {
-					OR = {
-						title = e_persia
-						title = e_byzantium
-						title = e_arabia
+				NOT = {
+					any_direct_de_jure_vassal_title = {
+						location = {
+							OR = {
+								region = world_steppe_west
+								region = world_europe
+							}
+						}
 					}
 				}
 
-				defender = {
-					OR = {
-						primary_title = {
-							title = e_ilkhanate
-						}
-						primary_title = {
-							title = e_chagatai
-						}
+				FROM = {
+					primary_title = {
+						title = e_ilkhanate
 					}
+					dynasty = ROOT
 
 					year < 1300
 				}
@@ -4241,57 +4506,29 @@ religious = {
 		mult_modifier = {
 			factor = 0.1
 
-			attacker = {
+			ROOT = {
+				culture = hungarian
+
 				primary_title = {
-					title = e_chagatai
-				}
-			}
-
-			OR = {
-				empire = {
 					OR = {
-						title = e_persia
-						title = e_turan
-						title = e_tibet
+						title = k_hungary
+						title = e_carpathia
 					}
 				}
+			}
 
-				defender = {
-					OR = {
-						primary_title = {
-							title = e_golden_horde
-						}
-						primary_title = {
-							title = e_ilkhanate
-						}
+			NOT = {
+				any_direct_de_jure_vassal_title = {
+					location = {
+						region = world_europe
 					}
-
-					year < 1300
-				}
-			}
-		}
-
-		mult_modifier = {
-			factor = 2.0
-
-			OR = {
-				culture = persian
-				culture = baloch
-				culture = afghan
-				culture = turkish
-			}
-
-			empire = {
-				OR = {
-					title = e_persia
-					title = e_rajastan
 				}
 			}
 		}
 	}
 }
 
-liberate_religion = {
+liberate_religion = { # TIANXIATODO: Beneficiary?
 	name = CB_NAME_LIBERATE_RELIGION
 	war_name = WAR_NAME_LIBERATE_RELIGION
 	sprite = 35
@@ -4307,22 +4544,7 @@ liberate_religion = {
 	can_use_gui = {
 		ROOT = {
 			china_forbids_war_trigger = no
-			
-			NOT = {
-				any_liege = {
-					OR = {
-						could_have_chinese_government_trigger = yes
-						could_have_japanese_government_trigger = yes
-					}
-				}
-			}
-			
-			NOR = {
-				trait = treasure_fleet_preparation
-				trait = treasure_fleet_voyage
-				trait = penglai_expedition_preparation
-				trait = on_penglai_expedition
-			}
+			piety >= 1000
 		}
 	}
 
@@ -4335,6 +4557,10 @@ liberate_religion = {
 		# Attacker
 		ROOT = {
 			independent = yes
+			has_game_rule = {
+				name = liberate_religion_rule
+				value = on
+			}
 
 			OR = {
 				any_owned_bloodline = {
@@ -4342,30 +4568,175 @@ liberate_religion = {
 					bloodline_is_active_for = PREV
 				}
 
-				trigger_if = {
-					limit = { has_character_flag = had_liberate_opportunity }
+				has_character_flag = had_liberate_opportunity
+			}
 
-					NOT = {
-						has_game_rule = {
-							name = jade_dragon_cbs
-							value = off
+			has_nomadic_tribal_government_trigger = no
+			pacifist = no
+			mercenary = no
+			gets_chinese_governments_trigger = no
+			gets_japanese_governments_trigger = no
+			NOT = {
+				government = successor_state_government
+			}
+			
+			NOR = {
+				has_religion_feature = religion_cosmopolitan
+				has_religion_feature = religion_tolerant
+			}
+			
+			trigger_if = {
+				limit = { religion_group = pagan_group }
+
+				is_reformed_religion = yes
+			}
+
+			# Requirements for Holy War in the same religion group
+			trigger_if = {
+				limit = { religion_group = FROM }
+
+				OR = {
+					# One is a heretic of the other
+					is_heresy_of = FROM
+					is_parent_religion = FROM
+					has_religion_feature = religion_dogmatic # Random Worlds
+
+					# Can holy war known demon worshippers in he same religion group
+					trigger_if = {
+						limit = {
+							NOT = { has_character_modifier = known_satanist }
+						}
+						FROM = { has_character_modifier = known_satanist }
+					}
+
+					# Muslims fight amongst themselves
+					trigger_else_if = {
+						limit = {
+							religion_group = muslim
+						}
+						
+						FROM = {
+							NOT = {
+								religion = ROOT
+							}
+						}
+						
+						OR = {
+							NOR = {
+								religion = ibadi
+								religion = kharijite
+								religion = shiite
+								religion = hurufi
+								religion = qarmatian
+								religion = sunni
+								religion = zikri
+							}
+							FROM = {
+								NOR = {
+									religion = ibadi
+									religion = kharijite
+									religion = shiite
+									religion = hurufi
+									religion = qarmatian
+									religion = sunni
+									religion = zikri
+								}
+							}
+							FROM = {
+								NOT = {
+									any_current_enemy = {
+										NOR = {
+											religion = ibadi
+											religion = kharijite
+											religion = shiite
+											religion = hurufi
+											religion = qarmatian
+											religion = sunni
+											religion = zikri
+										}
+									}
+								}
+							}
+						}
+					}
+
+					# Pagans also fight amongst themselves
+					trigger_else_if = {
+						limit = { religion_group = pagan_group }
+						NOT = { religion = FROM }
+					}
+
+					# Mazdans also fight amongst themselves
+					trigger_else_if = {
+						limit = { religion_group = zoroastrian_group }
+						NOT = { religion = FROM }
+					}
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					religions_are_standard_trigger = yes
+					OR = {
+						religion = buddhist
+						religion = bon_pagan
+						AND = {
+							religion = bon_pagan_reformed
+							has_religion_feature = religion_cosmopolitan
+						}
+					}
+				}
+				
+				FROM = {
+					NOR = {
+						religion = buddhist
+						religion = bon_pagan
+						AND = {
+							religion = bon_pagan_reformed
+							OR = {
+								has_religion_feature = religion_cosmopolitan
+								has_religion_feature = religion_tolerant
+								has_religion_feature = religion_peaceful
+							}
+						}
+						gets_chinese_governments_trigger = yes
+						gets_japanese_governments_trigger = yes
+						gets_dharmic_feudal_trigger = yes
+						gets_mandala_government_trigger = yes
+					}
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					OR = {
+						gets_dharmic_feudal_trigger = yes
+						gets_mandala_government_trigger = yes
+					}
+				}
+				FROM = {
+					NOR = {
+						gets_dharmic_feudal_trigger = yes
+						gets_mandala_government_trigger = yes
+						religion = buddhist
+						religion = bon_pagan
+						AND = {
+							religion = bon_pagan_reformed
+							OR = {
+								has_religion_feature = religion_cosmopolitan
+								has_religion_feature = religion_tolerant
+								has_religion_feature = religion_peaceful
+							}
 						}
 					}
 				}
 			}
-
-			is_nomadic = no
-			pacifist = no
-			mercenary = no
 
 			NOR = {
 				same_realm = FROM
 				religion = FROM
 				has_character_flag = used_liberate_opportunity
 			}
-			
-			could_have_chinese_government_trigger = no
-			could_have_japanese_government_trigger = no
 		}
 	}
 
@@ -4386,28 +4757,45 @@ liberate_religion = {
 		}
 
 		# The attacker needs at least one county in the target kingdom, or a border, or be only two sea zones away from one of your counties
-		any_de_jure_vassal_title = {
-			OR = {
-				holder_scope = { # own a county
-					OR = {
-						character = ROOT
-						is_vassal_or_below_of = ROOT
-					}
-				}
-				
-				AND = {
+		any_direct_de_jure_vassal_title = {
+			trigger_if = {
+				limit = {
 					holder_scope = {
-						OR = {
-							character = FROM
-							is_vassal_or_below_of = FROM
+						NOR = { # part of attacker's realm
+							character = ROOT
+							is_vassal_or_below_of = ROOT
 						}
 					}
-					location = {
-						any_neighbor_province = { # have a border
+				}
+			}
+
+			holder_scope = {
+				OR = { # Actually part of Defender's realm, not a random title in the same de jure duchy
+					character = FROM
+					is_vassal_or_below_of = FROM
+				}
+			}
+
+			location = {
+				any_neighbor_province = { # bordering province
+					trigger_if = {
+						limit = { has_owner = yes }
+
+						owner = { # part of attacker's realm
+							OR = {
+								character = ROOT
+								is_vassal_or_below_of = ROOT
+							}
+						}
+					}
+					trigger_else = {
+						is_land = no # first sea zone
+
+						any_neighbor_province = {
 							trigger_if = {
 								limit = { has_owner = yes }
 
-								owner = {
+								owner = { # part of attacker's realm
 									OR = {
 										character = ROOT
 										is_vassal_or_below_of = ROOT
@@ -4415,47 +4803,13 @@ liberate_religion = {
 								}
 							}
 							trigger_else = {
-								is_land = no # first sea zone
-
-								OR = {
-									ROOT = { religion_group = muslim }
-									FROM = { religion_group = muslim }
-
-									trigger_if = {
-										limit = { ROOT = { religion_group = pagan_group } }
-										has_global_flag = pagan_ghws_unlocked
-									}
-									trigger_else_if = {
-										limit = { ROOT = { religion_group = christian } }
-										has_global_flag = christian_crusades_unlocked
-									}
-									trigger_else = {
-										ROOT = { religion_group = muslim }
-										has_global_flag = muslim_jihads_unlocked
-									}
-								}
+								is_land = no # second sea zone
 
 								any_neighbor_province = {
-									trigger_if = {
-										limit = { has_owner = yes }
-
-										owner = {
-											OR = {
-												character = ROOT
-												is_vassal_or_below_of = ROOT
-											}
-										}
-									}
-									trigger_else = {
-										is_land = no # second sea zone
-
-										any_neighbor_province = {
-											owner = {
-												OR = {
-													character = ROOT
-													is_vassal_or_below_of = ROOT
-												}
-											}
+									owner = { # part of attacker's realm
+										OR = {
+											character = ROOT
+											is_vassal_or_below_of = ROOT
 										}
 									}
 								}
@@ -4471,26 +4825,176 @@ liberate_religion = {
 		# Attacker
 		ROOT = {
 			pacifist = no
+			independent = yes
 
 			NOR = {
 				same_realm = FROM
 				religion = FROM
 			}
 
-			top_liege = {
-				NOT = { religion = FROM }
+			has_nomadic_tribal_government_trigger = no
+			mercenary = no
+			gets_chinese_governments_trigger = no
+			gets_japanese_governments_trigger = no
+			NOT = {
+				government = successor_state_government
 			}
 			
 			NOR = {
-				could_have_chinese_government_trigger = yes
-				could_have_japanese_government_trigger = yes
-				any_liege = {
-					OR = {
-						could_have_chinese_government_trigger = yes
-						could_have_japanese_government_trigger = yes
+				has_religion_feature = religion_cosmopolitan
+				has_religion_feature = religion_tolerant
+			}
+			
+			trigger_if = {
+				limit = { religion_group = pagan_group }
+
+				is_reformed_religion = yes
+			}
+
+			# Requirements for Holy War in the same religion group
+			trigger_if = {
+				limit = { religion_group = FROM }
+
+				OR = {
+					# One is a heretic of the other
+					is_heresy_of = FROM
+					is_parent_religion = FROM
+					has_religion_feature = religion_dogmatic # Random Worlds
+
+					# Can holy war known demon worshippers in he same religion group
+					trigger_if = {
+						limit = {
+							NOT = { has_character_modifier = known_satanist }
+						}
+						FROM = { has_character_modifier = known_satanist }
+					}
+
+					# Muslims fight amongst themselves
+					trigger_else_if = {
+						limit = {
+							religion_group = muslim
+						}
+						
+						FROM = {
+							NOT = {
+								religion = ROOT
+							}
+						}
+						
+						OR = {
+							NOR = {
+								religion = ibadi
+								religion = kharijite
+								religion = shiite
+								religion = hurufi
+								religion = qarmatian
+								religion = sunni
+								religion = zikri
+							}
+							FROM = {
+								NOR = {
+									religion = ibadi
+									religion = kharijite
+									religion = shiite
+									religion = hurufi
+									religion = qarmatian
+									religion = sunni
+									religion = zikri
+								}
+							}
+							FROM = {
+								NOT = {
+									any_current_enemy = {
+										NOR = {
+											religion = ibadi
+											religion = kharijite
+											religion = shiite
+											religion = hurufi
+											religion = qarmatian
+											religion = sunni
+											religion = zikri
+										}
+									}
+								}
+							}
+						}
+					}
+
+					# Pagans also fight amongst themselves
+					trigger_else_if = {
+						limit = { religion_group = pagan_group }
+						NOT = { religion = FROM }
+					}
+
+					# Mazdans also fight amongst themselves
+					trigger_else_if = {
+						limit = { religion_group = zoroastrian_group }
+						NOT = { religion = FROM }
 					}
 				}
 			}
+			
+			trigger_if = {
+				limit = {
+					religions_are_standard_trigger = yes
+					OR = {
+						religion = buddhist
+						religion = bon_pagan
+						AND = {
+							religion = bon_pagan_reformed
+							has_religion_feature = religion_cosmopolitan
+						}
+					}
+				}
+				
+				FROM = {
+					NOR = {
+						religion = buddhist
+						religion = bon_pagan
+						AND = {
+							religion = bon_pagan_reformed
+							OR = {
+								has_religion_feature = religion_cosmopolitan
+								has_religion_feature = religion_tolerant
+								has_religion_feature = religion_peaceful
+							}
+						}
+						gets_chinese_governments_trigger = yes
+						gets_japanese_governments_trigger = yes
+						gets_dharmic_feudal_trigger = yes
+						gets_mandala_government_trigger = yes
+					}
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					OR = {
+						gets_dharmic_feudal_trigger = yes
+						gets_mandala_government_trigger = yes
+					}
+				}
+				FROM = {
+					NOR = {
+						gets_dharmic_feudal_trigger = yes
+						gets_mandala_government_trigger = yes
+						religion = buddhist
+						religion = bon_pagan
+						AND = {
+							religion = bon_pagan_reformed
+							OR = {
+								has_religion_feature = religion_cosmopolitan
+								has_religion_feature = religion_tolerant
+								has_religion_feature = religion_peaceful
+							}
+						}
+					}
+				}
+			}
+			
+			#top_liege = {
+			#	NOT = { religion = FROM }
+			#}
 		}
 	}
 
@@ -4520,6 +5024,8 @@ liberate_religion = {
 					set_character_flag = used_liberate_opportunity
 				}
 			}
+			
+			piety = -1000
 		}
 
 		fire_haruspicy_event_effect = yes
@@ -4598,49 +5104,100 @@ liberate_religion = {
 			text = religious_liberation_cb_succ_tip
 
 			defender = {
-				random_realm_title = {
+				if = {
 					limit = {
-						real_tier = COUNT
-
-						kingdom = { title = PREVPREVPREV }
-					}
-
-					preferred_limit = {
-						location = {
-							religion = ROOT
+						any_realm_lord = {
+							religion = attacker
+							is_patrician = no
+							capital_scope = {
+								kingdom = {
+									title = PREVPREVPREVPREV
+								}
+							}
+							NOR = {
+								trait = excommunicated
+								has_character_modifier = known_satanist
+							}
 						}
 					}
-
-					location = {
-						create_character = {
+					random_realm_lord = {
+						limit = {
 							religion = attacker
-							culture = THIS
-							dynasty = random
-							random_traits = yes
-							female = no
-							age = 20
-							health = 7
-							fertility = 0.7
-							flag = is_religious_liberation_ruler
+							is_patrician = no
+							capital_scope = {
+								kingdom = {
+									title = PREVPREVPREVPREV
+								}
+							}
+							NOR = {
+								trait = excommunicated
+								has_character_modifier = known_satanist
+							}
+						}
+						preferred_limit = {
+							capital_scope = {
+								kingdom = {
+									holder_scope = {
+										character = PREVPREVPREV
+									}
+								}
+							}
+						}
+						preferred_limit = {
+							real_tier = king
+						}
+						preferred_limit = {
+							real_tier = duke
+						}
+						save_event_target_as = new_ruler
+					}
+				}
+				
+				else = {
+					random_realm_title = {
+						limit = {
+							real_tier = COUNT
 
-							attributes = {
-								martial = 10
-								diplomacy = 10
-								stewardship = 10
+							kingdom = { title = PREVPREVPREV }
+						}
+
+						preferred_limit = {
+							location = {
+								religion = ROOT
 							}
 						}
 
-						new_character = {
-							remove_trait = cynical
-							add_trait = zealous
-							wealth = 500
-							prestige = 500
-							piety = 500
-							save_event_target_as = new_ruler
+						location = {
+							create_character = {
+								religion = attacker
+								culture = THIS
+								dynasty = random
+								random_traits = yes
+								female = no # TIANXIATODO: Gender setup
+								age = 20
+								health = 7
+								fertility = 0.7
+								flag = is_religious_liberation_ruler
 
-							usurp_title = {
-								target = PREVPREV
-								type = invasion
+								attributes = {
+									martial = 10
+									diplomacy = 10
+									stewardship = 10
+								}
+							}
+
+							new_character = {
+								remove_trait = cynical
+								add_trait = zealous
+								wealth = 500
+								prestige = 500
+								piety = 500
+								save_event_target_as = new_ruler
+
+								usurp_title = {
+									target = PREVPREV
+									type = invasion
+								}
 							}
 						}
 					}
@@ -4655,6 +5212,7 @@ liberate_religion = {
 					type = invasion
 				}
 			}
+			
 
 			else_if = {
 				limit = {
@@ -4665,6 +5223,9 @@ liberate_religion = {
 								character = defender
 							}
 						}
+						NOT = {
+							character = event_target:new_ruler
+						}
 					}
 				}
 
@@ -4674,20 +5235,18 @@ liberate_religion = {
 				}
 			}
 			
-			else = {
-				event_target:new_ruler = {
-					create_title = {
-						tier = KING
-						landless = no
-						temporary = no
-						custom_created = yes
-						culture = event_target:new_ruler
-						holder = event_target:new_ruler
-						name = LIBERATED_KINGDOM
-						base_title = PREV
-					}
-				}
-			}
+			#else = {
+			#	event_target:new_ruler = {
+			#		create_title = {
+			#			tier = KING
+			#			custom_created = yes
+			#			culture = event_target:new_ruler
+			#			holder = event_target:new_ruler
+			#			name = LIBERATED_KINGDOM
+			#			base_title = PREV
+			#		}
+			#	}
+			#}
 
 			event_target:new_ruler = {
 				vassalize_or_take_under_title = {
@@ -4702,38 +5261,38 @@ liberate_religion = {
 				set_defacto_liege = THIS
 			}
 
-			if = {
-				limit = {
-					has_holder = yes
-
-					holder_scope = {
-						OR = {
-							character = defender
-							is_vassal_or_below_of = defender
-						}
-					}
-				}
-
-				destroy_landed_title = THIS
-
-				usurp_title_only = {
-					target = event_target:new_ruler
-					type = invasion
-				}
-
-				make_primary_title = yes
-
-				event_target:new_ruler = {
-					any_demesne_title = {
-						limit = {
-							tier = KING
-							is_primary_holder_title = no
-						}
-
-						destroy_landed_title = THIS
-					}
-				}
-			}
+			#if = {
+			#	limit = {
+			#		has_holder = yes
+			#
+			#		holder_scope = {
+			#			OR = {
+			#				character = defender
+			#				is_vassal_or_below_of = defender
+			#			}
+			#		}
+			#	}
+			#
+			#	destroy_landed_title = THIS
+			#
+			#	usurp_title_only = {
+			#		target = event_target:new_ruler
+			#		type = invasion
+			#	}
+			#
+			#	make_primary_title = yes
+			#
+			#	event_target:new_ruler = {
+			#		any_demesne_title = {
+			#			limit = {
+			#				tier = KING
+			#				is_primary_holder_title = no
+			#			}
+			#
+			#			destroy_landed_title = THIS
+			#		}
+			#	}
+			#}
 
 			attacker = {
 				if = {
@@ -4744,10 +5303,22 @@ liberate_religion = {
 						value = 1
 					}
 				}
-
-				make_tributary = {
-					who = event_target:new_ruler
-					tributary_type = permanent
+				
+				if = {
+					limit = {
+						gets_mandala_government_trigger = yes
+					}
+					make_tributary = {
+						who = event_target:new_ruler
+						tributary_type = mandala_tributary
+					}
+				}
+				else = {
+					make_tributary = {
+						who = event_target:new_ruler
+						#tributary_type = permanent
+						percentage = 0.4
+					}
 				}
 			}
 		}
