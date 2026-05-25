@@ -1,10 +1,21 @@
-NDefines.NDiplomacy.JAIN_LIEGE_OPINION_BONUS = 5
+NDefines.NCharacter.MAX_LED_FACTIONS = 3
+NDefines.NCharacter.MAX_JOINED_FACTIONS = 3
 
+NDefines.NDiplomacy.JAIN_LIEGE_OPINION_BONUS = 5
 NDefines.NDiplomacy.MAKE_CONSORT_INTERACTION_ENABLED = 0
 NDefines.NDiplomacy.DISMISS_CONSORT_INTERACTION_ENABLED = 0
 NDefines.NDiplomacy.OFFER_CONSORT_INTERACTION_ENABLED = 0
 NDefines.NDiplomacy.ASK_TO_EMBARGO_INTERACTION_ENABLED = 0
+NDefines.NDiplomacy.ASK_TO_EMBARGO_INTERACTION_ENABLED = 0
+NDefines.NDiplomacy.OFFER_VASSALIZATION_INTERACTION_ENABLED = 0
+NDefines.NDiplomacy.ASK_FOR_VASSALIZATION_INTERACTION_ENABLED = 0
+NDefines.NDiplomacy.PREPARE_INVASION_INTERACTION_ENABLED = 0
+NDefines.NDiplomacy.RELEASE_VASSAL_INTERACTION_ENABLED = 0
+NDefines.NDiplomacy.DEMAND_RELIGIOUS_CONVERSION_INTERACTION_ENABLED = 0
 NDefines.NDiplomacy.DOWRY_MULTIPLIER = 2.0
+NDefines.NDiplomacy.ASK_FOR_DIVORCE_INTERACTION_PIETY = 100
+
+NDefines.NCouncil.REGENCY_VOTING = "laws declare_war_interaction revoke_title_interaction imprison_character_interaction grant_landed_title_interaction exile_imprisoned_interaction execute_imprisoned_interaction ransom_character_interaction release_from_prison_interaction transfer_vassal_interaction settle_adventurer_interaction retract_vassal_interaction replace_mercenary_captain_interaction grant_vice_royalty_interaction ask_to_join_war_interaction abandon_ambition_interaction stop_backing_ambition_interaction resign_commander_interaction ask_for_excommunication_interaction ask_to_lift_excommunication_interaction nominate_bishop_to_pope_interaction break_non_aggression_pact dissolve_alliance_interaction form_non_aggression_pact_interaction form_alliance_interaction"
 
 NDefines.NEngine.EVENT_PROCESS_OFFSET = 30 		
 NDefines.NEngine.COURTIER_EVENT_PROCESS_OFFSET = 75
@@ -19,3 +30,5 @@ NDefines.NTitle.KING_LANDLESS_SON_PRESTIGE = 0
 NDefines.NTitle.EMPEROR_LANDLESS_SON_PRESTIGE = 0
 
 NDefines.NEconomy.PATRICIAN_FAMILY_SHARES_REST = 0
+
+NDefines.NAI.RAID_SPARE_ACCEPTED_RELIGIONS = 0

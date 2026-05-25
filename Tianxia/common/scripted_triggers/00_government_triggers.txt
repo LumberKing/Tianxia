@@ -7,7 +7,8 @@
 feudal_group_potential_trigger = {
 	could_be_temporal_religious_head_trigger = yes # If holder is a religion head, makes sure they shouldn't be a theocracy instead
 	is_patrician = no
-	NOT = {
+	NAND = {
+		has_dlc = "Horse Lords" # TIANXIATODO: Consider whether tribal nomads without HL features are reasonably playable or not
 		trait = nomadic_trait
 	}
 }
@@ -499,15 +500,37 @@ order_government_allow_trigger = {}
 # Roman Imperial
 roman_imperial_government_potential_trigger = {
 	feudal_group_potential_trigger = yes
-	gets_japanese_governments_trigger = no
-	gets_chinese_governments_trigger = no
-	gets_muslim_governments_trigger = no # They have their own bureaucratic government... and caliphs are even more special
-	gets_dharmic_feudal_trigger = no
-	gets_mandala_government_trigger = no
-	gets_monastic_feudal_trigger = no
-	NOR = {
-		has_religion_feature = religion_gov_holy_mandate
-		is_government_potential = monastic_feudal_government
+	trigger_if = {
+		limit = {
+			OR = {
+				is_save_game = yes
+				has_game_started = yes
+			}
+		}
+		religions_are_standard_trigger = yes # Tianxia: If there hasn't been a Rome, nobody gets to be *Roman* Imperial
+	}
+	trigger_if = {
+		limit = {
+			has_game_rule = {
+				name = ere_gov_restriction
+				value = yes
+			}
+		}
+		OR = { # Nobody else can sensibly claim to be the heir of Rome... and ERE/Roman flavour is generally implemented assuming a Christian/Hellenic ruler, so this avoids a bunch of weirdness
+			religion_group = christian
+			religion_openly_hellenic_or_reformed_trigger = yes
+		}
+	}
+	trigger_else = {
+		gets_japanese_governments_trigger = no
+		gets_chinese_governments_trigger = no
+		gets_muslim_governments_trigger = no # They have their own bureaucratic government... and caliphs are even more special
+		gets_dharmic_feudal_trigger = no
+		gets_mandala_government_trigger = no
+		gets_monastic_feudal_trigger = no
+		NOT = {
+			is_government_potential = monastic_feudal_government
+		}
 	}
 	primary_title = {
 		OR = {
@@ -516,7 +539,7 @@ roman_imperial_government_potential_trigger = {
 			title = e_nicaea
 			title = e_trebizond
 			title = e_roman_remnant
-			title = event_target:alternate_byz
+			#title = event_target:alternate_byz # Can't be the ERE if there's never been a Rome...
 		}
 	
 		#trigger_if = { # so it shows on the title selection screen
@@ -531,6 +554,14 @@ roman_imperial_government_potential_trigger = {
 }
 
 roman_imperial_government_allow_trigger = {}
+
+is_roman_emperor_trigger = { # Some stuff should not be for others...
+	government = roman_imperial_government
+	OR = {
+		has_landed_title = e_byzantium
+		has_landed_title = e_roman_empire
+	}
+}
 
 # Monastic Feudal
 monastic_feudal_government_potential_trigger = {
@@ -815,6 +846,7 @@ is_bureaucratic_liege_but_not_vassal_trigger = {
 	OR = {
 		government = japanese_imperial_government
 		government = divine_imperial_government
+		government = chinese_imperial_government
 		government = eastern_imperial_government
 		government = caliphal_government
 		government = imperial_bureaucracy_government
@@ -871,25 +903,53 @@ nomadic_government_allow_trigger = {
 # Republic Group
 republic_group_potential_trigger = {
 	could_be_temporal_religious_head_trigger = yes # If holder is a religion head, makes sure they shouldn't be a theocracy instead
-	NOR = {
-		is_government_potential = chinese_imperial_government
-		is_government_potential = warlord_chinese_imperial_government
-		is_government_potential = eastern_imperial_government
-		is_government_potential = warlord_imperial_government
-		is_government_potential = eastern_bureaucracy_government
-		is_government_potential = warlord_government
-		is_government_potential = japanese_imperial_government
-		is_government_potential = divine_imperial_government
-		is_government_potential = japanese_bureaucracy_government
-		is_government_potential = japanese_feudal_government
-		is_government_potential = japanese_monastic_feudal_government
-		is_government_potential = caliphal_government
-		is_government_potential = muslim_bureaucracy_government
-		is_government_potential = roman_imperial_government
-		is_government_potential = imperial_bureaucracy_government
-		is_government_potential = bureaucracy_government
+	OR = {
+		NOR = {
+			is_government_potential = chinese_imperial_government
+			is_government_potential = warlord_chinese_imperial_government
+			is_government_potential = eastern_imperial_government
+			is_government_potential = warlord_imperial_government
+			is_government_potential = eastern_bureaucracy_government
+			is_government_potential = warlord_government
+			is_government_potential = japanese_imperial_government
+			is_government_potential = divine_imperial_government
+			is_government_potential = japanese_bureaucracy_government
+			is_government_potential = japanese_feudal_government
+			is_government_potential = japanese_monastic_feudal_government
+			is_government_potential = caliphal_government
+			AND = { # Special case that needs to be handled
+				OR = {
+					is_government_potential = muslim_bureaucracy_government
+					is_government_potential = bureaucracy_government
+				}
+				NOR = {
+					dynasty = none
+					any_liege = {
+						is_merchant_republic = yes
+						OR = {
+							dynasty = PREV
+							any_vassal = {
+								is_patrician = yes
+								dynasty = PREVPREV
+							}
+						}
+						NOT = {
+							any_liege = {
+								dynasty = PREV
+								dynasty = PREVPREV
+								is_merchant_republic = no
+							}
+						}
+					}
+				}
+			}
+			is_government_potential = roman_imperial_government
+			is_government_potential = imperial_bureaucracy_government
+		}
+		trait = republic_trait # If someone should be a republic in China/Japan, for whatever reason
 	}
-	NOT = {
+	NAND = {
+		has_dlc = "Horse Lords"
 		trait = nomadic_trait
 	}
 }
@@ -997,7 +1057,7 @@ republic_government_allow_trigger = {
 theocratic_group_potential_trigger = {
 	holy_order = no
 	is_patrician = no
-
+	
 	trigger_if = {
 		limit = { controls_religion = yes }
 
@@ -1019,7 +1079,8 @@ theocratic_group_potential_trigger = {
 	trigger_else = {
 		religion_allows_male_temple_holders = yes
 	}
-	NOT = {
+	NAND = {
+		has_dlc = "Horse Lords"
 		trait = nomadic_trait
 	}
 }
@@ -1191,5 +1252,25 @@ has_steppe_nomadic_tribal_government_trigger = {
 		government = great_khan_government
 		government = nomadic_tribal_successor_state_government
 		government = steppe_nomadic_tribal_government
+	}
+}
+
+government_blocks_matri_marriage_trigger = { # For laws
+	OR = {
+		AND = {
+			is_feudal = yes
+			OR = {
+				AND = {
+					gets_chinese_governments_trigger = yes
+					NOT = {
+						government = successor_state_government
+					}
+				}
+				gets_japanese_governments_trigger = yes
+				gets_muslim_governments_trigger = yes
+			}
+		}
+		is_tribal = yes
+		government = merchant_republic_government
 	}
 }
