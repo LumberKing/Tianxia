@@ -1,0 +1,941 @@
+plot_fan_the_flames_liberation = {
+	type = realm_characters
+	vassal_intrigue_plot = yes
+	murder_plot = yes # Courtiers can join
+
+	# Plotter scope
+	# ROOT is plotter
+	potential = {
+		has_dlc = "The Old Gods"
+		is_playable = yes
+		is_adult = yes
+		prisoner = no
+		is_patrician = no
+		is_actually_incapable_trigger = no
+		in_revolt = no
+		independent = no
+
+		primary_title = {
+			temporary = no
+		}
+
+		trigger_if = {
+			limit = { ai = yes }
+			war = no
+		}
+
+		#NOT = { has_landed_title = e_china_west_governor }
+		
+		has_nomadic_tribal_government_trigger = no # Nomads have their own thing
+		
+		trigger_if = { # If the realm is CI/WCI, you only get to go for the Mandate unless you're outside any relevant de jure (and China)
+			limit = {
+				gets_chinese_governments_trigger = yes
+			}
+			OR = {
+				top_liege = {
+					claims_the_mandate_trigger = no
+				}
+				NOR = {
+					religion = taoist
+					religion = confucian
+					religion = bai_pagan
+					religion = chinese_pagan
+					religion = korean_pagan
+					religion = miao_pagan
+					religion = viet_pagan
+					religion = yi_pagan
+					religion = zhuang_pagan
+					AND = {
+						religion = buddhist
+						has_chinese_or_historical_culture_for_chinese_imperial_trigger = yes
+					}
+					has_religion_feature = religion_gov_chinese_imperial
+				}
+				is_feudal = no
+				capital_scope = {
+					NOR = {
+						region = world_china
+						empire = {
+							OR = {
+								title = e_china
+								holder_scope = {
+									any_realm_lord = {
+										character = PREVPREVPREV
+									}
+								}
+							}
+						}
+					}
+				}
+				government = warlord_government # Warlords are not known for their loyalty...
+			}
+		}
+		
+		trigger_else_if = { # Not something that should happen in Japan proper
+			limit = {
+				gets_japanese_governments_trigger = yes
+			}
+			controls_religion = no
+			OR = {
+				top_liege = {
+					OR = {
+						gets_japanese_governments_trigger = no
+						NOR = {
+							controls_religion = yes
+							any_vassal = {
+								gets_japanese_governments_trigger = yes
+								is_feudal = yes
+								controls_religion = yes
+							}
+						}
+						AND = {
+							real_tier = emperor
+							PREV = {
+								capital_scope = {
+									NOR = {
+										empire = {
+											OR = {
+												holder_scope = {
+													character = PREVPREVPREVPREV
+												}
+												title = e_japan
+											}
+										}
+										region = world_greater_japan # "Greater" to also cover the Ryukyuan case
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		trigger_if = { # You should of course seek to become the senior emperor instead!
+			limit = {
+				top_liege = {
+					government = roman_imperial_government
+				}
+			}
+			NOT = {
+				has_minor_title = title_caesar
+			}
+		}
+		
+		# TIANXIATODO: Not for PRs, the Tenno, etc.
+		
+		top_liege = {
+			OR = {
+				NOT = {
+					culture = PREV
+				}
+				PREV = {
+					capital_scope = {
+						empire = {
+							holder_scope = {
+								NOT = {
+									character = PREVPREVPREVPREV
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		capital_scope = { # TIANXIATODO: Add a check for "reasonable religion"
+			culture = PREV
+			kingdom = {
+				OR = {
+					culture = PREV
+					has_been_held_by_PREV_culture_trigger = yes
+				}
+				trigger_if = {
+					limit = {
+						has_holder = yes
+					}
+					holder_scope = {
+						any_realm_lord = {
+							character = PREVPREVPREVPREV
+						}
+						NOT = {
+							culture = PREVPREV
+						}
+					}
+				}
+			}
+		}
+	}
+
+	# Target scope
+	target_potential = {
+		independent = yes
+		in_revolt = no
+		FROM = {
+			top_liege = {
+				character = ROOT
+			}
+		}
+		NOR = {
+			has_truce = FROM
+			has_non_aggression_pact_with = FROM
+		}
+	}
+
+	allow = {
+		FROM = {
+			capital_scope = {
+				NOT = {
+					has_province_modifier = fanned_flames_liberation
+				}
+			}
+			NOT = {
+				has_character_modifier = fanned_flames_cooldown
+			}
+		}
+	}
+
+	success = {
+		FROM = {
+			capital_scope = {
+				has_province_modifier = fanned_flames_liberation
+			}
+		}
+	}
+
+	effect = {
+		FROM = {
+			any_plot_backer = {
+				reverse_opinion = {
+					name = opinion_grateful
+					who = FROM
+					years = 5
+				}
+			}
+		}
+	}
+	
+	# ROOT is target
+	# FROM is joiner
+	# FROMFROM is plotter
+	allow_join = {
+		FROM = {
+			OR = {
+				culture = FROMFROM
+				capital_scope = {
+					kingdom = {
+						FROM = {
+							capital_scope = {
+								kingdom = {
+									title = PREVPREVPREV
+								}
+							}
+						}
+					}
+				}
+				opinion = {
+					who = ROOT
+					value < -25
+				}
+			}
+			NOR = {
+				AND = {
+					dynasty = ROOT
+					is_close_relative = ROOT
+					NOT = {
+						culture = FROMFROM
+					}
+				}
+				ROOT = {
+					current_heir = {
+						character = FROM
+					}
+				}
+			}
+		}
+	}
+
+	abort = {
+		FROM = {
+			OR = {
+				NOT = {
+					top_liege = {
+						character = ROOT
+					}
+				}
+				capital_scope = {
+					OR = {
+						NOT = {
+							culture = FROM
+						}
+						kingdom = {
+							holder_scope = {
+								culture = FROM
+							}
+						}
+						has_province_modifier = fanned_flames_liberation
+					}
+				}
+			}
+		}
+	}
+
+	chance = {
+		factor = 1 # Must always be an integer
+
+		trigger = {
+			FROM = {
+				trigger_if = {
+					limit = { ai = yes } # Needed for some reason (maybe a bug)
+
+					war = no
+
+					trigger_if = {
+						limit = {
+							OR = {
+								trait = envious
+								trait = deceitful
+								trait = ambitious
+							}
+						}
+
+						opinion = {
+							who = liege
+							value < 50
+						}
+					}
+					trigger_else = {
+						opinion = {
+							who = liege
+							value < 25
+						}
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.01
+			FROM = { trait = content }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { is_dumb_trigger = yes }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { trait = kind }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			FROM = {
+				trigger_if = {
+					limit = {
+						OR = {
+							trait = envious
+							trait = deceitful
+							trait = ambitious
+						}
+					}
+
+					opinion = {
+						who = liege
+						value >= 25
+					}
+				}
+				trigger_else = {
+					opinion = {
+						who = liege
+						value >= 0
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -50
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -75
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			FROM = { is_smart_trigger = yes }
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			FROM = { trait = envious }
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			FROM = { trait = deceitful }
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			FROM = { trait = ambitious }
+		}
+	}
+}
+
+plot_fan_the_flames_mandate = {
+	type = realm_characters
+	vassal_intrigue_plot = yes
+	murder_plot = yes # Courtiers can join
+
+	# Plotter scope
+	# ROOT is plotter
+	potential = {
+		has_dlc = "The Old Gods"
+		is_playable = yes
+		is_adult = yes
+		prisoner = no
+		#is_patrician = no
+		is_actually_incapable_trigger = no
+		in_revolt = no
+		independent = no
+		is_feudal = yes
+
+		primary_title = {
+			temporary = no
+		}
+
+		trigger_if = {
+			limit = { ai = yes }
+			war = no
+		}
+
+		gets_chinese_governments_trigger = yes
+		
+		top_liege = {
+			claims_the_mandate_trigger = yes
+			OR = {
+				has_character_modifier = mandate_of_heaven_2
+				has_character_modifier = mandate_of_heaven_1
+			}
+			NOT = {
+				dynasty = PREV
+			}
+		}
+		
+		# TIANXIATODO: Not for PRs, etc.
+		
+		capital_scope = {
+			OR = {
+				religion = taoist
+				religion = confucian
+				religion = bai_pagan
+				religion = chinese_pagan
+				religion = korean_pagan
+				religion = miao_pagan
+				religion = viet_pagan
+				religion = yi_pagan
+				religion = zhuang_pagan
+				AND = {
+					religion = buddhist
+					has_chinese_or_historical_culture_for_chinese_imperial_trigger = yes
+				}
+				has_religion_feature = religion_gov_chinese_imperial
+			}
+		}
+	}
+
+	# Target scope
+	target_potential = {
+		independent = yes
+		in_revolt = no
+		FROM = {
+			top_liege = {
+				character = ROOT
+			}
+		}
+		NOR = {
+			has_truce = FROM
+			has_non_aggression_pact_with = FROM
+		}
+	}
+
+	allow = {
+		FROM = {
+			capital_scope = {
+				NOT = {
+					has_province_modifier = fanned_flames_mandate
+				}
+			}
+			NOT = {
+				has_character_modifier = fanned_flames_cooldown
+			}
+		}
+	}
+
+	success = {
+		FROM = {
+			capital_scope = {
+				has_province_modifier = fanned_flames_mandate
+			}
+		}
+	}
+
+	effect = {
+		FROM = {
+			any_plot_backer = {
+				reverse_opinion = {
+					name = opinion_grateful
+					who = FROM
+					years = 5
+				}
+			}
+		}
+	}
+	
+	# ROOT is target
+	# FROM is joiner
+	# FROMFROM is plotter
+	allow_join = {
+		FROM = {
+			gets_chinese_governments_trigger = yes
+			NOT = {
+				dynasty = ROOT
+			}
+		}
+	}
+
+	abort = {
+		FROM = {
+			OR = {
+				NOT = {
+					top_liege = {
+						character = ROOT
+					}
+				}
+				capital_scope = {
+					NOR = {
+						religion = taoist
+						religion = confucian
+						religion = bai_pagan
+						religion = chinese_pagan
+						religion = korean_pagan
+						religion = miao_pagan
+						religion = viet_pagan
+						religion = yi_pagan
+						religion = zhuang_pagan
+						AND = {
+							religion = buddhist
+							has_chinese_or_historical_culture_for_chinese_imperial_trigger = yes
+						}
+						has_religion_feature = religion_gov_chinese_imperial
+					}
+				}
+				gets_chinese_governments_trigger = no
+				is_feudal = no
+			}
+		}
+	}
+
+	chance = {
+		factor = 1 # Must always be an integer
+
+		trigger = {
+			FROM = {
+				trigger_if = {
+					limit = { ai = yes } # Needed for some reason (maybe a bug)
+
+					war = no
+
+					trigger_if = {
+						limit = {
+							OR = {
+								trait = envious
+								trait = deceitful
+								trait = ambitious
+							}
+						}
+
+						opinion = {
+							who = liege
+							value < 50
+						}
+					}
+					trigger_else = {
+						opinion = {
+							who = liege
+							value < 25
+						}
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.01
+			FROM = { trait = content }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { is_dumb_trigger = yes }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { trait = kind }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			FROM = {
+				trigger_if = {
+					limit = {
+						OR = {
+							trait = envious
+							trait = deceitful
+							trait = ambitious
+						}
+					}
+
+					opinion = {
+						who = liege
+						value >= 25
+					}
+				}
+				trigger_else = {
+					opinion = {
+						who = liege
+						value >= 0
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -50
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -75
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			FROM = { is_smart_trigger = yes }
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			FROM = { trait = envious }
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			FROM = { trait = deceitful }
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			FROM = { trait = ambitious }
+		}
+	}
+}
+
+plot_fan_the_flames_nomad = {
+	type = realm_characters
+	vassal_intrigue_plot = yes
+	murder_plot = yes # Courtiers can join
+
+	# Plotter scope
+	# ROOT is plotter
+	potential = {
+		has_dlc = "Horse Lords"
+		is_playable = yes
+		is_adult = yes
+		prisoner = no
+		is_patrician = no
+		is_actually_incapable_trigger = no
+		in_revolt = no
+		independent = no
+
+		primary_title = {
+			temporary = no
+		}
+
+		trigger_if = {
+			limit = { ai = yes }
+			war = no
+		}
+
+		#NOT = { has_landed_title = e_china_west_governor }
+		
+		has_nomadic_tribal_government_trigger = yes
+		
+		top_liege = {
+			NOT = {
+				culture = PREV
+			}
+		}
+		
+		capital_scope = {
+			culture = PREV
+			has_province_modifier = nomadic_land
+		}
+	}
+
+	# Target scope
+	target_potential = {
+		independent = yes
+		in_revolt = no
+		FROM = {
+			top_liege = {
+				character = ROOT
+			}
+		}
+		NOR = {
+			has_truce = FROM
+			has_non_aggression_pact_with = FROM
+		}
+	}
+
+	allow = {
+		FROM = {
+			capital_scope = {
+				NOT = {
+					has_province_modifier = fanned_flames_nomad
+				}
+				has_province_modifier = nomadic_land
+			}
+			NOT = {
+				has_character_modifier = fanned_flames_cooldown
+			}
+		}
+	}
+
+	success = {
+		FROM = {
+			capital_scope = {
+				has_province_modifier = fanned_flames_nomad
+				has_province_modifier = nomadic_land
+			}
+		}
+	}
+
+	effect = {
+		FROM = {
+			any_plot_backer = {
+				reverse_opinion = {
+					name = opinion_grateful
+					who = FROM
+					years = 5
+				}
+			}
+		}
+	}
+	
+	# ROOT is target
+	# FROM is joiner
+	# FROMFROM is plotter
+	allow_join = {
+		FROM = {
+			OR = {
+				culture = FROMFROM
+				opinion = {
+					who = ROOT
+					value < -25
+				}
+			}
+			NOR = {
+				AND = {
+					dynasty = ROOT
+					is_close_relative = ROOT
+					NOT = {
+						culture = FROMFROM
+					}
+				}
+				ROOT = {
+					current_heir = {
+						character = FROM
+					}
+				}
+			}
+		}
+	}
+
+	abort = {
+		FROM = {
+			OR = {
+				NOT = {
+					top_liege = {
+						character = ROOT
+					}
+				}
+				capital_scope = {
+					OR = {
+						NOT = {
+							culture = FROM
+						}
+						has_province_modifier = fanned_flames_nomad
+						NOT = {
+							has_province_modifier = nomadic_land
+						}
+					}
+				}
+				has_nomadic_tribal_government_trigger = no
+			}
+		}
+	}
+
+	chance = {
+		factor = 1 # Must always be an integer
+
+		trigger = {
+			FROM = {
+				trigger_if = {
+					limit = { ai = yes } # Needed for some reason (maybe a bug)
+
+					war = no
+
+					trigger_if = {
+						limit = {
+							OR = {
+								trait = envious
+								trait = deceitful
+								trait = ambitious
+							}
+						}
+
+						opinion = {
+							who = liege
+							value < 50
+						}
+					}
+					trigger_else = {
+						opinion = {
+							who = liege
+							value < 25
+						}
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 0.01
+			FROM = { trait = content }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { is_dumb_trigger = yes }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+			FROM = { trait = kind }
+		}
+
+		mult_modifier = {
+			factor = 0.2
+
+			FROM = {
+				trigger_if = {
+					limit = {
+						OR = {
+							trait = envious
+							trait = deceitful
+							trait = ambitious
+						}
+					}
+
+					opinion = {
+						who = liege
+						value >= 25
+					}
+				}
+				trigger_else = {
+					opinion = {
+						who = liege
+						value >= 0
+					}
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -50
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+
+			FROM = {
+				opinion = {
+					who = liege
+					value < -75
+				}
+			}
+		}
+
+		mult_modifier = {
+			factor = 1.5
+			FROM = { is_smart_trigger = yes }
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			FROM = { trait = envious }
+		}
+
+		mult_modifier = {
+			factor = 2.0
+			FROM = { trait = deceitful }
+		}
+
+		mult_modifier = {
+			factor = 4.0
+			FROM = { trait = ambitious }
+		}
+	}
+}
