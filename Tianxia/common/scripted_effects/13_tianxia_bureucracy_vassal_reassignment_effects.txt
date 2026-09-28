@@ -1,0 +1,1545 @@
+# grant_county_and_assign_proper_liege
+# grant_county_and_assign_same_liege
+# swap_county_and_assign_proper_lieges
+# swap_county_and_assign_same_lieges
+# swap_viceroy_duchy_with_vassal
+# swap_viceroy_duchies_and_assign_proper_lieges
+# swap_viceroy_duchies_and_assign_same_lieges
+# swap_viceroy_kingdom_with_vassal
+# swap_viceroy_kingdoms
+
+# Titles are <tier>_A/B, vassals are vassal_A/B, lieges are liege_A/B, liege doing the reshuffling is title_swapper
+
+grant_county_and_assign_proper_liege = {
+	event_target:vassal_A = {
+		liege = {
+			save_event_target_as = liege_A
+		}
+	}
+	
+	event_target:county_A = {
+		# Title is granted to liege without opinion adjustments/claims
+		grant_title_no_opinion = event_target:title_swapper
+		remove_claim = event_target:vassal_A
+		
+		# Title is granted to the new holder
+		grant_title = event_target:vassal_B
+		
+		# The county is assigned to the correct de jure duke or the correct de jure king, if possible
+		if = {
+			limit = {
+				dejure_liege_title = {
+					holder_scope = {
+						OR = {
+							character = event_target:title_swapper
+							any_liege = {
+								character = event_target:title_swapper
+							}
+						}
+					}
+				}
+			}
+			dejure_liege_title = {
+				holder_scope = {
+					set_defacto_vassal = event_target:county_A
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				dejure_liege_title = {
+					dejure_liege_title = {
+						holder_scope = {
+							OR = {
+								character = event_target:title_swapper
+								any_liege = {
+									character = event_target:title_swapper
+								}
+							}
+						}
+					}
+				}
+			}
+			dejure_liege_title = {
+				dejure_liege_title = {
+					holder_scope = {
+						set_defacto_vassal = event_target:county_A
+					}
+				}
+			}
+		}
+	}
+}
+
+grant_county_and_assign_same_liege = {
+	event_target:vassal_A = {
+		liege = {
+			save_event_target_as = liege_A
+		}
+	}
+	
+	event_target:county_A = {
+		# Title is granted to liege without opinion adjustments/claims
+		grant_title_no_opinion = event_target:title_swapper
+		remove_claim = event_target:vassal_A
+		
+		# Title is granted to the new holder
+		grant_title = event_target:vassal_B
+		
+		# The county is assigned to A's liege
+		if = {
+			limit = {
+				event_target:liege_A = {
+					NOT = {
+						character = event_target:title_swapper
+					}
+				}
+			}
+			event_target:liege_A = {
+				set_defacto_vassal = event_target:county_A
+			}
+		}
+	}
+}
+
+swap_county_and_assign_proper_lieges = {
+	event_target:vassal_A = {
+		liege = {
+			save_event_target_as = liege_A
+		}
+	}
+	event_target:vassal_B = {
+		liege = {
+			save_event_target_as = liege_B
+		}
+	}
+	
+	# Make sure we can handle claims
+	if = {
+		limit = {
+			event_target:county_A = {
+				NOT = {
+					claimed_by = event_target:liege_A
+				}
+			}
+		}
+		event_target:liege_A = {
+			set_character_flag = vassal_swap_no_claim_A
+		}
+	}
+	if = {
+		limit = {
+			event_target:county_B = {
+				NOT = {
+					claimed_by = event_target:liege_B
+				}
+			}
+		}
+		event_target:liege_B = {
+			set_character_flag = vassal_swap_no_claim_B
+		}
+	}
+	
+	# Temporary title creation
+	event_target:vassal_A = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	create_title = {
+		tier = DUKE
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_A
+		landless = yes
+	}
+	
+	create_title = {
+		tier = DUKE
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_B
+		landless = yes
+	}
+	
+	# Swap counties
+	event_target:vassal_A = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			save_event_target_as = temp_A
+		}
+		grant_title_no_opinion = event_target:county_B
+		event_target:temp_A = {
+			unsafe_destroy_landed_title = THIS
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+	}
+	
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			save_event_target_as = temp_B
+		}
+		grant_title_no_opinion = event_target:county_A
+		event_target:temp_B = {
+			unsafe_destroy_landed_title = THIS
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+	}
+	
+	# The county is assigned to the correct de jure duke, the correct de jure king, or put under A's original liege
+	event_target:county_A = {
+		if = {
+			limit = {
+				dejure_liege_title = {
+					holder_scope = {
+						OR = {
+							character = event_target:title_swapper
+							any_liege = {
+								character = event_target:title_swapper
+							}
+						}
+					}
+				}
+			}
+			dejure_liege_title = {
+				holder_scope = {
+					set_defacto_vassal = event_target:county_A
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				dejure_liege_title = {
+					dejure_liege_title = {
+						holder_scope = {
+							OR = {
+								character = event_target:title_swapper
+								any_liege = {
+									character = event_target:title_swapper
+								}
+							}
+						}
+					}
+				}
+			}
+			dejure_liege_title = {
+				dejure_liege_title = {
+					holder_scope = {
+						set_defacto_vassal = event_target:county_A
+					}
+				}
+			}
+		}
+		else = {
+			if = {
+				limit = {
+					event_target:liege_A = {
+						NOT = {
+							character = event_target:title_swapper
+						}
+					}
+				}
+				event_target:liege_A = {
+					set_defacto_vassal = event_target:county_A
+				}
+			}
+		}
+	}
+	
+	# The county is assigned to the correct de jure duke or the correct de jure king, if possible
+	event_target:county_B = {
+		if = {
+			limit = {
+				dejure_liege_title = {
+					holder_scope = {
+						OR = {
+							character = event_target:title_swapper
+							any_liege = {
+								character = event_target:title_swapper
+							}
+						}
+					}
+				}
+			}
+			dejure_liege_title = {
+				holder_scope = {
+					set_defacto_vassal = event_target:county_B
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				dejure_liege_title = {
+					dejure_liege_title = {
+						holder_scope = {
+							OR = {
+								character = event_target:title_swapper
+								any_liege = {
+									character = event_target:title_swapper
+								}
+							}
+						}
+					}
+				}
+			}
+			dejure_liege_title = {
+				dejure_liege_title = {
+					holder_scope = {
+						set_defacto_vassal = event_target:county_B
+					}
+				}
+			}
+		}
+	}
+	
+	# Claim cleanup
+	if = {
+		limit = {
+			event_target:liege_A = {
+				has_character_flag = vassal_swap_no_claim_A
+			}
+		}
+		
+		event_target:liege_A = {
+			remove_claim = event_target:county_A
+			clr_character_flag = vassal_swap_no_claim_A
+		}
+	}
+	
+	# Claim cleanup
+	if = {
+		limit = {
+			event_target:liege_B = {
+				has_character_flag = vassal_swap_no_claim_B
+			}
+		}
+		
+		event_target:liege_B = {
+			remove_claim = event_target:county_B
+			clr_character_flag = vassal_swap_no_claim_B
+		}
+	}
+}
+
+swap_county_and_assign_same_lieges = {
+	event_target:vassal_A = {
+		liege = {
+			save_event_target_as = liege_A
+		}
+	}
+	event_target:vassal_B = {
+		liege = {
+			save_event_target_as = liege_B
+		}
+	}
+	
+	# Make sure we can handle claims
+	if = {
+		limit = {
+			event_target:county_A = {
+				NOT = {
+					claimed_by = event_target:liege_A
+				}
+			}
+		}
+		event_target:liege_A = {
+			set_character_flag = vassal_swap_no_claim_A
+		}
+	}
+	if = {
+		limit = {
+			event_target:county_B = {
+				NOT = {
+					claimed_by = event_target:liege_B
+				}
+			}
+		}
+		event_target:liege_B = {
+			set_character_flag = vassal_swap_no_claim_B
+		}
+	}
+	
+	# Temporary title creation
+	event_target:vassal_A = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	create_title = {
+		tier = DUKE
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_A
+		landless = yes
+	}
+	
+	create_title = {
+		tier = DUKE
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_B
+		landless = yes
+	}
+	
+	# Swap counties
+	event_target:vassal_A = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			save_event_target_as = temp_A
+		}
+		grant_title_no_opinion = event_target:county_B
+		event_target:temp_A = {
+			unsafe_destroy_landed_title = THIS
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+	}
+	
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			save_event_target_as = temp_B
+		}
+		grant_title_no_opinion = event_target:county_A
+		event_target:temp_B = {
+			unsafe_destroy_landed_title = THIS
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+	}
+	
+	# The county is put under A's original liege
+	event_target:county_A = {
+		if = {
+			limit = {
+				event_target:liege_A = {
+					NOT = {
+						character = event_target:title_swapper
+					}
+				}
+			}
+			event_target:liege_A = {
+				set_defacto_vassal = event_target:county_A
+			}
+		}
+	}
+	
+	# The county is put under B's original liege
+	event_target:county_B = {
+		if = {
+			limit = {
+				event_target:liege_B = {
+					NOT = {
+						character = event_target:title_swapper
+					}
+				}
+			}
+			event_target:liege_B = {
+				set_defacto_vassal = event_target:county_B
+			}
+		}
+	}
+	
+	# Claim cleanup
+	if = {
+		limit = {
+			event_target:liege_A = {
+				has_character_flag = vassal_swap_no_claim_A
+			}
+		}
+		
+		event_target:liege_A = {
+			remove_claim = event_target:county_A
+			clr_character_flag = vassal_swap_no_claim_A
+		}
+	}
+	
+	# Claim cleanup
+	if = {
+		limit = {
+			event_target:liege_B = {
+				has_character_flag = vassal_swap_no_claim_B
+			}
+		}
+		
+		event_target:liege_B = {
+			remove_claim = event_target:county_B
+			clr_character_flag = vassal_swap_no_claim_B
+		}
+	}
+}
+
+swap_viceroy_duchy_with_vassal = {
+	event_target:vassal_A = {
+		liege = {
+			save_event_target_as = liege_A
+		}
+	}
+	
+	# Make sure we can handle claims
+	if = {
+		limit = {
+			event_target:duchy_A = {
+				NOT = {
+					claimed_by = event_target:liege_A
+				}
+			}
+		}
+		event_target:liege_A = {
+			set_character_flag = vassal_swap_no_claim_A
+		}
+	}
+	if = {
+		limit = {
+			event_target:duchy_A = {
+				capital_scope = {
+					county = {
+						NOT = {
+							claimed_by = event_target:liege_A
+						}
+					}
+				}
+			}
+		}
+		event_target:liege_A = {
+			set_character_flag = vassal_swap_no_claim_AA
+		}
+	}
+		
+	# Temporary title creation
+	event_target:vassal_A = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	create_title = {
+		tier = DUKE
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_A
+		landless = yes
+	}
+	
+	create_title = {
+		tier = DUKE
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_B
+		landless = yes
+	}
+	
+	# First off, if the old viceroy held the de jure capital of the viceroyalty, hand that over, swapping titles if necessary
+	if = {
+		limit = {
+			event_target:duchy_A = {
+				capital_scope = {
+					county = {
+						holder_scope = {
+							character = event_target:vassal_A
+						}
+					}
+				}
+			}
+		}
+		
+		event_target:duchy_A = {
+			capital_scope = {
+				county = {
+					save_event_target_as = county_A
+				}
+			}
+		}
+		
+		event_target:vassal_B = {
+			grant_title_no_opinion = event_target:county_A
+		}
+		
+		# If vassal A lost their last county, give them a county from B
+		if = {
+			limit = {
+				event_target:vassal_B = {
+					NOT = {
+						any_demesne_title = {
+							tier = count
+						}
+					}
+				}
+			}
+			
+			event_target:vassal_B = {
+				random_demesne_title = {
+					limit = {
+						tier = count
+						NOT = {
+							title = event_target:county_A
+						}
+					}
+					preferred_limit = {
+						capital_holding = {
+							holding_type = castle
+						}
+						NOT = {
+							dejure_liege_title = {
+								title = event_target:duchy_A
+							}
+						}
+					}
+					preferred_limit = {
+						capital_holding = {
+							holding_type = castle
+						}
+					}
+					preferred_limit = {
+						NOT = {
+							dejure_liege_title = {
+								title = event_target:duchy_A
+							}
+						}
+					}
+					
+					grant_title_no_opinion = event_target:vassal_A
+				}
+			}
+		}
+	}
+	
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			save_event_target_as = temp_B
+		}
+		grant_title_no_opinion = event_target:duchy_A
+		event_target:temp_B = {
+			unsafe_destroy_landed_title = THIS
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+		
+		set_defacto_liege = event_target:liege_A
+	}
+
+	event_target:vassal_A  = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			unsafe_destroy_landed_title = THIS
+		}
+		if = {
+			limit = {
+				lower_real_tier_than = duke
+			}
+			set_defacto_liege = event_target:vassal_B
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+	}
+	
+	# Claim cleanup
+	if = {
+		limit = {
+			event_target:liege_A = {
+				has_character_flag = vassal_swap_no_claim_A
+			}
+		}
+		
+		event_target:liege_A = {
+			remove_claim = event_target:duchy_A
+			clr_character_flag = vassal_swap_no_claim_A
+		}
+	}
+	
+	# Claim cleanup
+	if = {
+		limit = {
+			event_target:liege_A = {
+				has_character_flag = vassal_swap_no_claim_AA
+			}
+		}
+		
+		event_target:liege_A = {
+			remove_claim = event_target:county_A
+			clr_character_flag = vassal_swap_no_claim_AA
+		}
+	}
+}
+
+swap_viceroy_duchies_and_assign_proper_lieges = {
+	event_target:vassal_A = {
+		liege = {
+			save_event_target_as = liege_A
+		}
+	}
+	
+	event_target:vassal_B = {
+		liege = {
+			save_event_target_as = liege_B
+		}
+	}
+	
+	# Make sure we can handle claims
+	if = {
+		limit = {
+			event_target:duchy_A = {
+				NOT = {
+					claimed_by = event_target:liege_A
+				}
+			}
+		}
+		event_target:liege_A = {
+			set_character_flag = vassal_swap_no_claim_A
+		}
+	}
+	if = {
+		limit = {
+			event_target:duchy_B = {
+				NOT = {
+					claimed_by = event_target:liege_B
+				}
+			}
+		}
+		event_target:liege_B = {
+			set_character_flag = vassal_swap_no_claim_B
+		}
+	}
+		
+	# Temporary title creation
+	event_target:vassal_A = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	create_title = {
+		tier = DUKE
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_A
+		landless = yes
+	}
+	
+	create_title = {
+		tier = DUKE
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_B
+		landless = yes
+	}
+	
+	# Swap vassals
+	event_target:vassal_A = {
+		any_vassal = {
+			limit = {
+				lower_real_tier_than = duke
+				de_jure_liege_or_above = event_target:duchy_A
+			}
+			set_defacto_liege = event_target:vassal_B
+		}
+	}
+	event_target:vassal_B = {
+		any_vassal = {
+			limit = {
+				lower_real_tier_than = duke
+				de_jure_liege_or_above = event_target:duchy_B
+			}
+			set_defacto_liege = event_target:vassal_B
+		}
+	}
+	
+	# Swap lower titles
+	event_target:vassal_A = {
+		any_demesne_title = {
+			limit = {
+				de_jure_liege_or_above = event_target:duchy_A
+			}
+			grant_title_no_opinion = event_target:vassal_B
+		}
+	}
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				de_jure_liege_or_above = event_target:duchy_B
+			}
+			grant_title_no_opinion = event_target:vassal_A
+		}
+	}
+	
+	# And viceroyalties
+	event_target:vassal_B = {
+		grant_title_no_opinion = event_target:duchy_A
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			unsafe_destroy_landed_title = THIS
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+		
+		set_defacto_liege = event_target:liege_A
+	}
+
+	event_target:vassal_A  = {
+		grant_title_no_opinion = event_target:duchy_B
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			unsafe_destroy_landed_title = THIS
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+	}
+	
+	# Claim cleanup
+	if = {
+		limit = {
+			event_target:liege_A = {
+				has_character_flag = vassal_swap_no_claim_A
+			}
+		}
+		
+		event_target:liege_A = {
+			remove_claim = event_target:duchy_A
+			clr_character_flag = vassal_swap_no_claim_A
+		}
+	}
+	
+	# Claim cleanup
+	if = {
+		limit = {
+			event_target:liege_B = {
+				has_character_flag = vassal_swap_no_claim_B
+			}
+		}
+		
+		event_target:liege_B = {
+			remove_claim = event_target:duchy_B
+			clr_character_flag = vassal_swap_no_claim_B
+		}
+	}
+	
+	# The duchies are assigned to the correct de jure king(s), if possible
+	if = {
+		limit = {
+			event_target:duchy_A = {
+				dejure_liege_title = {
+					holder_scope = {
+						OR = {
+							character = event_target:title_swapper
+							any_liege = {
+								character = event_target:title_swapper
+							}
+						}
+					}
+				}
+			}
+		}
+		event_target:duchy_A = {
+			dejure_liege_title = {
+				holder_scope = {
+					set_defacto_vassal = event_target:duchy_A
+				}
+			}
+		 }
+	}
+	if = {
+		limit = {
+			event_target:duchy_B = {
+				dejure_liege_title = {
+					holder_scope = {
+						OR = {
+							character = event_target:title_swapper
+							any_liege = {
+								character = event_target:title_swapper
+							}
+						}
+					}
+				}
+			}
+		}
+		event_target:duchy_B = {
+			dejure_liege_title = {
+				holder_scope = {
+					set_defacto_vassal = event_target:duchy_B
+				}
+			}
+		 }
+	}
+}
+
+swap_viceroy_duchies_and_assign_same_lieges = {
+	event_target:vassal_A = {
+		liege = {
+			save_event_target_as = liege_A
+		}
+	}
+	
+	event_target:vassal_B = {
+		liege = {
+			save_event_target_as = liege_B
+		}
+	}
+	
+	# Make sure we can handle claims
+	if = {
+		limit = {
+			event_target:duchy_A = {
+				NOT = {
+					claimed_by = event_target:liege_A
+				}
+			}
+		}
+		event_target:liege_A = {
+			set_character_flag = vassal_swap_no_claim_A
+		}
+	}
+	if = {
+		limit = {
+			event_target:duchy_B = {
+				NOT = {
+					claimed_by = event_target:liege_B
+				}
+			}
+		}
+		event_target:liege_B = {
+			set_character_flag = vassal_swap_no_claim_B
+		}
+	}
+		
+	# Temporary title creation
+	event_target:vassal_A = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	create_title = {
+		tier = DUKE
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_A
+		landless = yes
+	}
+	
+	create_title = {
+		tier = DUKE
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_B
+		landless = yes
+	}
+	
+	# Swap vassals
+	event_target:vassal_A = {
+		any_vassal = {
+			limit = {
+				lower_real_tier_than = duke
+				de_jure_liege_or_above = event_target:duchy_A
+			}
+			set_defacto_liege = event_target:vassal_B
+		}
+	}
+	event_target:vassal_B = {
+		any_vassal = {
+			limit = {
+				lower_real_tier_than = duke
+				de_jure_liege_or_above = event_target:duchy_B
+			}
+			set_defacto_liege = event_target:vassal_B
+		}
+	}
+	
+	# Swap lower titles
+	event_target:vassal_A = {
+		any_demesne_title = {
+			limit = {
+				de_jure_liege_or_above = event_target:duchy_A
+			}
+			grant_title_no_opinion = event_target:vassal_B
+		}
+	}
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				de_jure_liege_or_above = event_target:duchy_B
+			}
+			grant_title_no_opinion = event_target:vassal_A
+		}
+	}
+	
+	# And viceroyalties
+	event_target:vassal_B = {
+		grant_title_no_opinion = event_target:duchy_A
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			unsafe_destroy_landed_title = THIS
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+		
+		set_defacto_liege = event_target:liege_A
+	}
+
+	event_target:vassal_A  = {
+		grant_title_no_opinion = event_target:duchy_B
+		any_demesne_title = {
+			limit = {
+				tier = duke
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			unsafe_destroy_landed_title = THIS
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+	}
+	
+	# Claim cleanup
+	if = {
+		limit = {
+			event_target:liege_A = {
+				has_character_flag = vassal_swap_no_claim_A
+			}
+		}
+		
+		event_target:liege_A = {
+			remove_claim = event_target:duchy_A
+			clr_character_flag = vassal_swap_no_claim_A
+		}
+	}
+	
+	# Claim cleanup
+	if = {
+		limit = {
+			event_target:liege_B = {
+				has_character_flag = vassal_swap_no_claim_B
+			}
+		}
+		
+		event_target:liege_B = {
+			remove_claim = event_target:duchy_B
+			clr_character_flag = vassal_swap_no_claim_B
+		}
+	}
+	
+	# The duchy is put under A's original liege
+	event_target:duchy_A = {
+		if = {
+			limit = {
+				event_target:liege_A = {
+					NOT = {
+						character = event_target:title_swapper
+					}
+				}
+			}
+			event_target:liege_A = {
+				set_defacto_vassal = event_target:duchy_A
+			}
+		}
+	}
+	
+	# The duchy is put under B's original liege
+	event_target:duchy_B = {
+		if = {
+			limit = {
+				event_target:liege_B = {
+					NOT = {
+						character = event_target:title_swapper
+					}
+				}
+			}
+			event_target:liege_B = {
+				set_defacto_vassal = event_target:duchy_B
+			}
+		}
+	}
+}
+
+swap_viceroy_kingdom_with_vassal = {
+	# Temporary title creation
+	event_target:vassal_A = {
+		any_demesne_title = {
+			limit = {
+				tier = king
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				tier = king
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	create_title = {
+		tier = KING
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_A
+		landless = yes
+	}
+	
+	create_title = {
+		tier = KING
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_B
+		landless = yes
+	}
+	
+	# First off, if the old viceroy held the de jure capital of the viceroyalty, hand that over, swapping titles if necessary
+	if = {
+		limit = {
+			event_target:kingdom_A = {
+				capital_scope = {
+					county = {
+						holder_scope = {
+							character = event_target:vassal_A
+						}
+					}
+				}
+			}
+		}
+		
+		event_target:kingdom_A = {
+			capital_scope = {
+				county = {
+					save_event_target_as = county_A
+				}
+			}
+		}
+		
+		event_target:vassal_B = {
+			grant_title_no_opinion = event_target:county_A
+		}
+		
+		# If vassal A lost their last county, give them a county from B
+		if = {
+			limit = {
+				event_target:vassal_B = {
+					NOT = {
+						any_demesne_title = {
+							tier = count
+						}
+					}
+				}
+			}
+			
+			event_target:vassal_B = {
+				random_demesne_title = {
+					limit = {
+						tier = count
+						NOT = {
+							title = event_target:county_A
+						}
+					}
+					preferred_limit = {
+						capital_holding = {
+							holding_type = castle
+						}
+						NOT = {
+							dejure_liege_title = {
+								title = event_target:kingdom_A
+							}
+						}
+					}
+					preferred_limit = {
+						capital_holding = {
+							holding_type = castle
+						}
+					}
+					preferred_limit = {
+						NOT = {
+							dejure_liege_title = {
+								title = event_target:kingdom_A
+							}
+						}
+					}
+					
+					grant_title_no_opinion = event_target:vassal_A
+				}
+			}
+		}
+	}
+	
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				tier = king
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			save_event_target_as = temp_B
+		}
+		grant_title_no_opinion = event_target:kingdom_A
+		event_target:temp_B = {
+			unsafe_destroy_landed_title = THIS
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+	}
+
+	event_target:vassal_A  = {
+		any_demesne_title = {
+			limit = {
+				tier = king
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			unsafe_destroy_landed_title = THIS
+		}
+		any_vassal = {
+			limit = {
+				higher_real_tier_than = baron
+				de_jure_liege_or_above = event_target:kingdom_A
+			}
+			set_defacto_liege = event_target:kingdom_A
+		}
+		if = {
+			limit = {
+				lower_real_tier_than = king
+			}
+			set_defacto_liege = event_target:vassal_B
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+	}
+}
+
+swap_viceroy_kingdoms = {
+	# Temporary title creation
+	event_target:vassal_A = {
+		any_demesne_title = {
+			limit = {
+				tier = king
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				tier = king
+				is_landless_type_title = yes
+			}
+			set_title_flag = do_not_destroy
+		}
+	}
+	
+	create_title = {
+		tier = KING
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_A
+		landless = yes
+	}
+	
+	create_title = {
+		tier = KING
+		name = HOUSE
+		ruler = LORD
+		ruler_female = LADY
+		holder = event_target:vassal_B
+		landless = yes
+	}
+	
+	# Swap vassals
+	event_target:vassal_A = {
+		any_vassal = {
+			limit = {
+				lower_real_tier_than = king
+				de_jure_liege_or_above = event_target:kingdom_A
+			}
+			set_defacto_liege = event_target:vassal_B
+		}
+	}
+	event_target:vassal_B = {
+		any_vassal = {
+			limit = {
+				lower_real_tier_than = king
+				de_jure_liege_or_above = event_target:kingdom_B
+			}
+			set_defacto_liege = event_target:vassal_B
+		}
+	}
+	
+	# Swap lower titles
+	event_target:vassal_A = {
+		any_demesne_title = {
+			limit = {
+				de_jure_liege_or_above = event_target:kingdom_A
+			}
+			grant_title_no_opinion = event_target:vassal_B
+		}
+	}
+	event_target:vassal_B = {
+		any_demesne_title = {
+			limit = {
+				de_jure_liege_or_above = event_target:kingdom_B
+			}
+			grant_title_no_opinion = event_target:vassal_A
+		}
+	}
+	
+	# And viceroyalties
+	event_target:vassal_B = {
+		grant_title_no_opinion = event_target:kingdom_A
+		any_demesne_title = {
+			limit = {
+				tier = king
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			unsafe_destroy_landed_title = THIS
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+		
+		set_defacto_liege = event_target:liege_A
+	}
+
+	event_target:vassal_A  = {
+		grant_title_no_opinion = event_target:kingdom_B
+		any_demesne_title = {
+			limit = {
+				tier = king
+				is_landless_type_title = yes
+				NOT = {
+					has_title_flag = do_not_destroy
+				}
+			}
+			unsafe_destroy_landed_title = THIS
+		}
+		any_demesne_title = {
+			limit = {
+				has_title_flag = do_not_destroy
+			}
+			clr_title_flag = do_not_destroy
+		}
+	}
+	
+	# Swap vassals
+	event_target:vassal_B = {
+		any_vassal = {
+			limit = {
+				de_jure_liege_or_above = event_target:kingdom_B
+			}
+			set_defacto_liege = event_target:kingdom_B
+		}
+	}
+
+	event_target:vassal_A = {
+		any_vassal = {
+			limit = {
+				de_jure_liege_or_above = event_target:kingdom_A
+			}
+			set_defacto_liege = event_target:kingdom_A
+		}
+	}
+}
